@@ -1,6 +1,6 @@
 # embed-emulation
 
-**Native Transistor-Level Emulator** — simulator elektronika native Rust yang memodelkan transistor, gerbang CMOS, CPU AVR, peripheral, dan board, serta mampu menjalankan firmware AVR/Arduino.
+**Native Transistor-Level Emulator** - simulator elektronika native Rust yang memodelkan transistor, gerbang CMOS, CPU AVR, peripheral, dan board, serta mampu menjalankan firmware AVR/Arduino.
 
 > **Status:** desain / brainstorming. Belum ada kode implementasi.
 > Dokumen ini adalah spesifikasi proyek, bukan klaim bahwa seluruh fitur sudah selesai.
@@ -49,6 +49,7 @@ Baca berurutan:
 
 | Dokumen | Isi |
 |---|---|
+| [`AGENTS.md`](AGENTS.md) | Aturan wajib agent dan kontributor |
 | [`docs/00-vision.md`](docs/00-vision.md) | Visi, tujuan, non-goal, definisi keberhasilan |
 | [`docs/01-decisions.md`](docs/01-decisions.md) | Decision log lengkap dan resolusi kontradiksi |
 | [`docs/02-architecture.md`](docs/02-architecture.md) | Arsitektur workspace, netlist, waktu, API |
@@ -57,7 +58,7 @@ Baca berurutan:
 | [`docs/05-peripherals.md`](docs/05-peripherals.md) | GPIO, timer, UART, SPI, I2C, ADC, dan lainnya |
 | [`docs/06-board-firmware.md`](docs/06-board-firmware.md) | Board, komponen, toolchain firmware, demo |
 | [`docs/07-verification.md`](docs/07-verification.md) | Strategi verifikasi, oracle, fidelity matrix |
-| [`docs/08-roadmap.md`](docs/08-roadmap.md) | Milestone M0–M9 dan exit criteria |
+| [`docs/08-roadmap.md`](docs/08-roadmap.md) | Milestone M0-M9 dan exit criteria |
 | [`docs/09-risks.md`](docs/09-risks.md) | Risiko, realisme, dan guardrail scope |
 | [`TODO.md`](TODO.md) | **Todolist lengkap dari hal terkecil** |
 
@@ -67,18 +68,18 @@ Baca berurutan:
 
 Urutan implementasi yang disarankan:
 
-1. **P0** — pasang Rust, buat workspace kosong.
-2. **P1** — matematika: waktu, satuan, dense matrix, LU.
-3. **P3** — device: MOSFET Level 1, R, C, sumber.
-4. **P4** — MNA, DC sweep, transient.
-5. **M1** — inverter CMOS dan kurva VTC sebagai hasil nyata pertama.
+1. **P0** - pasang Rust, buat workspace kosong.
+2. **P1** - matematika: waktu, satuan, dense matrix, LU.
+3. **P3** - device: MOSFET Level 1, R, C, sumber.
+4. **P4** - MNA, DC sweep, transient.
+5. **M1** - inverter CMOS dan kurva VTC sebagai hasil nyata pertama.
 6. Baru setelah itu pustaka CMOS, ALU, CPU AVR, dan peripheral.
 
 Todolist rinci ada di [`TODO.md`](TODO.md).
 
 ---
 
-## 5. Definisi “100% native” dan “100% berfungsi”
+## 5. Definisi "100% native" dan "100% berfungsi"
 
 **100% native** berarti:
 
@@ -95,7 +96,7 @@ Todolist rinci ada di [`TODO.md`](TODO.md).
 - Tegangan node analog berada dalam toleransi yang dinyatakan.
 - Timing mendekati hardware, dengan toleransi yang didokumentasikan.
 
-Klaim “100%” selalu terikat pada **profile, fitur, dan toleransi** yang diuji, bukan seluruh elektronika di dunia.
+Klaim "100%" selalu terikat pada **profile, fitur, dan toleransi** yang diuji, bukan seluruh elektronika di dunia.
 
 ---
 
