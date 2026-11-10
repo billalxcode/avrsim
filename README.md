@@ -62,6 +62,8 @@ Baca berurutan:
 | [`docs/09-risks.md`](docs/09-risks.md) | Risiko, realisme, dan guardrail scope |
 | [`docs/10-math-api.md`](docs/10-math-api.md) | API waktu, satuan, complex, matrix, LU, error |
 | [`docs/11-netlist.md`](docs/11-netlist.md) | Netlist core, builder, subcircuit, macro, validasi |
+| [`docs/12-device-models.md`](docs/12-device-models.md) | Model device dan batasannya |
+| [`docs/13-analysis.md`](docs/13-analysis.md) | MNA, DC, sweep, transient, hasil M1 |
 | [`TODO.md`](TODO.md) | **Todolist lengkap dari hal terkecil** |
 
 ---

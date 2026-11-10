@@ -2,7 +2,7 @@
 
 Daftar tugas lengkap dari hal terkecil sampai rilis. Setiap item harus kecil, dapat diuji, dan tidak menambah dependensi eksternal.
 
-> **Status:** fondasi P1 dan netlist P2 selesai. Implementasi device dan analisis belum dimulai. Lanjut ke P3.
+> **Status:** P1, P2, subset P3/P4 selesai. M1 inverter VTC dan RC transient lulus. Lanjut ke P5.
 > **Aturan:** satu item selesai = kode + test + dokumentasi singkat.
 
 ---
@@ -136,31 +136,31 @@ Daftar tugas lengkap dari hal terkecil sampai rilis. Setiap item harus kecil, da
 
 ## P3 - Device Models
 
-- [ ] P3-01 Definisikan parameter MOSFET Level 1.
+- [x] P3-01 Definisikan parameter MOSFET Level 1.
 - [ ] P3-02 Implementasikan perhitungan `Vth` dengan body effect.
-- [ ] P3-03 Implementasikan region cutoff.
-- [ ] P3-04 Implementasikan region linear.
-- [ ] P3-05 Implementasikan region saturation.
-- [ ] P3-06 Implementasikan channel-length modulation.
-- [ ] P3-07 Implementasikan polaritas NMOS.
-- [ ] P3-08 Implementasikan polaritas PMOS.
-- [ ] P3-09 Implementasikan `gm`.
-- [ ] P3-10 Implementasikan `gds`.
+- [x] P3-03 Implementasikan region cutoff.
+- [x] P3-04 Implementasikan region linear.
+- [x] P3-05 Implementasikan region saturation.
+- [x] P3-06 Implementasikan channel-length modulation.
+- [x] P3-07 Implementasikan polaritas NMOS.
+- [x] P3-08 Implementasikan polaritas PMOS.
+- [x] P3-09 Implementasikan `gm`.
+- [x] P3-10 Implementasikan `gds`.
 - [ ] P3-11 Implementasikan `gmb`.
-- [ ] P3-12 Implementasikan Jacobian MOSFET.
+- [x] P3-12 Implementasikan Jacobian MOSFET.
 - [ ] P3-13 Implementasikan kapasitansi Meyer cutoff.
 - [ ] P3-14 Implementasikan kapasitansi Meyer linear.
 - [ ] P3-15 Implementasikan kapasitansi Meyer saturation.
 - [ ] P3-16 Implementasikan overlap capacitance.
-- [ ] P3-17 Implementasikan resistor.
-- [ ] P3-18 Implementasikan kapasitor.
-- [ ] P3-19 Implementasikan companion model kapasitor Backward Euler.
-- [ ] P3-20 Implementasikan induktor.
-- [ ] P3-21 Implementasikan companion model induktor Backward Euler.
-- [ ] P3-22 Implementasikan voltage source.
-- [ ] P3-23 Implementasikan current source.
-- [ ] P3-24 Implementasikan dioda Shockley.
-- [ ] P3-25 Implementasikan Jacobian dioda.
+- [x] P3-17 Implementasikan resistor.
+- [x] P3-18 Implementasikan kapasitor.
+- [x] P3-19 Implementasikan companion model kapasitor Backward Euler.
+- [x] P3-20 Implementasikan induktor.
+- [x] P3-21 Implementasikan companion model induktor Backward Euler.
+- [x] P3-22 Implementasikan voltage source.
+- [x] P3-23 Implementasikan current source.
+- [x] P3-24 Implementasikan dioda Shockley.
+- [x] P3-25 Implementasikan Jacobian dioda.
 - [ ] P3-26 Implementasikan series resistance dioda.
 - [ ] P3-27 Implementasikan kapasitansi junction dioda.
 - [ ] P3-28 Implementasikan BJT Ebers-Moll.
@@ -171,19 +171,19 @@ Daftar tugas lengkap dari hal terkecil sampai rilis. Setiap item harus kecil, da
 - [ ] P3-33 Implementasikan CCCS.
 - [ ] P3-34 Implementasikan voltage-controlled switch.
 - [ ] P3-35 Siapkan placeholder transmission line.
-- [ ] P3-36 Implementasikan default parameter.
-- [ ] P3-37 Implementasikan validasi parameter.
-- [ ] P3-38 Tulis test MOSFET cutoff.
-- [ ] P3-39 Tulis test MOSFET linear.
-- [ ] P3-40 Tulis test MOSFET saturation.
-- [ ] P3-41 Tulis test Jacobian vs finite difference.
-- [ ] P3-42 Tulis test resistor.
-- [ ] P3-43 Tulis test kapasitor.
-- [ ] P3-44 Tulis test induktor.
-- [ ] P3-45 Tulis test dioda IV.
+- [x] P3-36 Implementasikan default parameter.
+- [x] P3-37 Implementasikan validasi parameter.
+- [x] P3-38 Tulis test MOSFET cutoff.
+- [x] P3-39 Tulis test MOSFET linear.
+- [x] P3-40 Tulis test MOSFET saturation.
+- [x] P3-41 Tulis test Jacobian vs finite difference.
+- [x] P3-42 Tulis test resistor.
+- [x] P3-43 Tulis test kapasitor.
+- [x] P3-44 Tulis test induktor.
+- [x] P3-45 Tulis test dioda IV.
 - [ ] P3-46 Tulis test BJT dasar.
 - [ ] P3-47 Tulis test JFET dasar.
-- [ ] P3-48 Dokumentasikan setiap device dan batasannya.
+- [x] P3-48 Dokumentasikan setiap device dan batasannya.
 
 **Exit P3:** device inti akurat secara analitik.
 
@@ -191,42 +191,42 @@ Daftar tugas lengkap dari hal terkecil sampai rilis. Setiap item harus kecil, da
 
 ## P4 - MNA dan Analisis
 
-- [ ] P4-01 Definisikan struktur matriks MNA.
-- [ ] P4-02 Implementasikan stamping resistor.
-- [ ] P4-03 Implementasikan stamping kapasitor.
-- [ ] P4-04 Implementasikan stamping induktor.
-- [ ] P4-05 Implementasikan stamping voltage source.
-- [ ] P4-06 Implementasikan stamping current source.
-- [ ] P4-07 Implementasikan stamping MOSFET.
-- [ ] P4-08 Implementasikan stamping dioda.
-- [ ] P4-09 Implementasikan DC operating point.
-- [ ] P4-10 Implementasikan Newton-Raphson.
-- [ ] P4-11 Implementasikan kriteria konvergensi.
+- [x] P4-01 Definisikan struktur matriks MNA.
+- [x] P4-02 Implementasikan stamping resistor.
+- [x] P4-03 Implementasikan stamping kapasitor.
+- [x] P4-04 Implementasikan stamping induktor.
+- [x] P4-05 Implementasikan stamping voltage source.
+- [x] P4-06 Implementasikan stamping current source.
+- [x] P4-07 Implementasikan stamping MOSFET.
+- [x] P4-08 Implementasikan stamping dioda.
+- [x] P4-09 Implementasikan DC operating point.
+- [x] P4-10 Implementasikan Newton-Raphson.
+- [x] P4-11 Implementasikan kriteria konvergensi.
 - [ ] P4-12 Implementasikan voltage limiting `pnjlim`.
 - [ ] P4-13 Implementasikan damping.
 - [ ] P4-14 Implementasikan gmin stepping.
 - [ ] P4-15 Implementasikan source stepping.
 - [ ] P4-16 Implementasikan fallback dan error.
 - [ ] P4-17 Implementasikan diagnostik konvergensi.
-- [ ] P4-18 Implementasikan DC sweep.
+- [x] P4-18 Implementasikan DC sweep.
 - [ ] P4-19 Implementasikan continuation antar titik sweep.
-- [ ] P4-20 Implementasikan transient Backward Euler.
+- [x] P4-20 Implementasikan transient Backward Euler.
 - [ ] P4-21 Implementasikan initial condition dari DC op.
 - [ ] P4-22 Implementasikan `UIC` (opsional).
-- [ ] P4-23 Implementasikan update state device.
+- [x] P4-23 Implementasikan update state device.
 - [ ] P4-24 Implementasikan CSV writer.
 - [ ] P4-25 Implementasikan VCD writer.
 - [ ] P4-26 Implementasikan VCD analog `real`.
 - [ ] P4-27 Implementasikan VCD digital `wire`.
-- [ ] P4-28 Tulis test pembagi tegangan.
-- [ ] P4-29 Tulis test RC charge.
+- [x] P4-28 Tulis test pembagi tegangan.
+- [x] P4-29 Tulis test RC charge.
 - [ ] P4-30 Tulis test RC discharge.
-- [ ] P4-31 Tulis test diode clamp.
-- [ ] P4-32 Tulis test inverter VTC.
+- [x] P4-31 Tulis test diode clamp.
+- [x] P4-32 Tulis test inverter VTC.
 - [ ] P4-33 Buat harness perbandingan ngspice.
 - [ ] P4-34 Simpan golden data pertama.
 - [ ] P4-35 Tulis benchmark node/solve.
-- [ ] P4-36 Dokumentasikan analisis dan toleransi.
+- [x] P4-36 Dokumentasikan analisis dan toleransi.
 
 **Exit P4:** VTC inverter dan RC transient lulus toleransi.
 

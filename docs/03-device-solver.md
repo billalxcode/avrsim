@@ -1,4 +1,6 @@
-# 03 — Device Model dan Solver
+# 03 - Device Model dan Solver
+
+> **Status implementasi:** lihat [`12-device-models.md`](12-device-models.md) dan [`13-analysis.md`](13-analysis.md). Dokumen ini adalah target desain; tidak semua bagian sudah diimplementasikan.
 
 Dokumen ini menjelaskan model device, formulasi MNA, solver nonlinear, analisis, dan strategi kalibrasi.
 
@@ -40,12 +42,12 @@ Pustaka SPICE lengkap dan seluruh analisis SPICE.
 | Parameter | Simbol | Arti |
 |---|---|---|
 | Threshold voltage | `VTO` | Tegangan threshold pada Vbs = 0 |
-| Transconductance parameter | `KP` | μ × Cox |
+| Transconductance parameter | `KP` | u x Cox |
 | Width | `W` | Lebar kanal |
 | Length | `L` | Panjang kanal |
 | Channel-length modulation | `LAMBDA` | Efek Early |
 | Body effect | `GAMMA` | Koefisien body effect |
-| Surface potential | `PHI` | 2φf |
+| Surface potential | `PHI` | 2phif |
 | Gate-source overlap | `CGSO` | Kapasitansi overlap |
 | Gate-drain overlap | `CGDO` | Kapasitansi overlap |
 | Gate-bulk overlap | `CGBO` | Kapasitansi overlap |
@@ -120,7 +122,7 @@ Model Meyer membagi kapasitansi oxide menjadi `Cgs`, `Cgd`, dan `Cgb` menurut re
 | Linear | Cox/2 | Cox/2 | 0 |
 | Saturation | 2Cox/3 | 0 | 0 |
 
-Dengan `Cox = KP / μ × W × L` (atau parameter `COX` terpisah). Tambahkan overlap:
+Dengan `Cox = KP / u x W x L` (atau parameter `COX` terpisah). Tambahkan overlap:
 
 ```
 Cgs_total = Cgs + CGSO * W
@@ -156,7 +158,7 @@ G[b][a] -= g
 G[b][b] += g
 ```
 
-### 3.2 Kapasitor — Backward Euler
+### 3.2 Kapasitor - Backward Euler
 
 Persamaan:
 
@@ -176,7 +178,7 @@ Stamping:
 - Tambahkan `g_eq` seperti resistor.
 - Tambahkan sumber arus `I_eq` pada node yang sesuai, dengan arah tergantung definisi port.
 
-### 3.3 Induktor — Backward Euler
+### 3.3 Induktor - Backward Euler
 
 Persamaan:
 
@@ -226,7 +228,7 @@ RHS[b] += I
 I = Is * (exp(V / (n * Vt)) - 1)
 ```
 
-Dengan `Vt = kT/q ≈ 25.85 mV` pada 300 K.
+Dengan `Vt = kT/q ~ 25.85 mV` pada 300 K.
 
 Tambahkan resistansi seri `Rs` bila diperlukan.
 
@@ -340,15 +342,15 @@ Untuk `n` node non-ground dan `m` branch:
 ### 7.1 Iterasi
 
 ```
-J(x_k) * Δx = -F(x_k)
-x_{k+1} = x_k + Δx
+J(x_k) * deltax = -F(x_k)
+x_{k+1} = x_k + deltax
 ```
 
 ### 7.2 Kriteria Konvergensi
 
 ```
-|Δv_i| < reltol * |v_i| + vntol
-|Δi_j| < reltol * |i_j| + abstol
+|deltav_i| < reltol * |v_i| + vntol
+|deltai_j| < reltol * |i_j| + abstol
 ```
 
 Default awal:
@@ -367,11 +369,11 @@ Nilai ini `TBD` dan harus divalidasi terhadap ngspice.
 
 Urutan fallback yang direncanakan:
 
-1. **Voltage limiting** — batasi perubahan tegangan junction.
-2. **Damping** — kurangi Δx dengan faktor α.
-3. **gmin stepping** — tambahkan konduktansi kecil dari setiap node ke ground, lalu turunkan bertahap.
-4. **Source stepping** — naikkan sumber dari 0 ke nilai penuh secara bertahap.
-5. **Fallback terakhir** — error dengan diagnostik lengkap.
+1. **Voltage limiting** - batasi perubahan tegangan junction.
+2. **Damping** - kurangi deltax dengan faktor alpha.
+3. **gmin stepping** - tambahkan konduktansi kecil dari setiap node ke ground, lalu turunkan bertahap.
+4. **Source stepping** - naikkan sumber dari 0 ke nilai penuh secara bertahap.
+5. **Fallback terakhir** - error dengan diagnostik lengkap.
 
 ### 7.4 Diagnostik
 
@@ -380,7 +382,7 @@ Saat gagal:
 - Iterasi terakhir.
 - Node dengan residual terbesar.
 - Device dengan residual terbesar.
-- Nilai Δv/Δi terbesar.
+- Nilai deltav/deltai terbesar.
 - Apakah limiting/gmin/source stepping aktif.
 
 ---
@@ -485,7 +487,7 @@ Saat gagal:
 - Jacobian vs finite difference.
 - Resistor, kapasitor, induktor.
 - Dioda IV.
-- LU matriks 2×2, 3×3, singular.
+- LU matriks 2x2, 3x3, singular.
 
 ### 10.2 Integrasi
 
@@ -515,10 +517,10 @@ Saat gagal:
 
 ## 11. Performa
 
-- Dense LU: O(n³) per solve.
+- Dense LU: O(n^3) per solve.
 - Newton: beberapa solve per titik.
-- Transient: jumlah step × Newton × LU.
-- Rangkaian kecil (≤ 50 node) masih nyaman.
+- Transient: jumlah step x Newton x LU.
+- Rangkaian kecil (<= 50 node) masih nyaman.
 - Rangkaian besar membutuhkan sparse dan adaptive step.
 - Benchmark wajib sebelum optimasi.
 
