@@ -46,7 +46,7 @@ Dokumen ini mencatat seluruh keputusan desain yang diambil selama brainstorming,
 | D34 | PVT | Nominal dulu |
 | D35 | Test referensi | Suite lengkap |
 | D36 | Bentuk software | Workspace Rust: library + CLI |
-| D37 | Lisensi | MIT / Apache-2.0 |
+| D37 | Lisensi | MIT |
 | D38 | Control unit | Hardwired / PLA |
 | D39 | Organisasi CPU | Multi-cycle FSM |
 | D40 | ALU | Ripple-carry + bit-slice |
@@ -386,7 +386,7 @@ Dokumen ini mencatat seluruh keputusan desain yang diambil selama brainstorming,
 
 ### D36–D37 — Workspace dan lisensi
 
-**Keputusan:** workspace library + CLI; MIT/Apache-2.0.
+**Keputusan:** workspace library + CLI; MIT.
 
 **Alasan:** modular, dapat dipakai ulang, open source.
 

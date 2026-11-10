@@ -23,7 +23,6 @@ embed-emulation/
 ├── Cargo.toml                  # workspace, tanpa dependensi eksternal
 ├── rust-toolchain.toml
 ├── LICENSE
-├── LICENSE-APACHE
 ├── README.md
 ├── TODO.md
 ├── docs/

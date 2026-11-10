@@ -39,7 +39,7 @@ Target akhirnya adalah **program riset jangka panjang**, bukan proyek sprint. Mi
 | Firmware | `avr-gcc` eksternal, loader HEX/ELF |
 | Bahasa | Rust, workspace, zero external dependency |
 | Output | CSV untuk DC, VCD untuk transient |
-| Lisensi | MIT / Apache-2.0 |
+| Lisensi | MIT |
 
 ---
 
@@ -116,4 +116,4 @@ Ini setara **program riset multi-person-decade**. Proyek tetap bisa dimulai dan 
 
 ## 7. Lisensi
 
-MIT OR Apache-2.0. Lihat `LICENSE` dan `LICENSE-APACHE`.
+MIT. Lihat `LICENSE`.

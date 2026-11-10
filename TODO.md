@@ -41,7 +41,7 @@ Daftar tugas lengkap dari hal terkecil sampai rilis. Setiap item harus kecil, da
 - [ ] P0-12 Buat crate `sim-cli` dengan binary `embed-emu`.
 - [ ] P0-13 Pastikan seluruh `Cargo.toml` tidak punya dependensi eksternal.
 - [x] P0-14 Tambahkan `LICENSE` (MIT) dengan copyright Billal Fauzan.
-- [x] P0-15 Tambahkan `LICENSE-APACHE`.
+- [x] P0-15 Lisensi akhir: hanya MIT (Apache dihapus).
 - [ ] P0-16 Tulis `README.md`.
 - [ ] P0-17 Tulis `docs/README.md` dan seluruh dokumen 00–09.
 - [ ] P0-18 Tulis `TODO.md` ini.

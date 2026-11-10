@@ -37,7 +37,7 @@ Roadmap ini mengubah visi besar menjadi milestone kecil yang dapat diuji.
 
 - `Cargo.toml` workspace.
 - `rust-toolchain.toml`.
-- LICENSE, LICENSE-APACHE.
+- LICENSE.
 - README dan docs.
 - Test kosong hijau.
 

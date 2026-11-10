@@ -23,7 +23,7 @@ Proyek ini bukan sekadar emulator instruksi. Ini adalah **simulator struktural**
 5. **Native and self-contained** — Rust std-only, tanpa runtime eksternal.
 6. **Deterministic** — hasil dapat direproduksi dan dibandingkan.
 7. **Observable** — CSV, VCD, CLI monitor, dan fidelity matrix.
-8. **Open source** — MIT/Apache-2.0.
+8. **Open source** — MIT.
 
 ## 3. Non-goal (untuk saat ini)
 

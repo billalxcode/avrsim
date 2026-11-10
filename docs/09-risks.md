@@ -135,7 +135,7 @@ Kapan harus mengubah rencana:
 - Tidak mendistribusikan ROM/BIOS/firmware proprietary.
 - Datasheet digunakan sebagai referensi, bukan disalin mentah.
 - Model PTM publik digunakan sesuai lisensi.
-- Lisensi proyek MIT/Apache-2.0.
+- Lisensi proyek MIT.
 - Kode dan dokumentasi menyebut sumber data.
 
 ---
