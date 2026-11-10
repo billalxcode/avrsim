@@ -1,0 +1,25 @@
+[workspace]
+resolver = "3"
+members = [
+    "crates/sim-core",
+    "crates/sim-device",
+    "crates/sim-analysis",
+    "crates/sim-cells",
+    "crates/sim-avr",
+    "crates/sim-board",
+    "crates/sim-cli",
+]
+
+[workspace.package]
+version = "0.0.1"
+edition = "2024"
+rust-version = "1.85"
+license = "MIT OR Apache-2.0"
+authors = ["embed-emulation contributors"]
+
+[workspace.lints.rust]
+unsafe_code = "forbid"
+
+[profile.release]
+lto = "thin"
+codegen-units = 1

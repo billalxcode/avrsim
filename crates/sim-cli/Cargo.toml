@@ -1,0 +1,21 @@
+[package]
+name = "sim-cli"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+
+[lints]
+workspace = true
+
+[[bin]]
+name = "embed-emu"
+path = "src/main.rs"
+
+[dependencies]
+sim-core = { path = "../sim-core" }
+sim-device = { path = "../sim-device" }
+sim-analysis = { path = "../sim-analysis" }
+sim-cells = { path = "../sim-cells" }
+sim-avr = { path = "../sim-avr" }
+sim-board = { path = "../sim-board" }

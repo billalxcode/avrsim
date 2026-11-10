@@ -1,0 +1,37 @@
+# Dokumentasi Proyek
+
+Dokumen ini adalah indeks lengkap spesifikasi **embed-emulation**.
+
+## Urutan baca
+
+| No | Dokumen | Fokus |
+|---|---|---|
+| 00 | [Visi](00-vision.md) | Mengapa proyek ini ada, tujuan, non-goal, definisi sukses |
+| 01 | [Keputusan](01-decisions.md) | Seluruh keputusan desain dan alasannya |
+| 02 | [Arsitektur](02-architecture.md) | Struktur crate, netlist, waktu, API, determinisme |
+| 03 | [Device & Solver](03-device-solver.md) | MOSFET, MNA, Newton, analisis, kalibrasi |
+| 04 | [CPU AVR](04-cpu-avr.md) | ISA, ALU, register, kontrol, interupsi, memori |
+| 05 | [Peripheral](05-peripherals.md) | GPIO, timer, UART, SPI, I2C, ADC, dan lainnya |
+| 06 | [Board & Firmware](06-board-firmware.md) | Komponen board, loader, toolchain, demo |
+| 07 | [Verifikasi](07-verification.md) | Test pyramid, oracle, fidelity matrix, toleransi |
+| 08 | [Roadmap](08-roadmap.md) | Milestone M0–M9 dan exit criteria |
+| 09 | [Risiko](09-risks.md) | Feasibility, risiko, dan guardrail |
+| — | [Todolist](../TODO.md) | Daftar tugas lengkap dari hal terkecil |
+
+## Konvensi dokumen
+
+- **Keputusan** ditulis sebagai fakta desain, bukan opsi.
+- **Target akhir** dan **milestone pertama** dipisahkan dengan jelas.
+- **Pengecualian fidelity** selalu dicatat eksplisit.
+- **Angka toleransi** yang belum final ditandai `TBD` dan harus ditetapkan sebelum milestone terkait.
+- **Zero dependency** berarti tidak ada crate eksternal; crate internal workspace diperbolehkan.
+
+## Status
+
+| Area | Status |
+|---|---|
+| Brainstorming | Selesai |
+| Spesifikasi | Dokumen ini |
+| Kode | Belum dimulai |
+| Toolchain Rust | Belum terpasang di lingkungan saat ini |
+| `avr-gcc` | Belum terpasang |
