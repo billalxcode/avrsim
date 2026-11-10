@@ -1,0 +1,164 @@
+---
+name: Clean Code
+description: Write, review, and refactor code using Clean Code and Clean Architecture principles, with Rust-specific checks and project boundary rules.
+---
+
+# Clean Code
+
+Gunakan skill ini saat:
+
+- Menulis kode baru.
+- Mereview PR atau diff.
+- Refactor fungsi/modul yang sulit dibaca.
+- Memperbaiki nama, error handling, test, atau struktur modul.
+- Memutuskan boundary antar-crate/modul.
+- Menghadapi kode yang “bekerja tetapi sulit diubah”.
+
+Jangan gunakan skill ini untuk perubahan sepele yang tidak menyentuh desain (mis. typo komentar), kecuali pengguna meminta review menyeluruh.
+
+---
+
+## Prinsip Utama
+
+> **Preserve behavior, improve clarity, keep changes small, prove with tests.**
+
+1. **Jangan mengubah perilaku tanpa test.**
+2. **Jangan mencampur refactor dengan fitur baru.**
+3. **Jangan menambah abstraksi sebelum ada variasi nyata.**
+4. **Jangan menambah dependensi eksternal.**
+5. **Jangan memakai `unsafe`.**
+6. **Jangan melakukan perubahan yang tidak diminta.**
+7. **Jika ragu, berhenti dan tanya.**
+
+---
+
+## Workflow
+
+### 1. Pahami konteks
+
+- Baca file yang relevan, test, dan dokumen arsitektur.
+- Identifikasi tanggung jawab modul dan boundary-nya.
+- Cek apakah ada aturan khusus di `AGENTS.md`, `README.md`, atau docs proyek.
+
+### 2. Muat referensi
+
+Baca sesuai kebutuhan:
+
+- `references/principles.md` — prinsip Clean Code dan smells.
+- `references/rust-checklist.md` — checklist Rust.
+- `references/architecture.md` — dependency rule, SOLID, component principles, boundary proyek.
+- `references/review-playbook.md` — cara review dan refactor.
+- `references/sources.md` — sumber dan batas klaim.
+
+Jangan mengklaim isi buku tanpa merujuk referensi/cache.
+
+### 3. Diagnosis
+
+Tulis temuan dalam format:
+
+```
+[Severity] file:line — masalah
+Dampak: ...
+Perbaikan: ...
+```
+
+Severity:
+
+- **Blocker** — bug, panic, data loss, security.
+- **High** — pelanggaran boundary, error handling hilang, test tidak ada untuk perilaku penting.
+- **Medium** — fungsi terlalu besar, nama menyesatkan, duplikasi.
+- **Low** — formatting, komentar, konsistensi.
+- **Nit** — preferensi gaya.
+
+### 4. Refactor
+
+- Mulai dari perubahan terkecil yang aman.
+- Tambah/ubah test lebih dulu jika perilaku berubah.
+- Satu commit/PR untuk satu tujuan.
+- Jangan reformat seluruh file jika hanya mengubah satu fungsi.
+- Jangan mengganti API publik tanpa alasan dan migrasi.
+
+### 5. Verifikasi
+
+Jalankan:
+
+```bash
+bash .opencode/skills/clean-code/scripts/check.sh
+```
+
+Atau manual:
+
+```bash
+cargo fmt --all -- --check
+cargo clippy --workspace --all-targets -- -D warnings
+cargo test --workspace
+```
+
+Jika ada yang gagal, perbaiki sebelum melapor.
+
+### 6. Lapor
+
+Gunakan `templates/review-report.md` untuk review. Untuk refactor, jelaskan:
+
+- Apa yang diubah.
+- Mengapa.
+- Perilaku apa yang dipertahankan.
+- Test apa yang membuktikan.
+- Risiko/limitasi.
+
+---
+
+## Aturan Proyek `embed-emulation`
+
+- `sim-core` tidak boleh bergantung pada crate lain.
+- `sim-device` tidak boleh tahu analysis/CLI.
+- `sim-analysis` tidak boleh tahu CLI/file.
+- `sim-avr` tidak boleh tahu board.
+- `sim-board` tidak boleh mem-parsing firmware.
+- `sim-cli` adalah adapter/komposisi.
+- Tidak ada crate eksternal.
+- Tidak ada `unsafe`.
+- Tidak ada wall-clock di simulation.
+- Tidak ada `println!` di core.
+- Tidak ada `unwrap()` pada input pengguna.
+
+Jika perubahan melanggar aturan ini, tandai sebagai **High** dan tawarkan alternatif.
+
+---
+
+## Checklist Cepat
+
+- [ ] Nama mengungkap maksud.
+- [ ] Fungsi kecil dan satu tanggung jawab.
+- [ ] Tidak ada side effect tersembunyi.
+- [ ] Error memakai `Result`/`Option` dengan konteks.
+- [ ] Test ada dan lulus.
+- [ ] Tidak ada duplikasi yang jelas.
+- [ ] Tidak ada abstraksi prematur.
+- [ ] Boundary crate tidak bocor.
+- [ ] `fmt`, `clippy`, `test` bersih.
+- [ ] Perubahan minimal dan sesuai permintaan.
+
+---
+
+## References
+
+- `references/principles.md`
+- `references/rust-checklist.md`
+- `references/architecture.md`
+- `references/review-playbook.md`
+- `references/sources.md`
+- `templates/review-report.md`
+- `scripts/check.sh`
+
+---
+
+## Sumber Belajar
+
+Cache riset proyek:
+
+- `.caches/clean-architecture/by-chapter/` — 34 bab Clean Architecture.
+- `.caches/clean-architecture/clean-code-by-chapter/` — 17 bab Clean Code.
+- `.caches/clean-architecture/scraped/` — hasil scrape mentah.
+
+Gunakan cache sebagai referensi, bukan sebagai pengganti buku. Jangan menyalin isi buku ke kode atau dokumen publik.
