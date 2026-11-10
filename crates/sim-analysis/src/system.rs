@@ -1,0 +1,115 @@
+//! Simulation system mapping and device model orchestration.
+
+use sim_core::{Circuit, Device, DeviceKind, MnaContext, SimError, Solution};
+use sim_device::{DeviceModel, model_from_instance};
+
+/// A circuit prepared for analysis.
+pub struct SimulationSystem {
+    node_map: Vec<Option<usize>>,
+    branch_map: Vec<Option<usize>>,
+    models: Vec<Box<dyn DeviceModel>>,
+    node_count: usize,
+    branch_count: usize,
+    node_slots: usize,
+}
+
+impl SimulationSystem {
+    /// Builds mappings and device models from a circuit.
+    pub fn new(circuit: &Circuit) -> Result<Self, SimError> {
+        let node_map = build_node_map(circuit);
+        let node_count = node_map.iter().filter(|slot| slot.is_some()).count();
+        let (branch_map, branch_count) = build_branch_map(circuit);
+        let models = circuit
+            .devices()
+            .iter()
+            .map(model_from_instance)
+            .collect::<Result<Vec<_>, _>>()?;
+        Ok(Self {
+            node_map,
+            branch_map,
+            models,
+            node_count,
+            branch_count,
+            node_slots: circuit.nodes().len(),
+        })
+    }
+
+    /// Returns a zero solution with matching dimensions.
+    pub(crate) fn zero_solution(&self) -> Solution {
+        Solution::zero(self.node_slots, self.node_count + self.branch_count)
+    }
+
+    /// Stamps all models and solves one linearized system.
+    pub(crate) fn solve(
+        &mut self,
+        solution: &Solution,
+        dt: Option<f64>,
+        gmin: f64,
+    ) -> Result<Solution, SimError> {
+        let mut context = MnaContext::new(
+            self.node_count,
+            self.branch_count,
+            self.node_map.clone(),
+            self.branch_map.clone(),
+        )?;
+        self.add_gmin(&mut context, gmin)?;
+        for model in &mut self.models {
+            model.stamp(&mut context, solution, dt)?;
+        }
+        context.solve()
+    }
+
+    /// Updates all model states after convergence.
+    pub(crate) fn update(&mut self, solution: &Solution) -> Result<(), SimError> {
+        for model in &mut self.models {
+            model.update(solution)?;
+        }
+        Ok(())
+    }
+
+    fn add_gmin(&self, context: &mut MnaContext, gmin: f64) -> Result<(), SimError> {
+        for index in 0..self.node_count {
+            context.add_matrix(index, index, gmin)?;
+        }
+        Ok(())
+    }
+}
+
+fn build_node_map(circuit: &Circuit) -> Vec<Option<usize>> {
+    let mut map = Vec::with_capacity(circuit.nodes().len());
+    let mut index = 0;
+    for node in circuit.nodes() {
+        if node.kind().is_ground() {
+            map.push(None);
+        } else {
+            map.push(Some(index));
+            index += 1;
+        }
+    }
+    map
+}
+
+fn build_branch_map(circuit: &Circuit) -> (Vec<Option<usize>>, usize) {
+    let mut map = Vec::with_capacity(circuit.devices().len());
+    let mut index = non_ground_node_count(circuit);
+    let mut branches = 0;
+    for device in circuit.devices() {
+        match device.kind() {
+            DeviceKind::VoltageSource | DeviceKind::Inductor => {
+                map.push(Some(index));
+                index += 1;
+                branches += 1;
+            }
+            _ => map.push(None),
+        }
+    }
+    (map, branches)
+}
+
+fn non_ground_node_count(circuit: &Circuit) -> usize {
+    circuit
+        .nodes()
+        .iter()
+        .filter(|node| !node.kind().is_ground())
+        .count()
+}
