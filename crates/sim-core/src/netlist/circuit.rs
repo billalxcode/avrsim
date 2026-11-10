@@ -71,6 +71,22 @@ impl Circuit {
         self.clone()
     }
 
+    /// Sets a parameter on a named device.
+    pub fn set_device_parameter(
+        &mut self,
+        device_name: &str,
+        parameter: &str,
+        value: f64,
+    ) -> Result<(), SimError> {
+        let device = self
+            .devices
+            .iter_mut()
+            .find(|device| device.name() == device_name)
+            .ok_or_else(|| SimError::InvalidNetlist(format!("unknown device: {device_name}")))?;
+        device.set_parameter(parameter, value);
+        Ok(())
+    }
+
     /// Validates ground, names, node usage, and DC connectivity.
     pub fn validate(&self) -> Result<(), SimError> {
         self.validate_ground()?;

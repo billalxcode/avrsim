@@ -88,6 +88,14 @@ impl DenseMatrix {
         Some(&self.data[start..start + self.cols])
     }
 
+    /// Adds a value to an existing matrix entry.
+    pub fn add(&mut self, row: usize, col: usize, value: f64) -> Result<(), SimError> {
+        let current = self
+            .get(row, col)
+            .ok_or(SimError::IndexOutOfBounds { row, col })?;
+        self.set(row, col, current + value)
+    }
+
     /// Returns a column as a new vector, or `None` when out of bounds.
     #[must_use]
     pub fn column(&self, col: usize) -> Option<Vec<f64>> {

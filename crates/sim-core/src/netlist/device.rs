@@ -85,6 +85,11 @@ impl DeviceInstance {
     pub const fn id(&self) -> DeviceId {
         self.id
     }
+
+    /// Sets or replaces a device parameter.
+    pub fn set_parameter(&mut self, name: impl Into<String>, value: f64) {
+        self.parameters.insert(name.into(), value);
+    }
 }
 
 /// Structural view of a device.
@@ -128,17 +133,34 @@ pub struct StampContext<'a> {
     pub node_map: &'a [Option<usize>],
 }
 
-/// A solved node-voltage vector.
+/// A solved node-voltage and branch-current vector.
 #[derive(Clone, Debug, Default, PartialEq)]
 pub struct Solution {
     /// Node voltages indexed by node identifier.
     pub node_voltages: Vec<f64>,
+    /// Branch currents indexed by MNA matrix index.
+    pub branch_currents: Vec<f64>,
 }
 
 impl Solution {
+    /// Creates a zero solution with the requested node slots and matrix size.
+    #[must_use]
+    pub fn zero(node_slots: usize, matrix_size: usize) -> Self {
+        Self {
+            node_voltages: vec![0.0; node_slots],
+            branch_currents: vec![0.0; matrix_size],
+        }
+    }
+
     /// Returns the voltage for a node, or `None` when it is not present.
     #[must_use]
     pub fn voltage(&self, node: NodeId) -> Option<f64> {
         self.node_voltages.get(node.raw() as usize).copied()
+    }
+
+    /// Returns a branch current, or `None` when it is not present.
+    #[must_use]
+    pub fn branch_current(&self, index: usize) -> Option<f64> {
+        self.branch_currents.get(index).copied()
     }
 }
