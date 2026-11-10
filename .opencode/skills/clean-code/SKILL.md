@@ -12,7 +12,7 @@ Gunakan skill ini saat:
 - Refactor fungsi/modul yang sulit dibaca.
 - Memperbaiki nama, error handling, test, atau struktur modul.
 - Memutuskan boundary antar-crate/modul.
-- Menghadapi kode yang “bekerja tetapi sulit diubah”.
+- Menghadapi kode yang "bekerja tetapi sulit diubah".
 
 Jangan gunakan skill ini untuk perubahan sepele yang tidak menyentuh desain (mis. typo komentar), kecuali pengguna meminta review menyeluruh.
 
@@ -32,6 +32,42 @@ Jangan gunakan skill ini untuk perubahan sepele yang tidak menyentuh desain (mis
 
 ---
 
+## Aturan Fungsi Wajib
+
+Aturan ini berlaku untuk semua fungsi, termasuk test helper, adapter, dan fungsi privat.
+
+1. **Guard clause dulu.**
+   - Validasi precondition di awal fungsi.
+   - Return atau `Err` lebih awal.
+   - Hindari `else` setelah `return`.
+   - Happy path tidak boleh berada di dalam sarang `if`.
+
+2. **Maksimal 20 baris per fungsi.**
+   - Hitung dari baris `fn` sampai `}` penutup.
+   - Doc comment dan attribute di atas `fn` tidak dihitung.
+   - Blank line di dalam body dihitung.
+   - Jika lebih dari 20 baris, pecah.
+
+3. **Pecah menjadi fungsi terkecil yang reusable.**
+   - Satu fungsi, satu langkah atau satu ide.
+   - Ekstrak validasi, parsing, transformasi, keputusan, formatting, dan I/O.
+   - Pecah selama pemecahan memberi nama yang jelas dan menghilangkan duplikasi.
+   - Fungsi satu baris yang hanya memindahkan nama bukan pemecahan yang berguna.
+
+4. **Cari sebelum membuat.**
+   - Cari fungsi yang sudah ada dengan `rg`, `grep`, atau inspeksi modul.
+   - Cek modul tetangga, trait, helper, dan test utility.
+   - Gunakan ulang atau perluas fungsi yang ada.
+   - Jangan membuat duplikat dekat seperti `foo2`, `foo_new`, atau `helper_foo`.
+
+5. **Jangan membuat fungsi yang sudah ada.**
+   - Jika perilaku sama, reuse fungsi yang ada.
+   - Jika perilaku mirip, parameterisasi atau refactor fungsi yang ada.
+   - Jika perilaku berbeda, beri nama yang membedakan dengan jelas.
+   - Duplikasi logika adalah pelanggaran, bukan sekadar preferensi gaya.
+
+---
+
 ## Workflow
 
 ### 1. Pahami konteks
@@ -44,11 +80,11 @@ Jangan gunakan skill ini untuk perubahan sepele yang tidak menyentuh desain (mis
 
 Baca sesuai kebutuhan:
 
-- `references/principles.md` — prinsip Clean Code dan smells.
-- `references/rust-checklist.md` — checklist Rust.
-- `references/architecture.md` — dependency rule, SOLID, component principles, boundary proyek.
-- `references/review-playbook.md` — cara review dan refactor.
-- `references/sources.md` — sumber dan batas klaim.
+- `references/principles.md` - prinsip Clean Code dan smells.
+- `references/rust-checklist.md` - checklist Rust.
+- `references/architecture.md` - dependency rule, SOLID, component principles, boundary proyek.
+- `references/review-playbook.md` - cara review dan refactor.
+- `references/sources.md` - sumber dan batas klaim.
 
 Jangan mengklaim isi buku tanpa merujuk referensi/cache.
 
@@ -57,18 +93,18 @@ Jangan mengklaim isi buku tanpa merujuk referensi/cache.
 Tulis temuan dalam format:
 
 ```
-[Severity] file:line — masalah
+[Severity] file:line - masalah
 Dampak: ...
 Perbaikan: ...
 ```
 
 Severity:
 
-- **Blocker** — bug, panic, data loss, security.
-- **High** — pelanggaran boundary, error handling hilang, test tidak ada untuk perilaku penting.
-- **Medium** — fungsi terlalu besar, nama menyesatkan, duplikasi.
-- **Low** — formatting, komentar, konsistensi.
-- **Nit** — preferensi gaya.
+- **Blocker** - bug, panic, data loss, security.
+- **High** - pelanggaran boundary, error handling hilang, test tidak ada, fungsi > 20 baris, duplikasi fungsi.
+- **Medium** - nama menyesatkan, nesting > 3, komentar redundan.
+- **Low** - formatting, komentar, konsistensi.
+- **Nit** - preferensi gaya.
 
 ### 4. Refactor
 
@@ -130,6 +166,11 @@ Jika perubahan melanggar aturan ini, tandai sebagai **High** dan tawarkan altern
 
 - [ ] Nama mengungkap maksud.
 - [ ] Fungsi kecil dan satu tanggung jawab.
+- [ ] Guard clause digunakan di awal.
+- [ ] Setiap fungsi maksimal 20 baris.
+- [ ] Fungsi dipecah menjadi unit kecil dan reusable.
+- [ ] Fungsi yang sudah ada dicari dan digunakan ulang.
+- [ ] Tidak ada duplikat dekat.
 - [ ] Tidak ada side effect tersembunyi.
 - [ ] Error memakai `Result`/`Option` dengan konteks.
 - [ ] Test ada dan lulus.
@@ -157,8 +198,8 @@ Jika perubahan melanggar aturan ini, tandai sebagai **High** dan tawarkan altern
 
 Cache riset proyek:
 
-- `.caches/clean-architecture/by-chapter/` — 34 bab Clean Architecture.
-- `.caches/clean-architecture/clean-code-by-chapter/` — 17 bab Clean Code.
-- `.caches/clean-architecture/scraped/` — hasil scrape mentah.
+- `.caches/clean-architecture/by-chapter/` - 34 bab Clean Architecture.
+- `.caches/clean-architecture/clean-code-by-chapter/` - 17 bab Clean Code.
+- `.caches/clean-architecture/scraped/` - hasil scrape mentah.
 
 Gunakan cache sebagai referensi, bukan sebagai pengganti buku. Jangan menyalin isi buku ke kode atau dokumen publik.

@@ -12,7 +12,7 @@
 
 ## Findings
 
-### [Severity] file:line — Title
+### [Severity] file:line - Title
 
 **Problem:**
 
@@ -31,6 +31,14 @@
 ```
 
 ---
+
+## Function Check
+
+- [ ] Guard clause di awal.
+- [ ] Setiap fungsi maksimal 20 baris.
+- [ ] Fungsi dipecah menjadi langkah kecil dan reusable.
+- [ ] Fungsi existing sudah dicari dan digunakan ulang.
+- [ ] Tidak ada duplikat dekat.
 
 ## Verification
 

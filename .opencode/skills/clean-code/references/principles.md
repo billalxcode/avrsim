@@ -35,31 +35,109 @@ fn remaining_time_ns(total_ns: u64, elapsed_ns: u64) -> u64 {
 
 ## 2. Fungsi
 
-- Kecil.
-- Melakukan satu hal.
-- Satu level abstraksi.
-- Sedikit argumen (0–3).
-- Hindari flag argument.
-- Hindari side effect tersembunyi.
-- Command-Query Separation.
-- Prefer error/exception daripada kode error.
-- Ekstrak blok `try`/penanganan error.
-- DRY.
-- Nama menjelaskan maksud.
+### 2.1 Guard Clause
 
-Pertanyaan:
+- Validasi precondition di awal.
+- Return atau `Err` lebih awal.
+- Hindari `else` setelah `return`.
+- Happy path di akhir dengan indentasi minimal.
+- Setiap cabang error harus jelas.
 
-- Apakah fungsi > 20–30 baris? Pertimbangkan pecah.
-- Apakah ada lebih dari 3 parameter? Pertimbangkan struct.
-- Apakah ada boolean yang mengubah jalur? Pisahkan fungsi.
-- Apakah fungsi mengubah state dan mengembalikan nilai? Pisahkan.
+Contoh:
+
+```rust
+fn parse_limit(raw: &str) -> Result<usize, ParseError> {
+    let trimmed = raw.trim();
+    if trimmed.is_empty() {
+        return Err(ParseError::Empty);
+    }
+    let value = trimmed.parse::<usize>()?;
+    if value == 0 {
+        return Err(ParseError::Zero);
+    }
+    Ok(value)
+}
+```
+
+Hindari:
+
+```rust
+fn parse_limit(raw: &str) -> Result<usize, ParseError> {
+    if !raw.trim().is_empty() {
+        let value = raw.trim().parse::<usize>()?;
+        if value != 0 {
+            Ok(value)
+        } else {
+            Err(ParseError::Zero)
+        }
+    } else {
+        Err(ParseError::Empty)
+    }
+}
+```
+
+### 2.2 Maksimal 20 Baris
+
+- Hitung dari baris `fn` sampai `}` penutup.
+- Doc comment dan attribute di atas `fn` tidak dihitung.
+- Blank line di dalam body dihitung.
+- Test helper, adapter, dan fungsi privat juga berlaku.
+- Jika lebih dari 20 baris, pecah.
+
+Cara memecah:
+
+1. Ekstrak validasi dan guard clause.
+2. Ekstrak body loop.
+3. Ekstrak error mapping.
+4. Ekstrak formatting.
+5. Ekstrak satu langkah domain.
+
+### 2.3 Fungsi Terkecil yang Reusable
+
+- Satu fungsi, satu langkah.
+- Nama fungsi menjelaskan langkah, bukan implementasi.
+- Pure function lebih baik jika memungkinkan.
+- Parameter sedikit; gunakan struct jika perlu.
+- Kembalikan nilai yang jelas.
+- Jangan membuat wrapper satu baris tanpa makna.
+- Jangan over-fragmentasi sampai alur sulit dibaca.
+
+### 2.4 Cari Sebelum Membuat
+
+- Cari dengan `rg "fn nama"` atau `rg "nama"`.
+- Cek modul tetangga.
+- Cek trait dan implementasinya.
+- Cek test utility.
+- Cek helper yang sudah ada.
+- Reuse, perluas, atau parameterisasi.
+- Jangan membuat duplikat dekat.
+
+### 2.5 Jangan Membuat Fungsi yang Sudah Ada
+
+- Perilaku sama: reuse.
+- Perilaku mirip: parameterisasi atau refactor fungsi lama.
+- Perilaku berbeda: nama harus membedakan.
+- Jangan membuat `foo2`, `foo_new`, atau `helper_foo`.
+- Duplikasi logika adalah pelanggaran.
+
+### 2.6 Pertanyaan
+
+- Apakah ada guard clause?
+- Apakah fungsi <= 20 baris?
+- Apakah fungsi melakukan satu hal?
+- Apakah ada fungsi existing yang bisa dipakai?
+- Apakah ada duplikasi?
+- Apakah ada lebih dari 3 parameter?
+- Apakah ada boolean flag?
+- Apakah ada side effect tersembunyi?
+- Apakah fungsi mengubah state dan mengembalikan nilai?
 
 ---
 
 ## 3. Komentar
 
 - Komentar tidak memperbaiki kode buruk.
-- Jelaskan “mengapa”, bukan “apa”.
+- Jelaskan "mengapa", bukan "apa".
 - Jangan menduplikasi kode.
 - Jangan misleading.
 - Jangan meninggalkan kode mati.
@@ -152,7 +230,7 @@ Pertanyaan:
 - Sedikit dependensi.
 - Isolasi dari perubahan.
 - Bergantung pada abstraksi bila ada variasi.
-- Jangan membuat modul “serba bisa”.
+- Jangan membuat modul "serba bisa".
 
 ---
 

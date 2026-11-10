@@ -26,17 +26,17 @@ Jika alur kontrol berlawanan, gunakan **Dependency Inversion**:
 
 ```
 sim-cli
-  ├── sim-board
-  │     ├── sim-avr
-  │     │     ├── sim-cells
-  │     │     │     ├── sim-device
-  │     │     │     │     └── sim-core
-  │     │     │     └── sim-core
-  │     │     └── sim-core
-  │     └── sim-device
-  └── sim-analysis
-        ├── sim-device
-        └── sim-core
+  +-- sim-board
+  |     +-- sim-avr
+  |     |     +-- sim-cells
+  |     |     |     +-- sim-device
+  |     |     |     |     `-- sim-core
+  |     |     |     `-- sim-core
+  |     |     `-- sim-core
+  |     `-- sim-device
+  `-- sim-analysis
+        +-- sim-device
+        `-- sim-core
 ```
 
 | Konsep | Padanan |
@@ -69,7 +69,7 @@ sim-cli
 ### SRP
 
 - Satu modul, satu alasan perubahan.
-- “Reason to change” = actor/stakeholder.
+- "Reason to change" = actor/stakeholder.
 - Gejala: merge conflict, accidental duplication.
 
 ### OCP
@@ -100,12 +100,12 @@ sim-cli
 
 ## 4. Component Principles
 
-- **REP** — satu crate = satu unit rilis.
-- **CCP** — yang berubah bersama masuk bersama.
-- **CRP** — yang tidak dipakai bersama jangan digabung.
-- **ADP** — graph crate harus DAG.
-- **SDP** — dependensi menuju stabilitas.
-- **SAP** — crate stabil berisi abstraksi yang tepat.
+- **REP** - satu crate = satu unit rilis.
+- **CCP** - yang berubah bersama masuk bersama.
+- **CRP** - yang tidak dipakai bersama jangan digabung.
+- **ADP** - graph crate harus DAG.
+- **SDP** - dependensi menuju stabilitas.
+- **SAP** - crate stabil berisi abstraksi yang tepat.
 
 Hindari:
 
@@ -132,7 +132,7 @@ Hindari:
 ## 6. Humble Object
 
 - Pisahkan bagian sulit diuji (I/O, terminal, file, GUI) dari logika.
-- CLI/VCD/CSV writer harus “bodoh”.
+- CLI/VCD/CSV writer harus "bodoh".
 - Logika ada di core/analysis.
 - View/CLI hanya menampilkan data dari view model/DTO.
 
@@ -154,7 +154,7 @@ Hindari:
 - Inti harus bisa diuji tanpa file.
 - Inti harus bisa diuji tanpa `avr-gcc`.
 - Pin/UART/timer adalah port/adapter.
-- “A clean embedded architecture is a testable embedded architecture.”
+- "A clean embedded architecture is a testable embedded architecture."
 
 ---
 

@@ -20,19 +20,19 @@ Jangan mencampur refactor dan feature dalam satu perubahan besar.
 
 ## 2. Review Workflow
 
-### Langkah 1 — Pahami tujuan
+### Langkah 1 - Pahami tujuan
 
 - Apa yang ingin dicapai perubahan ini?
 - Apakah ada issue/PR description?
 - Apakah ada test yang menyertainya?
 
-### Langkah 2 — Baca diff, bukan hanya file
+### Langkah 2 - Baca diff, bukan hanya file
 
 - Apa yang berubah?
 - Apa yang tidak berubah tetapi seharusnya?
 - Apakah ada perubahan tak terkait?
 
-### Langkah 3 — Cek correctness
+### Langkah 3 - Cek correctness
 
 - Apakah logika benar?
 - Apakah edge case ditangani?
@@ -41,16 +41,29 @@ Jangan mencampur refactor dan feature dalam satu perubahan besar.
 - Apakah ada overflow/underflow?
 - Apakah ada race/global state?
 
-### Langkah 4 — Cek desain
+### Langkah 4 - Cek desain
 
-- Apakah fungsi/modul terlalu besar?
+- Apakah setiap fungsi memakai guard clause?
+- Apakah ada `else` setelah `return`?
+- Apakah setiap fungsi maksimal 20 baris?
+- Apakah ada fungsi yang perlu dipecah?
+- Apakah fungsi baru benar-benar baru, atau menduplikasi yang sudah ada?
+- Apakah fungsi existing sudah dicari dan digunakan ulang?
 - Apakah nama jelas?
 - Apakah ada duplikasi?
 - Apakah boundary bocor?
 - Apakah abstraksi prematur?
 - Apakah dependensi eksternal ditambahkan?
 
-### Langkah 5 — Cek test
+Aturan keras:
+
+- Guard clause di awal.
+- Maksimal 20 baris per fungsi, dihitung dari `fn` sampai `}` penutup.
+- Pecah menjadi fungsi kecil yang reusable.
+- Cari fungsi existing sebelum membuat yang baru.
+- Jangan membuat fungsi yang sudah ada.
+
+### Langkah 5 - Cek test
 
 - Apakah test menguji perilaku?
 - Apakah test independen?
@@ -58,22 +71,22 @@ Jangan mencampur refactor dan feature dalam satu perubahan besar.
 - Apakah edge case diuji?
 - Apakah test akan gagal jika perilaku rusak?
 
-### Langkah 6 — Jalankan verifikasi
+### Langkah 6 - Jalankan verifikasi
 
 ```bash
 bash .opencode/skills/clean-code/scripts/check.sh
 ```
 
-### Langkah 7 — Tulis temuan
+### Langkah 7 - Tulis temuan
 
-Gunakan format di bawah. Jangan menulis “kode ini buruk” tanpa alasan dan perbaikan.
+Gunakan format di bawah. Jangan menulis "kode ini buruk" tanpa alasan dan perbaikan.
 
 ---
 
 ## 3. Format Temuan
 
 ```
-[Severity] file:line — judul singkat
+[Severity] file:line - judul singkat
 
 Masalah:
 ...
@@ -92,48 +105,50 @@ Contoh (opsional):
 
 Severity:
 
-- **Blocker** — bug, panic, data loss, security.
-- **High** — boundary bocor, error handling hilang, test penting tidak ada.
-- **Medium** — fungsi besar, nama buruk, duplikasi.
-- **Low** — formatting, komentar, konsistensi.
-- **Nit** — preferensi gaya.
+- **Blocker** - bug, panic, data loss, security.
+- **High** - boundary bocor, error handling hilang, test penting tidak ada, fungsi > 20 baris, duplikasi fungsi.
+- **Medium** - nama buruk, nesting > 3, komentar redundan.
+- **Low** - formatting, komentar, konsistensi.
+- **Nit** - preferensi gaya.
 
 ---
 
 ## 4. Refactor Workflow
 
-### Langkah 1 — Kunci perilaku
+### Langkah 1 - Kunci perilaku
 
 - Pastikan ada test yang mencakup perilaku saat ini.
 - Jika belum ada, tulis test karakterisasi.
 - Jalankan test; pastikan hijau.
 
-### Langkah 2 — Pilih satu target kecil
+### Langkah 2 - Pilih satu target kecil
 
 Contoh:
 
 - Pecah satu fungsi.
-- Perbaiki satu nama.
+- Tambahkan satu guard clause.
+- Pecah fungsi yang lebih dari 20 baris.
 - Ganti satu `unwrap()`.
 - Pindahkan satu tipe ke modul yang tepat.
 - Hapus satu duplikasi.
+- Reuse satu fungsi existing yang sudah ada.
 
 Jangan memilih lima target sekaligus.
 
-### Langkah 3 — Refactor
+### Langkah 3 - Refactor
 
 - Perubahan kecil.
 - Jangan reformat seluruh file.
 - Jangan ubah API publik tanpa migrasi.
 - Jangan ubah perilaku.
 
-### Langkah 4 — Verifikasi
+### Langkah 4 - Verifikasi
 
 ```bash
 bash .opencode/skills/clean-code/scripts/check.sh
 ```
 
-### Langkah 5 — Commit
+### Langkah 5 - Commit
 
 - Satu commit untuk satu tujuan.
 - Pesan commit jelas.
@@ -203,8 +218,12 @@ Jika ragu, tulis temuan dan tunda.
 - [ ] Error handling benar.
 - [ ] Tidak ada `unwrap()`/panic yang tidak perlu.
 - [ ] Nama jelas.
-- [ ] Fungsi kecil.
+- [ ] Guard clause digunakan di awal.
+- [ ] Setiap fungsi maksimal 20 baris.
+- [ ] Fungsi dipecah menjadi unit kecil dan reusable.
+- [ ] Fungsi existing dicari sebelum membuat yang baru.
 - [ ] Tidak ada duplikasi.
+- [ ] Tidak ada duplikat dekat.
 - [ ] Boundary crate tidak bocor.
 - [ ] Tidak ada dependensi eksternal.
 - [ ] `fmt`, `clippy`, `test` bersih.
@@ -217,10 +236,13 @@ Jika ragu, tulis temuan dan tunda.
 
 - Menulis ulang seluruh file tanpa diminta.
 - Menambahkan abstraksi untuk satu implementasi.
-- Menambahkan trait “biar clean” tanpa variasi.
-- Menghapus test karena “terlalu ketat”.
+- Menambahkan trait "biar clean" tanpa variasi.
+- Menghapus test karena "terlalu ketat".
 - Menambahkan `unwrap()` untuk mempercepat.
 - Menambahkan dependensi eksternal untuk masalah kecil.
+- Membiarkan fungsi lebih dari 20 baris.
+- Membuat helper baru yang menduplikasi fungsi lama.
+- Menambah `if` bersarang tanpa guard clause.
 - Menghina kode tanpa solusi.
 - Menandai semua hal sebagai Blocker.
 - Mengabaikan konteks proyek.

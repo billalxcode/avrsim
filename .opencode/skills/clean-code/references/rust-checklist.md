@@ -18,7 +18,17 @@ Checklist khusus Rust untuk proyek `embed-emulation`.
 
 ## 2. Functions
 
-- [ ] Kecil dan satu tanggung jawab.
+- [ ] Guard clause di awal fungsi.
+- [ ] Tidak ada `else` setelah `return`.
+- [ ] Happy path tidak berada di dalam sarang `if`.
+- [ ] Maksimal 20 baris dari baris `fn` sampai `}` penutup.
+- [ ] Doc comment dan attribute di atas `fn` tidak dihitung.
+- [ ] Blank line di dalam body dihitung.
+- [ ] Test helper, adapter, dan fungsi privat juga maksimal 20 baris.
+- [ ] Fungsi dipecah menjadi langkah kecil yang reusable.
+- [ ] Validasi, parsing, transformasi, keputusan, formatting, dan I/O dipisah.
+- [ ] Fungsi existing dicari sebelum membuat fungsi baru.
+- [ ] Tidak ada duplikat dekat seperti `foo2`, `foo_new`, atau `helper_foo`.
 - [ ] Tidak ada boolean flag parameter.
 - [ ] Tidak ada lebih dari 3 parameter tanpa alasan.
 - [ ] Parameter kompleks memakai struct.
@@ -26,13 +36,87 @@ Checklist khusus Rust untuk proyek `embed-emulation`.
 - [ ] Fungsi yang mengubah state tidak sekaligus mengembalikan nilai penting.
 - [ ] Nama fungsi menjelaskan efek samping jika ada.
 
-Contoh:
+### Mengukur 20 Baris
+
+Hitung dari baris `fn` sampai `}` penutup:
 
 ```rust
-// Buruk
-fn run(circuit: &Circuit, flag: bool) -> Result<(), SimError>
+fn example() {        // baris 1
+    let a = 1;        // baris 2
+    let b = 2;        // baris 3
+    // ...            // baris 4
+}                     // baris 5
+```
 
-// Baik
+Jika lebih dari 20 baris:
+
+1. Ekstrak guard clause.
+2. Ekstrak body loop.
+3. Ekstrak error mapping.
+4. Ekstrak formatting.
+5. Ekstrak satu langkah domain.
+
+### Guard Clause
+
+```rust
+fn parse_limit(raw: &str) -> Result<usize, ParseError> {
+    let trimmed = raw.trim();
+    if trimmed.is_empty() {
+        return Err(ParseError::Empty);
+    }
+    let value = trimmed.parse::<usize>()?;
+    if value == 0 {
+        return Err(ParseError::Zero);
+    }
+    Ok(value)
+}
+```
+
+Hindari:
+
+```rust
+fn parse_limit(raw: &str) -> Result<usize, ParseError> {
+    if !raw.trim().is_empty() {
+        let value = raw.trim().parse::<usize>()?;
+        if value != 0 {
+            Ok(value)
+        } else {
+            Err(ParseError::Zero)
+        }
+    } else {
+        Err(ParseError::Empty)
+    }
+}
+```
+
+### Cari Sebelum Membuat
+
+```bash
+rg "fn parse_limit" crates
+rg "parse_limit" crates
+rg "limit" crates
+```
+
+Cek:
+
+- Modul tetangga.
+- Trait dan implementasinya.
+- Test utility.
+- Helper yang sudah ada.
+
+Jika fungsi existing mirip, parameterisasi atau refactor. Jangan membuat versi baru yang menduplikasi.
+
+### Contoh Pemisahan
+
+Buruk:
+
+```rust
+fn run(circuit: &Circuit, flag: bool) -> Result<(), SimError>
+```
+
+Baik:
+
+```rust
 fn run_dc(circuit: &Circuit) -> Result<DcReport, SimError>
 fn run_transient(circuit: &Circuit, cfg: TransientConfig) -> Result<TransientReport, SimError>
 ```
@@ -42,7 +126,7 @@ fn run_transient(circuit: &Circuit, cfg: TransientConfig) -> Result<TransientRep
 ## 3. Error Handling
 
 - [ ] Gunakan `Result<T, E>` untuk operasi yang bisa gagal.
-- [ ] Gunakan `Option<T>` hanya untuk “tidak ada nilai”, bukan error.
+- [ ] Gunakan `Option<T>` hanya untuk "tidak ada nilai", bukan error.
 - [ ] Tidak ada `unwrap()` pada input pengguna.
 - [ ] `expect()` hanya untuk invariant dengan pesan jelas.
 - [ ] Error type punya `Display` dan `std::error::Error`.
@@ -117,7 +201,7 @@ impl std::error::Error for SimError {}
 
 - [ ] Trait kecil dan kohesif.
 - [ ] Nama trait menjelaskan capability (`Clock`, `WaveformSink`).
-- [ ] Tidak ada trait “god object”.
+- [ ] Tidak ada trait "god object".
 - [ ] Gunakan generic untuk hot path.
 - [ ] Gunakan `dyn` hanya di boundary/plugin.
 - [ ] Dokumentasikan kontrak dan invariant.
