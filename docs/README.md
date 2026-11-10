@@ -17,6 +17,7 @@ Dokumen ini adalah indeks lengkap spesifikasi **embed-emulation**.
 | 08 | [Roadmap](08-roadmap.md) | Milestone M0-M9 dan exit criteria |
 | 09 | [Risiko](09-risks.md) | Feasibility, risiko, dan guardrail |
 | 10 | [Math API](10-math-api.md) | API waktu, satuan, complex, matrix, LU, error |
+| 11 | [Netlist Core](11-netlist.md) | Node, device, builder, subcircuit, flatten, validasi |
 | - | [Todolist](../TODO.md) | Daftar tugas lengkap dari hal terkecil |
 
 ## Konvensi dokumen
@@ -33,6 +34,6 @@ Dokumen ini adalah indeks lengkap spesifikasi **embed-emulation**.
 |---|---|
 | Brainstorming | Selesai |
 | Spesifikasi | Dokumen ini |
-| Kode | P1 fondasi selesai |
+| Kode | P2 netlist selesai |
 | Toolchain Rust | Terpasang (1.99.1) |
 | `avr-gcc` | Belum terpasang |

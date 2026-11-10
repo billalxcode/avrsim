@@ -1,0 +1,144 @@
+//! Structural device model and solver-facing types.
+
+use crate::ids::{DeviceId, NodeId};
+use crate::matrix::DenseMatrix;
+use std::collections::BTreeMap;
+
+/// The kind of a device in a structural netlist.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub enum DeviceKind {
+    /// An ideal resistor.
+    Resistor,
+    /// An ideal capacitor.
+    Capacitor,
+    /// An ideal inductor.
+    Inductor,
+    /// An independent voltage source.
+    VoltageSource,
+    /// An independent current source.
+    CurrentSource,
+    /// An N-channel MOSFET.
+    Nmos,
+    /// A P-channel MOSFET.
+    Pmos,
+    /// A diode.
+    Diode,
+    /// A model supplied by another crate or a future device library.
+    Custom(String),
+}
+
+impl DeviceKind {
+    /// Returns a stable name for the device kind.
+    #[must_use]
+    pub fn name(&self) -> &str {
+        match self {
+            Self::Resistor => "resistor",
+            Self::Capacitor => "capacitor",
+            Self::Inductor => "inductor",
+            Self::VoltageSource => "voltage_source",
+            Self::CurrentSource => "current_source",
+            Self::Nmos => "nmos",
+            Self::Pmos => "pmos",
+            Self::Diode => "diode",
+            Self::Custom(name) => name,
+        }
+    }
+
+    /// Returns true when the device can conduct direct current.
+    #[must_use]
+    pub fn conducts_dc(&self) -> bool {
+        !matches!(self, Self::Capacitor)
+    }
+}
+
+/// A device instance in a structural netlist.
+#[derive(Clone, Debug, PartialEq)]
+pub struct DeviceInstance {
+    id: DeviceId,
+    name: String,
+    kind: DeviceKind,
+    pins: Vec<NodeId>,
+    parameters: BTreeMap<String, f64>,
+}
+
+impl DeviceInstance {
+    /// Creates a device instance.
+    #[must_use]
+    pub fn new(
+        id: DeviceId,
+        name: impl Into<String>,
+        kind: DeviceKind,
+        pins: Vec<NodeId>,
+        parameters: BTreeMap<String, f64>,
+    ) -> Self {
+        Self {
+            id,
+            name: name.into(),
+            kind,
+            pins,
+            parameters,
+        }
+    }
+
+    /// Returns the device identifier.
+    #[must_use]
+    pub const fn id(&self) -> DeviceId {
+        self.id
+    }
+}
+
+/// Structural view of a device.
+pub trait Device {
+    /// Returns the device name.
+    fn name(&self) -> &str;
+    /// Returns the device kind.
+    fn kind(&self) -> &DeviceKind;
+    /// Returns the device pins.
+    fn pins(&self) -> &[NodeId];
+    /// Returns the device parameters.
+    fn parameters(&self) -> &BTreeMap<String, f64>;
+}
+
+impl Device for DeviceInstance {
+    fn name(&self) -> &str {
+        &self.name
+    }
+
+    fn kind(&self) -> &DeviceKind {
+        &self.kind
+    }
+
+    fn pins(&self) -> &[NodeId] {
+        &self.pins
+    }
+
+    fn parameters(&self) -> &BTreeMap<String, f64> {
+        &self.parameters
+    }
+}
+
+/// Context for device stamping in a future analysis pass.
+#[derive(Debug)]
+pub struct StampContext<'a> {
+    /// The MNA matrix being assembled.
+    pub matrix: &'a mut DenseMatrix,
+    /// The right-hand side vector.
+    pub rhs: &'a mut Vec<f64>,
+    /// Mapping from node identifiers to matrix rows.
+    pub node_map: &'a [Option<usize>],
+}
+
+/// A solved node-voltage vector.
+#[derive(Clone, Debug, Default, PartialEq)]
+pub struct Solution {
+    /// Node voltages indexed by node identifier.
+    pub node_voltages: Vec<f64>,
+}
+
+impl Solution {
+    /// Returns the voltage for a node, or `None` when it is not present.
+    #[must_use]
+    pub fn voltage(&self, node: NodeId) -> Option<f64> {
+        self.node_voltages.get(node.raw() as usize).copied()
+    }
+}

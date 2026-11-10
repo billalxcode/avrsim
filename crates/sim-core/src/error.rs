@@ -10,6 +10,8 @@ pub enum SimError {
     InvalidNetlist(String),
     /// A node has no path to ground.
     FloatingNode(NodeId),
+    /// A node has no DC path to ground.
+    NoDcPath { node: NodeId },
     /// A matrix pivot is too small for a stable solve.
     SingularMatrix { row: usize },
     /// An iterative solver did not converge.
@@ -60,6 +62,7 @@ impl SimError {
             Self::Io(error) => write!(f, "I/O error: {error}"),
             Self::Parse(message) => write!(f, "parse error: {message}"),
             Self::Internal(message) => write!(f, "internal error: {message}"),
+            Self::NoDcPath { node } => write!(f, "no DC path for node {}", node.raw()),
             _ => Ok(()),
         }
     }

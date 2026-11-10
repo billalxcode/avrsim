@@ -2,7 +2,7 @@
 
 Daftar tugas lengkap dari hal terkecil sampai rilis. Setiap item harus kecil, dapat diuji, dan tidak menambah dependensi eksternal.
 
-> **Status:** fondasi P1 selesai (time, units, IDs, complex, matrix, LU). Implementasi simulasi belum dimulai. Lanjut ke P2.
+> **Status:** fondasi P1 dan netlist P2 selesai. Implementasi device dan analisis belum dimulai. Lanjut ke P3.
 > **Aturan:** satu item selesai = kode + test + dokumentasi singkat.
 
 ---
@@ -102,33 +102,33 @@ Daftar tugas lengkap dari hal terkecil sampai rilis. Setiap item harus kecil, da
 
 ## P2 - Netlist Core
 
-- [ ] P2-01 Definisikan node ground (ID 0).
-- [ ] P2-02 Implementasikan alokasi node.
-- [ ] P2-03 Definisikan `NodeKind`.
-- [ ] P2-04 Definisikan trait/API `Device`.
-- [ ] P2-05 Definisikan `StampContext`.
-- [ ] P2-06 Definisikan `Solution`.
-- [ ] P2-07 Implementasikan `CircuitBuilder`.
-- [ ] P2-08 Implementasikan penambahan node dengan nama.
-- [ ] P2-09 Implementasikan penambahan device dengan nama.
-- [ ] P2-10 Implementasikan subcircuit dengan port.
-- [ ] P2-11 Implementasikan instance subcircuit.
-- [ ] P2-12 Implementasikan algoritma flatten.
-- [ ] P2-13 Implementasikan penamaan hierarkis.
-- [ ] P2-14 Implementasikan deteksi nama duplikat.
-- [ ] P2-15 Implementasikan validasi node floating.
-- [ ] P2-16 Implementasikan validasi tidak ada jalur DC.
-- [ ] P2-17 Implementasikan resolusi ground.
-- [ ] P2-18 Implementasikan macro deklaratif `circuit!`.
-- [ ] P2-19 Pastikan macro dan builder menghasilkan netlist identik.
-- [ ] P2-20 Implementasikan snapshot netlist.
-- [ ] P2-21 Tulis test build inverter manual.
-- [ ] P2-22 Tulis test build inverter via macro.
-- [ ] P2-23 Tulis test flatten.
-- [ ] P2-24 Tulis test duplikat nama.
-- [ ] P2-25 Tulis test floating node.
-- [ ] P2-26 Dokumentasikan builder API.
-- [ ] P2-27 Dokumentasikan macro DSL.
+- [x] P2-01 Definisikan node ground (ID 0).
+- [x] P2-02 Implementasikan alokasi node.
+- [x] P2-03 Definisikan `NodeKind`.
+- [x] P2-04 Definisikan trait/API `Device`.
+- [x] P2-05 Definisikan `StampContext`.
+- [x] P2-06 Definisikan `Solution`.
+- [x] P2-07 Implementasikan `CircuitBuilder`.
+- [x] P2-08 Implementasikan penambahan node dengan nama.
+- [x] P2-09 Implementasikan penambahan device dengan nama.
+- [x] P2-10 Implementasikan subcircuit dengan port.
+- [x] P2-11 Implementasikan instance subcircuit.
+- [x] P2-12 Implementasikan algoritma flatten.
+- [x] P2-13 Implementasikan penamaan hierarkis.
+- [x] P2-14 Implementasikan deteksi nama duplikat.
+- [x] P2-15 Implementasikan validasi node floating.
+- [x] P2-16 Implementasikan validasi tidak ada jalur DC.
+- [x] P2-17 Implementasikan resolusi ground.
+- [x] P2-18 Implementasikan macro deklaratif `circuit!`.
+- [x] P2-19 Pastikan macro dan builder menghasilkan netlist identik.
+- [x] P2-20 Implementasikan snapshot netlist.
+- [x] P2-21 Tulis test build inverter manual.
+- [x] P2-22 Tulis test build inverter via macro.
+- [x] P2-23 Tulis test flatten.
+- [x] P2-24 Tulis test duplikat nama.
+- [x] P2-25 Tulis test floating node.
+- [x] P2-26 Dokumentasikan builder API.
+- [x] P2-27 Dokumentasikan macro DSL.
 
 **Exit P2:** inverter dapat dibangun, di-flatten, dan divalidasi.
 
