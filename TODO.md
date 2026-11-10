@@ -1,8 +1,8 @@
-# TODO — Full Task List
+# TODO - Full Task List
 
 Daftar tugas lengkap dari hal terkecil sampai rilis. Setiap item harus kecil, dapat diuji, dan tidak menambah dependensi eksternal.
 
-> **Status:** workspace Rust dan repository sudah diinisialisasi. Implementasi belum dimulai. Mulai dari `P0-01` yang tersisa.
+> **Status:** fondasi P1 selesai (time, units, IDs, complex, matrix, LU). Implementasi simulasi belum dimulai. Lanjut ke P2.
 > **Aturan:** satu item selesai = kode + test + dokumentasi singkat.
 
 ---
@@ -25,7 +25,7 @@ Daftar tugas lengkap dari hal terkecil sampai rilis. Setiap item harus kecil, da
 
 ---
 
-## P0 — Fondasi Proyek
+## P0 - Fondasi Proyek
 
 - [ ] P0-01 Periksa OS, arsitektur, dan prasyarat build.
 - [ ] P0-02 Pasang Rust stable via `rustup`.
@@ -43,7 +43,7 @@ Daftar tugas lengkap dari hal terkecil sampai rilis. Setiap item harus kecil, da
 - [x] P0-14 Tambahkan `LICENSE` (MIT) dengan copyright Billal Fauzan.
 - [x] P0-15 Lisensi akhir: hanya MIT (Apache dihapus).
 - [ ] P0-16 Tulis `README.md`.
-- [ ] P0-17 Tulis `docs/README.md` dan seluruh dokumen 00–09.
+- [ ] P0-17 Tulis `docs/README.md` dan seluruh dokumen 00-09.
 - [ ] P0-18 Tulis `TODO.md` ini.
 - [ ] P0-19 Tambahkan `.gitignore`.
 - [ ] P0-20 Tambahkan `rustfmt.toml`.
@@ -68,39 +68,39 @@ Daftar tugas lengkap dari hal terkecil sampai rilis. Setiap item harus kecil, da
 
 ---
 
-## P1 — Matematika dan Waktu
+## P1 - Matematika dan Waktu
 
-- [ ] P1-01 Definisikan `Time` integer pikodetik.
-- [ ] P1-02 Implementasikan konversi ns/µs/ms/s ke `Time` dan sebaliknya.
-- [ ] P1-03 Definisikan newtype `Voltage`.
-- [ ] P1-04 Definisikan newtype `Current`.
-- [ ] P1-05 Definisikan newtype `Resistance`.
-- [ ] P1-06 Definisikan newtype `Capacitance`.
-- [ ] P1-07 Definisikan `NodeId`, `BranchId`, `DeviceId`.
-- [ ] P1-08 Implementasikan `Complex64` untuk AC.
-- [ ] P1-09 Implementasikan operasi dasar complex: add, sub, mul, div, magnitude, phase.
-- [ ] P1-10 Implementasikan dense matrix row-major.
-- [ ] P1-11 Implementasikan get/set/row/column.
-- [ ] P1-12 Implementasikan LU decomposition dengan partial pivoting.
-- [ ] P1-13 Implementasikan forward substitution.
-- [ ] P1-14 Implementasikan back substitution.
-- [ ] P1-15 Implementasikan deteksi matriks singular.
-- [ ] P1-16 Implementasikan norm dan tolerance helper.
-- [ ] P1-17 Definisikan `SimError`.
-- [ ] P1-18 Pastikan tidak ada `HashMap` untuk iterasi hasil.
-- [ ] P1-19 Tulis test LU 2×2.
-- [ ] P1-20 Tulis test LU 3×3.
-- [ ] P1-21 Tulis test matriks singular.
-- [ ] P1-22 Tulis test complex.
-- [ ] P1-23 Tulis test konversi satuan.
-- [ ] P1-24 Tulis benchmark LU kecil.
-- [ ] P1-25 Dokumentasikan API matematika.
+- [x] P1-01 Definisikan `Time` integer pikodetik.
+- [x] P1-02 Implementasikan konversi ns/us/ms/s ke `Time` dan sebaliknya.
+- [x] P1-03 Definisikan newtype `Voltage`.
+- [x] P1-04 Definisikan newtype `Current`.
+- [x] P1-05 Definisikan newtype `Resistance`.
+- [x] P1-06 Definisikan newtype `Capacitance`.
+- [x] P1-07 Definisikan `NodeId`, `BranchId`, `DeviceId`.
+- [x] P1-08 Implementasikan `Complex64` untuk AC.
+- [x] P1-09 Implementasikan operasi dasar complex: add, sub, mul, div, magnitude, phase.
+- [x] P1-10 Implementasikan dense matrix row-major.
+- [x] P1-11 Implementasikan get/set/row/column.
+- [x] P1-12 Implementasikan LU decomposition dengan partial pivoting.
+- [x] P1-13 Implementasikan forward substitution.
+- [x] P1-14 Implementasikan back substitution.
+- [x] P1-15 Implementasikan deteksi matriks singular.
+- [x] P1-16 Implementasikan norm dan tolerance helper.
+- [x] P1-17 Definisikan `SimError`.
+- [x] P1-18 Pastikan tidak ada `HashMap` untuk iterasi hasil.
+- [x] P1-19 Tulis test LU 2x2.
+- [x] P1-20 Tulis test LU 3x3.
+- [x] P1-21 Tulis test matriks singular.
+- [x] P1-22 Tulis test complex.
+- [x] P1-23 Tulis test konversi satuan.
+- [x] P1-24 Tulis benchmark LU kecil.
+- [x] P1-25 Dokumentasikan API matematika.
 
 **Exit P1:** solver linear benar, singular terdeteksi, test hijau.
 
 ---
 
-## P2 — Netlist Core
+## P2 - Netlist Core
 
 - [ ] P2-01 Definisikan node ground (ID 0).
 - [ ] P2-02 Implementasikan alokasi node.
@@ -134,7 +134,7 @@ Daftar tugas lengkap dari hal terkecil sampai rilis. Setiap item harus kecil, da
 
 ---
 
-## P3 — Device Models
+## P3 - Device Models
 
 - [ ] P3-01 Definisikan parameter MOSFET Level 1.
 - [ ] P3-02 Implementasikan perhitungan `Vth` dengan body effect.
@@ -189,7 +189,7 @@ Daftar tugas lengkap dari hal terkecil sampai rilis. Setiap item harus kecil, da
 
 ---
 
-## P4 — MNA dan Analisis
+## P4 - MNA dan Analisis
 
 - [ ] P4-01 Definisikan struktur matriks MNA.
 - [ ] P4-02 Implementasikan stamping resistor.
@@ -232,7 +232,7 @@ Daftar tugas lengkap dari hal terkecil sampai rilis. Setiap item harus kecil, da
 
 ---
 
-## P5 — Pustaka CMOS
+## P5 - Pustaka CMOS
 
 - [ ] P5-01 Bangun netlist inverter CMOS.
 - [ ] P5-02 Jalankan DC sweep inverter.
@@ -268,7 +268,7 @@ Daftar tugas lengkap dari hal terkecil sampai rilis. Setiap item harus kecil, da
 
 ---
 
-## P6 — Komposisi Digital
+## P6 - Komposisi Digital
 
 - [ ] P6-01 Implementasikan komposisi gerbang hierarkis.
 - [ ] P6-02 Implementasikan helper bus/vector.
@@ -304,7 +304,7 @@ Daftar tugas lengkap dari hal terkecil sampai rilis. Setiap item harus kecil, da
 
 ---
 
-## P7 — AVR CPU Struktural
+## P7 - AVR CPU Struktural
 
 - [ ] P7-01 Buat tabel decode seluruh ISA AVR.
 - [ ] P7-02 Implementasikan fetch 16-bit.
@@ -420,7 +420,7 @@ Daftar tugas lengkap dari hal terkecil sampai rilis. Setiap item harus kecil, da
 
 ---
 
-## P8 — Peripheral Struktural
+## P8 - Peripheral Struktural
 
 - [ ] P8-01 Implementasikan GPIO port B.
 - [ ] P8-02 Implementasikan GPIO port C.
@@ -490,7 +490,7 @@ Daftar tugas lengkap dari hal terkecil sampai rilis. Setiap item harus kecil, da
 
 ---
 
-## P9 — Board dan Firmware
+## P9 - Board dan Firmware
 
 - [ ] P9-01 Implementasikan model LED.
 - [ ] P9-02 Implementasikan resistor board.
@@ -527,7 +527,7 @@ Daftar tugas lengkap dari hal terkecil sampai rilis. Setiap item harus kecil, da
 
 ---
 
-## P10 — Full SPICE dan Fidelity
+## P10 - Full SPICE dan Fidelity
 
 - [ ] P10-01 Implementasikan AC small-signal.
 - [ ] P10-02 Implementasikan sweep frekuensi.
@@ -562,7 +562,7 @@ Daftar tugas lengkap dari hal terkecil sampai rilis. Setiap item harus kecil, da
 
 ---
 
-## P11 — Release
+## P11 - Release
 
 - [ ] P11-01 Tulis user guide.
 - [ ] P11-02 Tulis API documentation.
@@ -615,16 +615,16 @@ Daftar tugas lengkap dari hal terkecil sampai rilis. Setiap item harus kecil, da
 
 | Milestone | Task IDs |
 |---|---|
-| M0 | P0-01 … P0-36 |
-| M1 | P1-01 … P1-25, P2-01 … P2-27, P3-01 … P3-48, P4-01 … P4-36, P5-01 … P5-08 |
-| M2 | P5-09 … P5-29 |
-| M3 | P6-01 … P6-29 |
-| M4 | P7-01 … P7-109 |
-| M5 | P8-01 … P8-30, P8-48 … P8-53, P8-61 … P8-63 |
-| M6 | P8-31 … P8-60 |
-| M7 | P9-01 … P9-30 |
-| M8 | P10-01 … P10-28 |
-| M9 | P11-01 … P11-17 |
+| M0 | P0-01 ... P0-36 |
+| M1 | P1-01 ... P1-25, P2-01 ... P2-27, P3-01 ... P3-48, P4-01 ... P4-36, P5-01 ... P5-08 |
+| M2 | P5-09 ... P5-29 |
+| M3 | P6-01 ... P6-29 |
+| M4 | P7-01 ... P7-109 |
+| M5 | P8-01 ... P8-30, P8-48 ... P8-53, P8-61 ... P8-63 |
+| M6 | P8-31 ... P8-60 |
+| M7 | P9-01 ... P9-30 |
+| M8 | P10-01 ... P10-28 |
+| M9 | P11-01 ... P11-17 |
 
 ---
 
@@ -634,11 +634,11 @@ Daftar tugas lengkap dari hal terkecil sampai rilis. Setiap item harus kecil, da
 2. P0-02 Pasang Rust.
 3. P0-03 Verifikasi toolchain.
 4. P0-05 Buat workspace.
-5. P0-06 … P0-12 Buat crate.
+5. P0-06 ... P0-12 Buat crate.
 6. P0-13 Cek zero dependency.
-7. P0-14 … P0-18 Tambahkan lisensi dan dokumentasi.
-8. P0-22 … P0-24 Buat skrip dev.
-9. P0-35 … P0-36 Build dan test.
+7. P0-14 ... P0-18 Tambahkan lisensi dan dokumentasi.
+8. P0-22 ... P0-24 Buat skrip dev.
+9. P0-35 ... P0-36 Build dan test.
 10. P1-01 Definisikan `Time`.
 
 ---

@@ -14,9 +14,10 @@ Dokumen ini adalah indeks lengkap spesifikasi **embed-emulation**.
 | 05 | [Peripheral](05-peripherals.md) | GPIO, timer, UART, SPI, I2C, ADC, dan lainnya |
 | 06 | [Board & Firmware](06-board-firmware.md) | Komponen board, loader, toolchain, demo |
 | 07 | [Verifikasi](07-verification.md) | Test pyramid, oracle, fidelity matrix, toleransi |
-| 08 | [Roadmap](08-roadmap.md) | Milestone M0–M9 dan exit criteria |
+| 08 | [Roadmap](08-roadmap.md) | Milestone M0-M9 dan exit criteria |
 | 09 | [Risiko](09-risks.md) | Feasibility, risiko, dan guardrail |
-| — | [Todolist](../TODO.md) | Daftar tugas lengkap dari hal terkecil |
+| 10 | [Math API](10-math-api.md) | API waktu, satuan, complex, matrix, LU, error |
+| - | [Todolist](../TODO.md) | Daftar tugas lengkap dari hal terkecil |
 
 ## Konvensi dokumen
 
@@ -32,6 +33,6 @@ Dokumen ini adalah indeks lengkap spesifikasi **embed-emulation**.
 |---|---|
 | Brainstorming | Selesai |
 | Spesifikasi | Dokumen ini |
-| Kode | Belum dimulai |
-| Toolchain Rust | Belum terpasang di lingkungan saat ini |
+| Kode | P1 fondasi selesai |
+| Toolchain Rust | Terpasang (1.99.1) |
 | `avr-gcc` | Belum terpasang |

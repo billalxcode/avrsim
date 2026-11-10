@@ -60,6 +60,7 @@ Baca berurutan:
 | [`docs/07-verification.md`](docs/07-verification.md) | Strategi verifikasi, oracle, fidelity matrix |
 | [`docs/08-roadmap.md`](docs/08-roadmap.md) | Milestone M0-M9 dan exit criteria |
 | [`docs/09-risks.md`](docs/09-risks.md) | Risiko, realisme, dan guardrail scope |
+| [`docs/10-math-api.md`](docs/10-math-api.md) | API waktu, satuan, complex, matrix, LU, error |
 | [`TODO.md`](TODO.md) | **Todolist lengkap dari hal terkecil** |
 
 ---
