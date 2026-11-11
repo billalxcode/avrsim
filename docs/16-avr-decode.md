@@ -6,7 +6,9 @@ Dokumen ini menjelaskan decoder ISA AVR di `sim-avr`.
 
 ## 1. Status
 
-P7-01 selesai untuk instruction set AVRe+ yang dipakai ATmega328P.
+P7-01 sampai P7-30 sudah mencakup decoder AVRe+, fetch, register bank, unit
+arithmetic, unit logic, dan unit shift. Eksekusi instruksi end-to-end belum
+dihubungkan ke control FSM.
 
 Yang sudah didecode:
 

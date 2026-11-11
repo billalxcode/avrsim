@@ -66,7 +66,7 @@ Baca berurutan:
 | [`docs/13-analysis.md`](docs/13-analysis.md) | MNA, DC, sweep, transient, hasil M1 |
 | [`docs/14-cells.md`](docs/14-cells.md) | Sel CMOS, sequential, memory, registry, noise margin, half/full adder, ALU |
 | [`docs/15-digital.md`](docs/15-digital.md) | Logika dua-state, clock ideal, counter, shift register |
-| [`docs/16-avr-decode.md`](docs/16-avr-decode.md) | Decoder ISA AVR, format 16/32-bit, cakupan AVRe+ |
+| [`docs/16-avr-decode.md`](docs/16-avr-decode.md) | Decoder, fetch, register bank, ALU arithmetic/logic/shift AVR |
 | [`TODO.md`](TODO.md) | **Todolist lengkap dari hal terkecil** |
 
 ---
