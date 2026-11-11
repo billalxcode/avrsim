@@ -7,15 +7,16 @@ delay dari transient.
 
 ## 1. Status
 
-P5-05 sampai P5-08 diimplementasikan:
+P5-05 sampai P5-08 dan P5-18 sampai P5-19 diimplementasikan:
 
 - Menjalankan transient switching.
 - Mengukur rise time 10-90 persen.
 - Mengukur fall time 90-10 persen.
 - Mengukur propagation delay.
+- Mengukur input capacitance dari rise time RC.
+- Mengukur drive strength statis.
 
-Belum ada karakterisasi input capacitance, drive strength, atau ring
-oscillator.
+Belum ada karakterisasi ring oscillator atau perbandingan ngspice.
 
 ---
 
@@ -38,6 +39,30 @@ pub fn measure_switching(
 ```
 
 Semua waktu dalam detik.
+
+```rust
+pub fn measure_input_capacitance(
+    circuit: &Circuit,
+    drive: NodeId,
+    input: NodeId,
+    resistance: f64,
+    config: &TransientConfig,
+) -> Result<f64, SimError>;
+
+pub struct DriveStrength {
+    pub open_voltage: f64,
+    pub loaded_voltage: f64,
+    pub current: f64,
+    pub output_resistance: f64,
+}
+
+pub fn measure_drive_strength(
+    circuit: &Circuit,
+    output: NodeId,
+    load: f64,
+    config: &DcConfig,
+) -> Result<DriveStrength, SimError>;
+```
 
 ---
 
@@ -73,10 +98,23 @@ Hasil yang diharapkan:
 - Fall time sekitar `2.2 us`.
 - Propagation delay sekitar `0.69 us`.
 
-Test juga menolak node yang sama dan output yang tidak switching.
+Input capacitance memakai rise time 10-90 persen:
 
-Total test `sim-analysis`: 75.
-Total workspace: 466.
+```
+C = rise_time / (R * ln(9))
+```
+
+Drive strength membandingkan tegangan open-circuit dan tegangan dengan
+load resistor, lalu menghitung resistansi output ekivalen.
+
+MOS capacitor dengan `cox = 1 pF` menghasilkan capacitance sekitar `1 pF`.
+Voltage divider `500 Ohm` menghasilkan resistansi output sekitar `500 Ohm`.
+
+Test juga menolak node yang sama, output yang tidak switching, dan load
+nol.
+
+Total test `sim-analysis`: 80.
+Total workspace: 474.
 
 ---
 
@@ -88,3 +126,6 @@ Total workspace: 466.
 - Tidak ada kalibrasi CMOS terhadap datasheet.
 - Input harus benar-benar melakukan transisi.
 - Threshold memakai persentase dari swing output, bukan level absolut.
+- Input capacitance mengasumsikan rangkaian RC orde satu.
+- Drive strength diukur pada satu titik operasi dan satu load.
+- Belum ada perbandingan dengan ngspice.

@@ -26,7 +26,7 @@ P4 diimplementasikan sebagian:
 - Continuation sweep dan initial state device untuk discharge.
 - Voltage limiting junction, source stepping, dan writer CSV/VCD analog.
 - Pulse voltage source untuk transient switching.
-- Karakterisasi rise, fall, dan propagation delay.
+- Karakterisasi rise, fall, delay, input capacitance, dan drive strength.
 - Body effect MOSFET, `gmb`, dan kapasitansi Meyer.
 - Benchmark solver dan optimasi alokasi.
 - Prosedur kalibrasi parameter device.
@@ -222,11 +222,11 @@ Total test workspace saat ini:
 
 - `sim-core`: 62.
 - `sim-device`: 39 (34 unit + 5 integration).
-- `sim-analysis`: 77.
+- `sim-analysis`: 80.
 - `sim-cells`: 67.
 - `sim-avr`: 198.
 - `sim-board`: 17.
 - `sim-cli`: 11.
-- Total: 471.
+- Total: 474.
 
 Semua fungsi maksimal 20 baris dan semua file baru ASCII-only.
