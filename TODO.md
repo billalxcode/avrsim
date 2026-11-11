@@ -2,7 +2,7 @@
 
 Daftar tugas lengkap dari hal terkecil sampai rilis. Setiap item harus kecil, dapat diuji, dan tidak menambah dependensi eksternal.
 
-> **Status:** P8 selesai. P9 sebagian besar selesai. P10 sparse, adaptive step, trapezoidal/Gear, AC linear, noise termal, distorsi kuasi-statis, sensitivitas numerik, suhu device, process corner, BJT, JFET, transmission line, determinisme Linux, fidelity matrix, batasan model, profiling, dan optimasi selesai. Golden suite dan determinisme macOS/Windows belum. P4 harness ngspice dan golden data belum karena ngspice tidak tersedia. P5 switching, input capacitance, dan drive strength selesai; ring oscillator dan perbandingan ngspice belum. P11 user guide dan contoh runnable selesai; CI, packaging, dan release belum. P3 body effect, gmb, Meyer capacitance, overlap, diode nonideal, BJT, JFET, transmission line, VCVS, VCCS, CCVS, CCCS, dan switch selesai; breakdown dan model termal lanjutan belum.
+> **Status:** P8 selesai penuh. P9 sebagian besar selesai. P10 sparse, adaptive step, trapezoidal/Gear, AC linear, noise termal, distorsi kuasi-statis, sensitivitas numerik, suhu device, process corner, BJT, JFET, transmission line, determinisme Linux, fidelity matrix, batasan model, profiling, dan optimasi selesai. Golden suite dan determinisme macOS/Windows belum. P4 harness ngspice dan golden data belum karena ngspice tidak tersedia. P5 switching, input capacitance, dan drive strength selesai; ring oscillator dan perbandingan ngspice belum. P11 user guide dan contoh runnable selesai; CI, packaging, dan release belum. P3 body effect, gmb, Meyer capacitance, overlap, diode nonideal, BJT, JFET, transmission line, VCVS, VCCS, CCVS, CCCS, dan switch selesai; breakdown dan model termal lanjutan belum.
 > **Aturan:** satu item selesai = kode + test + dokumentasi singkat.
 
 ---
@@ -470,21 +470,21 @@ Daftar tugas lengkap dari hal terkecil sampai rilis. Setiap item harus kecil, da
 - [x] P8-46 Implementasikan POR.
 - [x] P8-47 Implementasikan brown-out.
 - [x] P8-48 Tulis test GPIO.
-- [ ] P8-49 Tulis test Timer0.
-- [ ] P8-50 Tulis test Timer1.
-- [ ] P8-51 Tulis test Timer2.
-- [ ] P8-52 Tulis test UART TX.
-- [ ] P8-53 Tulis test UART RX.
-- [ ] P8-54 Tulis test SPI.
-- [ ] P8-55 Tulis test I2C.
-- [ ] P8-56 Tulis test ADC.
-- [ ] P8-57 Tulis test comparator.
-- [ ] P8-58 Tulis test EEPROM.
-- [ ] P8-59 Tulis test watchdog.
-- [ ] P8-60 Tulis test sleep.
-- [ ] P8-61 Jalankan blink + UART hello.
-- [ ] P8-62 Jalankan timer interrupt.
-- [ ] P8-63 Dokumentasikan peripheral.
+- [x] P8-49 Tulis test Timer0.
+- [x] P8-50 Tulis test Timer1.
+- [x] P8-51 Tulis test Timer2.
+- [x] P8-52 Tulis test UART TX.
+- [x] P8-53 Tulis test UART RX.
+- [x] P8-54 Tulis test SPI.
+- [x] P8-55 Tulis test I2C.
+- [x] P8-56 Tulis test ADC.
+- [x] P8-57 Tulis test comparator.
+- [x] P8-58 Tulis test EEPROM.
+- [x] P8-59 Tulis test watchdog.
+- [x] P8-60 Tulis test sleep.
+- [x] P8-61 Jalankan blink + UART hello.
+- [x] P8-62 Jalankan timer interrupt.
+- [x] P8-63 Dokumentasikan peripheral.
 
 **Exit P8:** blink + UART hello + timer interrupt berjalan.
 
