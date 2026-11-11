@@ -22,8 +22,6 @@ Sel yang sudah diimplementasikan:
 
 Belum diimplementasikan:
 
-- Characterization harness lengkap.
-- Noise margin.
 - Rise/fall time.
 - Propagation delay.
 - Input capacitance.
@@ -200,6 +198,12 @@ Test:
 - `CellKind::build()` membangun sel.
 - `CellKind::name()` mengembalikan nama.
 
+### Noise Margin
+
+- `noise_margins` mengambil sampel VTC `(input, output)`.
+- Menghitung `VOH`, `VOL`, `VIL`, `VIH`, `NMH`, `NML`.
+- Test inverter memastikan noise margin positif.
+
 ## 9. Test
 
 Test `sim-cells` mencakup:
@@ -212,7 +216,7 @@ Test `sim-cells` mencakup:
 - Buffer follow input.
 - Powered cell memiliki supply.
 
-Total test `sim-cells`: 14.
+Total test `sim-cells`: 15.
 
 ---
 
@@ -220,7 +224,6 @@ Total test `sim-cells`: 14.
 
 - Belum ada analisis rise/fall time.
 - Belum ada propagation delay.
-- Belum ada noise margin.
 - Belum ada input capacitance.
 - Belum ada drive strength.
 - Test D flip-flop dan SRAM masih struktural.

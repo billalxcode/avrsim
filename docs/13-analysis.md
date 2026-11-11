@@ -207,7 +207,7 @@ Total test workspace saat ini:
 - `sim-core`: 53.
 - `sim-device`: 23 (18 unit + 5 integration).
 - `sim-analysis`: 21.
-- `sim-cells`: 14.
-- Total: 111.
+- `sim-cells`: 15.
+- Total: 112.
 
 Semua fungsi maksimal 20 baris dan semua file baru ASCII-only.

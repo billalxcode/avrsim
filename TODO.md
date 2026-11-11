@@ -2,7 +2,7 @@
 
 Daftar tugas lengkap dari hal terkecil sampai rilis. Setiap item harus kecil, dapat diuji, dan tidak menambah dependensi eksternal.
 
-> **Status:** P5 sel dasar, sequential, memory, dan registry selesai. Ring oscillator struktur ada, osilasi belum terverifikasi. Lanjut ke characterization dan P6.
+> **Status:** P5 sel, sequential, memory, registry, dan noise margin selesai. Ring oscillator struktur ada, osilasi belum terverifikasi. Lanjut ke P6.
 > **Aturan:** satu item selesai = kode + test + dokumentasi singkat.
 
 ---
@@ -237,7 +237,7 @@ Daftar tugas lengkap dari hal terkecil sampai rilis. Setiap item harus kecil, da
 - [x] P5-01 Bangun netlist inverter CMOS.
 - [x] P5-02 Jalankan DC sweep inverter.
 - [x] P5-03 Hitung switching threshold.
-- [ ] P5-04 Hitung noise margin.
+- [x] P5-04 Hitung noise margin.
 - [ ] P5-05 Jalankan transient switching.
 - [ ] P5-06 Ukur rise time.
 - [ ] P5-07 Ukur fall time.
