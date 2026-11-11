@@ -2,7 +2,7 @@
 
 Daftar tugas lengkap dari hal terkecil sampai rilis. Setiap item harus kecil, dapat diuji, dan tidak menambah dependensi eksternal.
 
-> **Status:** P6 adder selesai: half, full, dan ripple-carry 4-bit/8-bit. Lanjut ke flag arithmetic dan ALU.
+> **Status:** P6 adder, gerbang logika, dan flag arithmetic selesai. Lanjut ke ALU bit-slice.
 > **Aturan:** satu item selesai = kode + test + dokumentasi singkat.
 
 ---
@@ -281,12 +281,12 @@ Daftar tugas lengkap dari hal terkecil sampai rilis. Setiap item harus kecil, da
 - [x] P6-09 Bangun half adder.
 - [x] P6-10 Bangun full adder.
 - [x] P6-11 Bangun 8-bit ripple-carry adder.
-- [ ] P6-12 Implementasikan flag C.
-- [ ] P6-13 Implementasikan flag Z.
-- [ ] P6-14 Implementasikan flag N.
-- [ ] P6-15 Implementasikan flag V.
-- [ ] P6-16 Implementasikan flag S.
-- [ ] P6-17 Implementasikan flag H.
+- [x] P6-12 Implementasikan flag C.
+- [x] P6-13 Implementasikan flag Z.
+- [x] P6-14 Implementasikan flag N.
+- [x] P6-15 Implementasikan flag V.
+- [x] P6-16 Implementasikan flag S.
+- [x] P6-17 Implementasikan flag H.
 - [ ] P6-18 Bangun ALU bit-slice.
 - [ ] P6-19 Bangun register file DFF + decoder.
 - [ ] P6-20 Bangun PC.

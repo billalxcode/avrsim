@@ -19,6 +19,8 @@ Sel yang sudah diimplementasikan:
 - SRAM cell 6T.
 - Ring oscillator.
 - Registry sel.
+- AND2, OR2, XOR2, dan MUX2 dari NAND2.
+- Flag arithmetic C, Z, N, V, S, H.
 
 Belum diimplementasikan:
 
@@ -211,6 +213,21 @@ Test:
 - Output `sum` dan `carry`.
 - Truth table test lengkap.
 
+### Logic Gates
+
+- `and2` adalah NAND2 ditambah inverter.
+- `or2` adalah tiga NAND2.
+- `xor2` adalah empat NAND2.
+- `mux2` memilih `a` saat `sel` rendah dan `b` saat `sel` tinggi.
+- Semua punya truth table test.
+
+### Arithmetic Flags
+
+- `AluFlags` memuat `carry`, `zero`, `negative`, `overflow`, `sign`, `half_carry`.
+- `add_with_carry` dan `sub_with_borrow` mengembalikan nilai dan flag.
+- Flag `S` dihitung sebagai `N xor V`.
+- Test exhaustive untuk nilai, carry/borrow, dan half carry.
+
 ### Noise Margin
 
 - `noise_margins` mengambil sampel VTC `(input, output)`.
@@ -237,7 +254,7 @@ Test `sim-cells` mencakup:
 - Buffer follow input.
 - Powered cell memiliki supply.
 
-Total test `sim-cells`: 19.
+Total test `sim-cells`: 31.
 
 ---
 
