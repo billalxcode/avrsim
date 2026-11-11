@@ -106,19 +106,27 @@ pub fn ac_sweep(
     stop: f64,
     points: usize,
 ) -> Result<Vec<AcSolution>, SimError> {
+    let frequencies = sweep_frequencies(start, stop, points)?;
+    frequencies
+        .into_iter()
+        .map(|frequency| ac_analysis(circuit, frequency))
+        .collect()
+}
+
+pub(crate) fn sweep_frequencies(
+    start: f64,
+    stop: f64,
+    points: usize,
+) -> Result<Vec<f64>, SimError> {
     validate_sweep(start, stop, points)?;
-    let ratio = if points > 1 && start > 0.0 {
-        (stop / start).powf(1.0 / (points - 1) as f64)
-    } else {
-        1.0
-    };
-    let mut results = Vec::with_capacity(points);
+    let ratio = (stop / start).powf(1.0 / (points - 1) as f64);
+    let mut frequencies = Vec::with_capacity(points);
     let mut frequency = start;
     for _ in 0..points {
-        results.push(ac_analysis(circuit, frequency)?);
+        frequencies.push(frequency);
         frequency *= ratio;
     }
-    Ok(results)
+    Ok(frequencies)
 }
 
 fn validate_frequency(frequency: f64) -> Result<(), SimError> {
