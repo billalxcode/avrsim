@@ -264,6 +264,23 @@ pub(crate) fn pulse_divider() -> (Circuit, NodeId) {
     (circuit.build(), output)
 }
 
+pub(crate) fn pulse_rc() -> (Circuit, NodeId, NodeId) {
+    let mut circuit = TestCircuit::new();
+    let input = circuit.node("in");
+    let output = circuit.node("out");
+    let ground = circuit.ground();
+    circuit.pulse(
+        "v1",
+        input,
+        ground,
+        (0.0, 5.0),
+        (5e-6, 0.0, 0.0, 10e-6, 20e-6),
+    );
+    circuit.resistor("r1", input, output, 1000.0);
+    circuit.capacitor("c1", output, ground, 1e-9);
+    (circuit.build(), input, output)
+}
+
 pub(crate) fn resistor_to_ground() -> (Circuit, NodeId) {
     let mut circuit = TestCircuit::new();
     let output = circuit.node("out");

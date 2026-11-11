@@ -4,6 +4,7 @@
 
 mod ac;
 mod adaptive;
+mod characterization;
 mod corners;
 mod dc;
 #[cfg(test)]
@@ -19,6 +20,7 @@ mod test_support;
 
 pub use ac::{AcSolution, ac_analysis, ac_sweep};
 pub use adaptive::{AdaptiveConfig, transient_adaptive};
+pub use characterization::{SwitchingTiming, measure_switching};
 pub use corners::{ProcessCorner, with_process_corner, with_temperature};
 pub use dc::{DcConfig, DcPoint, DcResult, dc_operating_point, dc_sweep};
 pub use distortion::{DistortionConfig, DistortionResult, distortion_analysis};
