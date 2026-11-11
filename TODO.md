@@ -2,7 +2,7 @@
 
 Daftar tugas lengkap dari hal terkecil sampai rilis. Setiap item harus kecil, dapat diuji, dan tidak menambah dependensi eksternal.
 
-> **Status:** CPU subset mendukung interrupt controller, vector table, SEI delay, dan sleep wake. Lanjut ke timing, disassembler, CLI, dan firmware.
+> **Status:** CPU subset mendukung timing per instruksi dan total cycle. Lanjut ke test vector ISA, disassembler, CLI, dan firmware.
 > **Aturan:** satu item selesai = kode + test + dokumentasi singkat.
 
 ---
@@ -397,7 +397,7 @@ Daftar tugas lengkap dari hal terkecil sampai rilis. Setiap item harus kecil, da
 - [x] P7-89 Implementasikan SLEEP.
 - [x] P7-90 Implementasikan WDR.
 - [x] P7-91 Implementasikan reset.
-- [ ] P7-92 Implementasikan FSM timing.
+- [x] P7-92 Implementasikan FSM timing.
 - [ ] P7-93 Tulis test vector ADD.
 - [ ] P7-94 Tulis test vector ADC.
 - [ ] P7-95 Tulis test vector SUB/SBC.
@@ -408,13 +408,13 @@ Daftar tugas lengkap dari hal terkecil sampai rilis. Setiap item harus kecil, da
 - [x] P7-100 Tulis test vector branch.
 - [x] P7-101 Tulis test vector call/stack.
 - [x] P7-102 Tulis test vector interrupt.
-- [x] P7-103 Differential test vs simavr.
-- [x] P7-104 Tulis blink assembly.
-- [x] P7-105 Kompilasi blink dengan `avr-gcc`.
-- [x] P7-106 Jalankan blink di CPU struktural.
-- [x] P7-107 Implementasikan CLI monitor.
-- [x] P7-108 Implementasikan disassembler.
-- [x] P7-109 Dokumentasikan ISA support.
+- [ ] P7-103 Differential test vs simavr.
+- [ ] P7-104 Tulis blink assembly.
+- [ ] P7-105 Kompilasi blink dengan `avr-gcc`.
+- [ ] P7-106 Jalankan blink di CPU struktural.
+- [ ] P7-107 Implementasikan CLI monitor.
+- [ ] P7-108 Implementasikan disassembler.
+- [ ] P7-109 Dokumentasikan ISA support.
 
 **Exit P7:** blink `avr-gcc` berjalan di CPU struktural.
 

@@ -113,6 +113,10 @@ pub struct AvrTrace {
     pub sreg: Sreg,
     /// Halt state.
     pub halted: bool,
+    /// Cycles used by this instruction.
+    pub cycles: u8,
+    /// Total cycles since reset.
+    pub total_cycles: u64,
 }
 
 struct AluNets {
@@ -154,6 +158,7 @@ pub struct Cpu {
     pending: u32,
     sei_delay: u8,
     sleeping: bool,
+    cycles: u64,
 }
 
 impl Cpu {
@@ -183,6 +188,7 @@ impl Cpu {
             pending: 0,
             sei_delay: 0,
             sleeping: false,
+            cycles: 0,
         })
     }
 
@@ -195,12 +201,15 @@ impl Cpu {
             return Ok(None);
         }
         self.sleeping = false;
-        self.service_interrupt()?;
+        let interrupt = self.service_interrupt()?;
         let fetched = self.program.fetch(self.pc)?;
         let next_pc = self.pc.wrapping_add(u16::from(fetched.words));
         self.execute(&fetched.instruction, next_pc)?;
         self.finish_sei();
-        Ok(Some(self.trace(fetched.instruction)))
+        let cycles = self.instruction_cycles(fetched.instruction.mnemonic, next_pc);
+        let total = u64::from(cycles) + if interrupt { 4 } else { 0 };
+        self.cycles += total;
+        Ok(Some(self.trace(fetched.instruction, cycles)))
     }
 
     /// Executes until halt or the step limit.
@@ -260,16 +269,16 @@ impl Cpu {
         self.sreg = sreg;
     }
 
-    fn service_interrupt(&mut self) -> Result<(), SimError> {
+    fn service_interrupt(&mut self) -> Result<bool, SimError> {
         if !self.sreg.interrupt || self.pending == 0 {
-            return Ok(());
+            return Ok(false);
         }
         let index = self.pending.trailing_zeros() as u8;
         self.pending &= !(1u32 << index);
         self.push_word(self.pc);
         self.sreg.interrupt = false;
         self.pc = vector_address(index);
-        Ok(())
+        Ok(true)
     }
 
     fn finish_sei(&mut self) {
@@ -280,6 +289,20 @@ impl Cpu {
         if self.sei_delay == 0 {
             self.sreg.interrupt = true;
         }
+    }
+
+    fn instruction_cycles(&self, mnemonic: Mnemonic, next_pc: u16) -> u8 {
+        if matches!(mnemonic, Mnemonic::Brbs | Mnemonic::Brbc) {
+            return if self.pc != next_pc { 2 } else { 1 };
+        }
+        if is_skip(mnemonic) {
+            if self.pc == next_pc {
+                return 1;
+            }
+            let skipped = self.pc.wrapping_sub(next_pc).min(2);
+            return 1 + skipped as u8;
+        }
+        base_cycles(mnemonic)
     }
 
     /// Returns the program counter.
@@ -306,6 +329,12 @@ impl Cpu {
         self.sleeping
     }
 
+    /// Returns total cycles since reset.
+    #[must_use]
+    pub const fn cycles(&self) -> u64 {
+        self.cycles
+    }
+
     fn wake_ready(&self) -> bool {
         self.sreg.interrupt && self.pending != 0
     }
@@ -327,6 +356,7 @@ impl Cpu {
         self.pending = 0;
         self.sei_delay = 0;
         self.sleeping = false;
+        self.cycles = 0;
         Ok(())
     }
 
@@ -1019,7 +1049,7 @@ impl Cpu {
         Ok(())
     }
 
-    fn trace(&self, instruction: Instruction) -> AvrTrace {
+    fn trace(&self, instruction: Instruction, cycles: u8) -> AvrTrace {
         let mut registers = [0u8; 32];
         for (index, slot) in registers.iter_mut().enumerate() {
             *slot = self.register(index as u8);
@@ -1030,6 +1060,8 @@ impl Cpu {
             registers,
             sreg: self.sreg,
             halted: self.halted,
+            cycles,
+            total_cycles: self.cycles,
         }
     }
 }
@@ -1145,6 +1177,55 @@ fn is_call(mnemonic: Mnemonic) -> bool {
             | Mnemonic::Ret
             | Mnemonic::Reti
     )
+}
+
+fn base_cycles(mnemonic: Mnemonic) -> u8 {
+    if is_four_cycle(mnemonic) {
+        4
+    } else if is_three_cycle(mnemonic) {
+        3
+    } else if is_two_cycle(mnemonic) {
+        2
+    } else {
+        1
+    }
+}
+
+fn is_two_cycle(mnemonic: Mnemonic) -> bool {
+    matches!(
+        mnemonic,
+        Mnemonic::Mul
+            | Mnemonic::Muls
+            | Mnemonic::Mulsu
+            | Mnemonic::Push
+            | Mnemonic::Pop
+            | Mnemonic::Rjmp
+            | Mnemonic::Ijmp
+            | Mnemonic::Adiw
+            | Mnemonic::Sbiw
+            | Mnemonic::Sbi
+            | Mnemonic::Cbi
+    ) || is_indirect_load(mnemonic)
+        || matches!(mnemonic, Mnemonic::LddY | Mnemonic::LddZ | Mnemonic::Lds)
+        || is_store(mnemonic)
+}
+
+fn is_three_cycle(mnemonic: Mnemonic) -> bool {
+    matches!(
+        mnemonic,
+        Mnemonic::Jmp
+            | Mnemonic::Rcall
+            | Mnemonic::Icall
+            | Mnemonic::Eicall
+            | Mnemonic::LpmZ
+            | Mnemonic::LpmZPost
+            | Mnemonic::ElpmZ
+            | Mnemonic::ElpmZPost
+    )
+}
+
+fn is_four_cycle(mnemonic: Mnemonic) -> bool {
+    matches!(mnemonic, Mnemonic::Call | Mnemonic::Ret | Mnemonic::Reti)
 }
 
 fn is_skip(mnemonic: Mnemonic) -> bool {
@@ -1913,5 +1994,67 @@ mod tests {
     fn interrupt_rejects_bad_vector() {
         let mut cpu = Cpu::new(vec![0x9598]).expect("cpu");
         assert!(cpu.request_interrupt(26).is_err());
+    }
+
+    #[test]
+    fn instruction_and_total_cycles() {
+        let mut cpu = Cpu::new(vec![
+            ldi(16, 1),
+            ldi(17, 2),
+            reg_op(0x0C00, 16, 17),
+            0xC001,
+            ldi(18, 9),
+            0x9598,
+        ])
+        .expect("cpu");
+        let traces = cpu.run(10).expect("run");
+        assert_eq!(traces.len(), 5);
+        assert_eq!(cpu.cycles(), 6);
+        assert_eq!(traces[4].total_cycles, 6);
+    }
+
+    #[test]
+    fn taken_branch_costs_two_cycles() {
+        let mut cpu = Cpu::new(vec![
+            ldi(16, 0),
+            reg_op(0x1800, 16, 16),
+            branch(1, 1),
+            ldi(17, 9),
+            ldi(18, 7),
+            0x9598,
+        ])
+        .expect("cpu");
+        let traces = cpu.run(10).expect("run");
+        assert_eq!(traces[2].cycles, 2);
+    }
+
+    #[test]
+    fn skip_over_two_word_instruction_costs_three() {
+        let mut cpu = Cpu::new(vec![
+            ldi(16, 1),
+            ldi(17, 1),
+            reg_op(0x1000, 16, 17),
+            0x9000 | (18 << 4),
+            0x0100,
+            0x9598,
+        ])
+        .expect("cpu");
+        let traces = cpu.run(10).expect("run");
+        assert_eq!(traces[2].cycles, 3);
+    }
+
+    #[test]
+    fn interrupt_entry_adds_four_cycles() {
+        let mut cpu = Cpu::new(vec![ldi(16, 1), 0x9598, ldi(17, 7), 0x9518]).expect("cpu");
+        cpu.step().expect("step");
+        cpu.set_sreg(super::Sreg {
+            interrupt: true,
+            ..super::Sreg::default()
+        });
+        cpu.request_interrupt(1).expect("interrupt");
+        let before = cpu.cycles();
+        let trace = cpu.step().expect("step").expect("trace");
+        assert_eq!(trace.cycles, 1);
+        assert_eq!(cpu.cycles() - before, 5);
     }
 }

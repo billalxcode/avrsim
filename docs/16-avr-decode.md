@@ -213,9 +213,21 @@ Test decoder mencakup:
 - IR load, hold, reset, dan validasi lebar data.
 - Register bank write/read, dua read port, pasangan little-endian, hold, dan reset.
 
-Total test `sim-avr`: 84.
+Total test `sim-avr`: 88.
 
 ---
+
+## 13. Timing
+
+- `AvrTrace` mencatat cycle instruksi dan total cycle.
+- Sebagian besar instruksi memakai 1 cycle.
+- MUL, LD/ST, LDD/STD, LDS/STS, PUSH/POP, RJMP, IJMP, ADIW, SBIW, dan SBI/CBI memakai 2 cycle.
+- JMP, RCALL, ICALL, EICALL, LPM, dan ELPM memakai 3 cycle.
+- CALL, RET, dan RETI memakai 4 cycle.
+- Branch taken menambah 1 cycle.
+- Skip yang melewati instruksi 2 word memakai 3 cycle.
+- Interrupt entry menambah 4 cycle.
+- Model ini belum memasukkan wait state flash dan timing silikon detail.
 
 ## 13. Batas
 
