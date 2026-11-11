@@ -2,7 +2,7 @@
 
 Daftar tugas lengkap dari hal terkecil sampai rilis. Setiap item harus kecil, dapat diuji, dan tidak menambah dependensi eksternal.
 
-> **Status:** P8 selesai kecuali P8-09. P9 sebagian besar selesai. P10 sparse matrix, sparse LU, ordering, fidelity matrix, dan batasan model selesai. AC/noise, adaptive step, kalibrasi, dan golden suite belum.
+> **Status:** P8 selesai kecuali P8-09. P9 sebagian besar selesai. P10 sparse, adaptive step, fidelity matrix, dan batasan model selesai. AC/noise, trapezoidal/Gear, kalibrasi, dan golden suite belum.
 > **Aturan:** satu item selesai = kode + test + dokumentasi singkat.
 
 ---
@@ -543,8 +543,8 @@ Daftar tugas lengkap dari hal terkecil sampai rilis. Setiap item harus kecil, da
 - [x] P10-12 Implementasikan sparse matrix.
 - [x] P10-13 Implementasikan sparse LU.
 - [x] P10-14 Implementasikan ordering.
-- [ ] P10-15 Implementasikan adaptive time step.
-- [ ] P10-16 Implementasikan LTE.
+- [x] P10-15 Implementasikan adaptive time step.
+- [x] P10-16 Implementasikan LTE.
 - [ ] P10-17 Implementasikan trapezoidal integration.
 - [ ] P10-18 Implementasikan Gear integration.
 - [ ] P10-19 Kalibrasi pin-level dari datasheet.

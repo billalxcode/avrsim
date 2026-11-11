@@ -58,7 +58,7 @@ pub fn transient(
     Ok(samples)
 }
 
-fn initial_solution(
+pub(crate) fn initial_solution(
     system: &mut SimulationSystem,
     config: &TransientConfig,
 ) -> Result<Solution, SimError> {

@@ -76,6 +76,7 @@ Baca berurutan:
 | [`docs/23-spi-twi-adc.md`](docs/23-spi-twi-adc.md) | SPI, TWI, dan ADC |
 | [`docs/24-fidelity.md`](docs/24-fidelity.md) | Matriks fidelity dan batasan model |
 | [`docs/25-sparse.md`](docs/25-sparse.md) | CSR, sparse LU, degree ordering |
+| [`docs/26-adaptive.md`](docs/26-adaptive.md) | Adaptive step dan estimasi error |
 | [`TODO.md`](TODO.md) | **Todolist lengkap dari hal terkecil** |
 
 ---
