@@ -2,6 +2,7 @@
 
 #![forbid(unsafe_code)]
 
+mod adder;
 mod buffer;
 mod builder;
 mod cell;
@@ -17,6 +18,7 @@ mod sequential;
 mod transmission;
 mod tristate;
 
+pub use adder::{adder8, ripple_carry_adder};
 pub use buffer::buffer;
 pub use builder::CellBuilder;
 pub use cell::Cell;
