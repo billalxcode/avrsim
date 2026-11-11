@@ -67,6 +67,7 @@ Baca berurutan:
 | [`docs/14-cells.md`](docs/14-cells.md) | Sel CMOS, sequential, memory, registry, noise margin, half/full adder, ALU |
 | [`docs/15-digital.md`](docs/15-digital.md) | Logika dua-state, clock ideal, counter, shift register |
 | [`docs/16-avr-decode.md`](docs/16-avr-decode.md) | Decoder, fetch, register bank, ALU arithmetic/logic/shift AVR |
+| [`docs/17-gpio.md`](docs/17-gpio.md) | Port B/C/D, DDR, PORT, PIN, pull-up |
 | [`TODO.md`](TODO.md) | **Todolist lengkap dari hal terkecil** |
 
 ---

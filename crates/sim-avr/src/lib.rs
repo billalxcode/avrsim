@@ -5,6 +5,7 @@ pub mod cpu;
 pub mod decode;
 pub mod disassemble;
 pub mod fetch;
+pub mod gpio;
 pub mod instruction;
 pub mod instruction_register;
 pub mod multiply;
@@ -22,6 +23,7 @@ pub use cpu::{AvrTrace, Cpu, Sreg};
 pub use decode::{decode, uses_second_word};
 pub use disassemble::disassemble;
 pub use fetch::{Fetched, ProgramMemory};
+pub use gpio::GpioPort;
 pub use instruction::{Instruction, Mnemonic, Operand};
 pub use instruction_register::InstructionRegister;
 pub use multiply::{

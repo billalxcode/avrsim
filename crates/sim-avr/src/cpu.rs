@@ -2,6 +2,7 @@
 
 use super::alu::{ArithmeticUnit, LogicUnit, arithmetic_unit, logic_unit, select_operand};
 use super::fetch::ProgramMemory;
+use super::gpio::GpioPort;
 use super::instruction::{Instruction, Mnemonic, Operand};
 use super::multiply::{MultiplyUnit, multiply_unit};
 use super::register_bank::RegisterBank;
@@ -142,6 +143,9 @@ struct Datapath {
     logic: LogicUnit,
     shift: ShiftUnit,
     multiply: MultiplyUnit,
+    gpio_b: GpioPort,
+    gpio_c: GpioPort,
+    gpio_d: GpioPort,
 }
 
 /// A small AVR core for instruction integration tests.
@@ -245,6 +249,29 @@ impl Cpu {
     #[must_use]
     pub fn data(&self, address: u16) -> u8 {
         self.data[usize::from(address) & 0x0FFF]
+    }
+
+    /// Drives external pin inputs for port B, C, or D.
+    pub fn set_pin_input(&mut self, port: u8, value: u8) -> Result<(), SimError> {
+        match port {
+            0 => self.datapath.gpio_b.set_pin_input(&mut self.circuit, value),
+            1 => self.datapath.gpio_c.set_pin_input(&mut self.circuit, value),
+            2 => self.datapath.gpio_d.set_pin_input(&mut self.circuit, value),
+            _ => Err(SimError::InvalidNetlist(
+                "port index out of range".to_string(),
+            )),
+        }
+    }
+
+    /// Returns active pull-up bits for port B, C, or D.
+    #[must_use]
+    pub fn pull_up(&self, port: u8) -> u8 {
+        match port {
+            0 => self.datapath.gpio_b.read_pull_up(&self.circuit),
+            1 => self.datapath.gpio_c.read_pull_up(&self.circuit),
+            2 => self.datapath.gpio_d.read_pull_up(&self.circuit),
+            _ => 0,
+        }
     }
 
     /// Returns the stack pointer.
@@ -721,7 +748,7 @@ impl Cpu {
         } else {
             value &= !(1 << bit);
         }
-        self.io_write(address, value);
+        self.io_write(address, value)?;
         Ok(())
     }
 
@@ -734,7 +761,7 @@ impl Cpu {
     fn execute_out(&mut self, instruction: &Instruction) -> Result<(), SimError> {
         let address = io_address(instruction.first)?;
         let source = register(instruction.second)?;
-        self.io_write(address, self.register(source));
+        self.io_write(address, self.register(source))?;
         Ok(())
     }
 
@@ -917,18 +944,53 @@ impl Cpu {
     }
 
     fn io_read(&self, address: u8) -> u8 {
+        if let Some(value) = self.gpio_read(address) {
+            return value;
+        }
         if address == 0x3F {
             return self.sreg.to_byte();
         }
         self.io.get(usize::from(address)).copied().unwrap_or(0)
     }
 
-    fn io_write(&mut self, address: u8, value: u8) {
+    fn io_write(&mut self, address: u8, value: u8) -> Result<(), SimError> {
+        if self.gpio_write(address, value)? {
+            return Ok(());
+        }
         if address == 0x3F {
             self.sreg = Sreg::from_byte(value);
         } else if let Some(slot) = self.io.get_mut(usize::from(address)) {
             *slot = value;
         }
+        Ok(())
+    }
+
+    fn gpio_read(&self, address: u8) -> Option<u8> {
+        Some(match address {
+            0x03 => self.datapath.gpio_b.read_pin(&self.circuit),
+            0x04 => self.datapath.gpio_b.read_ddr(&self.circuit),
+            0x05 => self.datapath.gpio_b.read_port(&self.circuit),
+            0x06 => self.datapath.gpio_c.read_pin(&self.circuit),
+            0x07 => self.datapath.gpio_c.read_ddr(&self.circuit),
+            0x08 => self.datapath.gpio_c.read_port(&self.circuit),
+            0x09 => self.datapath.gpio_d.read_pin(&self.circuit),
+            0x0A => self.datapath.gpio_d.read_ddr(&self.circuit),
+            0x0B => self.datapath.gpio_d.read_port(&self.circuit),
+            _ => return None,
+        })
+    }
+
+    fn gpio_write(&mut self, address: u8, value: u8) -> Result<bool, SimError> {
+        match address {
+            0x04 => self.datapath.gpio_b.set_ddr(&mut self.circuit, value)?,
+            0x05 => self.datapath.gpio_b.set_port(&mut self.circuit, value)?,
+            0x07 => self.datapath.gpio_c.set_ddr(&mut self.circuit, value)?,
+            0x08 => self.datapath.gpio_c.set_port(&mut self.circuit, value)?,
+            0x0A => self.datapath.gpio_d.set_ddr(&mut self.circuit, value)?,
+            0x0B => self.datapath.gpio_d.set_port(&mut self.circuit, value)?,
+            _ => return Ok(false),
+        }
+        Ok(true)
     }
 
     fn write_data(&mut self, address: u16, value: u8) {
@@ -1066,23 +1128,56 @@ impl Cpu {
     }
 }
 
+struct Units {
+    arithmetic: ArithmeticUnit,
+    logic: LogicUnit,
+    shift: ShiftUnit,
+    multiply: MultiplyUnit,
+}
+
 fn build_datapath(builder: &mut DigitalBuilder) -> Result<Datapath, SimError> {
     let nets = build_alu_nets(builder);
     let selected = select_operand(builder, &nets.second, &nets.immediate, nets.use_immediate)?;
-    let arithmetic = arithmetic_unit(builder, &nets.first, &selected, nets.subtract, nets.carry)?;
-    let logic_op = named_inputs(builder, "lop", 2);
-    let logic = logic_unit(builder, &nets.first, &selected, &logic_op)?;
-    let shift_op = named_inputs(builder, "sop", 2);
-    let shift = shift_unit(builder, &nets.first, nets.carry, &shift_op)?;
-    let multiply = multiply_unit(builder, &nets.first, &nets.second)?;
+    let units = build_units(builder, &nets, &selected)?;
+    let (gpio_b, gpio_c, gpio_d) = build_gpio(builder)?;
     let bank = build_bank(builder)?;
     Ok(Datapath {
         bank,
+        arithmetic: units.arithmetic,
+        logic: units.logic,
+        shift: units.shift,
+        multiply: units.multiply,
+        gpio_b,
+        gpio_c,
+        gpio_d,
+    })
+}
+
+fn build_units(
+    builder: &mut DigitalBuilder,
+    nets: &AluNets,
+    selected: &[NetId],
+) -> Result<Units, SimError> {
+    let arithmetic = arithmetic_unit(builder, &nets.first, selected, nets.subtract, nets.carry)?;
+    let logic_op = named_inputs(builder, "lop", 2);
+    let logic = logic_unit(builder, &nets.first, selected, &logic_op)?;
+    let shift_op = named_inputs(builder, "sop", 2);
+    let shift = shift_unit(builder, &nets.first, nets.carry, &shift_op)?;
+    let multiply = multiply_unit(builder, &nets.first, &nets.second)?;
+    Ok(Units {
         arithmetic,
         logic,
         shift,
         multiply,
     })
+}
+
+fn build_gpio(builder: &mut DigitalBuilder) -> Result<(GpioPort, GpioPort, GpioPort), SimError> {
+    Ok((
+        GpioPort::new(builder, "pb")?,
+        GpioPort::new(builder, "pc")?,
+        GpioPort::new(builder, "pd")?,
+    ))
 }
 
 fn build_alu_nets(builder: &mut DigitalBuilder) -> AluNets {
@@ -2056,5 +2151,33 @@ mod tests {
         let trace = cpu.step().expect("step").expect("trace");
         assert_eq!(trace.cycles, 1);
         assert_eq!(cpu.cycles() - before, 5);
+    }
+
+    #[test]
+    fn gpio_output_and_pin_read() {
+        let cpu = run(vec![
+            ldi(16, 0x20),
+            in_out(0xB800, 16, 0x04),
+            in_out(0xB800, 16, 0x05),
+            in_out(0xB000, 17, 0x03),
+            0x9598,
+        ]);
+        assert_eq!(cpu.register(17), 0x20);
+        assert_eq!(cpu.io(0x04), 0x20);
+        assert_eq!(cpu.io(0x05), 0x20);
+    }
+
+    #[test]
+    fn gpio_input_reads_external_pins() {
+        let mut cpu = Cpu::new(vec![in_out(0xB000, 17, 0x03), 0x9598]).expect("cpu");
+        cpu.set_pin_input(0, 0xAA).expect("pin");
+        cpu.run(10).expect("run");
+        assert_eq!(cpu.register(17), 0xAA);
+    }
+
+    #[test]
+    fn gpio_pull_up_tracks_port_register() {
+        let cpu = run(vec![ldi(16, 0xFF), in_out(0xB800, 16, 0x05), 0x9598]);
+        assert_eq!(cpu.pull_up(0), 0xFF);
     }
 }

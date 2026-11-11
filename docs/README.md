@@ -23,6 +23,7 @@ Dokumen ini adalah indeks lengkap spesifikasi **embed-emulation**.
 | 14 | [CMOS Cells](14-cells.md) | Inverter, NAND2, NOR2, buffer, API sel, adder, ALU |
 | 15 | [Digital](15-digital.md) | Logika dua-state, clock ideal, counter, shift register |
 | 16 | [AVR Decode](16-avr-decode.md) | Decoder, fetch, register bank, ALU arithmetic/logic/shift AVR |
+| 17 | [GPIO](17-gpio.md) | Port B/C/D, DDR, PORT, PIN, pull-up |
 | - | [Todolist](../TODO.md) | Daftar tugas lengkap dari hal terkecil |
 
 ## Konvensi dokumen
@@ -39,6 +40,6 @@ Dokumen ini adalah indeks lengkap spesifikasi **embed-emulation**.
 |---|---|
 | Brainstorming | Selesai |
 | Spesifikasi | Dokumen ini |
-| Kode | P7 CPU subset, CLI, dan blink assembly |
+| Kode | P8 GPIO B/C/D selesai |
 | Toolchain Rust | Terpasang (1.99.1) |
 | `avr-gcc` | Belum terpasang |

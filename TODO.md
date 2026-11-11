@@ -2,7 +2,7 @@
 
 Daftar tugas lengkap dari hal terkecil sampai rilis. Setiap item harus kecil, dapat diuji, dan tidak menambah dependensi eksternal.
 
-> **Status:** ISA support, disassembler, timing, CLI monitor, test vector, dan blink assembly selesai. Blocker P7: avr-gcc tidak tersedia dan differential simavr belum dilakukan.
+> **Status:** P8-01 sampai P8-08 selesai: GPIO B/C/D struktural. Blocker P7: avr-gcc tidak tersedia dan differential simavr belum dilakukan.
 > **Aturan:** satu item selesai = kode + test + dokumentasi singkat.
 
 ---
@@ -422,14 +422,14 @@ Daftar tugas lengkap dari hal terkecil sampai rilis. Setiap item harus kecil, da
 
 ## P8 - Peripheral Struktural
 
-- [ ] P8-01 Implementasikan GPIO port B.
-- [ ] P8-02 Implementasikan GPIO port C.
-- [ ] P8-03 Implementasikan GPIO port D.
-- [ ] P8-04 Implementasikan DDR.
-- [ ] P8-05 Implementasikan PORT.
-- [ ] P8-06 Implementasikan PIN read.
-- [ ] P8-07 Implementasikan PIN toggle.
-- [ ] P8-08 Implementasikan pull-up.
+- [x] P8-01 Implementasikan GPIO port B.
+- [x] P8-02 Implementasikan GPIO port C.
+- [x] P8-03 Implementasikan GPIO port D.
+- [x] P8-04 Implementasikan DDR.
+- [x] P8-05 Implementasikan PORT.
+- [x] P8-06 Implementasikan PIN read.
+- [x] P8-07 Implementasikan PIN toggle.
+- [x] P8-08 Implementasikan pull-up.
 - [ ] P8-09 Implementasikan pin electrical model.
 - [ ] P8-10 Implementasikan pin change interrupt.
 - [ ] P8-11 Implementasikan Timer0 counter.
