@@ -2,7 +2,7 @@
 
 Daftar tugas lengkap dari hal terkecil sampai rilis. Setiap item harus kecil, dapat diuji, dan tidak menambah dependensi eksternal.
 
-> **Status:** P8 selesai kecuali P8-09. P9 sebagian besar selesai. P10 sparse, adaptive step, trapezoidal/Gear, AC linear, noise termal, distorsi kuasi-statis, sensitivitas numerik, suhu device, process corner, BJT, JFET, determinisme Linux, fidelity matrix, dan batasan model selesai. Transmission line, kalibrasi, dan golden suite belum.
+> **Status:** P8 selesai kecuali P8-09. P9 sebagian besar selesai. P10 sparse, adaptive step, trapezoidal/Gear, AC linear, noise termal, distorsi kuasi-statis, sensitivitas numerik, suhu device, process corner, BJT, JFET, transmission line, determinisme Linux, fidelity matrix, dan batasan model selesai. Kalibrasi, golden suite, profiling, dan optimasi belum.
 > **Aturan:** satu item selesai = kode + test + dokumentasi singkat.
 
 ---
@@ -539,7 +539,7 @@ Daftar tugas lengkap dari hal terkecil sampai rilis. Setiap item harus kecil, da
 - [x] P10-08 Implementasikan process corner.
 - [x] P10-09 Implementasikan full BJT model.
 - [x] P10-10 Implementasikan full JFET model.
-- [ ] P10-11 Implementasikan transmission line.
+- [x] P10-11 Implementasikan transmission line.
 - [x] P10-12 Implementasikan sparse matrix.
 - [x] P10-13 Implementasikan sparse LU.
 - [x] P10-14 Implementasikan ordering.

@@ -87,6 +87,7 @@ Baca berurutan:
 | [`docs/34-process-corner.md`](docs/34-process-corner.md) | Scaling parameter device |
 | [`docs/35-bjt.md`](docs/35-bjt.md) | Model Ebers-Moll NPN dan PNP |
 | [`docs/36-jfet.md`](docs/36-jfet.md) | Model Shichman-Hodges N dan P |
+| [`docs/37-transmission-line.md`](docs/37-transmission-line.md) | Line lossless dengan delay |
 | [`TODO.md`](TODO.md) | **Todolist lengkap dari hal terkecil** |
 
 ---

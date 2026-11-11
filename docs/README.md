@@ -43,6 +43,7 @@ Dokumen ini adalah indeks lengkap spesifikasi **embed-emulation**.
 | 34 | [Process corner](34-process-corner.md) | Scaling parameter device |
 | 35 | [BJT](35-bjt.md) | Model Ebers-Moll NPN dan PNP |
 | 36 | [JFET](36-jfet.md) | Model Shichman-Hodges N dan P |
+| 37 | [Transmission line](37-transmission-line.md) | Line lossless dengan delay |
 | - | [Todolist](../TODO.md) | Daftar tugas lengkap dari hal terkecil |
 
 ## Konvensi dokumen

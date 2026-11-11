@@ -22,6 +22,7 @@ P4 diimplementasikan sebagian:
 - Suhu device dan process corner.
 - BJT Ebers-Moll NPN dan PNP.
 - JFET Shichman-Hodges N dan P.
+- Transmission line lossless untuk transient.
 - State update device.
 
 Belum diimplementasikan:
@@ -213,11 +214,11 @@ Total test workspace saat ini:
 
 - `sim-core`: 61.
 - `sim-device`: 31 (26 unit + 5 integration).
-- `sim-analysis`: 64.
+- `sim-analysis`: 66.
 - `sim-cells`: 67.
 - `sim-avr`: 187.
 - `sim-board`: 12.
 - `sim-cli`: 5.
-- Total: 427.
+- Total: 429.
 
 Semua fungsi maksimal 20 baris dan semua file baru ASCII-only.
