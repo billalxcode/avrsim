@@ -1,7 +1,7 @@
 use sim_analysis::{DcConfig, dc_operating_point, dc_sweep};
 use sim_cells::{
-    CellKind, buffer, d_flip_flop, d_latch, inverter, nand2, nor2, ring_oscillator, sram6t,
-    transmission_gate, tri_state_inverter,
+    CellKind, buffer, d_flip_flop, d_latch, inverter, nand2, noise_margins, nor2, ring_oscillator,
+    sram6t, transmission_gate, tri_state_inverter,
 };
 use sim_core::{Circuit, DeviceKind, NodeId, SimError};
 use std::collections::BTreeMap;
@@ -220,4 +220,22 @@ fn registry_builds_every_cell() {
         assert!(!kind.name().is_empty());
         assert!(cell.vdd().is_some());
     }
+}
+#[test]
+fn inverter_noise_margins_are_positive() {
+    let (output_port, points) = inverter_sweep();
+    let samples: Vec<(f64, f64)> = points
+        .iter()
+        .map(|point| {
+            (
+                point.sweep,
+                point.solution.voltage(output_port).unwrap_or(0.0),
+            )
+        })
+        .collect();
+    let metrics = noise_margins(&samples).expect("metrics");
+    assert!(metrics.voh > 4.0);
+    assert!(metrics.vol < 1.0);
+    assert!(metrics.nmh > 1.0);
+    assert!(metrics.nml > 1.0);
 }

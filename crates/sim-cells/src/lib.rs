@@ -5,6 +5,7 @@
 mod buffer;
 mod builder;
 mod cell;
+mod characterize;
 mod inverter;
 mod memory;
 mod nand;
@@ -18,6 +19,7 @@ mod tristate;
 pub use buffer::buffer;
 pub use builder::CellBuilder;
 pub use cell::Cell;
+pub use characterize::{VtcMetrics, noise_margins};
 pub use inverter::inverter;
 pub use memory::sram6t;
 pub use nand::nand2;
