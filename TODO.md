@@ -2,7 +2,7 @@
 
 Daftar tugas lengkap dari hal terkecil sampai rilis. Setiap item harus kecil, dapat diuji, dan tidak menambah dependensi eksternal.
 
-> **Status:** P8 selesai kecuali P8-09. P9 sebagian besar selesai. P10 baru fidelity matrix dan batasan model; AC/noise, sparse, adaptive step, kalibrasi, dan golden suite belum.
+> **Status:** P8 selesai kecuali P8-09. P9 sebagian besar selesai. P10 sparse matrix, sparse LU, ordering, fidelity matrix, dan batasan model selesai. AC/noise, adaptive step, kalibrasi, dan golden suite belum.
 > **Aturan:** satu item selesai = kode + test + dokumentasi singkat.
 
 ---
@@ -540,9 +540,9 @@ Daftar tugas lengkap dari hal terkecil sampai rilis. Setiap item harus kecil, da
 - [ ] P10-09 Implementasikan full BJT model.
 - [ ] P10-10 Implementasikan full JFET model.
 - [ ] P10-11 Implementasikan transmission line.
-- [ ] P10-12 Implementasikan sparse matrix.
-- [ ] P10-13 Implementasikan sparse LU.
-- [ ] P10-14 Implementasikan ordering.
+- [x] P10-12 Implementasikan sparse matrix.
+- [x] P10-13 Implementasikan sparse LU.
+- [x] P10-14 Implementasikan ordering.
 - [ ] P10-15 Implementasikan adaptive time step.
 - [ ] P10-16 Implementasikan LTE.
 - [ ] P10-17 Implementasikan trapezoidal integration.

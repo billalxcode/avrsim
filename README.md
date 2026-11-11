@@ -75,6 +75,7 @@ Baca berurutan:
 | [`docs/22-board.md`](docs/22-board.md) | LED, resistor, button, UART host, Intel HEX |
 | [`docs/23-spi-twi-adc.md`](docs/23-spi-twi-adc.md) | SPI, TWI, dan ADC |
 | [`docs/24-fidelity.md`](docs/24-fidelity.md) | Matriks fidelity dan batasan model |
+| [`docs/25-sparse.md`](docs/25-sparse.md) | CSR, sparse LU, degree ordering |
 | [`TODO.md`](TODO.md) | **Todolist lengkap dari hal terkecil** |
 
 ---

@@ -10,6 +10,7 @@ pub mod ids;
 pub mod matrix;
 pub mod mna;
 pub mod netlist;
+pub mod sparse;
 pub mod time;
 pub mod tolerance;
 pub mod units;
@@ -23,5 +24,6 @@ pub use netlist::{
     Circuit, CircuitBuilder, Device, DeviceInstance, DeviceKind, Node, NodeKind, Solution,
     Subcircuit,
 };
+pub use sparse::{SparseMatrix, minimum_degree_order, solve_sparse};
 pub use time::Time;
 pub use units::{Capacitance, Current, Resistance, Voltage};

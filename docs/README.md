@@ -31,6 +31,7 @@ Dokumen ini adalah indeks lengkap spesifikasi **embed-emulation**.
 | 22 | [Board](22-board.md) | LED, resistor, button, UART host, Intel HEX |
 | 23 | [SPI, TWI, ADC](23-spi-twi-adc.md) | SPI, TWI, dan ADC behavioral |
 | 24 | [Fidelity](24-fidelity.md) | Matriks fidelity dan batasan model |
+| 25 | [Sparse](25-sparse.md) | CSR, sparse LU, degree ordering |
 | - | [Todolist](../TODO.md) | Daftar tugas lengkap dari hal terkecil |
 
 ## Konvensi dokumen
