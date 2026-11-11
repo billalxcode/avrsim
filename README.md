@@ -102,6 +102,7 @@ Baca berurutan:
 | [`docs/49-ccvs.md`](docs/49-ccvs.md) | Current-controlled voltage source |
 | [`docs/50-elf.md`](docs/50-elf.md) | Loader ELF32 dan simbol |
 | [`docs/51-ci.md`](docs/51-ci.md) | Workflow Linux, macOS, Windows |
+| [`docs/52-licenses.md`](docs/52-licenses.md) | Lisensi kode, model, dan data |
 | [`docs/43-user-guide.md`](docs/43-user-guide.md) | Quick start, API, dan contoh |
 | [`docs/44-body-effect.md`](docs/44-body-effect.md) | Threshold bias body dan `gmb` |
 | [`docs/45-mosfet-capacitance.md`](docs/45-mosfet-capacitance.md) | Meyer dan overlap capacitance |
@@ -111,6 +112,7 @@ Baca berurutan:
 | [`docs/49-ccvs.md`](docs/49-ccvs.md) | Current-controlled voltage source |
 | [`docs/50-elf.md`](docs/50-elf.md) | Loader ELF32 dan simbol |
 | [`docs/51-ci.md`](docs/51-ci.md) | Workflow Linux, macOS, Windows |
+| [`docs/52-licenses.md`](docs/52-licenses.md) | Lisensi kode, model, dan data |
 | [`TODO.md`](TODO.md) | **Todolist lengkap dari hal terkecil** |
 
 ---

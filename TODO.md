@@ -2,7 +2,7 @@
 
 Daftar tugas lengkap dari hal terkecil sampai rilis. Setiap item harus kecil, dapat diuji, dan tidak menambah dependensi eksternal.
 
-> **Status:** P8 selesai penuh. P9 sebagian besar selesai; ELF loader, simbol, dan UART end-to-end selesai. P10 sparse, adaptive step, trapezoidal/Gear, AC linear, noise termal, distorsi kuasi-statis, sensitivitas numerik, suhu device, process corner, BJT, JFET, transmission line, determinisme Linux, fidelity matrix, batasan model, profiling, dan optimasi selesai. Golden suite dan determinisme macOS/Windows belum. P4 harness ngspice dan golden data belum karena ngspice tidak tersedia. P5 switching, input capacitance, dan drive strength selesai; ring oscillator dan perbandingan ngspice belum. P11 user guide, contoh runnable, dan workflow CI selesai; eksekusi GitHub Actions, packaging, dan release belum. P3 body effect, gmb, Meyer capacitance, overlap, diode nonideal, BJT, JFET, transmission line, VCVS, VCCS, CCVS, CCCS, dan switch selesai; breakdown dan model termal lanjutan belum.
+> **Status:** P8 selesai penuh. P9 sebagian besar selesai; ELF loader, simbol, dan UART end-to-end selesai. P10 sparse, adaptive step, trapezoidal/Gear, AC linear, noise termal, distorsi kuasi-statis, sensitivitas numerik, suhu device, process corner, BJT, JFET, transmission line, determinisme Linux, fidelity matrix, batasan model, profiling, dan optimasi selesai. Golden suite dan determinisme macOS/Windows belum. P4 harness ngspice dan golden data belum karena ngspice tidak tersedia. P5 switching, input capacitance, dan drive strength selesai; ring oscillator dan perbandingan ngspice belum. P11 user guide, contoh runnable, workflow CI, dan notices selesai; eksekusi GitHub Actions, packaging, dan release belum. X-03 panic audit sebagian; builder sel masih memakai invariant expect. P3 body effect, gmb, Meyer capacitance, overlap, diode nonideal, BJT, JFET, transmission line, VCVS, VCCS, CCVS, CCCS, dan switch selesai; breakdown dan model termal lanjutan belum.
 > **Aturan:** satu item selesai = kode + test + dokumentasi singkat.
 
 ---
@@ -575,7 +575,7 @@ Daftar tugas lengkap dari hal terkecil sampai rilis. Setiap item harus kecil, da
 - [ ] P11-09 Jalankan CI macOS.
 - [ ] P11-10 Jalankan CI Windows.
 - [ ] P11-11 Siapkan packaging.
-- [ ] P11-12 Lengkapi lisensi dan notices.
+- [x] P11-12 Lengkapi lisensi dan notices.
 - [ ] P11-13 Tulis release notes.
 - [ ] P11-14 Tag v0.1.
 - [ ] P11-15 Publikasikan binary.
@@ -599,13 +599,13 @@ Daftar tugas lengkap dari hal terkecil sampai rilis. Setiap item harus kecil, da
 - [x] X-09 Perbarui TODO setiap menyelesaikan item.
 - [ ] X-10 Simpan golden data dengan metadata.
 - [ ] X-11 Dokumentasikan cara regenerasi golden.
-- [ ] X-12 Audit lisensi model/data.
+- [x] X-12 Audit lisensi model/data.
 - [x] X-13 Buat benchmark baseline.
-- [ ] X-14 Buat test snapshot/replay.
+- [x] X-14 Buat test snapshot/replay.
 - [x] X-15 Buat test fuzz parser HEX.
 - [x] X-16 Buat test fuzz decoder AVR.
 - [x] X-17 Buat test error konvergensi.
-- [ ] X-18 Buat test node floating.
+- [x] X-18 Buat test node floating.
 - [x] X-19 Buat test matriks singular.
 - [x] X-20 Buat test input tidak valid.
 

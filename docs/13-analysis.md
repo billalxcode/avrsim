@@ -31,7 +31,7 @@ P4 diimplementasikan sebagian:
 - Benchmark solver dan optimasi alokasi.
 - Prosedur kalibrasi parameter device.
 - Model pin elektrik untuk GPIO.
-- Loader ELF32, simbol, dan workflow CI.
+- Loader ELF32, simbol, workflow CI, dan audit lisensi.
 - State update device.
 
 Belum diimplementasikan:
@@ -223,11 +223,11 @@ Total test workspace saat ini:
 
 - `sim-core`: 62.
 - `sim-device`: 41 (36 unit + 5 integration).
-- `sim-analysis`: 87.
+- `sim-analysis`: 89.
 - `sim-cells`: 67.
 - `sim-avr`: 199.
 - `sim-board`: 21.
 - `sim-cli`: 11.
-- Total: 488.
+- Total: 490.
 
 Semua fungsi maksimal 20 baris dan semua file baru ASCII-only.
