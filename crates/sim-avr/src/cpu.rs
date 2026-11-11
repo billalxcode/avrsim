@@ -45,6 +45,20 @@ impl Sreg {
             _ => self.interrupt,
         }
     }
+
+    /// Sets a flag by AVR SREG index.
+    pub fn set(&mut self, flag: u8, value: bool) {
+        match flag {
+            0 => self.carry = value,
+            1 => self.zero = value,
+            2 => self.negative = value,
+            3 => self.overflow = value,
+            4 => self.sign = value,
+            5 => self.half_carry = value,
+            6 => self.transfer = value,
+            _ => self.interrupt = value,
+        }
+    }
 }
 
 /// One executed instruction trace.
@@ -87,6 +101,7 @@ pub struct Cpu {
     pc: u16,
     sreg: Sreg,
     halted: bool,
+    io: [u8; 64],
 }
 
 impl Cpu {
@@ -106,6 +121,7 @@ impl Cpu {
             pc: 0,
             sreg: Sreg::default(),
             halted: false,
+            io: [0; 64],
         })
     }
 
@@ -141,6 +157,12 @@ impl Cpu {
             .bank
             .read_byte(&self.circuit, usize::from(index))
             .unwrap_or(0)
+    }
+
+    /// Returns an I/O register value.
+    #[must_use]
+    pub fn io(&self, address: u8) -> u8 {
+        self.io.get(usize::from(address)).copied().unwrap_or(0)
     }
 
     /// Returns the program counter.
@@ -194,6 +216,20 @@ impl Cpu {
         }
         if is_flow(mnemonic) {
             return self.execute_flow(instruction, next_pc);
+        }
+        self.execute_io_flag(instruction, next_pc)
+    }
+
+    fn execute_io_flag(&mut self, instruction: &Instruction, next_pc: u16) -> Result<(), SimError> {
+        let mnemonic = instruction.mnemonic;
+        if is_skip(mnemonic) {
+            return self.execute_skip(instruction, next_pc);
+        }
+        if is_io(mnemonic) {
+            return self.execute_io(instruction, next_pc);
+        }
+        if is_flag(mnemonic) {
+            return self.execute_flag(instruction, next_pc);
         }
         Err(unsupported(mnemonic))
     }
@@ -352,6 +388,110 @@ impl Cpu {
             self.pc = next_pc;
         }
         Ok(())
+    }
+
+    fn execute_skip(&mut self, instruction: &Instruction, next_pc: u16) -> Result<(), SimError> {
+        if self.skip_condition(instruction)? {
+            self.pc = self.skipped_pc(next_pc)?;
+        } else {
+            self.pc = next_pc;
+        }
+        Ok(())
+    }
+
+    fn skip_condition(&self, instruction: &Instruction) -> Result<bool, SimError> {
+        match instruction.mnemonic {
+            Mnemonic::Cpse => Ok(self.register(register(instruction.first)?)
+                == self.register(register(instruction.second)?)),
+            Mnemonic::Sbrc => Ok(self.bit_value(instruction)? == 0),
+            Mnemonic::Sbrs => Ok(self.bit_value(instruction)? != 0),
+            Mnemonic::Sbic => Ok(self.io_bit(instruction)? == 0),
+            Mnemonic::Sbis => Ok(self.io_bit(instruction)? != 0),
+            _ => Err(unsupported(instruction.mnemonic)),
+        }
+    }
+
+    fn bit_value(&self, instruction: &Instruction) -> Result<u8, SimError> {
+        let value = self.register(register(instruction.first)?);
+        let bit = bit(instruction.second)?;
+        Ok((value >> bit) & 1)
+    }
+
+    fn io_bit(&self, instruction: &Instruction) -> Result<u8, SimError> {
+        let value = self.io(io_address(instruction.first)?);
+        let bit = bit(instruction.second)?;
+        Ok((value >> bit) & 1)
+    }
+
+    fn skipped_pc(&self, next_pc: u16) -> Result<u16, SimError> {
+        let fetched = self.program.fetch(next_pc)?;
+        Ok(next_pc.wrapping_add(u16::from(fetched.words)))
+    }
+
+    fn execute_io(&mut self, instruction: &Instruction, next_pc: u16) -> Result<(), SimError> {
+        match instruction.mnemonic {
+            Mnemonic::Sbi => self.set_io_bit(instruction, true)?,
+            Mnemonic::Cbi => self.set_io_bit(instruction, false)?,
+            Mnemonic::In => self.execute_in(instruction)?,
+            Mnemonic::Out => self.execute_out(instruction)?,
+            _ => return Err(unsupported(instruction.mnemonic)),
+        }
+        self.advance(next_pc)
+    }
+
+    fn set_io_bit(&mut self, instruction: &Instruction, set: bool) -> Result<(), SimError> {
+        let address = usize::from(io_address(instruction.first)?);
+        let bit = bit(instruction.second)?;
+        if set {
+            self.io[address] |= 1 << bit;
+        } else {
+            self.io[address] &= !(1 << bit);
+        }
+        Ok(())
+    }
+
+    fn execute_in(&mut self, instruction: &Instruction) -> Result<(), SimError> {
+        let destination = register(instruction.first)?;
+        let address = io_address(instruction.second)?;
+        self.write_register(destination, self.io(address))
+    }
+
+    fn execute_out(&mut self, instruction: &Instruction) -> Result<(), SimError> {
+        let address = usize::from(io_address(instruction.first)?);
+        let source = register(instruction.second)?;
+        self.io[address] = self.register(source);
+        Ok(())
+    }
+
+    fn execute_flag(&mut self, instruction: &Instruction, next_pc: u16) -> Result<(), SimError> {
+        match instruction.mnemonic {
+            Mnemonic::Bset => self.sreg.set(flag(instruction.first)?, true),
+            Mnemonic::Bclr => self.sreg.set(flag(instruction.first)?, false),
+            Mnemonic::Bst => self.execute_bst(instruction)?,
+            Mnemonic::Bld => return self.execute_bld(instruction, next_pc),
+            _ => return Err(unsupported(instruction.mnemonic)),
+        }
+        self.advance(next_pc)
+    }
+
+    fn execute_bst(&mut self, instruction: &Instruction) -> Result<(), SimError> {
+        let value = self.register(register(instruction.first)?);
+        let bit = bit(instruction.second)?;
+        self.sreg.transfer = (value >> bit) & 1 != 0;
+        Ok(())
+    }
+
+    fn execute_bld(&mut self, instruction: &Instruction, next_pc: u16) -> Result<(), SimError> {
+        let destination = register(instruction.first)?;
+        let bit = bit(instruction.second)?;
+        let mut value = self.register(destination);
+        if self.sreg.transfer {
+            value |= 1 << bit;
+        } else {
+            value &= !(1 << bit);
+        }
+        self.write_register(destination, value)?;
+        self.advance(next_pc)
     }
 
     fn load_arithmetic(
@@ -569,6 +709,27 @@ fn is_flow(mnemonic: Mnemonic) -> bool {
     )
 }
 
+fn is_skip(mnemonic: Mnemonic) -> bool {
+    matches!(
+        mnemonic,
+        Mnemonic::Cpse | Mnemonic::Sbrc | Mnemonic::Sbrs | Mnemonic::Sbic | Mnemonic::Sbis
+    )
+}
+
+fn is_io(mnemonic: Mnemonic) -> bool {
+    matches!(
+        mnemonic,
+        Mnemonic::Sbi | Mnemonic::Cbi | Mnemonic::In | Mnemonic::Out
+    )
+}
+
+fn is_flag(mnemonic: Mnemonic) -> bool {
+    matches!(
+        mnemonic,
+        Mnemonic::Bset | Mnemonic::Bclr | Mnemonic::Bst | Mnemonic::Bld
+    )
+}
+
 fn arithmetic_control(mnemonic: Mnemonic) -> Result<(bool, bool, bool, bool), SimError> {
     match mnemonic {
         Mnemonic::Add => Ok((false, false, false, true)),
@@ -653,6 +814,20 @@ fn flag(operand: Operand) -> Result<u8, SimError> {
     }
 }
 
+fn bit(operand: Operand) -> Result<u8, SimError> {
+    match operand {
+        Operand::Bit(value) => Ok(value),
+        _ => Err(SimError::Parse("expected bit index".to_string())),
+    }
+}
+
+fn io_address(operand: Operand) -> Result<u8, SimError> {
+    match operand {
+        Operand::Io(value) => Ok(value),
+        _ => Err(SimError::Parse("expected I/O address".to_string())),
+    }
+}
+
 fn offset(operand: Operand) -> Result<i16, SimError> {
     match operand {
         Operand::Offset(value) => Ok(value),
@@ -697,6 +872,22 @@ mod tests {
 
     fn immediate(base: u16, register: u16, value: u16) -> u16 {
         base | ((value & 0xF0) << 4) | ((register - 16) << 4) | (value & 0x0F)
+    }
+
+    fn in_out(base: u16, register: u16, address: u16) -> u16 {
+        base | (((address >> 4) & 3) << 9) | ((register & 0x1F) << 4) | (address & 0x0F)
+    }
+
+    fn io_bit_op(base: u16, address: u16, bit: u16) -> u16 {
+        base | ((address & 0x1F) << 3) | (bit & 0x07)
+    }
+
+    fn bit_register(base: u16, register: u16, bit: u16) -> u16 {
+        base | ((register & 0x1F) << 4) | (bit & 0x07)
+    }
+
+    fn sreg_flag(base: u16, flag: u16) -> u16 {
+        base | ((flag & 0x07) << 4)
     }
 
     fn run(program: Vec<u16>) -> Cpu {
@@ -843,5 +1034,84 @@ mod tests {
         assert_eq!(cpu.register(17), 0);
         assert_eq!(cpu.register(18), 4);
         assert_eq!(cpu.register(19), 0);
+    }
+
+    #[test]
+    fn cpse_skips_equal_registers() {
+        let cpu = run(vec![
+            ldi(16, 4),
+            ldi(17, 4),
+            reg_op(0x1000, 16, 17),
+            ldi(18, 9),
+            ldi(19, 3),
+            0x9598,
+        ]);
+        assert_eq!(cpu.register(18), 0);
+        assert_eq!(cpu.register(19), 3);
+    }
+
+    #[test]
+    fn sbrc_and_sbrs_skip() {
+        let cpu = run(vec![
+            ldi(16, 4),
+            bit_register(0xFE00, 16, 2),
+            ldi(17, 9),
+            bit_register(0xFC00, 16, 0),
+            ldi(18, 9),
+            ldi(19, 3),
+            0x9598,
+        ]);
+        assert_eq!(cpu.register(17), 0);
+        assert_eq!(cpu.register(18), 0);
+        assert_eq!(cpu.register(19), 3);
+    }
+
+    #[test]
+    fn io_in_out_and_bit_ops() {
+        let cpu = run(vec![
+            ldi(16, 0xAA),
+            in_out(0xB800, 16, 0x10),
+            in_out(0xB000, 17, 0x10),
+            io_bit_op(0x9A00, 0x10, 0),
+            io_bit_op(0x9800, 0x10, 1),
+            in_out(0xB000, 18, 0x10),
+            0x9598,
+        ]);
+        assert_eq!(cpu.register(17), 0xAA);
+        assert_eq!(cpu.register(18), 0xA9);
+        assert_eq!(cpu.io(0x10), 0xA9);
+    }
+
+    #[test]
+    fn sbic_and_sbis_skip() {
+        let cpu = run(vec![
+            io_bit_op(0x9A00, 0x10, 2),
+            io_bit_op(0x9B00, 0x10, 2),
+            ldi(16, 9),
+            io_bit_op(0x9800, 0x10, 2),
+            io_bit_op(0x9900, 0x10, 2),
+            ldi(17, 9),
+            ldi(18, 4),
+            0x9598,
+        ]);
+        assert_eq!(cpu.register(16), 0);
+        assert_eq!(cpu.register(17), 0);
+        assert_eq!(cpu.register(18), 4);
+    }
+
+    #[test]
+    fn sreg_flag_and_transfer_bits() {
+        let cpu = run(vec![
+            sreg_flag(0x9408, 0),
+            sreg_flag(0x9488, 0),
+            ldi(16, 1),
+            bit_register(0xFA00, 16, 0),
+            ldi(17, 0),
+            bit_register(0xF800, 17, 3),
+            0x9598,
+        ]);
+        assert_eq!(cpu.register(17), 0x08);
+        assert!(cpu.sreg().transfer);
+        assert!(!cpu.sreg().carry);
     }
 }
