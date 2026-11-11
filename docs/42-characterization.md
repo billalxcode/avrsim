@@ -15,8 +15,9 @@ P5-05 sampai P5-08 dan P5-18 sampai P5-19 diimplementasikan:
 - Mengukur propagation delay.
 - Mengukur input capacitance dari rise time RC.
 - Mengukur drive strength statis.
+- Memverifikasi osilasi ring oscillator analog.
 
-Belum ada karakterisasi ring oscillator atau perbandingan ngspice.
+Belum ada perbandingan ngspice.
 
 ---
 
@@ -113,8 +114,12 @@ Voltage divider `500 Ohm` menghasilkan resistansi output sekitar `500 Ohm`.
 Test juga menolak node yang sama, output yang tidak switching, dan load
 nol.
 
-Total test `sim-analysis`: 80.
-Total workspace: 474.
+Ring oscillator tiga inverter dengan beban `1 nF` per node dan initial
+voltage `5 V` menghasilkan lebih dari empat crossing pada node output.
+
+Total test `sim-analysis`: 89.
+Total test `sim-cells`: 70.
+Total workspace: 495.
 
 ---
 
@@ -129,3 +134,4 @@ Total workspace: 474.
 - Input capacitance mengasumsikan rangkaian RC orde satu.
 - Drive strength diukur pada satu titik operasi dan satu load.
 - Belum ada perbandingan dengan ngspice.
+- Osilasi diverifikasi pada satu titik beban, bukan seluruh corner.
