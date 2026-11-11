@@ -411,7 +411,7 @@ Daftar tugas lengkap dari hal terkecil sampai rilis. Setiap item harus kecil, da
 - [ ] P7-103 Differential test vs simavr.
 - [x] P7-104 Tulis blink assembly.
 - [ ] P7-105 Kompilasi blink dengan `avr-gcc`.
-- [ ] P7-106 Jalankan blink di CPU struktural.
+- [x] P7-106 Jalankan blink di CPU struktural.
 - [x] P7-107 Implementasikan CLI monitor.
 - [x] P7-108 Implementasikan disassembler.
 - [x] P7-109 Dokumentasikan ISA support.
@@ -508,10 +508,10 @@ Daftar tugas lengkap dari hal terkecil sampai rilis. Setiap item harus kecil, da
 - [ ] P9-14 Pasang `avr-gcc`.
 - [ ] P9-15 Kompilasi firmware blink.
 - [x] P9-16 Konversi ELF ke HEX.
-- [ ] P9-17 Jalankan blink di board.
+- [x] P9-17 Jalankan blink di board.
 - [ ] P9-18 Kompilasi firmware UART hello.
 - [ ] P9-19 Jalankan UART hello.
-- [ ] P9-20 Implementasikan timer interrupt demo.
+- [x] P9-20 Implementasikan timer interrupt demo.
 - [x] P9-21 Implementasikan output CSV board.
 - [x] P9-22 Implementasikan output VCD board.
 - [x] P9-23 Implementasikan CLI `run`.

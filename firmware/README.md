@@ -33,6 +33,16 @@ rjmp loop
 
 ---
 
+## timer_interrupt.S
+
+- Target ATmega328P.
+- Timer0 overflow interrupt.
+- ISR menulis `r17 = 7`.
+- Loop utama menunggu interrupt.
+- Encoding manual dijalankan oleh `cargo run -p sim-avr --example timer_interrupt`.
+
+---
+
 ## Encoding manual
 
 Encoding manual blink sudah diuji di `crates/sim-avr/tests/blink.rs`.

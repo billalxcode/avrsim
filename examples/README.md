@@ -8,6 +8,7 @@ cargo run -p sim-cells --example ring_oscillator
 cargo run -p sim-avr --example cpu_program
 cargo run -p sim-board --example blink
 cargo run -p sim-avr --example uart_hello
+cargo run -p sim-avr --example timer_interrupt
 ```
 
 Contoh firmware ada di `../firmware/`.
