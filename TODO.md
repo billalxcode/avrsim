@@ -2,7 +2,7 @@
 
 Daftar tugas lengkap dari hal terkecil sampai rilis. Setiap item harus kecil, dapat diuji, dan tidak menambah dependensi eksternal.
 
-> **Status:** P8 selesai kecuali P8-09. P9 sebagian besar selesai. P10 sparse, adaptive step, trapezoidal/Gear, AC linear, noise termal, distorsi kuasi-statis, sensitivitas numerik, suhu device, process corner, BJT, JFET, transmission line, determinisme Linux, fidelity matrix, batasan model, profiling, dan optimasi selesai. Kalibrasi pin-level, golden suite, determinisme macOS/Windows, dan P8-09 belum.
+> **Status:** P8 selesai. P9 sebagian besar selesai. P10 sparse, adaptive step, trapezoidal/Gear, AC linear, noise termal, distorsi kuasi-statis, sensitivitas numerik, suhu device, process corner, BJT, JFET, transmission line, determinisme Linux, fidelity matrix, batasan model, profiling, dan optimasi selesai. Kalibrasi pin-level, golden suite, dan determinisme macOS/Windows belum.
 > **Aturan:** satu item selesai = kode + test + dokumentasi singkat.
 
 ---
@@ -430,7 +430,7 @@ Daftar tugas lengkap dari hal terkecil sampai rilis. Setiap item harus kecil, da
 - [x] P8-06 Implementasikan PIN read.
 - [x] P8-07 Implementasikan PIN toggle.
 - [x] P8-08 Implementasikan pull-up.
-- [ ] P8-09 Implementasikan pin electrical model.
+- [x] P8-09 Implementasikan pin electrical model.
 - [x] P8-10 Implementasikan pin change interrupt.
 - [x] P8-11 Implementasikan Timer0 counter.
 - [x] P8-12 Implementasikan Timer0 prescaler.

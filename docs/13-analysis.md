@@ -25,6 +25,7 @@ P4 diimplementasikan sebagian:
 - Transmission line lossless untuk transient.
 - Benchmark solver dan optimasi alokasi.
 - Prosedur kalibrasi parameter device.
+- Model pin elektrik untuk GPIO.
 - State update device.
 
 Belum diimplementasikan:
@@ -218,9 +219,9 @@ Total test workspace saat ini:
 - `sim-device`: 31 (26 unit + 5 integration).
 - `sim-analysis`: 66.
 - `sim-cells`: 67.
-- `sim-avr`: 187.
-- `sim-board`: 12.
+- `sim-avr`: 197.
+- `sim-board`: 14.
 - `sim-cli`: 8.
-- Total: 433.
+- Total: 445.
 
 Semua fungsi maksimal 20 baris dan semua file baru ASCII-only.

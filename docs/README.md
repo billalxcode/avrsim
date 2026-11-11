@@ -46,6 +46,7 @@ Dokumen ini adalah indeks lengkap spesifikasi **embed-emulation**.
 | 37 | [Transmission line](37-transmission-line.md) | Line lossless dengan delay |
 | 38 | [Performa](38-performance.md) | Benchmark dan optimasi solver |
 | 39 | [Kalibrasi](39-calibration.md) | Prosedur dan inventaris parameter |
+| 40 | [Pin electrical](40-pin-electrical.md) | Tegangan, arus, high-Z, contention |
 | - | [Todolist](../TODO.md) | Daftar tugas lengkap dari hal terkecil |
 
 ## Konvensi dokumen
