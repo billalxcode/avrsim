@@ -24,7 +24,7 @@ P4 diimplementasikan sebagian:
 - JFET Shichman-Hodges N dan P.
 - Transmission line lossless untuk transient.
 - Continuation sweep dan initial state device untuk discharge.
-- Voltage limiting junction dan writer CSV/VCD analog.
+- Voltage limiting junction, source stepping, dan writer CSV/VCD analog.
 - Benchmark solver dan optimasi alokasi.
 - Prosedur kalibrasi parameter device.
 - Model pin elektrik untuk GPIO.
@@ -32,16 +32,9 @@ P4 diimplementasikan sebagian:
 
 Belum diimplementasikan:
 
-- Voltage limiting eksplisit.
-- Damping.
-- gmin stepping.
-- Source stepping.
 - Diagnostik konvergensi lanjutan.
-- Initial condition dari DC op untuk transient.
-- CSV writer.
-- VCD writer.
-- Golden ngspice.
-- Benchmark formal.
+- Golden comparison dengan ngspice.
+- Writer waveform terintegrasi ke CLI.
 
 ---
 
@@ -73,12 +66,13 @@ Alur:
 1. Bangun `SimulationSystem`.
 2. Buat solusi awal nol.
 3. Tambahkan gmin stepping dari `gmin_start` ke `gmin`.
-4. Stamp semua device.
-5. Solve MNA.
-6. Batasi perubahan node voltage dengan `max_step`.
-7. Bandingkan solusi lama dan baru.
-8. Ulangi sampai konvergen.
-9. Update state device.
+4. Jika gagal, coba source stepping dari 0 ke nilai sumber penuh.
+5. Stamp semua device.
+6. Solve MNA.
+7. Batasi perubahan node voltage dengan `max_step`.
+8. Bandingkan solusi lama dan baru.
+9. Ulangi sampai konvergen.
+10. Update state device.
 
 Konfigurasi default:
 
@@ -96,6 +90,7 @@ Error:
 
 - `ConvergenceFailure` jika batas iterasi tercapai.
 - `SingularMatrix` jika matriks tidak dapat diselesaikan.
+- Jika gmin dan source stepping gagal, error gmin dikembalikan.
 
 ---
 
@@ -221,11 +216,11 @@ Total test workspace saat ini:
 
 - `sim-core`: 62.
 - `sim-device`: 34 (29 unit + 5 integration).
-- `sim-analysis`: 69.
+- `sim-analysis`: 70.
 - `sim-cells`: 67.
 - `sim-avr`: 198.
 - `sim-board`: 17.
 - `sim-cli`: 8.
-- Total: 455.
+- Total: 456.
 
 Semua fungsi maksimal 20 baris dan semua file baru ASCII-only.
