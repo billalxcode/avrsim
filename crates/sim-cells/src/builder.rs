@@ -52,6 +52,19 @@ impl CellBuilder {
         self.transistor(name, DeviceKind::Pmos, gate, drain, source, width);
     }
 
+    /// Instantiates a cell and connects its signal ports.
+    pub fn instantiate(
+        &mut self,
+        name: &str,
+        cell: &Cell,
+        connections: &[(&str, NodeId)],
+    ) -> Result<(), SimError> {
+        let subcircuit = cell.to_subcircuit(name)?;
+        let mut all = connections.to_vec();
+        all.push(("vdd", self.vdd));
+        self.builder.instantiate(name, &subcircuit, &all)
+    }
+
     /// Builds a cell with the provided port list.
     pub fn build(self, ports: &[(&str, NodeId)]) -> Result<Cell, SimError> {
         let circuit = self.builder.build_topology()?;

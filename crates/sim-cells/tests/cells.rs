@@ -1,7 +1,7 @@
 use sim_analysis::{DcConfig, dc_operating_point, dc_sweep};
 use sim_cells::{
-    CellKind, buffer, d_flip_flop, d_latch, inverter, nand2, noise_margins, nor2, ring_oscillator,
-    sram6t, transmission_gate, tri_state_inverter,
+    CellKind, buffer, d_flip_flop, d_latch, full_adder, half_adder, inverter, nand2, noise_margins,
+    nor2, ring_oscillator, sram6t, transmission_gate, tri_state_inverter,
 };
 use sim_core::{Circuit, DeviceKind, NodeId, SimError};
 use std::collections::BTreeMap;
@@ -238,4 +238,59 @@ fn inverter_noise_margins_are_positive() {
     assert!(metrics.vol < 1.0);
     assert!(metrics.nmh > 1.0);
     assert!(metrics.nml > 1.0);
+}
+fn half_adder_outputs(first: f64, second: f64) -> (f64, f64) {
+    let cell = half_adder().expect("cell");
+    let mut circuit = cell.powered(5.0).expect("powered");
+    let a = cell.port("a").expect("a");
+    let b = cell.port("b").expect("b");
+    add_source(&mut circuit, "va", a, first).expect("va");
+    add_source(&mut circuit, "vb", b, second).expect("vb");
+    let sum = output(&circuit, cell.port("sum").expect("sum"));
+    let carry = output(&circuit, cell.port("carry").expect("carry"));
+    (sum, carry)
+}
+
+#[test]
+fn half_adder_truth_table() {
+    let (sum, carry) = half_adder_outputs(0.0, 0.0);
+    assert!(sum < 1.0 && carry < 1.0);
+    let (sum, carry) = half_adder_outputs(0.0, 5.0);
+    assert!(sum > 4.0 && carry < 1.0);
+    let (sum, carry) = half_adder_outputs(5.0, 0.0);
+    assert!(sum > 4.0 && carry < 1.0);
+    let (sum, carry) = half_adder_outputs(5.0, 5.0);
+    assert!(sum < 1.0 && carry > 4.0);
+}
+fn full_adder_outputs(first: f64, second: f64, carry_in: f64) -> (f64, f64) {
+    let cell = full_adder().expect("cell");
+    let mut circuit = cell.powered(5.0).expect("powered");
+    let a = cell.port("a").expect("a");
+    let b = cell.port("b").expect("b");
+    let c = cell.port("cin").expect("cin");
+    add_source(&mut circuit, "va", a, first).expect("va");
+    add_source(&mut circuit, "vb", b, second).expect("vb");
+    add_source(&mut circuit, "vc", c, carry_in).expect("vc");
+    let sum = output(&circuit, cell.port("sum").expect("sum"));
+    let carry = output(&circuit, cell.port("carry").expect("carry"));
+    (sum, carry)
+}
+
+#[test]
+fn full_adder_truth_table() {
+    let cases = [
+        (0.0, 0.0, 0.0, 0.0, 0.0),
+        (0.0, 0.0, 5.0, 5.0, 0.0),
+        (0.0, 5.0, 0.0, 5.0, 0.0),
+        (0.0, 5.0, 5.0, 0.0, 5.0),
+        (5.0, 0.0, 0.0, 5.0, 0.0),
+        (5.0, 0.0, 5.0, 0.0, 5.0),
+        (5.0, 5.0, 0.0, 0.0, 5.0),
+        (5.0, 5.0, 5.0, 5.0, 5.0),
+    ];
+    for (a, b, c, expected_sum, expected_carry) in cases {
+        let (sum, carry) = full_adder_outputs(a, b, c);
+        assert!((sum - expected_sum).abs() < 1.0);
+        assert!((carry - expected_carry).abs() < 1.0);
+    }
 }

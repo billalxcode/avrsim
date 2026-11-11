@@ -1,6 +1,6 @@
 //! Cell model with named ports.
 
-use sim_core::{Circuit, DeviceKind, NodeId, SimError};
+use sim_core::{Circuit, DeviceKind, NodeId, SimError, Subcircuit};
 use std::collections::BTreeMap;
 
 /// A reusable cell with a circuit and named ports.
@@ -30,6 +30,16 @@ impl Cell {
     #[must_use]
     pub fn vdd(&self) -> Option<NodeId> {
         self.port("vdd")
+    }
+
+    /// Converts the cell into a subcircuit template.
+    pub fn to_subcircuit(&self, name: &str) -> Result<Subcircuit, SimError> {
+        let ports = self
+            .ports
+            .iter()
+            .map(|(port, node)| (port.clone(), *node))
+            .collect();
+        Subcircuit::new(name, self.circuit.clone(), ports)
     }
 
     /// Returns a powered copy of the circuit.
