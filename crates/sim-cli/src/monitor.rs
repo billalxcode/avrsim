@@ -1,6 +1,7 @@
 //! Simple AVR monitor used by the CLI.
 
 use sim_avr::{AvrTrace, Cpu, ProgramMemory, disassemble};
+use sim_board::HexImage;
 
 /// A monitor around one AVR core instance.
 pub struct Monitor {
@@ -13,6 +14,18 @@ impl Monitor {
     pub fn new(program: Vec<u16>) -> Result<Self, String> {
         let cpu = Cpu::new(program.clone()).map_err(|error| error.to_string())?;
         Ok(Self { cpu, program })
+    }
+
+    /// Creates a monitor from Intel HEX text.
+    pub fn from_hex(text: &str) -> Result<Self, String> {
+        let mut image = HexImage::new(0x8000);
+        image.load(text)?;
+        let program = image
+            .bytes()
+            .chunks_exact(2)
+            .map(|pair| u16::from_le_bytes([pair[0], pair[1]]))
+            .collect();
+        Self::new(program)
     }
 
     /// Executes one instruction.
@@ -175,5 +188,12 @@ mod tests {
             Monitor::new(vec![ldi(16, 0x55), 0x9200 | (16 << 4), 0x0100, 0x9598]).expect("monitor");
         monitor.run(10).expect("run");
         assert!(monitor.memory(0x0100, 1).contains("55"));
+    }
+
+    #[test]
+    fn monitor_loads_intel_hex() {
+        let mut monitor = Monitor::from_hex(":0400000005E09895EA\n:00000001FF\n").expect("hex");
+        assert!(monitor.step().expect("step").contains("ldi r16, 0x05"));
+        assert!(monitor.step().expect("step").contains("break"));
     }
 }

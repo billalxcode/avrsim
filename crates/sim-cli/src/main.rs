@@ -18,11 +18,26 @@ fn run(args: &[String]) -> Result<(), String> {
     if command == "disasm" {
         return show_disassembly(words);
     }
+    if command == "run" {
+        return run_hex(words);
+    }
     if command == "monitor" {
         let mut monitor = Monitor::new(parse_program(words)?)?;
         return repl(&mut monitor);
     }
     Err(usage())
+}
+
+fn run_hex(args: &[String]) -> Result<(), String> {
+    let path = args.first().ok_or_else(|| "missing HEX path".to_string())?;
+    let text = std::fs::read_to_string(path).map_err(|error| error.to_string())?;
+    let limit = match args.get(1) {
+        Some(raw) => parse_number(raw)?,
+        None => 100_000,
+    };
+    let mut monitor = Monitor::from_hex(&text)?;
+    println!("{}", monitor.run(limit)?);
+    Ok(())
 }
 
 fn show_disassembly(words: &[String]) -> Result<(), String> {
@@ -101,5 +116,5 @@ fn number(args: &[&str], index: usize, default: usize) -> Result<usize, String> 
 }
 
 fn usage() -> String {
-    "usage: embed-emu monitor <hex words...> | embed-emu disasm <hex words...>".to_string()
+    "usage: embed-emu monitor <hex words...> | embed-emu disasm <hex words...> | embed-emu run <file.hex> [steps]".to_string()
 }
