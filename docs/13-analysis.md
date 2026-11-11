@@ -23,6 +23,7 @@ P4 diimplementasikan sebagian:
 - BJT Ebers-Moll NPN dan PNP.
 - JFET Shichman-Hodges N dan P.
 - Transmission line lossless untuk transient.
+- Continuation sweep dan initial state device untuk discharge.
 - Benchmark solver dan optimasi alokasi.
 - Prosedur kalibrasi parameter device.
 - Model pin elektrik untuk GPIO.
@@ -109,6 +110,7 @@ Aturan:
 - Maksimum 1.000.000 titik.
 - Device harus ada.
 - Parameter akan ditambahkan jika belum ada.
+- Setiap titik memakai solusi titik sebelumnya sebagai initial.
 
 Contoh:
 
@@ -134,6 +136,7 @@ Metode:
 - Initial state dari DC operating point atau zero state.
 - Waktu virtual `Time` dalam pikodetik.
 - State capacitor dan inductor diperbarui setiap langkah.
+- `initial_voltages` memperbarui state device sebelum langkah pertama.
 
 Konfigurasi default:
 
@@ -217,11 +220,11 @@ Total test workspace saat ini:
 
 - `sim-core`: 62.
 - `sim-device`: 31 (26 unit + 5 integration).
-- `sim-analysis`: 66.
+- `sim-analysis`: 68.
 - `sim-cells`: 67.
 - `sim-avr`: 198.
 - `sim-board`: 15.
 - `sim-cli`: 8.
-- Total: 447.
+- Total: 449.
 
 Semua fungsi maksimal 20 baris dan semua file baru ASCII-only.

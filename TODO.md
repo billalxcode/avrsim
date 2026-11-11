@@ -2,7 +2,7 @@
 
 Daftar tugas lengkap dari hal terkecil sampai rilis. Setiap item harus kecil, dapat diuji, dan tidak menambah dependensi eksternal.
 
-> **Status:** P8 selesai. P9 sebagian besar selesai. P10 sparse, adaptive step, trapezoidal/Gear, AC linear, noise termal, distorsi kuasi-statis, sensitivitas numerik, suhu device, process corner, BJT, JFET, transmission line, determinisme Linux, fidelity matrix, batasan model, profiling, dan optimasi selesai. Golden suite dan determinisme macOS/Windows belum.
+> **Status:** P8 selesai. P9 sebagian besar selesai. P10 sparse, adaptive step, trapezoidal/Gear, AC linear, noise termal, distorsi kuasi-statis, sensitivitas numerik, suhu device, process corner, BJT, JFET, transmission line, determinisme Linux, fidelity matrix, batasan model, profiling, dan optimasi selesai. Golden suite dan determinisme macOS/Windows belum. P4 source stepping, voltage limiting, dan writer lanjutan belum.
 > **Aturan:** satu item selesai = kode + test + dokumentasi singkat.
 
 ---
@@ -209,7 +209,7 @@ Daftar tugas lengkap dari hal terkecil sampai rilis. Setiap item harus kecil, da
 - [ ] P4-16 Implementasikan fallback dan error.
 - [ ] P4-17 Implementasikan diagnostik konvergensi.
 - [x] P4-18 Implementasikan DC sweep.
-- [ ] P4-19 Implementasikan continuation antar titik sweep.
+- [x] P4-19 Implementasikan continuation antar titik sweep.
 - [x] P4-20 Implementasikan transient Backward Euler.
 - [x] P4-21 Implementasikan initial condition dari DC op.
 - [x] P4-22 Implementasikan `UIC` (opsional).
@@ -220,7 +220,7 @@ Daftar tugas lengkap dari hal terkecil sampai rilis. Setiap item harus kecil, da
 - [ ] P4-27 Implementasikan VCD digital `wire`.
 - [x] P4-28 Tulis test pembagi tegangan.
 - [x] P4-29 Tulis test RC charge.
-- [ ] P4-30 Tulis test RC discharge.
+- [x] P4-30 Tulis test RC discharge.
 - [x] P4-31 Tulis test diode clamp.
 - [x] P4-32 Tulis test inverter VTC.
 - [ ] P4-33 Buat harness perbandingan ngspice.
