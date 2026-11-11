@@ -57,6 +57,7 @@ pub fn transient_with_method(
     validate_config(config)?;
     let mut system = SimulationSystem::new(circuit)?;
     let mut solution = initial_solution(&mut system, config)?;
+    system.update(&solution)?;
     let step = step_time(config.dt)?;
     let mut time = Time::ZERO;
     let mut samples = Vec::with_capacity(config.steps);
@@ -138,7 +139,7 @@ fn validate_config(config: &TransientConfig) -> Result<(), SimError> {
 #[cfg(test)]
 mod tests {
     use super::{TransientConfig, transient, transient_with_method};
-    use crate::test_support::{matched_line, rc_circuit, rl_circuit};
+    use crate::test_support::{matched_line, rc_circuit, rc_circuit_no_source, rl_circuit};
     use sim_device::IntegrationMethod;
 
     #[test]
@@ -352,5 +353,23 @@ mod tests {
         let late = samples[14].solution.voltage(output).expect("late");
         assert!(early.abs() < 0.01, "early={early}");
         assert!((late - 2.5).abs() < 0.1, "late={late}");
+    }
+
+    #[test]
+    fn rc_discharge_decays_from_initial_voltage() {
+        let (circuit, output) = rc_circuit_no_source();
+        let config = TransientConfig {
+            dt: 1e-4,
+            steps: 100,
+            gmin: 1e-12,
+            use_dc_op: false,
+            initial_voltages: vec![(output, 5.0)],
+        };
+        let samples = transient(&circuit, &config).expect("transient");
+        let early = samples[0].solution.voltage(output).expect("early");
+        let last = samples.last().expect("last");
+        let last = last.solution.voltage(output).expect("last");
+        assert!(early > 4.0, "early={early}");
+        assert!(last.abs() < 0.01, "last={last}");
     }
 }

@@ -191,6 +191,15 @@ pub(crate) fn rc_circuit() -> (Circuit, NodeId) {
     (circuit.build(), output)
 }
 
+pub(crate) fn rc_circuit_no_source() -> (Circuit, NodeId) {
+    let mut circuit = TestCircuit::new();
+    let output = circuit.node("out");
+    let ground = circuit.ground();
+    circuit.resistor("r1", output, ground, 1000.0);
+    circuit.capacitor("c1", output, ground, 1e-6);
+    (circuit.build(), output)
+}
+
 pub(crate) fn rl_circuit() -> (Circuit, NodeId) {
     let mut circuit = TestCircuit::new();
     let input = circuit.node("in");
