@@ -134,20 +134,28 @@ fn build_branch_map(circuit: &Circuit) -> (Vec<Option<usize>>, usize) {
     let mut index = non_ground_node_count(circuit);
     let mut branches = 0;
     for device in circuit.devices() {
-        match device.kind() {
-            DeviceKind::VoltageSource
-            | DeviceKind::PulseVoltageSource
-            | DeviceKind::Vcvs
-            | DeviceKind::Cccs
-            | DeviceKind::Inductor => {
-                map.push(Some(index));
-                index += 1;
-                branches += 1;
-            }
-            _ => map.push(None),
+        let slots = branch_slots(device.kind());
+        if slots == 0 {
+            map.push(None);
+        } else {
+            map.push(Some(index));
+            index += slots;
+            branches += slots;
         }
     }
     (map, branches)
+}
+
+fn branch_slots(kind: &DeviceKind) -> usize {
+    match kind {
+        DeviceKind::Ccvs => 2,
+        DeviceKind::VoltageSource
+        | DeviceKind::PulseVoltageSource
+        | DeviceKind::Vcvs
+        | DeviceKind::Cccs
+        | DeviceKind::Inductor => 1,
+        _ => 0,
+    }
 }
 
 fn non_ground_node_count(circuit: &Circuit) -> usize {

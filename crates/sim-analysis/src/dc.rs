@@ -318,9 +318,9 @@ fn validate_sweep(start: f64, stop: f64, step: f64) -> Result<(), SimError> {
 mod tests {
     use super::{DcConfig, dc_operating_point, dc_sweep};
     use crate::test_support::{
-        cccs_circuit, common_emitter, common_emitter_pnp, common_source_body, common_source_n,
-        common_source_n_biased, common_source_p, diode_clamp, inverter, rc_circuit, rl_circuit,
-        switch_circuit, vccs_circuit, vcvs_circuit, voltage_divider,
+        cccs_circuit, ccvs_circuit, common_emitter, common_emitter_pnp, common_source_body,
+        common_source_n, common_source_n_biased, common_source_p, diode_clamp, inverter,
+        rc_circuit, rl_circuit, switch_circuit, vccs_circuit, vcvs_circuit, voltage_divider,
     };
 
     #[test]
@@ -625,6 +625,14 @@ mod tests {
         let result = dc_operating_point(&circuit, &DcConfig::default()).expect("dc");
         let voltage = result.solution.voltage(output).expect("output");
         assert!((voltage - 2.0).abs() < 1e-6, "voltage={voltage}");
+    }
+
+    #[test]
+    fn ccvs_output_is_rm_times_control_current() {
+        let (circuit, output) = ccvs_circuit();
+        let result = dc_operating_point(&circuit, &DcConfig::default()).expect("dc");
+        let voltage = result.solution.voltage(output).expect("output");
+        assert!((voltage - 1.0).abs() < 1e-6, "voltage={voltage}");
     }
 
     #[test]

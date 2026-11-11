@@ -14,7 +14,7 @@ mod switch;
 mod transmission;
 
 pub use bjt::BjtModel;
-pub use controlled::{VccsModel, VcvsModel};
+pub use controlled::{CccsModel, CcvsModel, VccsModel, VcvsModel};
 pub use diode::DiodeModel;
 pub use jfet::JfetModel;
 pub use model::{DeviceModel, IntegrationMethod, model_from_instance};

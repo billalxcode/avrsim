@@ -25,6 +25,8 @@ pub enum DeviceKind {
     Vccs,
     /// A current-controlled current source.
     Cccs,
+    /// A current-controlled voltage source.
+    Ccvs,
     /// A voltage-controlled switch.
     Switch,
     /// An N-channel MOSFET.
@@ -68,6 +70,7 @@ impl DeviceKind {
             Self::Vcvs => "vcvs",
             Self::Vccs => "vccs",
             Self::Cccs => "cccs",
+            Self::Ccvs => "ccvs",
             Self::Switch => "switch",
             other => other.analog_name(),
         }

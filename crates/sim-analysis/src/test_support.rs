@@ -208,6 +208,14 @@ impl TestCircuit {
             .expect(name);
     }
 
+    pub(crate) fn ccvs(&mut self, name: &str, output: [NodeId; 2], control: [NodeId; 2], rm: f64) {
+        let parameters = params("rm", rm);
+        let pins = vec![output[0], output[1], control[0], control[1]];
+        self.builder
+            .device(name, DeviceKind::Ccvs, pins, parameters)
+            .expect(name);
+    }
+
     pub(crate) fn switch(
         &mut self,
         name: &str,
@@ -512,6 +520,19 @@ pub(crate) fn cccs_circuit() -> (Circuit, NodeId) {
     circuit.voltage("vin", input, ground, 1.0);
     circuit.resistor("rc", input, control, 1000.0);
     circuit.cccs("f1", [output, ground], [control, ground], 2.0);
+    circuit.resistor("rl", output, ground, 1000.0);
+    (circuit.build(), output)
+}
+
+pub(crate) fn ccvs_circuit() -> (Circuit, NodeId) {
+    let mut circuit = TestCircuit::new();
+    let input = circuit.node("in");
+    let control = circuit.node("control");
+    let output = circuit.node("out");
+    let ground = circuit.ground();
+    circuit.voltage("vin", input, ground, 1.0);
+    circuit.resistor("rc", input, control, 1000.0);
+    circuit.ccvs("h1", [output, ground], [control, ground], 1000.0);
     circuit.resistor("rl", output, ground, 1000.0);
     (circuit.build(), output)
 }

@@ -145,3 +145,70 @@ impl DeviceModel for CccsModel {
         Ok(())
     }
 }
+
+/// A current-controlled voltage source with pins `out+, out-, ctrl+, ctrl-`.
+pub struct CcvsModel {
+    id: DeviceId,
+    transresistance: f64,
+    pins: [NodeId; 4],
+}
+
+impl CcvsModel {
+    pub(crate) fn from_instance(instance: &DeviceInstance) -> Result<Self, SimError> {
+        let pins = pins_exact(instance, 4)?;
+        let transresistance = parameter(instance.parameters(), "rm", 1000.0);
+        if !transresistance.is_finite() {
+            return Err(SimError::InvalidNetlist(
+                "ccvs rm must be finite".to_string(),
+            ));
+        }
+        Ok(Self {
+            id: instance.id(),
+            transresistance,
+            pins: [pins[0], pins[1], pins[2], pins[3]],
+        })
+    }
+}
+
+impl DeviceModel for CcvsModel {
+    fn stamp(
+        &mut self,
+        ctx: &mut MnaContext,
+        _solution: &Solution,
+        _dt: Option<f64>,
+    ) -> Result<(), SimError> {
+        let sense = branch_index(ctx, self.id)?;
+        self.stamp_sense(ctx, sense)?;
+        self.stamp_output(ctx, sense + 1, sense)
+    }
+
+    fn update(&mut self, _solution: &Solution) -> Result<(), SimError> {
+        Ok(())
+    }
+}
+
+impl CcvsModel {
+    fn stamp_sense(&self, ctx: &mut MnaContext, sense: usize) -> Result<(), SimError> {
+        let control = ctx.node_index(self.pins[2]);
+        let reference = ctx.node_index(self.pins[3]);
+        ctx.add_matrix_opt(control, Some(sense), 1.0)?;
+        ctx.add_matrix_opt(reference, Some(sense), -1.0)?;
+        ctx.add_matrix_opt(Some(sense), control, 1.0)?;
+        ctx.add_matrix_opt(Some(sense), reference, -1.0)
+    }
+
+    fn stamp_output(
+        &self,
+        ctx: &mut MnaContext,
+        output: usize,
+        sense: usize,
+    ) -> Result<(), SimError> {
+        let positive = ctx.node_index(self.pins[0]);
+        let negative = ctx.node_index(self.pins[1]);
+        ctx.add_matrix_opt(positive, Some(output), 1.0)?;
+        ctx.add_matrix_opt(negative, Some(output), -1.0)?;
+        ctx.add_matrix_opt(Some(output), positive, 1.0)?;
+        ctx.add_matrix_opt(Some(output), negative, -1.0)?;
+        ctx.add_matrix_opt(Some(output), Some(sense), -self.transresistance)
+    }
+}
