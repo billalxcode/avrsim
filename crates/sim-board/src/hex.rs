@@ -1,4 +1,30 @@
-//! Intel HEX loader.
+//! Intel HEX loader and writer.
+
+/// Formats bytes as Intel HEX records up to 64 KiB.
+#[must_use]
+pub fn to_intel_hex(bytes: &[u8]) -> String {
+    let mut text = String::new();
+    for (index, chunk) in bytes.chunks(16).enumerate() {
+        text.push_str(&format_record((index * 16) as u16, chunk));
+    }
+    text.push_str(":00000001FF\n");
+    text
+}
+
+fn format_record(address: u16, data: &[u8]) -> String {
+    let mut record = Vec::with_capacity(data.len() + 5);
+    record.push(data.len() as u8);
+    record.push((address >> 8) as u8);
+    record.push(address as u8);
+    record.push(0);
+    record.extend_from_slice(data);
+    let sum = record
+        .iter()
+        .fold(0u8, |acc, value| acc.wrapping_add(*value));
+    record.push(0u8.wrapping_sub(sum));
+    let hex: String = record.iter().map(|byte| format!("{byte:02X}")).collect();
+    format!(":{hex}\n")
+}
 
 /// A loaded Intel HEX image.
 pub struct HexImage {
@@ -120,7 +146,15 @@ fn extended_address(record: &Record) -> Result<u32, String> {
 
 #[cfg(test)]
 mod tests {
-    use super::HexImage;
+    use super::{HexImage, to_intel_hex};
+
+    #[test]
+    fn writes_intel_hex() {
+        assert_eq!(
+            to_intel_hex(&[1, 2, 3, 4]),
+            ":0400000001020304F2\n:00000001FF\n"
+        );
+    }
 
     #[test]
     fn loads_data_record() {

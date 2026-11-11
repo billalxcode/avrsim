@@ -123,6 +123,15 @@ impl ElfImage {
 
     /// Returns flash bytes as little-endian program words.
     pub fn program_words(&self) -> Result<Vec<u16>, SimError> {
+        let bytes = self.flash_bytes()?;
+        Ok(bytes
+            .chunks_exact(2)
+            .map(|pair| u16::from_le_bytes([pair[0], pair[1]]))
+            .collect())
+    }
+
+    /// Returns flash bytes.
+    pub fn flash_bytes(&self) -> Result<Vec<u8>, SimError> {
         let size = self
             .segments
             .iter()
@@ -133,10 +142,12 @@ impl ElfImage {
         let size = size + (size % 2);
         let mut bytes = vec![0u8; size];
         self.load_flash(&mut bytes)?;
-        Ok(bytes
-            .chunks_exact(2)
-            .map(|pair| u16::from_le_bytes([pair[0], pair[1]]))
-            .collect())
+        Ok(bytes)
+    }
+
+    /// Converts flash segments to Intel HEX.
+    pub fn to_hex(&self) -> Result<String, SimError> {
+        Ok(crate::hex::to_intel_hex(&self.flash_bytes()?))
     }
 }
 
@@ -440,6 +451,14 @@ mod tests {
         let mut flash = vec![0u8; 8];
         image.load_flash(&mut flash).expect("load");
         assert_eq!(flash, vec![1, 2, 3, 4, 0, 0, 0, 0]);
+    }
+
+    #[test]
+    fn exports_intel_hex() {
+        let image = ElfImage::parse(&fixture()).expect("elf");
+        let hex = image.to_hex().expect("hex");
+        assert!(hex.contains(":0400000001020304F2"));
+        assert!(hex.ends_with(":00000001FF\n"));
     }
 
     #[test]
