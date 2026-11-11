@@ -123,7 +123,15 @@ impl ProgramMemory {
 - Test seluruh 256 nilai, kedua nilai carry, dan tiga operasi shift.
 - SWAP diuji terpisah karena flag-nya diabaikan.
 
-## 9. Test
+## 9. Multiply Unit
+
+- `multiply_unit` adalah multiplier unsigned 8 x 8 berbasis shift-and-add.
+- `multiply_signed_unit` memakai nilai absolut dan koreksi tanda.
+- `multiply_signed_unsigned_unit` menangani operand pertama signed dan kedua unsigned.
+- Hasil 16-bit, flag Z, dan C dari bit 15.
+- Test MUL, MULS, dan MULSU memakai seluruh 256 nilai operand pertama, beberapa operand kedua, dan reference Rust.
+
+## 10. Test
 
 Test decoder mencakup:
 
@@ -145,11 +153,11 @@ Test decoder mencakup:
 - IR load, hold, reset, dan validasi lebar data.
 - Register bank write/read, dua read port, pasangan little-endian, hold, dan reset.
 
-Total test `sim-avr`: 41.
+Total test `sim-avr`: 45.
 
 ---
 
-## 10. Batas
+## 11. Batas
 
 - Fetch dan register bank belum mengeksekusi instruksi.
 - Belum ada timing per instruksi.

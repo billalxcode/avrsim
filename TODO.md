@@ -2,7 +2,7 @@
 
 Daftar tugas lengkap dari hal terkecil sampai rilis. Setiap item harus kecil, dapat diuji, dan tidak menambah dependensi eksternal.
 
-> **Status:** Shift dan rotate selesai: LSR, ASR, ROR, dan SWAP. Lanjut ke compare, multiply, dan integrasi CPU.
+> **Status:** Shift dan multiply selesai: LSR, ASR, ROR, SWAP, MUL, MULS, MULSU. Lanjut ke compare dan integrasi CPU.
 > **Aturan:** satu item selesai = kode + test + dokumentasi singkat.
 
 ---
@@ -336,9 +336,9 @@ Daftar tugas lengkap dari hal terkecil sampai rilis. Setiap item harus kecil, da
 - [x] P7-28 Implementasikan ASR.
 - [x] P7-29 Implementasikan ROR.
 - [x] P7-30 Implementasikan SWAP.
-- [ ] P7-31 Implementasikan MUL.
-- [ ] P7-32 Implementasikan MULS.
-- [ ] P7-33 Implementasikan MULSU.
+- [x] P7-31 Implementasikan MUL.
+- [x] P7-32 Implementasikan MULS.
+- [x] P7-33 Implementasikan MULSU.
 - [ ] P7-34 Implementasikan MOV.
 - [ ] P7-35 Implementasikan MOVW.
 - [ ] P7-36 Implementasikan LDI.
