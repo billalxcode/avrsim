@@ -212,8 +212,11 @@ Test decoder mencakup:
 - Penolakan fetch terpotong dan alamat di luar batas.
 - IR load, hold, reset, dan validasi lebar data.
 - Register bank write/read, dua read port, pasangan little-endian, hold, dan reset.
+- Test vector arithmetic ADD, ADC, SUB, SBC, dan immediate.
+- Test vector logic, shift, multiply, load/store, branch, call/stack, dan interrupt.
+- Blink assembly dijalankan dan PORTB bit 5 terbukti toggle.
 
-Total test `sim-avr`: 92.
+Total test `sim-avr`: 93.
 Total test `sim-cli`: 4.
 
 ---
@@ -257,11 +260,35 @@ Perintah:
 
 `embed-emu disasm <hex words...>` mencetak disassembly tanpa menjalankan program.
 
-## 17. Batas
+## 17. ISA Support
+
+| Kelompok | Status |
+|---|---|
+| Arithmetic ADD, ADC, SUB, SBC, SUBI, SBCI | Berjalan di CPU |
+| NEG, INC, DEC | Berjalan di CPU |
+| Logic AND, ANDI, OR, ORI, EOR, COM | Berjalan di CPU |
+| Compare CP, CPC, CPI | Berjalan di CPU |
+| Shift LSR, ASR, ROR, SWAP | Berjalan di CPU |
+| Multiply MUL | Berjalan di CPU |
+| Multiply MULS, MULSU, FMUL | Unit tersedia, belum dihubungkan ke CPU |
+| Move LDI, MOV, MOVW | Berjalan di CPU |
+| Load/store LD, ST, LDD, STD, LDS, STS | Berjalan di CPU |
+| LPM, ELPM | Berjalan dengan program memory behavioral |
+| PUSH, POP, RCALL, CALL, ICALL, IJMP, RET, RETI | Berjalan di CPU |
+| Branch RJMP, JMP, BRBS, BRBC, CPSE, SBRC, SBRS | Berjalan di CPU |
+| Bit dan I/O SBI, CBI, SBIC, SBIS, IN, OUT, BST, BLD, BSET, BCLR | Berjalan di CPU |
+| Interrupt controller, vector table, SEI delay, SLEEP | Berjalan di CPU |
+| SPM, DES, LAC, LAS, LAT, XCH | Belum diimplementasikan |
+| Timing | Model cycle-level, bukan timing silikon penuh |
+
+Firmware `firmware/blink.S` sudah ditulis dan encoding manualnya diuji di CPU.
+Kompilasi dengan `avr-gcc` belum dilakukan karena toolchain tidak tersedia.
+
+## 18. Batas
 
 - Control CPU masih behavioral, bukan PLA gate-level.
 - Belum ada validasi disassembler terhadap `avr-objdump`.
 - Belum ada differential test terhadap simavr.
-- Belum ada CLI monitor.
-- Belum ada blink assembly atau firmware `avr-gcc`.
+- Blink assembly sudah ada, tetapi belum dikompilasi dengan `avr-gcc`.
+- Belum ada differential test terhadap simavr.
 - Belum ada timer, UART, GPIO, dan peripheral struktural.

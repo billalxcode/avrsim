@@ -2,7 +2,7 @@
 
 Daftar tugas lengkap dari hal terkecil sampai rilis. Setiap item harus kecil, dapat diuji, dan tidak menambah dependensi eksternal.
 
-> **Status:** Disassembler, timing, dan CLI monitor selesai. Lanjut ke test vector ISA, blink, firmware, dan differential test.
+> **Status:** ISA support, disassembler, timing, CLI monitor, test vector, dan blink assembly selesai. Blocker P7: avr-gcc tidak tersedia dan differential simavr belum dilakukan.
 > **Aturan:** satu item selesai = kode + test + dokumentasi singkat.
 
 ---
@@ -398,23 +398,23 @@ Daftar tugas lengkap dari hal terkecil sampai rilis. Setiap item harus kecil, da
 - [x] P7-90 Implementasikan WDR.
 - [x] P7-91 Implementasikan reset.
 - [x] P7-92 Implementasikan FSM timing.
-- [ ] P7-93 Tulis test vector ADD.
-- [ ] P7-94 Tulis test vector ADC.
-- [ ] P7-95 Tulis test vector SUB/SBC.
-- [ ] P7-96 Tulis test vector logic.
-- [ ] P7-97 Tulis test vector shift.
-- [ ] P7-98 Tulis test vector multiply.
-- [ ] P7-99 Tulis test vector load/store.
+- [x] P7-93 Tulis test vector ADD.
+- [x] P7-94 Tulis test vector ADC.
+- [x] P7-95 Tulis test vector SUB/SBC.
+- [x] P7-96 Tulis test vector logic.
+- [x] P7-97 Tulis test vector shift.
+- [x] P7-98 Tulis test vector multiply.
+- [x] P7-99 Tulis test vector load/store.
 - [x] P7-100 Tulis test vector branch.
 - [x] P7-101 Tulis test vector call/stack.
 - [x] P7-102 Tulis test vector interrupt.
 - [ ] P7-103 Differential test vs simavr.
-- [ ] P7-104 Tulis blink assembly.
+- [x] P7-104 Tulis blink assembly.
 - [ ] P7-105 Kompilasi blink dengan `avr-gcc`.
 - [ ] P7-106 Jalankan blink di CPU struktural.
 - [x] P7-107 Implementasikan CLI monitor.
 - [x] P7-108 Implementasikan disassembler.
-- [ ] P7-109 Dokumentasikan ISA support.
+- [x] P7-109 Dokumentasikan ISA support.
 
 **Exit P7:** blink `avr-gcc` berjalan di CPU struktural.
 
