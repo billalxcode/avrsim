@@ -11,6 +11,7 @@ pub mod instruction_register;
 pub mod multiply;
 pub mod register_bank;
 pub mod shift;
+pub mod timer0;
 
 #[cfg(test)]
 mod test_support;
@@ -31,3 +32,4 @@ pub use multiply::{
 };
 pub use register_bank::RegisterBank;
 pub use shift::{ShiftUnit, shift_unit};
+pub use timer0::Timer0;

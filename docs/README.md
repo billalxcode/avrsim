@@ -24,6 +24,7 @@ Dokumen ini adalah indeks lengkap spesifikasi **embed-emulation**.
 | 15 | [Digital](15-digital.md) | Logika dua-state, clock ideal, counter, shift register |
 | 16 | [AVR Decode](16-avr-decode.md) | Decoder, fetch, register bank, ALU arithmetic/logic/shift AVR |
 | 17 | [GPIO](17-gpio.md) | Port B/C/D, DDR, PORT, PIN, pull-up |
+| 18 | [Timer0](18-timer0.md) | Counter, prescaler, normal, CTC, compare |
 | - | [Todolist](../TODO.md) | Daftar tugas lengkap dari hal terkecil |
 
 ## Konvensi dokumen
@@ -40,6 +41,6 @@ Dokumen ini adalah indeks lengkap spesifikasi **embed-emulation**.
 |---|---|
 | Brainstorming | Selesai |
 | Spesifikasi | Dokumen ini |
-| Kode | P8 GPIO B/C/D selesai |
+| Kode | P8 GPIO dan Timer0 core selesai |
 | Toolchain Rust | Terpasang (1.99.1) |
 | `avr-gcc` | Belum terpasang |
