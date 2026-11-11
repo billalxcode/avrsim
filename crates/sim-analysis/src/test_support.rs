@@ -555,6 +555,15 @@ pub(crate) fn switch_circuit(on: bool) -> (Circuit, NodeId) {
     (circuit.build(), output)
 }
 
+pub(crate) fn floating_node() -> (Circuit, NodeId) {
+    let mut circuit = TestCircuit::new();
+    let node = circuit.node("floating");
+    let ground = circuit.ground();
+    circuit.capacitor("c1", node, ground, 1e-6);
+    let built = circuit.builder.build_topology().expect("circuit");
+    (built, node)
+}
+
 pub(crate) fn reverse_diode_rc(cj0: f64) -> (Circuit, NodeId) {
     let mut circuit = TestCircuit::new();
     let input = circuit.node("in");

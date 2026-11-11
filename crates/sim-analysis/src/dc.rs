@@ -319,8 +319,9 @@ mod tests {
     use super::{DcConfig, dc_operating_point, dc_sweep};
     use crate::test_support::{
         cccs_circuit, ccvs_circuit, common_emitter, common_emitter_pnp, common_source_body,
-        common_source_n, common_source_n_biased, common_source_p, diode_clamp, inverter,
-        rc_circuit, rl_circuit, switch_circuit, vccs_circuit, vcvs_circuit, voltage_divider,
+        common_source_n, common_source_n_biased, common_source_p, diode_clamp, floating_node,
+        inverter, rc_circuit, rl_circuit, switch_circuit, vccs_circuit, vcvs_circuit,
+        voltage_divider,
     };
 
     #[test]
@@ -645,5 +646,13 @@ mod tests {
         let off = off.solution.voltage(off_output).expect("off v");
         assert!(on < 0.1, "on={on}");
         assert!(off > 4.9, "off={off}");
+    }
+
+    #[test]
+    fn floating_node_is_pinned_by_gmin() {
+        let (circuit, output) = floating_node();
+        let result = dc_operating_point(&circuit, &DcConfig::default()).expect("dc");
+        let voltage = result.solution.voltage(output).expect("output");
+        assert!(voltage.abs() < 1e-9, "voltage={voltage}");
     }
 }

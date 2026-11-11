@@ -42,6 +42,28 @@ mod tests {
         assert_eq!(sweep_values(&circuit), sweep_values(&circuit));
     }
 
+    #[test]
+    fn circuit_snapshot_replays_transient() {
+        let (circuit, output) = rc_circuit();
+        let snapshot = circuit.snapshot();
+        let config = TransientConfig {
+            dt: 1e-6,
+            steps: 20,
+            gmin: 1e-12,
+            use_dc_op: false,
+            initial_voltages: Vec::new(),
+        };
+        let first = transient(&circuit, &config).expect("first");
+        let second = transient(&snapshot, &config).expect("snapshot");
+        assert_eq!(first.len(), second.len());
+        for (left, right) in first.iter().zip(second.iter()) {
+            assert_eq!(left.time.as_ps(), right.time.as_ps());
+            let left = left.solution.voltage(output).expect("left");
+            let right = right.solution.voltage(output).expect("right");
+            assert_eq!(left.to_bits(), right.to_bits());
+        }
+    }
+
     fn sweep_values(circuit: &sim_core::Circuit) -> Vec<f64> {
         crate::dc_sweep(
             circuit,
