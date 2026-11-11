@@ -1,5 +1,6 @@
 //! `embed-emu` command-line entry point.
 
+mod bench;
 mod monitor;
 
 use monitor::{Monitor, parse_number, parse_word};
@@ -24,6 +25,9 @@ fn run(args: &[String]) -> Result<(), String> {
     if command == "monitor" {
         let mut monitor = Monitor::new(parse_program(words)?)?;
         return repl(&mut monitor);
+    }
+    if command == "bench" {
+        return bench::run(words);
     }
     Err(usage())
 }
@@ -116,5 +120,5 @@ fn number(args: &[&str], index: usize, default: usize) -> Result<usize, String> 
 }
 
 fn usage() -> String {
-    "usage: embed-emu monitor <hex words...> | embed-emu disasm <hex words...> | embed-emu run <file.hex> [steps]".to_string()
+    "usage: embed-emu monitor <hex words...> | embed-emu disasm <hex words...> | embed-emu run <file.hex> [steps] | embed-emu bench [iterations]".to_string()
 }
