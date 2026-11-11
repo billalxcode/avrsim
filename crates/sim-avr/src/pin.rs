@@ -19,8 +19,8 @@ impl Default for PinElectricalConfig {
     fn default() -> Self {
         Self {
             supply: 5.0,
-            output_resistance: 25.0,
-            pull_up_resistance: 20_000.0,
+            output_resistance: 45.0,
+            pull_up_resistance: 35_000.0,
             input_threshold: 2.5,
         }
     }
@@ -252,13 +252,25 @@ mod tests {
             resistance: 1000.0,
         };
         let state = measure_pin(PinMode::OutputHigh, external, &config()).expect("pin");
-        assert!((state.voltage - 4.878).abs() < 0.001, "v={}", state.voltage);
         assert!(
-            (state.current - 0.004878).abs() < 1e-6,
+            (state.voltage - 4.7847).abs() < 0.001,
+            "v={}",
+            state.voltage
+        );
+        assert!(
+            (state.current - 0.0047847).abs() < 1e-6,
             "i={}",
             state.current
         );
         assert!(!state.contention);
+    }
+
+    #[test]
+    fn defaults_match_datasheet_derivation() {
+        let config = PinElectricalConfig::default();
+        let high_voltage = config.supply - 0.02 * config.output_resistance;
+        assert!((high_voltage - 4.1).abs() < 1e-9, "voh={high_voltage}");
+        assert!((20_000.0..=50_000.0).contains(&config.pull_up_resistance));
     }
 
     #[test]
