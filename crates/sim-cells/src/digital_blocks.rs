@@ -207,10 +207,11 @@ impl ProgramCounter {
         width: usize,
         load: NetId,
         target: &[NetId],
+        increment_enable: NetId,
     ) -> Result<Self, SimError> {
         validate_word_width(width, target, 16)?;
         Ok(Self {
-            bits: build_pc(builder, width, load, target),
+            bits: build_pc(builder, width, load, target, increment_enable),
         })
     }
 
@@ -285,11 +286,13 @@ fn build_pc(
     width: usize,
     load: NetId,
     target: &[NetId],
+    increment_enable: NetId,
 ) -> Vec<NetId> {
     let bits: Vec<NetId> = (0..width).map(|_| builder.net()).collect();
     let incremented = increment(builder, &bits);
     for index in 0..width {
-        let next = builder.mux(incremented[index], target[index], load);
+        let held = builder.mux(bits[index], incremented[index], increment_enable);
+        let next = builder.mux(held, target[index], load);
         builder.dff_into(next, bits[index]);
     }
     bits
@@ -474,8 +477,9 @@ mod tests {
     fn pc_fixture() -> (DigitalCircuit, ProgramCounter) {
         let mut builder = DigitalBuilder::new();
         let load = builder.input("load");
+        let increment = builder.input("inc");
         let target = named_inputs(&mut builder, "t", 16);
-        let pc = ProgramCounter::new(&mut builder, 16, load, &target).expect("pc");
+        let pc = ProgramCounter::new(&mut builder, 16, load, &target, increment).expect("pc");
         (builder.build(), pc)
     }
 
@@ -493,17 +497,25 @@ mod tests {
     #[test]
     fn program_counter_counts_and_loads() {
         let (mut circuit, pc) = pc_fixture();
+        circuit.set_input("inc", true).expect("inc");
         circuit.set_input("load", false).expect("load");
         circuit.tick().expect("tick");
         assert_eq!(pc.read(&circuit), 1);
         set_bits(&mut circuit, "t", 0x1234, 16);
+        circuit.set_input("inc", false).expect("inc");
         circuit.set_input("load", true).expect("load");
         circuit.tick().expect("tick");
         assert_eq!(pc.read(&circuit), 0x1234);
+        circuit.reset().expect("reset");
+        assert_eq!(pc.read(&circuit), 0);
+    }
+
+    #[test]
+    fn program_counter_holds_without_increment() {
+        let (mut circuit, pc) = pc_fixture();
+        circuit.set_input("inc", false).expect("inc");
         circuit.set_input("load", false).expect("load");
         circuit.tick().expect("tick");
-        assert_eq!(pc.read(&circuit), 0x1235);
-        circuit.reset().expect("reset");
         assert_eq!(pc.read(&circuit), 0);
     }
 

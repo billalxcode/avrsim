@@ -21,6 +21,7 @@ impl NetId {
 #[derive(Clone, Copy, Debug)]
 enum Gate {
     Const(bool, NetId),
+    Buf(NetId, NetId),
     Not(NetId, NetId),
     And(NetId, NetId, NetId),
     Or(NetId, NetId, NetId),
@@ -92,6 +93,11 @@ impl DigitalBuilder {
         let output = self.new_net();
         self.gates.push(Gate::Not(input, output));
         output
+    }
+
+    /// Adds a buffer that drives an existing net.
+    pub fn buf_into(&mut self, input: NetId, output: NetId) {
+        self.gates.push(Gate::Buf(input, output));
     }
 
     /// Adds an inverter that drives an existing net.
@@ -269,6 +275,7 @@ impl DigitalCircuit {
 fn evaluate(gate: Gate, values: &mut [bool]) -> bool {
     match gate {
         Gate::Const(value, output) => set_value(values, output, value),
+        Gate::Buf(input, output) => set_value(values, output, values[input.raw()]),
         Gate::Not(input, output) => set_value(values, output, !values[input.raw()]),
         Gate::And(first, second, output) => evaluate_and(first, second, output, values),
         Gate::Or(first, second, output) => evaluate_or(first, second, output, values),
@@ -397,6 +404,22 @@ mod tests {
             combinational(true, true),
             (false, true, true, false, false, false)
         );
+    }
+
+    #[test]
+    fn buffer_follows_input() {
+        let mut builder = DigitalBuilder::new();
+        let input = builder.input("a");
+        let output = builder.net();
+        builder.buf_into(input, output);
+        builder.output("y", output);
+        let mut circuit = builder.build();
+        circuit.set_input("a", true).expect("a");
+        circuit.settle().expect("settle");
+        assert!(circuit.output("y").expect("y"));
+        circuit.set_input("a", false).expect("a");
+        circuit.settle().expect("settle");
+        assert!(!circuit.output("y").expect("y"));
     }
 
     #[test]
