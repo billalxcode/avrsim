@@ -86,6 +86,9 @@ Konfigurasi default:
 | `gmin_start` | 1e-3 |
 | `max_step` | 0.5 V |
 
+`DcResult` menyimpan `iterations` dan `residual`, yaitu perubahan node
+voltage maksimum saat konvergen.
+
 Error:
 
 - `ConvergenceFailure` jika batas iterasi tercapai.
