@@ -55,12 +55,14 @@ Dokumen ini adalah indeks lengkap spesifikasi **embed-emulation**.
 | 46 | [Diode nonideal](46-diode-nonideal.md) | Series resistance dan junction capacitance |
 | 47 | [Controlled sources](47-controlled-sources.md) | VCVS dan VCCS linear |
 | 48 | [CCCS dan switch](48-cccs-switch.md) | Current-controlled source dan switch |
+| 49 | [CCVS](49-ccvs.md) | Current-controlled voltage source |
 | 43 | [User guide](43-user-guide.md) | Quick start, API, dan contoh |
 | 44 | [Body effect](44-body-effect.md) | Threshold bias body dan `gmb` |
 | 45 | [MOSFET capacitance](45-mosfet-capacitance.md) | Meyer dan overlap capacitance |
 | 46 | [Diode nonideal](46-diode-nonideal.md) | Series resistance dan junction capacitance |
 | 47 | [Controlled sources](47-controlled-sources.md) | VCVS dan VCCS linear |
 | 48 | [CCCS dan switch](48-cccs-switch.md) | Current-controlled source dan switch |
+| 49 | [CCVS](49-ccvs.md) | Current-controlled voltage source |
 | - | [Todolist](../TODO.md) | Daftar tugas lengkap dari hal terkecil |
 
 ## Konvensi dokumen
