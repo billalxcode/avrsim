@@ -1,6 +1,6 @@
 //! AVR arithmetic unit.
 
-use sim_cells::{DigitalBuilder, NetId, and_all, digital_full_adder, or_all};
+use sim_cells::{DigitalBuilder, NetId, and_all, digital_full_adder, mux_tree, or_all};
 use sim_core::SimError;
 
 /// Result and flags of the AVR arithmetic unit.
@@ -27,6 +27,65 @@ struct SumBits {
     half_carry: NetId,
 }
 
+/// Result and flags of the AVR logic unit.
+pub struct LogicUnit {
+    /// Result bits, least significant first.
+    pub result: Vec<NetId>,
+    /// Result is zero.
+    pub zero: NetId,
+    /// Result bit 7.
+    pub negative: NetId,
+    /// Signed result sign. Overflow is always zero for logic operations.
+    pub sign: NetId,
+}
+
+/// Builds the 8-bit AVR logic unit.
+///
+/// `op` selects AND, OR, XOR, and NOT in that order.
+pub fn logic_unit(
+    builder: &mut DigitalBuilder,
+    first: &[NetId],
+    second: &[NetId],
+    op: &[NetId],
+) -> Result<LogicUnit, SimError> {
+    validate_logic(first, second, op)?;
+    let result = (0..8)
+        .map(|bit| logic_bit(builder, first[bit], second[bit], op))
+        .collect::<Result<Vec<_>, _>>()?;
+    let any = or_all(builder, &result);
+    let negative = result[7];
+    Ok(LogicUnit {
+        result,
+        zero: builder.not(any),
+        negative,
+        sign: negative,
+    })
+}
+
+fn validate_logic(first: &[NetId], second: &[NetId], op: &[NetId]) -> Result<(), SimError> {
+    if first.len() != 8 || second.len() != 8 || op.len() != 2 {
+        return Err(SimError::InvalidNetlist(
+            "AVR logic expects 8-bit operands and 2-bit opcode".to_string(),
+        ));
+    }
+    Ok(())
+}
+
+fn logic_bit(
+    builder: &mut DigitalBuilder,
+    first: NetId,
+    second: NetId,
+    op: &[NetId],
+) -> Result<NetId, SimError> {
+    let options = [
+        builder.and(first, second),
+        builder.or(first, second),
+        builder.xor(first, second),
+        builder.not(first),
+    ];
+    mux_tree(builder, &options, op)
+}
+
 /// Builds the 8-bit AVR arithmetic unit.
 ///
 /// `subtract` selects subtraction. `carry_in` is the C flag for ADC or SBC.
@@ -39,19 +98,67 @@ pub fn arithmetic_unit(
 ) -> Result<ArithmeticUnit, SimError> {
     validate(first, second)?;
     let bits = add_bytes(builder, first, second, subtract, carry_in);
-    let zero = zero_flag(builder, &bits.sum);
-    let negative = bits.sum[7];
-    let overflow = overflow_flag(builder, first, second, &bits.sum, subtract);
-    let sign = builder.xor(negative, overflow);
-    Ok(ArithmeticUnit {
+    Ok(finish_unit(builder, first, second, bits, subtract))
+}
+
+fn finish_unit(
+    builder: &mut DigitalBuilder,
+    first: &[NetId],
+    second: &[NetId],
+    bits: SumBits,
+    subtract: NetId,
+) -> ArithmeticUnit {
+    let flags = unit_flags(builder, first, second, &bits, subtract);
+    ArithmeticUnit {
         result: bits.sum,
-        carry: carry_flag(builder, bits.carry, subtract),
+        carry: flags.carry,
+        zero: flags.zero,
+        negative: flags.negative,
+        overflow: flags.overflow,
+        sign: flags.sign,
+        half_carry: flags.half_carry,
+    }
+}
+
+struct UnitFlags {
+    carry: NetId,
+    zero: NetId,
+    negative: NetId,
+    overflow: NetId,
+    sign: NetId,
+    half_carry: NetId,
+}
+
+fn unit_flags(
+    builder: &mut DigitalBuilder,
+    first: &[NetId],
+    second: &[NetId],
+    bits: &SumBits,
+    subtract: NetId,
+) -> UnitFlags {
+    let overflow = overflow_flag(builder, first, second, &bits.sum, subtract);
+    let zero = zero_flag(builder, &bits.sum);
+    let (carry, half_carry) = carry_flags(builder, bits.carry, bits.half_carry, subtract);
+    UnitFlags {
+        carry,
         zero,
-        negative,
+        negative: bits.sum[7],
         overflow,
-        sign,
-        half_carry: carry_flag(builder, bits.half_carry, subtract),
-    })
+        sign: builder.xor(bits.sum[7], overflow),
+        half_carry,
+    }
+}
+
+fn carry_flags(
+    builder: &mut DigitalBuilder,
+    carry: NetId,
+    half_carry: NetId,
+    subtract: NetId,
+) -> (NetId, NetId) {
+    (
+        carry_flag(builder, carry, subtract),
+        carry_flag(builder, half_carry, subtract),
+    )
 }
 
 fn validate(first: &[NetId], second: &[NetId]) -> Result<(), SimError> {
@@ -70,23 +177,45 @@ fn add_bytes(
     subtract: NetId,
     carry_in: NetId,
 ) -> SumBits {
-    let mut carry = adder_carry(builder, carry_in, subtract);
-    let mut half_carry = carry;
+    let initial = adder_carry(builder, carry_in, subtract);
+    let (sum, carry, half_carry) = ripple(builder, first, second, subtract, initial);
+    SumBits {
+        sum,
+        carry,
+        half_carry,
+    }
+}
+
+fn ripple(
+    builder: &mut DigitalBuilder,
+    first: &[NetId],
+    second: &[NetId],
+    subtract: NetId,
+    initial: NetId,
+) -> (Vec<NetId>, NetId, NetId) {
+    let mut carry = initial;
+    let mut half_carry = initial;
     let mut sum = Vec::with_capacity(8);
     for index in 0..8 {
-        let bit = effective_bit(builder, second[index], subtract);
-        let (result, next) = digital_full_adder(builder, first[index], bit, carry);
+        let (result, next) = ripple_step(builder, first[index], second[index], carry, subtract);
         if index == 3 {
             half_carry = next;
         }
         sum.push(result);
         carry = next;
     }
-    SumBits {
-        sum,
-        carry,
-        half_carry,
-    }
+    (sum, carry, half_carry)
+}
+
+fn ripple_step(
+    builder: &mut DigitalBuilder,
+    first: NetId,
+    second: NetId,
+    carry: NetId,
+    subtract: NetId,
+) -> (NetId, NetId) {
+    let bit = effective_bit(builder, second, subtract);
+    digital_full_adder(builder, first, bit, carry)
 }
 
 fn effective_bit(builder: &mut DigitalBuilder, bit: NetId, subtract: NetId) -> NetId {
@@ -151,7 +280,7 @@ fn subtraction_overflow(
 
 #[cfg(test)]
 mod tests {
-    use super::{ArithmeticUnit, arithmetic_unit};
+    use super::{ArithmeticUnit, LogicUnit, arithmetic_unit, logic_unit};
     use crate::test_support::{named_inputs, set_bits};
     use sim_cells::{DigitalBuilder, DigitalCircuit, add_with_carry, read_bits, sub_with_borrow};
 
@@ -189,6 +318,10 @@ mod tests {
         circuit.set_input("sub", subtract).expect("sub");
         circuit.set_input("cin", carry_in).expect("cin");
         circuit.settle().expect("settle");
+        read_outcome(circuit, unit)
+    }
+
+    fn read_outcome(circuit: &DigitalCircuit, unit: &ArithmeticUnit) -> Outcome {
         Outcome {
             value: read_bits(circuit, &unit.result) as u8,
             carry: circuit.value(unit.carry),
@@ -262,5 +395,79 @@ mod tests {
         let subtract = builder.input("sub");
         let carry = builder.input("cin");
         assert!(arithmetic_unit(&mut builder, &first, &second, subtract, carry).is_err());
+    }
+
+    #[derive(Debug, PartialEq, Eq)]
+    struct LogicOutcome {
+        value: u8,
+        zero: bool,
+        negative: bool,
+        sign: bool,
+    }
+
+    fn logic_fixture() -> (DigitalCircuit, LogicUnit) {
+        let mut builder = DigitalBuilder::new();
+        let first = named_inputs(&mut builder, "a", 8);
+        let second = named_inputs(&mut builder, "b", 8);
+        let op = named_inputs(&mut builder, "op", 2);
+        let unit = logic_unit(&mut builder, &first, &second, &op).expect("logic unit");
+        (builder.build(), unit)
+    }
+
+    fn evaluate_logic(
+        circuit: &mut DigitalCircuit,
+        unit: &LogicUnit,
+        first: u8,
+        second: u8,
+        op: u8,
+    ) -> LogicOutcome {
+        set_bits(circuit, "a", u64::from(first), 8);
+        set_bits(circuit, "b", u64::from(second), 8);
+        set_bits(circuit, "op", u64::from(op), 2);
+        circuit.settle().expect("settle");
+        LogicOutcome {
+            value: read_bits(circuit, &unit.result) as u8,
+            zero: circuit.value(unit.zero),
+            negative: circuit.value(unit.negative),
+            sign: circuit.value(unit.sign),
+        }
+    }
+
+    fn logic_reference(op: u8, first: u8, second: u8) -> LogicOutcome {
+        let value = match op {
+            0 => first & second,
+            1 => first | second,
+            2 => first ^ second,
+            _ => !first,
+        };
+        LogicOutcome {
+            value,
+            zero: value == 0,
+            negative: value & 0x80 != 0,
+            sign: value & 0x80 != 0,
+        }
+    }
+
+    #[test]
+    fn logic_operations_match_reference() {
+        let (mut circuit, unit) = logic_fixture();
+        let values = [0, 1, 0x0F, 0x55, 0x80, 0xAA, 0xFF];
+        for first in 0..=u8::MAX {
+            for second in values {
+                for op in 0..4 {
+                    let actual = evaluate_logic(&mut circuit, &unit, first, second, op);
+                    assert_eq!(actual, logic_reference(op, first, second));
+                }
+            }
+        }
+    }
+
+    #[test]
+    fn logic_rejects_wrong_width() {
+        let mut builder = DigitalBuilder::new();
+        let first = named_inputs(&mut builder, "a", 8);
+        let second = named_inputs(&mut builder, "b", 8);
+        let op = named_inputs(&mut builder, "op", 3);
+        assert!(logic_unit(&mut builder, &first, &second, &op).is_err());
     }
 }
