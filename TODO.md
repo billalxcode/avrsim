@@ -2,7 +2,7 @@
 
 Daftar tugas lengkap dari hal terkecil sampai rilis. Setiap item harus kecil, dapat diuji, dan tidak menambah dependensi eksternal.
 
-> **Status:** CPU subset mendukung timing per instruksi dan total cycle. Lanjut ke test vector ISA, disassembler, CLI, dan firmware.
+> **Status:** Disassembler dan timing selesai. Lanjut ke CLI monitor, test vector ISA, blink, dan firmware.
 > **Aturan:** satu item selesai = kode + test + dokumentasi singkat.
 
 ---
@@ -413,7 +413,7 @@ Daftar tugas lengkap dari hal terkecil sampai rilis. Setiap item harus kecil, da
 - [ ] P7-105 Kompilasi blink dengan `avr-gcc`.
 - [ ] P7-106 Jalankan blink di CPU struktural.
 - [ ] P7-107 Implementasikan CLI monitor.
-- [ ] P7-108 Implementasikan disassembler.
+- [x] P7-108 Implementasikan disassembler.
 - [ ] P7-109 Dokumentasikan ISA support.
 
 **Exit P7:** blink `avr-gcc` berjalan di CPU struktural.

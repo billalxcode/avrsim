@@ -191,7 +191,7 @@ shift, rotate, multiply, trace, dan halt.
 - SEI menunda enable interrupt selama satu instruksi berikutnya.
 - SLEEP menghentikan eksekusi sampai interrupt pending dan I aktif.
 
-## 12. Test
+## 13. Test
 
 Test decoder mencakup:
 
@@ -213,11 +213,11 @@ Test decoder mencakup:
 - IR load, hold, reset, dan validasi lebar data.
 - Register bank write/read, dua read port, pasangan little-endian, hold, dan reset.
 
-Total test `sim-avr`: 88.
+Total test `sim-avr`: 92.
 
 ---
 
-## 13. Timing
+## 14. Timing
 
 - `AvrTrace` mencatat cycle instruksi dan total cycle.
 - Sebagian besar instruksi memakai 1 cycle.
@@ -229,10 +229,20 @@ Total test `sim-avr`: 88.
 - Interrupt entry menambah 4 cycle.
 - Model ini belum memasukkan wait state flash dan timing silikon detail.
 
-## 13. Batas
+## 15. Disassembler
 
-- Fetch dan register bank belum mengeksekusi instruksi.
-- Belum ada timing per instruksi.
-- Belum ada disassembler.
-- Belum ada validasi terhadap `avr-objdump`.
+- `disassemble` mengubah `Instruction` menjadi teks assembly.
+- Nama mnemonic dibagi per kategori agar fungsi tetap pendek.
+- Operand register, immediate, alamat, displacement, bit, I/O, dan flag diformat terpisah.
+- LD/ST pointer dan LDD/STD memakai format Y/Z eksplisit.
+- Test mencakup arithmetic, logic, memory, control flow, I/O, dan bit operations.
+- Belum ada validasi output terhadap `avr-objdump`.
+
+## 16. Batas
+
+- Control CPU masih behavioral, bukan PLA gate-level.
+- Belum ada validasi disassembler terhadap `avr-objdump`.
 - Belum ada differential test terhadap simavr.
+- Belum ada CLI monitor.
+- Belum ada blink assembly atau firmware `avr-gcc`.
+- Belum ada timer, UART, GPIO, dan peripheral struktural.

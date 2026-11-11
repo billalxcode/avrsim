@@ -3,6 +3,7 @@
 pub mod alu;
 pub mod cpu;
 pub mod decode;
+pub mod disassemble;
 pub mod fetch;
 pub mod instruction;
 pub mod instruction_register;
@@ -19,6 +20,7 @@ pub use alu::{
 };
 pub use cpu::{AvrTrace, Cpu, Sreg};
 pub use decode::{decode, uses_second_word};
+pub use disassemble::disassemble;
 pub use fetch::{Fetched, ProgramMemory};
 pub use instruction::{Instruction, Mnemonic, Operand};
 pub use instruction_register::InstructionRegister;
