@@ -92,7 +92,16 @@ impl ProgramMemory {
 - Hasil ADD, ADC, SUB, dan SBC dibandingkan dengan reference `sim-cells`.
 - Test menjalankan seluruh 256 nilai operand pertama untuk beberapa operand kedua dan carry.
 
-## 7. Test
+## 7. Logic Unit
+
+- `logic_unit` memakai gate AND, OR, XOR, dan NOT per bit.
+- Opcode 2-bit memilih AND, OR, XOR, dan NOT.
+- Output: result, Z, N, dan S.
+- V selalu nol untuk operasi logic.
+- C dan H tidak dihitung dan harus dipertahankan oleh control SREG.
+- Test membandingkan hasil dengan reference untuk seluruh 256 operand pertama, beberapa operand kedua, dan empat operasi.
+
+## 8. Test
 
 Test decoder mencakup:
 
@@ -114,11 +123,11 @@ Test decoder mencakup:
 - IR load, hold, reset, dan validasi lebar data.
 - Register bank write/read, dua read port, pasangan little-endian, hold, dan reset.
 
-Total test `sim-avr`: 31.
+Total test `sim-avr`: 33.
 
 ---
 
-## 8. Batas
+## 9. Batas
 
 - Fetch dan register bank belum mengeksekusi instruksi.
 - Belum ada timing per instruksi.

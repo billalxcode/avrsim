@@ -2,7 +2,7 @@
 
 Daftar tugas lengkap dari hal terkecil sampai rilis. Setiap item harus kecil, dapat diuji, dan tidak menambah dependensi eksternal.
 
-> **Status:** P7-01 sampai P7-11 selesai: decoder, fetch, IR, register bank, dan unit arithmetic ADD/ADC/SUB/SBC. Lanjut ke SUBI/SBCI, logic, dan shift.
+> **Status:** P7-14, P7-16, P7-18, dan P7-19 selesai: unit logic AND/OR/EOR/COM. Lanjut ke SUBI/SBCI, logic immediate, dan shift.
 > **Aturan:** satu item selesai = kode + test + dokumentasi singkat.
 
 ---
@@ -319,12 +319,12 @@ Daftar tugas lengkap dari hal terkecil sampai rilis. Setiap item harus kecil, da
 - [x] P7-11 Implementasikan SBC.
 - [ ] P7-12 Implementasikan SUBI.
 - [ ] P7-13 Implementasikan SBCI.
-- [ ] P7-14 Implementasikan AND.
+- [x] P7-14 Implementasikan AND.
 - [ ] P7-15 Implementasikan ANDI.
-- [ ] P7-16 Implementasikan OR.
+- [x] P7-16 Implementasikan OR.
 - [ ] P7-17 Implementasikan ORI.
-- [ ] P7-18 Implementasikan EOR.
-- [ ] P7-19 Implementasikan COM.
+- [x] P7-18 Implementasikan EOR.
+- [x] P7-19 Implementasikan COM.
 - [ ] P7-20 Implementasikan NEG.
 - [ ] P7-21 Implementasikan INC.
 - [ ] P7-22 Implementasikan DEC.
