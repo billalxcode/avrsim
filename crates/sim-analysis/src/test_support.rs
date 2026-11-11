@@ -68,6 +68,11 @@ impl TestCircuit {
         self.two_pin(name, DeviceKind::Inductor, first, second, parameters);
     }
 
+    pub(crate) fn current(&mut self, name: &str, from: NodeId, to: NodeId, value: f64) {
+        let parameters = params("current", value);
+        self.two_pin(name, DeviceKind::CurrentSource, from, to, parameters);
+    }
+
     pub(crate) fn diode(&mut self, name: &str, anode: NodeId, cathode: NodeId) {
         self.two_pin(name, DeviceKind::Diode, anode, cathode, BTreeMap::new());
     }
@@ -148,6 +153,15 @@ pub(crate) fn rl_circuit() -> (Circuit, NodeId) {
     circuit.voltage("v1", input, ground, 5.0);
     circuit.resistor("r1", input, output, 1000.0);
     circuit.inductor("l1", output, ground, 1e-3);
+    (circuit.build(), output)
+}
+
+pub(crate) fn current_source_circuit() -> (Circuit, NodeId) {
+    let mut circuit = TestCircuit::new();
+    let output = circuit.node("out");
+    let ground = circuit.ground();
+    circuit.current("i1", ground, output, 0.001);
+    circuit.resistor("r1", output, ground, 1000.0);
     (circuit.build(), output)
 }
 

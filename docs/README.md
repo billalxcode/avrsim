@@ -35,6 +35,7 @@ Dokumen ini adalah indeks lengkap spesifikasi **embed-emulation**.
 | 26 | [Adaptive](26-adaptive.md) | Adaptive step dan estimasi error |
 | 27 | [Determinisme](27-determinism.md) | Uji determinisme solver Linux |
 | 28 | [Integrasi](28-integration.md) | Backward Euler, trapezoidal, Gear2 |
+| 29 | [AC](29-ac.md) | AC small-signal dan sweep frekuensi |
 | - | [Todolist](../TODO.md) | Daftar tugas lengkap dari hal terkecil |
 
 ## Konvensi dokumen
