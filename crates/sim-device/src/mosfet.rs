@@ -1,12 +1,13 @@
 //! Shichman-Hodges Level 1 MOSFET model.
 
-use crate::model::{DeviceModel, parameter, pins_exact, positive_parameter};
+use crate::model::{
+    DERIVATIVE_STEP, DeviceModel, finite_difference, parameter, pins_exact, positive_parameter,
+    stamp_three_terminal,
+};
 use sim_core::{
     Device, DeviceInstance, DeviceKind, MnaContext, NOMINAL_TEMPERATURE, NodeId, SimError, Solution,
 };
 use std::collections::BTreeMap;
-
-const DERIVATIVE_STEP: f64 = 1e-6;
 
 /// Level 1 MOSFET parameters.
 #[derive(Clone, Copy, Debug, PartialEq)]
@@ -109,9 +110,9 @@ impl MosfetModel {
 
     fn linearization(&self, vg: f64, vd: f64, vs: f64) -> (f64, f64, f64, f64) {
         let current = self.current(vg, vd, vs);
-        let gm = (self.current(vg + DERIVATIVE_STEP, vd, vs) - current) / DERIVATIVE_STEP;
-        let gds = (self.current(vg, vd + DERIVATIVE_STEP, vs) - current) / DERIVATIVE_STEP;
-        let gms = (self.current(vg, vd, vs + DERIVATIVE_STEP) - current) / DERIVATIVE_STEP;
+        let gm = finite_difference(|value| self.current(value, vd, vs), vg, DERIVATIVE_STEP);
+        let gds = finite_difference(|value| self.current(vg, value, vs), vd, DERIVATIVE_STEP);
+        let gms = finite_difference(|value| self.current(vg, vd, value), vs, DERIVATIVE_STEP);
         (current, gm, gds, gms)
     }
 }
@@ -127,7 +128,7 @@ impl DeviceModel for MosfetModel {
         let vd = solution.voltage(self.pins[1]).unwrap_or(0.0);
         let vs = solution.voltage(self.pins[2]).unwrap_or(0.0);
         let (current, gm, gds, gms) = self.linearization(vg, vd, vs);
-        stamp_linearized(ctx, self.pins, current, gm, gds, gms, (vg, vd, vs))
+        stamp_three_terminal(ctx, self.pins, current, gm, gds, gms, (vg, vd, vs))
     }
 
     fn update(&mut self, _solution: &Solution) -> Result<(), SimError> {
@@ -147,38 +148,6 @@ fn nmos_current(vgs: f64, vds: f64, params: MosfetParams) -> f64 {
     } else {
         0.5 * gain * overdrive * overdrive * lambda
     }
-}
-
-fn stamp_linearized(
-    ctx: &mut MnaContext,
-    pins: [NodeId; 3],
-    current: f64,
-    gm: f64,
-    gds: f64,
-    gms: f64,
-    voltages: (f64, f64, f64),
-) -> Result<(), SimError> {
-    let gate = ctx.node_index(pins[0]);
-    let drain = ctx.node_index(pins[1]);
-    let source = ctx.node_index(pins[2]);
-    let (vg, vd, vs) = voltages;
-    let constant = gm * vg + gds * vd + gms * vs - current;
-    let cols = (gate, drain, source);
-    stamp_row(ctx, drain, cols, (gm, gds, gms), constant)?;
-    stamp_row(ctx, source, cols, (-gm, -gds, -gms), -constant)
-}
-
-fn stamp_row(
-    ctx: &mut MnaContext,
-    row: Option<usize>,
-    cols: (Option<usize>, Option<usize>, Option<usize>),
-    values: (f64, f64, f64),
-    constant: f64,
-) -> Result<(), SimError> {
-    ctx.add_matrix_opt(row, cols.0, values.0)?;
-    ctx.add_matrix_opt(row, cols.1, values.1)?;
-    ctx.add_matrix_opt(row, cols.2, values.2)?;
-    ctx.add_rhs_opt(row, constant)
 }
 
 #[cfg(test)]

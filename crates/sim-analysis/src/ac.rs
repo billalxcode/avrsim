@@ -429,7 +429,10 @@ fn source_value(device: &impl Device, fallback: &str) -> Result<Complex64, SimEr
 #[cfg(test)]
 mod tests {
     use super::{ac_analysis, ac_sweep};
-    use crate::test_support::{current_source_circuit, diode_clamp, rc_circuit, rl_circuit};
+    use crate::test_support::{
+        common_emitter, common_source_n, current_source_circuit, diode_clamp, rc_circuit,
+        rl_circuit,
+    };
 
     #[test]
     fn rc_low_pass_at_cutoff_has_expected_response() {
@@ -458,6 +461,18 @@ mod tests {
     #[test]
     fn ac_rejects_nonlinear_device() {
         let (circuit, _) = diode_clamp();
+        assert!(ac_analysis(&circuit, 1000.0).is_err());
+    }
+
+    #[test]
+    fn ac_rejects_bjt() {
+        let (circuit, _) = common_emitter();
+        assert!(ac_analysis(&circuit, 1000.0).is_err());
+    }
+
+    #[test]
+    fn ac_rejects_jfet() {
+        let (circuit, _) = common_source_n();
         assert!(ac_analysis(&circuit, 1000.0).is_err());
     }
 

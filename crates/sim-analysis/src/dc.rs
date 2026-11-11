@@ -255,7 +255,10 @@ fn validate_sweep(start: f64, stop: f64, step: f64) -> Result<(), SimError> {
 #[cfg(test)]
 mod tests {
     use super::{DcConfig, dc_operating_point, dc_sweep};
-    use crate::test_support::{diode_clamp, inverter, rc_circuit, rl_circuit, voltage_divider};
+    use crate::test_support::{
+        common_emitter, common_emitter_pnp, common_source_n, common_source_n_biased,
+        common_source_p, diode_clamp, inverter, rc_circuit, rl_circuit, voltage_divider,
+    };
 
     #[test]
     fn voltage_divider_is_half_supply() {
@@ -417,5 +420,57 @@ mod tests {
         let result = dc_operating_point(&circuit, &DcConfig::default()).expect("dc");
         let voltage = result.solution.voltage(output).expect("output");
         assert!(voltage > 0.4 && voltage < 0.9, "voltage={voltage}");
+    }
+
+    #[test]
+    fn npn_common_emitter_conducts() {
+        let (circuit, output) = common_emitter();
+        let result = dc_operating_point(&circuit, &DcConfig::default()).expect("dc");
+        let voltage = result.solution.voltage(output).expect("output");
+        assert!(voltage > 3.0 && voltage < 4.5, "voltage={voltage}");
+    }
+
+    #[test]
+    fn higher_beta_lowers_collector_voltage() {
+        let (mut circuit, output) = common_emitter();
+        circuit.set_device_parameter("q1", "bf", 200.0).expect("bf");
+        let result = dc_operating_point(&circuit, &DcConfig::default()).expect("dc");
+        let voltage = result.solution.voltage(output).expect("output");
+        assert!(voltage < 3.0, "voltage={voltage}");
+    }
+
+    #[test]
+    fn pnp_common_emitter_conducts() {
+        let (circuit, output) = common_emitter_pnp();
+        let result = dc_operating_point(&circuit, &DcConfig::default()).expect("dc");
+        let voltage = result.solution.voltage(output).expect("output");
+        assert!(voltage > 0.2 && voltage < 1.5, "voltage={voltage}");
+    }
+
+    #[test]
+    fn n_jfet_common_source_conducts() {
+        let (circuit, output) = common_source_n();
+        let result = dc_operating_point(&circuit, &DcConfig::default()).expect("dc");
+        let voltage = result.solution.voltage(output).expect("output");
+        assert!(voltage > 1.0 && voltage < 1.8, "voltage={voltage}");
+    }
+
+    #[test]
+    fn negative_gate_bias_raises_jfet_drain_voltage() {
+        let (base, base_output) = common_source_n();
+        let (biased, biased_output) = common_source_n_biased();
+        let base = dc_operating_point(&base, &DcConfig::default()).expect("dc");
+        let biased = dc_operating_point(&biased, &DcConfig::default()).expect("dc");
+        let base = base.solution.voltage(base_output).expect("base");
+        let biased = biased.solution.voltage(biased_output).expect("biased");
+        assert!(biased > base + 0.2, "base={base} biased={biased}");
+    }
+
+    #[test]
+    fn p_jfet_common_source_conducts() {
+        let (circuit, output) = common_source_p();
+        let result = dc_operating_point(&circuit, &DcConfig::default()).expect("dc");
+        let voltage = result.solution.voltage(output).expect("output");
+        assert!(voltage > 3.0 && voltage < 4.5, "voltage={voltage}");
     }
 }

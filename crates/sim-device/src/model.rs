@@ -1,13 +1,22 @@
 //! Device model API and factory.
 
+use crate::bjt::BjtModel;
 use crate::diode::DiodeModel;
+use crate::jfet::JfetModel;
 use crate::mosfet::MosfetModel;
 use crate::passive::{CapacitorModel, InductorModel, ResistorModel};
 use crate::source::{CurrentSourceModel, VoltageSourceModel};
 use sim_core::{
-    Device, DeviceId, DeviceInstance, DeviceKind, MnaContext, NodeId, SimError, Solution,
+    BOLTZMANN, Device, DeviceId, DeviceInstance, DeviceKind, ELEMENTARY_CHARGE, MnaContext,
+    NOMINAL_TEMPERATURE, NodeId, SimError, Solution,
 };
 use std::collections::BTreeMap;
+
+/// Maximum exponent used by junction models.
+pub(crate) const MAX_EXPONENT: f64 = 40.0;
+
+/// Maximum forward junction voltage used for limiting.
+pub(crate) const MAX_FORWARD_VOLTAGE: f64 = 0.9;
 
 /// Numerical integration method for reactive devices.
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
@@ -55,6 +64,8 @@ pub fn model_from_instance(instance: &DeviceInstance) -> Result<Box<dyn DeviceMo
         DeviceKind::VoltageSource => Ok(Box::new(VoltageSourceModel::from_instance(instance)?)),
         DeviceKind::CurrentSource => Ok(Box::new(CurrentSourceModel::from_instance(instance)?)),
         DeviceKind::Nmos | DeviceKind::Pmos => Ok(Box::new(MosfetModel::from_instance(instance)?)),
+        DeviceKind::Npn | DeviceKind::Pnp => Ok(Box::new(BjtModel::from_instance(instance)?)),
+        DeviceKind::JfetN | DeviceKind::JfetP => Ok(Box::new(JfetModel::from_instance(instance)?)),
         DeviceKind::Diode => Ok(Box::new(DiodeModel::from_instance(instance)?)),
         other => Err(SimError::UnsupportedDevice(other.name().to_string())),
     }
@@ -82,6 +93,12 @@ pub(crate) fn positive_parameter(
         )));
     }
     Ok(value)
+}
+
+pub(crate) fn thermal_voltage(params: &BTreeMap<String, f64>) -> Result<f64, SimError> {
+    let temperature = parameter(params, "temp", NOMINAL_TEMPERATURE);
+    let default = BOLTZMANN * temperature / ELEMENTARY_CHARGE;
+    positive_parameter(params, "vt", Some(default))
 }
 
 pub(crate) fn pins_exact(instance: &DeviceInstance, count: usize) -> Result<Vec<NodeId>, SimError> {
@@ -162,6 +179,45 @@ pub(crate) fn stamp_inductor_branch(
     ctx.add_matrix_opt(Some(branch), n, -1.0)?;
     ctx.add_matrix(branch, branch, -resistance)?;
     ctx.add_rhs(branch, rhs)
+}
+
+/// Numerical derivative step for device linearization.
+pub(crate) const DERIVATIVE_STEP: f64 = 1e-6;
+
+pub(crate) fn finite_difference<F: Fn(f64) -> f64>(function: F, value: f64, step: f64) -> f64 {
+    (function(value + step) - function(value)) / step
+}
+
+pub(crate) fn stamp_three_terminal(
+    ctx: &mut MnaContext,
+    pins: [NodeId; 3],
+    current: f64,
+    gm: f64,
+    gds: f64,
+    gms: f64,
+    voltages: (f64, f64, f64),
+) -> Result<(), SimError> {
+    let gate = ctx.node_index(pins[0]);
+    let drain = ctx.node_index(pins[1]);
+    let source = ctx.node_index(pins[2]);
+    let (vg, vd, vs) = voltages;
+    let constant = gm * vg + gds * vd + gms * vs - current;
+    let cols = (gate, drain, source);
+    stamp_row(ctx, drain, cols, (gm, gds, gms), constant)?;
+    stamp_row(ctx, source, cols, (-gm, -gds, -gms), -constant)
+}
+
+fn stamp_row(
+    ctx: &mut MnaContext,
+    row: Option<usize>,
+    cols: (Option<usize>, Option<usize>, Option<usize>),
+    values: (f64, f64, f64),
+    constant: f64,
+) -> Result<(), SimError> {
+    ctx.add_matrix_opt(row, cols.0, values.0)?;
+    ctx.add_matrix_opt(row, cols.1, values.1)?;
+    ctx.add_matrix_opt(row, cols.2, values.2)?;
+    ctx.add_rhs_opt(row, constant)
 }
 
 #[cfg(test)]

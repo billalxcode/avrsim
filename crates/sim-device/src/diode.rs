@@ -1,14 +1,10 @@
 //! Shockley diode model.
 
-use crate::model::{DeviceModel, parameter, pins_exact, positive_parameter, stamp_conductance};
-use sim_core::{
-    BOLTZMANN, Device, DeviceInstance, ELEMENTARY_CHARGE, MnaContext, NOMINAL_TEMPERATURE, NodeId,
-    SimError, Solution,
+use crate::model::{
+    DeviceModel, MAX_EXPONENT, MAX_FORWARD_VOLTAGE, pins_exact, positive_parameter,
+    stamp_conductance, thermal_voltage,
 };
-use std::collections::BTreeMap;
-
-const MAX_EXPONENT: f64 = 40.0;
-const MAX_FORWARD_VOLTAGE: f64 = 0.9;
+use sim_core::{Device, DeviceInstance, MnaContext, NodeId, SimError, Solution};
 
 /// A two-terminal Shockley diode.
 pub struct DiodeModel {
@@ -43,12 +39,6 @@ impl DiodeModel {
         let exponent = (limited / (self.emission * self.thermal_voltage)).min(MAX_EXPONENT);
         self.saturation_current / (self.emission * self.thermal_voltage) * exponent.exp()
     }
-}
-
-fn thermal_voltage(params: &BTreeMap<String, f64>) -> Result<f64, SimError> {
-    let temperature = parameter(params, "temp", NOMINAL_TEMPERATURE);
-    let default = BOLTZMANN * temperature / ELEMENTARY_CHARGE;
-    positive_parameter(params, "vt", Some(default))
 }
 
 impl DeviceModel for DiodeModel {

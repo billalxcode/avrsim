@@ -21,6 +21,14 @@ pub enum DeviceKind {
     Nmos,
     /// A P-channel MOSFET.
     Pmos,
+    /// An NPN bipolar junction transistor.
+    Npn,
+    /// A PNP bipolar junction transistor.
+    Pnp,
+    /// An N-channel JFET.
+    JfetN,
+    /// A P-channel JFET.
+    JfetP,
     /// A diode.
     Diode,
     /// A model supplied by another crate or a future device library.
@@ -39,6 +47,10 @@ impl DeviceKind {
             Self::CurrentSource => "current_source",
             Self::Nmos => "nmos",
             Self::Pmos => "pmos",
+            Self::Npn => "npn",
+            Self::Pnp => "pnp",
+            Self::JfetN => "jfet_n",
+            Self::JfetP => "jfet_p",
             Self::Diode => "diode",
             Self::Custom(name) => name,
         }

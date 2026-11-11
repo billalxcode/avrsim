@@ -2,13 +2,17 @@
 
 #![forbid(unsafe_code)]
 
+mod bjt;
 mod diode;
+mod jfet;
 mod model;
 mod mosfet;
 mod passive;
 mod source;
 
+pub use bjt::BjtModel;
 pub use diode::DiodeModel;
+pub use jfet::JfetModel;
 pub use model::{DeviceModel, IntegrationMethod, model_from_instance};
 pub use mosfet::{MosfetModel, MosfetParams};
 pub use passive::{CapacitorModel, InductorModel, ResistorModel};
