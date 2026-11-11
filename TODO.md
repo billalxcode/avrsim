@@ -2,7 +2,7 @@
 
 Daftar tugas lengkap dari hal terkecil sampai rilis. Setiap item harus kecil, dapat diuji, dan tidak menambah dependensi eksternal.
 
-> **Status:** P7-01 selesai: decoder AVRe+ untuk ATmega328P. Lanjut ke fetch 16-bit dan 32-bit.
+> **Status:** P7-01 sampai P7-03 selesai: decoder dan fetch 16/32-bit. Lanjut ke instruction register.
 > **Aturan:** satu item selesai = kode + test + dokumentasi singkat.
 
 ---
@@ -307,8 +307,8 @@ Daftar tugas lengkap dari hal terkecil sampai rilis. Setiap item harus kecil, da
 ## P7 - AVR CPU Struktural
 
 - [x] P7-01 Buat tabel decode seluruh ISA AVR.
-- [ ] P7-02 Implementasikan fetch 16-bit.
-- [ ] P7-03 Implementasikan fetch 32-bit.
+- [x] P7-02 Implementasikan fetch 16-bit.
+- [x] P7-03 Implementasikan fetch 32-bit.
 - [ ] P7-04 Implementasikan instruction register.
 - [ ] P7-05 Implementasikan register file read port A.
 - [ ] P7-06 Implementasikan register file read port B.

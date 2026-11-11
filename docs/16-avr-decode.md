@@ -27,7 +27,17 @@ Instruksi khusus AVRxm seperti DES, LAC, LAS, LAT, XCH, dan SPM Z+ tidak termasu
 ```rust
 pub fn decode(first: u16, second: Option<u16>) -> Result<Instruction, SimError>;
 pub fn uses_second_word(first: u16) -> bool;
+
+pub struct ProgramMemory { /* ... */ }
+
+impl ProgramMemory {
+    pub fn new(words: Vec<u16>) -> Self;
+    pub fn read(&self, address: usize) -> Result<u16, SimError>;
+    pub fn fetch(&self, pc: u16) -> Result<Fetched, SimError>;
+}
 ```
+
+`Fetched` memuat instruksi hasil decode, word pertama, word kedua opsional, dan jumlah word.
 
 `Instruction` memuat `mnemonic`, dua operand, dan jumlah word.
 
@@ -35,7 +45,18 @@ pub fn uses_second_word(first: u16) -> bool;
 
 ---
 
-## 3. Aturan Decode
+## 3. Fetch
+
+- PC adalah word address.
+- Fetch 16-bit membaca satu word.
+- Fetch 32-bit membaca dua word berurutan.
+- `uses_second_word` menentukan apakah word kedua diperlukan.
+- Word kedua yang hilang menghasilkan error.
+- Alamat di luar program memory menghasilkan error.
+
+---
+
+## 4. Aturan Decode
 
 - Instruksi 16-bit hanya memakai word pertama.
 - Instruksi 32-bit membutuhkan `second`.
@@ -49,7 +70,7 @@ pub fn uses_second_word(first: u16) -> bool;
 
 ---
 
-## 4. Test
+## 5. Test
 
 Test decoder mencakup:
 
@@ -65,14 +86,17 @@ Test decoder mencakup:
 - Deteksi word kedua dan penolakan instruksi terpotong.
 - Iterasi seluruh 65.536 word untuk memastikan tidak ada panic.
 - Validasi rentang register, bit, flag, I/O, displacement, dan jumlah word.
+- Fetch 16-bit dan 32-bit dari program memory.
+- Fetch menggunakan word address.
+- Penolakan fetch terpotong dan alamat di luar batas.
 
-Total test `sim-avr`: 15.
+Total test `sim-avr`: 20.
 
 ---
 
-## 5. Batas
+## 6. Batas
 
-- Decoder belum mengeksekusi instruksi.
+- Fetch belum mengeksekusi instruksi.
 - Belum ada timing per instruksi.
 - Belum ada disassembler.
 - Belum ada validasi terhadap `avr-objdump`.
