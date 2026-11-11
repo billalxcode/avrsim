@@ -2,7 +2,7 @@
 
 Daftar tugas lengkap dari hal terkecil sampai rilis. Setiap item harus kecil, dapat diuji, dan tidak menambah dependensi eksternal.
 
-> **Status:** P8 selesai. P9 sebagian besar selesai. P10 sparse, adaptive step, trapezoidal/Gear, AC linear, noise termal, distorsi kuasi-statis, sensitivitas numerik, suhu device, process corner, BJT, JFET, transmission line, determinisme Linux, fidelity matrix, batasan model, profiling, dan optimasi selesai. Golden suite dan determinisme macOS/Windows belum. P4 harness ngspice dan golden data belum karena ngspice tidak tersedia. P5 switching characterization selesai; input capacitance dan drive strength belum. P11 user guide dan contoh runnable selesai; CI, packaging, dan release belum. P3 body effect dan gmb selesai; Meyer capacitance, overlap, diode series resistance, dan controlled sources belum.
+> **Status:** P8 selesai. P9 sebagian besar selesai. P10 sparse, adaptive step, trapezoidal/Gear, AC linear, noise termal, distorsi kuasi-statis, sensitivitas numerik, suhu device, process corner, BJT, JFET, transmission line, determinisme Linux, fidelity matrix, batasan model, profiling, dan optimasi selesai. Golden suite dan determinisme macOS/Windows belum. P4 harness ngspice dan golden data belum karena ngspice tidak tersedia. P5 switching characterization selesai; input capacitance dan drive strength belum. P11 user guide dan contoh runnable selesai; CI, packaging, dan release belum. P3 body effect, gmb, Meyer capacitance, dan overlap selesai; diode series resistance, controlled sources, dan switch belum.
 > **Aturan:** satu item selesai = kode + test + dokumentasi singkat.
 
 ---
@@ -148,10 +148,10 @@ Daftar tugas lengkap dari hal terkecil sampai rilis. Setiap item harus kecil, da
 - [x] P3-10 Implementasikan `gds`.
 - [x] P3-11 Implementasikan `gmb`.
 - [x] P3-12 Implementasikan Jacobian MOSFET.
-- [ ] P3-13 Implementasikan kapasitansi Meyer cutoff.
-- [ ] P3-14 Implementasikan kapasitansi Meyer linear.
-- [ ] P3-15 Implementasikan kapasitansi Meyer saturation.
-- [ ] P3-16 Implementasikan overlap capacitance.
+- [x] P3-13 Implementasikan kapasitansi Meyer cutoff.
+- [x] P3-14 Implementasikan kapasitansi Meyer linear.
+- [x] P3-15 Implementasikan kapasitansi Meyer saturation.
+- [x] P3-16 Implementasikan overlap capacitance.
 - [x] P3-17 Implementasikan resistor.
 - [x] P3-18 Implementasikan kapasitor.
 - [x] P3-19 Implementasikan companion model kapasitor Backward Euler.

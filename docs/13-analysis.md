@@ -27,7 +27,7 @@ P4 diimplementasikan sebagian:
 - Voltage limiting junction, source stepping, dan writer CSV/VCD analog.
 - Pulse voltage source untuk transient switching.
 - Karakterisasi rise, fall, dan propagation delay.
-- Body effect MOSFET dan `gmb`.
+- Body effect MOSFET, `gmb`, dan kapasitansi Meyer.
 - Benchmark solver dan optimasi alokasi.
 - Prosedur kalibrasi parameter device.
 - Model pin elektrik untuk GPIO.
@@ -221,12 +221,12 @@ P4 lanjutan:
 Total test workspace saat ini:
 
 - `sim-core`: 62.
-- `sim-device`: 38 (33 unit + 5 integration).
-- `sim-analysis`: 76.
+- `sim-device`: 39 (34 unit + 5 integration).
+- `sim-analysis`: 77.
 - `sim-cells`: 67.
 - `sim-avr`: 198.
 - `sim-board`: 17.
 - `sim-cli`: 11.
-- Total: 469.
+- Total: 471.
 
 Semua fungsi maksimal 20 baris dan semua file baru ASCII-only.

@@ -51,8 +51,10 @@ Dokumen ini adalah indeks lengkap spesifikasi **embed-emulation**.
 | 42 | [Characterization](42-characterization.md) | Rise, fall, dan propagation delay |
 | 43 | [User guide](43-user-guide.md) | Quick start, API, dan contoh |
 | 44 | [Body effect](44-body-effect.md) | Threshold bias body dan `gmb` |
+| 45 | [MOSFET capacitance](45-mosfet-capacitance.md) | Meyer dan overlap capacitance |
 | 43 | [User guide](43-user-guide.md) | Quick start, API, dan contoh |
 | 44 | [Body effect](44-body-effect.md) | Threshold bias body dan `gmb` |
+| 45 | [MOSFET capacitance](45-mosfet-capacitance.md) | Meyer dan overlap capacitance |
 | - | [Todolist](../TODO.md) | Daftar tugas lengkap dari hal terkecil |
 
 ## Konvensi dokumen
