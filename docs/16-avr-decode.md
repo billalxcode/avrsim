@@ -109,7 +109,19 @@ impl ProgramMemory {
 - Test membandingkan hasil dengan reference untuk seluruh 256 operand pertama, beberapa operand kedua, dan empat operasi.
 - ANDI dan ORI memakai logic unit dengan operand immediate dari `select_operand`.
 
-## 8. Test
+## 8. Shift Unit
+
+- `shift_unit` mendukung LSR, ASR, ROR, dan SWAP.
+- Opcode 2-bit memilih operasi.
+- LSR mengisi bit 7 dengan nol.
+- ASR mempertahankan bit 7.
+- ROR memasukkan C lama ke bit 7.
+- SWAP menukar nibble atas dan bawah.
+- Output: result, C, Z, N, V, dan S.
+- Test seluruh 256 nilai, kedua nilai carry, dan tiga operasi shift.
+- SWAP diuji terpisah karena flag-nya diabaikan.
+
+## 9. Test
 
 Test decoder mencakup:
 
@@ -131,11 +143,11 @@ Test decoder mencakup:
 - IR load, hold, reset, dan validasi lebar data.
 - Register bank write/read, dua read port, pasangan little-endian, hold, dan reset.
 
-Total test `sim-avr`: 38.
+Total test `sim-avr`: 41.
 
 ---
 
-## 9. Batas
+## 10. Batas
 
 - Fetch dan register bank belum mengeksekusi instruksi.
 - Belum ada timing per instruksi.

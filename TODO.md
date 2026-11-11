@@ -2,7 +2,7 @@
 
 Daftar tugas lengkap dari hal terkecil sampai rilis. Setiap item harus kecil, dapat diuji, dan tidak menambah dependensi eksternal.
 
-> **Status:** Arithmetic dan logic unit selesai, termasuk NEG, INC, dan DEC. Lanjut ke compare, shift, rotate, dan multiply.
+> **Status:** Shift dan rotate selesai: LSR, ASR, ROR, dan SWAP. Lanjut ke compare, multiply, dan integrasi CPU.
 > **Aturan:** satu item selesai = kode + test + dokumentasi singkat.
 
 ---
@@ -332,10 +332,10 @@ Daftar tugas lengkap dari hal terkecil sampai rilis. Setiap item harus kecil, da
 - [ ] P7-24 Implementasikan CPC.
 - [ ] P7-25 Implementasikan CPI.
 - [ ] P7-26 Implementasikan CPSE.
-- [ ] P7-27 Implementasikan LSR.
-- [ ] P7-28 Implementasikan ASR.
-- [ ] P7-29 Implementasikan ROR.
-- [ ] P7-30 Implementasikan SWAP.
+- [x] P7-27 Implementasikan LSR.
+- [x] P7-28 Implementasikan ASR.
+- [x] P7-29 Implementasikan ROR.
+- [x] P7-30 Implementasikan SWAP.
 - [ ] P7-31 Implementasikan MUL.
 - [ ] P7-32 Implementasikan MULS.
 - [ ] P7-33 Implementasikan MULSU.
