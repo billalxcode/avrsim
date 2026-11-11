@@ -89,6 +89,7 @@ Baca berurutan:
 | [`docs/36-jfet.md`](docs/36-jfet.md) | Model Shichman-Hodges N dan P |
 | [`docs/37-transmission-line.md`](docs/37-transmission-line.md) | Line lossless dengan delay |
 | [`docs/38-performance.md`](docs/38-performance.md) | Benchmark dan optimasi solver |
+| [`docs/39-calibration.md`](docs/39-calibration.md) | Prosedur dan inventaris parameter |
 | [`TODO.md`](TODO.md) | **Todolist lengkap dari hal terkecil** |
 
 ---

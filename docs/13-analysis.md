@@ -24,6 +24,7 @@ P4 diimplementasikan sebagian:
 - JFET Shichman-Hodges N dan P.
 - Transmission line lossless untuk transient.
 - Benchmark solver dan optimasi alokasi.
+- Prosedur kalibrasi parameter device.
 - State update device.
 
 Belum diimplementasikan:
