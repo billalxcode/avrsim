@@ -89,6 +89,55 @@ pub fn read_bits(circuit: &DigitalCircuit, bits: &[NetId]) -> u64 {
     value
 }
 
+/// Builds a loadable register.
+pub fn register(
+    builder: &mut DigitalBuilder,
+    width: usize,
+    data: &[NetId],
+    load: NetId,
+) -> Result<Vec<NetId>, SimError> {
+    if width == 0 || width > 64 || data.len() != width {
+        return Err(SimError::InvalidNetlist(
+            "register width mismatch".to_string(),
+        ));
+    }
+    Ok((0..width)
+        .map(|bit| register_bit(builder, data[bit], load))
+        .collect())
+}
+
+fn register_bit(builder: &mut DigitalBuilder, data: NetId, load: NetId) -> NetId {
+    let output = builder.net();
+    let next = builder.mux(output, data, load);
+    builder.dff_into(next, output);
+    output
+}
+
+/// Builds a combinational incrementer.
+#[must_use]
+pub fn increment(builder: &mut DigitalBuilder, bits: &[NetId]) -> Vec<NetId> {
+    let mut carry = builder.constant(true);
+    let mut output = Vec::with_capacity(bits.len());
+    for &bit in bits {
+        output.push(builder.xor(bit, carry));
+        carry = builder.and(bit, carry);
+    }
+    output
+}
+
+/// Builds a combinational decrementer.
+#[must_use]
+pub fn decrement(builder: &mut DigitalBuilder, bits: &[NetId]) -> Vec<NetId> {
+    let mut borrow = builder.constant(true);
+    let mut output = Vec::with_capacity(bits.len());
+    for &bit in bits {
+        let inverted = builder.not(bit);
+        output.push(builder.xor(bit, borrow));
+        borrow = builder.and(inverted, borrow);
+    }
+    output
+}
+
 /// Builds a ripple counter with enable.
 pub fn counter(
     builder: &mut DigitalBuilder,
@@ -146,9 +195,154 @@ fn shift_source(bits: &[NetId], index: usize, input: NetId) -> NetId {
     if index == 0 { input } else { bits[index - 1] }
 }
 
+/// A loadable program counter with increment.
+pub struct ProgramCounter {
+    bits: Vec<NetId>,
+}
+
+impl ProgramCounter {
+    /// Builds a program counter.
+    pub fn new(
+        builder: &mut DigitalBuilder,
+        width: usize,
+        load: NetId,
+        target: &[NetId],
+    ) -> Result<Self, SimError> {
+        validate_word_width(width, target, 16)?;
+        Ok(Self {
+            bits: build_pc(builder, width, load, target),
+        })
+    }
+
+    /// Returns counter bit nets.
+    #[must_use]
+    pub fn bits(&self) -> &[NetId] {
+        &self.bits
+    }
+
+    /// Reads the counter value.
+    #[must_use]
+    pub fn read(&self, circuit: &DigitalCircuit) -> u64 {
+        read_bits(circuit, &self.bits)
+    }
+}
+
+/// A stack pointer with load, increment, and decrement.
+pub struct StackPointer {
+    bits: Vec<NetId>,
+}
+
+impl StackPointer {
+    /// Builds a stack pointer.
+    pub fn new(
+        builder: &mut DigitalBuilder,
+        width: usize,
+        load: NetId,
+        target: &[NetId],
+        increment_enable: NetId,
+        decrement_enable: NetId,
+    ) -> Result<Self, SimError> {
+        validate_word_width(width, target, 16)?;
+        let controls = SpControl {
+            load,
+            increment: increment_enable,
+            decrement: decrement_enable,
+        };
+        Ok(Self {
+            bits: build_sp(builder, width, target, controls),
+        })
+    }
+
+    /// Returns pointer bit nets.
+    #[must_use]
+    pub fn bits(&self) -> &[NetId] {
+        &self.bits
+    }
+
+    /// Reads the pointer value.
+    #[must_use]
+    pub fn read(&self, circuit: &DigitalCircuit) -> u64 {
+        read_bits(circuit, &self.bits)
+    }
+}
+
+#[derive(Clone, Copy)]
+struct SpControl {
+    load: NetId,
+    increment: NetId,
+    decrement: NetId,
+}
+
+fn validate_word_width(width: usize, target: &[NetId], max: usize) -> Result<(), SimError> {
+    if width == 0 || width > max || target.len() != width {
+        return Err(SimError::InvalidNetlist("word width mismatch".to_string()));
+    }
+    Ok(())
+}
+
+fn build_pc(
+    builder: &mut DigitalBuilder,
+    width: usize,
+    load: NetId,
+    target: &[NetId],
+) -> Vec<NetId> {
+    let bits: Vec<NetId> = (0..width).map(|_| builder.net()).collect();
+    let incremented = increment(builder, &bits);
+    for index in 0..width {
+        let next = builder.mux(incremented[index], target[index], load);
+        builder.dff_into(next, bits[index]);
+    }
+    bits
+}
+
+fn build_sp(
+    builder: &mut DigitalBuilder,
+    width: usize,
+    target: &[NetId],
+    controls: SpControl,
+) -> Vec<NetId> {
+    let bits: Vec<NetId> = (0..width).map(|_| builder.net()).collect();
+    wire_sp(builder, &bits, target, controls);
+    bits
+}
+
+fn wire_sp(builder: &mut DigitalBuilder, bits: &[NetId], target: &[NetId], controls: SpControl) {
+    let incremented = increment(builder, bits);
+    let decremented = decrement(builder, bits);
+    for index in 0..bits.len() {
+        let next = sp_next(
+            builder,
+            bits,
+            &incremented,
+            &decremented,
+            target,
+            index,
+            controls,
+        );
+        builder.dff_into(next, bits[index]);
+    }
+}
+
+fn sp_next(
+    builder: &mut DigitalBuilder,
+    bits: &[NetId],
+    incremented: &[NetId],
+    decremented: &[NetId],
+    target: &[NetId],
+    index: usize,
+    controls: SpControl,
+) -> NetId {
+    let held = builder.mux(bits[index], decremented[index], controls.decrement);
+    let stepped = builder.mux(held, incremented[index], controls.increment);
+    builder.mux(stepped, target[index], controls.load)
+}
+
 #[cfg(test)]
 mod tests {
-    use super::{and_all, counter, decoder, mux_tree, or_all, read_bits, shift_register};
+    use super::{
+        ProgramCounter, StackPointer, and_all, counter, decoder, mux_tree, or_all, read_bits,
+        register, shift_register,
+    };
     use crate::digital::{DigitalBuilder, DigitalCircuit, NetId};
 
     #[test]
@@ -260,5 +454,93 @@ mod tests {
         circuit.set_input("enable", false).expect("enable");
         circuit.tick().expect("tick");
         assert_eq!(read_bits(&circuit, &bits), 0b1000);
+    }
+
+    fn named_inputs(builder: &mut DigitalBuilder, prefix: &str, width: usize) -> Vec<NetId> {
+        (0..width)
+            .map(|index| builder.input(&format!("{prefix}{index}")))
+            .collect()
+    }
+
+    fn set_bits(circuit: &mut DigitalCircuit, prefix: &str, value: u64, width: usize) {
+        for index in 0..width {
+            let bit = value & (1 << index) != 0;
+            circuit
+                .set_input(&format!("{prefix}{index}"), bit)
+                .expect("input");
+        }
+    }
+
+    fn pc_fixture() -> (DigitalCircuit, ProgramCounter) {
+        let mut builder = DigitalBuilder::new();
+        let load = builder.input("load");
+        let target = named_inputs(&mut builder, "t", 16);
+        let pc = ProgramCounter::new(&mut builder, 16, load, &target).expect("pc");
+        (builder.build(), pc)
+    }
+
+    fn sp_fixture() -> (DigitalCircuit, StackPointer) {
+        let mut builder = DigitalBuilder::new();
+        let load = builder.input("load");
+        let increment = builder.input("inc");
+        let decrement = builder.input("dec");
+        let target = named_inputs(&mut builder, "t", 16);
+        let sp =
+            StackPointer::new(&mut builder, 16, load, &target, increment, decrement).expect("sp");
+        (builder.build(), sp)
+    }
+
+    #[test]
+    fn program_counter_counts_and_loads() {
+        let (mut circuit, pc) = pc_fixture();
+        circuit.set_input("load", false).expect("load");
+        circuit.tick().expect("tick");
+        assert_eq!(pc.read(&circuit), 1);
+        set_bits(&mut circuit, "t", 0x1234, 16);
+        circuit.set_input("load", true).expect("load");
+        circuit.tick().expect("tick");
+        assert_eq!(pc.read(&circuit), 0x1234);
+        circuit.set_input("load", false).expect("load");
+        circuit.tick().expect("tick");
+        assert_eq!(pc.read(&circuit), 0x1235);
+        circuit.reset().expect("reset");
+        assert_eq!(pc.read(&circuit), 0);
+    }
+
+    #[test]
+    fn stack_pointer_steps_and_loads() {
+        let (mut circuit, sp) = sp_fixture();
+        set_bits(&mut circuit, "t", 0x08FF, 16);
+        circuit.set_input("load", true).expect("load");
+        circuit.tick().expect("tick");
+        assert_eq!(sp.read(&circuit), 0x08FF);
+        circuit.set_input("load", false).expect("load");
+        circuit.set_input("inc", true).expect("inc");
+        circuit.tick().expect("tick");
+        assert_eq!(sp.read(&circuit), 0x0900);
+        circuit.set_input("inc", false).expect("inc");
+        circuit.set_input("dec", true).expect("dec");
+        circuit.tick().expect("tick");
+        assert_eq!(sp.read(&circuit), 0x08FF);
+        circuit.set_input("dec", false).expect("dec");
+        circuit.tick().expect("tick");
+        assert_eq!(sp.read(&circuit), 0x08FF);
+    }
+
+    #[test]
+    fn instruction_register_loads_and_holds() {
+        let mut builder = DigitalBuilder::new();
+        let load = builder.input("load");
+        let data = named_inputs(&mut builder, "d", 16);
+        let ir = register(&mut builder, 16, &data, load).expect("ir");
+        let mut circuit = builder.build();
+        set_bits(&mut circuit, "d", 0xABCD, 16);
+        circuit.set_input("load", true).expect("load");
+        circuit.tick().expect("tick");
+        assert_eq!(read_bits(&circuit, &ir), 0xABCD);
+        set_bits(&mut circuit, "d", 0x0000, 16);
+        circuit.set_input("load", false).expect("load");
+        circuit.tick().expect("tick");
+        assert_eq!(read_bits(&circuit, &ir), 0xABCD);
     }
 }

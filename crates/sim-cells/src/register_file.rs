@@ -1,7 +1,7 @@
 //! Digital register file with two read ports.
 
 use super::digital::{DigitalBuilder, NetId};
-use super::digital_blocks::{decoder, mux_tree};
+use super::digital_blocks::{decoder, mux_tree, register};
 use sim_core::SimError;
 
 /// Wiring for a register file.
@@ -118,27 +118,9 @@ fn build_storage(
     let mut bits = Vec::with_capacity(count);
     for line in lines {
         let enable = builder.and(line, ports.write_enable);
-        bits.push(build_register(builder, width, &ports.write_data, enable));
+        bits.push(register(builder, width, &ports.write_data, enable)?);
     }
     Ok(bits)
-}
-
-fn build_register(
-    builder: &mut DigitalBuilder,
-    width: usize,
-    data: &[NetId],
-    enable: NetId,
-) -> Vec<NetId> {
-    (0..width)
-        .map(|bit| build_bit(builder, data[bit], enable))
-        .collect()
-}
-
-fn build_bit(builder: &mut DigitalBuilder, data: NetId, enable: NetId) -> NetId {
-    let output = builder.net();
-    let next = builder.mux(output, data, enable);
-    builder.dff_into(next, output);
-    output
 }
 
 fn build_read_port(
