@@ -64,7 +64,7 @@ Baca berurutan:
 | [`docs/11-netlist.md`](docs/11-netlist.md) | Netlist core, builder, subcircuit, macro, validasi |
 | [`docs/12-device-models.md`](docs/12-device-models.md) | Model device dan batasannya |
 | [`docs/13-analysis.md`](docs/13-analysis.md) | MNA, DC, sweep, transient, hasil M1 |
-| [`docs/14-cells.md`](docs/14-cells.md) | Pustaka sel CMOS dasar |
+| [`docs/14-cells.md`](docs/14-cells.md) | Pustaka sel CMOS, sequential, memory, registry |
 | [`TODO.md`](TODO.md) | **Todolist lengkap dari hal terkecil** |
 
 ---

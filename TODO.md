@@ -2,7 +2,7 @@
 
 Daftar tugas lengkap dari hal terkecil sampai rilis. Setiap item harus kecil, dapat diuji, dan tidak menambah dependensi eksternal.
 
-> **Status:** P1-P5 subset selesai. M1 lulus, cell inverter/NAND/NOR/buffer lulus. Lanjut ke P5 lanjutan.
+> **Status:** P5 sel dasar, sequential, memory, dan registry selesai. Ring oscillator struktur ada, osilasi belum terverifikasi. Lanjut ke characterization dan P6.
 > **Aturan:** satu item selesai = kode + test + dokumentasi singkat.
 
 ---
@@ -245,22 +245,22 @@ Daftar tugas lengkap dari hal terkecil sampai rilis. Setiap item harus kecil, da
 - [x] P5-09 Bangun NAND2.
 - [x] P5-10 Bangun NOR2.
 - [x] P5-11 Bangun buffer.
-- [ ] P5-12 Bangun tri-state inverter.
-- [ ] P5-13 Bangun transmission gate.
-- [ ] P5-14 Bangun SRAM cell 6T.
-- [ ] P5-15 Bangun D latch.
-- [ ] P5-16 Bangun D flip-flop master-slave.
+- [x] P5-12 Bangun tri-state inverter.
+- [x] P5-13 Bangun transmission gate.
+- [x] P5-14 Bangun SRAM cell 6T.
+- [x] P5-15 Bangun D latch.
+- [x] P5-16 Bangun D flip-flop master-slave.
 - [ ] P5-17 Buat characterization harness.
 - [ ] P5-18 Ukur input capacitance.
 - [ ] P5-19 Ukur drive strength.
-- [ ] P5-20 Buat registry sel.
+- [x] P5-20 Buat registry sel.
 - [x] P5-21 Tulis truth table test inverter.
 - [x] P5-22 Tulis truth table test NAND.
 - [x] P5-23 Tulis truth table test NOR.
-- [ ] P5-24 Tulis test DFF.
-- [ ] P5-25 Tulis test SRAM cell.
+- [x] P5-24 Tulis test DFF.
+- [x] P5-25 Tulis test SRAM cell.
 - [ ] P5-26 Bandingkan sel dengan ngspice.
-- [ ] P5-27 Bangun ring oscillator.
+- [x] P5-27 Bangun ring oscillator.
 - [ ] P5-28 Verifikasi osilasi.
 - [x] P5-29 Dokumentasikan cell library.
 

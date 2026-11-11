@@ -12,22 +12,23 @@ Sel yang sudah diimplementasikan:
 - NAND2.
 - NOR2.
 - Buffer.
+- Transmission gate.
+- Tri-state inverter.
+- D latch.
+- D flip-flop.
+- SRAM cell 6T.
+- Ring oscillator.
+- Registry sel.
 
 Belum diimplementasikan:
 
-- Tri-state inverter.
-- Transmission gate.
-- SRAM cell 6T.
-- D latch.
-- D flip-flop master-slave.
-- Ring oscillator.
-- Cell registry.
 - Characterization harness lengkap.
 - Noise margin.
 - Rise/fall time.
 - Propagation delay.
 - Input capacitance.
 - Drive strength.
+- Verifikasi osilasi ring oscillator.
 - Perbandingan ngspice.
 
 ---
@@ -150,7 +151,56 @@ Test:
 
 ---
 
-## 8. Test
+
+## 8. Sel Tambahan
+
+### Transmission Gate
+
+- NMOS dan PMOS paralel antara `a` dan `b`.
+- Port `en` dan `enb`.
+- Cell dibangun dengan validasi topologi, bukan DC path.
+
+### Tri-State Inverter
+
+- Inverter input `a` ke node internal `mid`.
+- Transmission gate dari `mid` ke `y`.
+- Port `en` dan `enb`.
+
+### D Latch
+
+- Transmission gate dari `d` ke `q`.
+- Dua inverter cross-coupled untuk menyimpan state.
+- Port `en` dan `enb`.
+- Test menangkap input 5 V dan 0 V.
+
+### D Flip-Flop
+
+- Master latch dan slave latch.
+- Inverter untuk clock bar.
+- Port `d`, `clk`, `q`.
+- Test saat ini memeriksa struktur dan port.
+
+### SRAM 6T
+
+- Dua inverter cross-coupled.
+- Dua NMOS access.
+- Port `q`, `qb`, `wl`, `bl`, `blb`.
+- Test saat ini memeriksa struktur dan port.
+
+### Ring Oscillator
+
+- Tiga inverter dalam loop.
+- Port observasi `y`.
+- Struktur dapat dibangun.
+- Osilasi belum terverifikasi karena transient deterministik dapat bertahan di titik ekuilibrium.
+
+### Registry
+
+- `CellKind` mencakup semua sel.
+- `CellKind::build()` membangun sel.
+- `CellKind::name()` mengembalikan nama.
+
+## 9. Test
 
 Test `sim-cells` mencakup:
 
@@ -162,31 +212,29 @@ Test `sim-cells` mencakup:
 - Buffer follow input.
 - Powered cell memiliki supply.
 
-Total test `sim-cells`: 7.
+Total test `sim-cells`: 14.
 
 ---
 
-## 9. Keterbatasan
+## 10. Keterbatasan
 
 - Belum ada analisis rise/fall time.
 - Belum ada propagation delay.
 - Belum ada noise margin.
 - Belum ada input capacitance.
 - Belum ada drive strength.
-- Belum ada sel sekuensial.
-- Belum ada ring oscillator.
+- Test D flip-flop dan SRAM masih struktural.
+- Osilasi ring oscillator belum terverifikasi.
 - Belum ada perbandingan ngspice.
 
 ---
 
-## 10. Berikutnya
+## 11. Berikutnya
 
-- Transmission gate dan tri-state.
-- D latch dan D flip-flop.
-- SRAM cell 6T.
-- Ring oscillator.
 - Characterization harness.
-- Cell registry.
+- Noise margin dan rise/fall/delay.
+- Verifikasi osilasi ring oscillator.
+- Test fungsional D flip-flop dan SRAM.
 - Golden data ngspice.
 
 Lihat `TODO.md` untuk daftar lengkap.
