@@ -2,7 +2,7 @@
 
 Daftar tugas lengkap dari hal terkecil sampai rilis. Setiap item harus kecil, dapat diuji, dan tidak menambah dependensi eksternal.
 
-> **Status:** P8 selesai. P9 sebagian besar selesai. P10 sparse, adaptive step, trapezoidal/Gear, AC linear, noise termal, distorsi kuasi-statis, sensitivitas numerik, suhu device, process corner, BJT, JFET, transmission line, determinisme Linux, fidelity matrix, batasan model, profiling, dan optimasi selesai. Golden suite dan determinisme macOS/Windows belum. P4 source stepping, voltage limiting, dan writer lanjutan belum.
+> **Status:** P8 selesai. P9 sebagian besar selesai. P10 sparse, adaptive step, trapezoidal/Gear, AC linear, noise termal, distorsi kuasi-statis, sensitivitas numerik, suhu device, process corner, BJT, JFET, transmission line, determinisme Linux, fidelity matrix, batasan model, profiling, dan optimasi selesai. Golden suite dan determinisme macOS/Windows belum. P4 source stepping, fallback/error, diagnostik, dan harness ngspice belum.
 > **Aturan:** satu item selesai = kode + test + dokumentasi singkat.
 
 ---
@@ -202,7 +202,7 @@ Daftar tugas lengkap dari hal terkecil sampai rilis. Setiap item harus kecil, da
 - [x] P4-09 Implementasikan DC operating point.
 - [x] P4-10 Implementasikan Newton-Raphson.
 - [x] P4-11 Implementasikan kriteria konvergensi.
-- [ ] P4-12 Implementasikan voltage limiting `pnjlim`.
+- [x] P4-12 Implementasikan voltage limiting `pnjlim`.
 - [x] P4-13 Implementasikan damping.
 - [x] P4-14 Implementasikan gmin stepping.
 - [ ] P4-15 Implementasikan source stepping.
@@ -214,10 +214,10 @@ Daftar tugas lengkap dari hal terkecil sampai rilis. Setiap item harus kecil, da
 - [x] P4-21 Implementasikan initial condition dari DC op.
 - [x] P4-22 Implementasikan `UIC` (opsional).
 - [x] P4-23 Implementasikan update state device.
-- [ ] P4-24 Implementasikan CSV writer.
-- [ ] P4-25 Implementasikan VCD writer.
-- [ ] P4-26 Implementasikan VCD analog `real`.
-- [ ] P4-27 Implementasikan VCD digital `wire`.
+- [x] P4-24 Implementasikan CSV writer.
+- [x] P4-25 Implementasikan VCD writer.
+- [x] P4-26 Implementasikan VCD analog `real`.
+- [x] P4-27 Implementasikan VCD digital `wire`.
 - [x] P4-28 Tulis test pembagi tegangan.
 - [x] P4-29 Tulis test RC charge.
 - [x] P4-30 Tulis test RC discharge.

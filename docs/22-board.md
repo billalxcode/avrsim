@@ -48,7 +48,9 @@ pub fn host_receive(&mut self) -> Option<u8>;
 
 - `embed-emu run <file.hex> [steps]` memuat Intel HEX dan menjalankan CPU.
 - `csv_header` dan `csv_line` menghasilkan trace CSV board.
-- `VcdWriter` menghasilkan trace VCD untuk PB5 dan LED.
+- `CsvWriter` menulis CSV generik dengan kolom tetap.
+- `VcdWriter` menghasilkan trace VCD digital untuk PB5 dan LED.
+- `AnalogVcdWriter` menghasilkan trace VCD `real` untuk sinyal analog.
 - Format timebase VCD memakai 1 ns.
 
 ---
@@ -61,10 +63,11 @@ pub fn host_receive(&mut self) -> Option<u8>;
 - Blink program menggerakkan LED board.
 - Intel HEX valid, checksum salah, dan extended address.
 - CLI memuat Intel HEX.
-- CSV dan VCD.
+- CSV board, CSV generik, dan VCD digital/analog.
+- CLI memuat Intel HEX dan menjalankan CPU.
 
-Total test `sim-board`: 12.
-Total test `sim-cli`: 5.
+Total test `sim-board`: 17.
+Total test `sim-cli`: 8.
 
 ---
 
@@ -75,5 +78,5 @@ Total test `sim-cli`: 5.
 - Belum ada tombol debounce.
 - Belum ada loader ELF dan simbol.
 - Belum ada `avr-gcc`, konversi ELF ke HEX, atau firmware UART hello.
-- Belum ada output CSV/VCD board.
-- CLI `run` belum terhubung ke loader HEX.
+- Belum ada debounce tombol.
+- Belum ada writer biner atau kompresi.

@@ -24,6 +24,7 @@ P4 diimplementasikan sebagian:
 - JFET Shichman-Hodges N dan P.
 - Transmission line lossless untuk transient.
 - Continuation sweep dan initial state device untuk discharge.
+- Voltage limiting junction dan writer CSV/VCD analog.
 - Benchmark solver dan optimasi alokasi.
 - Prosedur kalibrasi parameter device.
 - Model pin elektrik untuk GPIO.
@@ -219,12 +220,12 @@ P4 lanjutan:
 Total test workspace saat ini:
 
 - `sim-core`: 62.
-- `sim-device`: 31 (26 unit + 5 integration).
-- `sim-analysis`: 68.
+- `sim-device`: 34 (29 unit + 5 integration).
+- `sim-analysis`: 69.
 - `sim-cells`: 67.
 - `sim-avr`: 198.
-- `sim-board`: 15.
+- `sim-board`: 17.
 - `sim-cli`: 8.
-- Total: 449.
+- Total: 455.
 
 Semua fungsi maksimal 20 baris dan semua file baru ASCII-only.
