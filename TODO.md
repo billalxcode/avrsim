@@ -2,7 +2,7 @@
 
 Daftar tugas lengkap dari hal terkecil sampai rilis. Setiap item harus kecil, dapat diuji, dan tidak menambah dependensi eksternal.
 
-> **Status:** P6 selesai: CPU uji menjalankan program, loop, branch, dan trace. Lanjut ke P7 AVR CPU struktural.
+> **Status:** P7-01 selesai: decoder AVRe+ untuk ATmega328P. Lanjut ke fetch 16-bit dan 32-bit.
 > **Aturan:** satu item selesai = kode + test + dokumentasi singkat.
 
 ---
@@ -36,7 +36,7 @@ Daftar tugas lengkap dari hal terkecil sampai rilis. Setiap item harus kecil, da
 - [ ] P0-07 Buat crate `sim-device`.
 - [ ] P0-08 Buat crate `sim-analysis`.
 - [ ] P0-09 Buat crate `sim-cells`.
-- [ ] P0-10 Buat crate `sim-avr`.
+- [x] P0-10 Buat crate `sim-avr`.
 - [ ] P0-11 Buat crate `sim-board`.
 - [ ] P0-12 Buat crate `sim-cli` dengan binary `embed-emu`.
 - [ ] P0-13 Pastikan seluruh `Cargo.toml` tidak punya dependensi eksternal.
@@ -306,7 +306,7 @@ Daftar tugas lengkap dari hal terkecil sampai rilis. Setiap item harus kecil, da
 
 ## P7 - AVR CPU Struktural
 
-- [ ] P7-01 Buat tabel decode seluruh ISA AVR.
+- [x] P7-01 Buat tabel decode seluruh ISA AVR.
 - [ ] P7-02 Implementasikan fetch 16-bit.
 - [ ] P7-03 Implementasikan fetch 32-bit.
 - [ ] P7-04 Implementasikan instruction register.
