@@ -2,7 +2,7 @@
 
 Daftar tugas lengkap dari hal terkecil sampai rilis. Setiap item harus kecil, dapat diuji, dan tidak menambah dependensi eksternal.
 
-> **Status:** P6 adder, gerbang logika, flag, dan ALU bit-slice selesai. Lanjut ke register file dan kontrol.
+> **Status:** P6 blok digital selesai: clock, reset, counter, shift register, mux, decoder. Lanjut ke register file.
 > **Aturan:** satu item selesai = kode + test + dokumentasi singkat.
 
 ---
@@ -271,13 +271,13 @@ Daftar tugas lengkap dari hal terkecil sampai rilis. Setiap item harus kecil, da
 ## P6 - Komposisi Digital
 
 - [x] P6-01 Implementasikan komposisi gerbang hierarkis.
-- [ ] P6-02 Implementasikan helper bus/vector.
-- [ ] P6-03 Implementasikan clock ideal.
-- [ ] P6-04 Implementasikan reset ideal.
-- [ ] P6-05 Bangun counter.
-- [ ] P6-06 Bangun shift register.
-- [ ] P6-07 Bangun multiplexer.
-- [ ] P6-08 Bangun decoder.
+- [x] P6-02 Implementasikan helper bus/vector.
+- [x] P6-03 Implementasikan clock ideal.
+- [x] P6-04 Implementasikan reset ideal.
+- [x] P6-05 Bangun counter.
+- [x] P6-06 Bangun shift register.
+- [x] P6-07 Bangun multiplexer.
+- [x] P6-08 Bangun decoder.
 - [x] P6-09 Bangun half adder.
 - [x] P6-10 Bangun full adder.
 - [x] P6-11 Bangun 8-bit ripple-carry adder.

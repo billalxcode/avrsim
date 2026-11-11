@@ -20,7 +20,8 @@ Dokumen ini adalah indeks lengkap spesifikasi **embed-emulation**.
 | 11 | [Netlist Core](11-netlist.md) | Node, device, builder, subcircuit, flatten, validasi |
 | 12 | [Device Models](12-device-models.md) | Resistor, capacitor, inductor, source, MOSFET, dioda |
 | 13 | [Analysis](13-analysis.md) | MNA, DC, sweep, transient, hasil M1 |
-| 14 | [CMOS Cells](14-cells.md) | Inverter, NAND2, NOR2, buffer, API sel |
+| 14 | [CMOS Cells](14-cells.md) | Inverter, NAND2, NOR2, buffer, API sel, adder, ALU |
+| 15 | [Digital](15-digital.md) | Logika dua-state, clock ideal, counter, shift register |
 | - | [Todolist](../TODO.md) | Daftar tugas lengkap dari hal terkecil |
 
 ## Konvensi dokumen
@@ -37,6 +38,6 @@ Dokumen ini adalah indeks lengkap spesifikasi **embed-emulation**.
 |---|---|
 | Brainstorming | Selesai |
 | Spesifikasi | Dokumen ini |
-| Kode | P5/P6 awal selesai |
+| Kode | P6 blok digital selesai |
 | Toolchain Rust | Terpasang (1.99.1) |
 | `avr-gcc` | Belum terpasang |

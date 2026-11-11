@@ -64,7 +64,8 @@ Baca berurutan:
 | [`docs/11-netlist.md`](docs/11-netlist.md) | Netlist core, builder, subcircuit, macro, validasi |
 | [`docs/12-device-models.md`](docs/12-device-models.md) | Model device dan batasannya |
 | [`docs/13-analysis.md`](docs/13-analysis.md) | MNA, DC, sweep, transient, hasil M1 |
-| [`docs/14-cells.md`](docs/14-cells.md) | Sel CMOS, sequential, memory, registry, noise margin, half/full adder |
+| [`docs/14-cells.md`](docs/14-cells.md) | Sel CMOS, sequential, memory, registry, noise margin, half/full adder, ALU |
+| [`docs/15-digital.md`](docs/15-digital.md) | Logika dua-state, clock ideal, counter, shift register |
 | [`TODO.md`](TODO.md) | **Todolist lengkap dari hal terkecil** |
 
 ---
