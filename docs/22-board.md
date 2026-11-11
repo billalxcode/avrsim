@@ -44,19 +44,31 @@ pub fn host_receive(&mut self) -> Option<u8>;
 
 ---
 
-## 4. Test
+## 4. CLI dan Trace
+
+- `embed-emu run <file.hex> [steps]` memuat Intel HEX dan menjalankan CPU.
+- `csv_header` dan `csv_line` menghasilkan trace CSV board.
+- `VcdWriter` menghasilkan trace VCD untuk PB5 dan LED.
+- Format timebase VCD memakai 1 ns.
+
+---
+
+## 5. Test
 
 - Resistor, LED, dan button.
 - PB5 menyalakan LED.
 - UART host dua arah.
 - Blink program menggerakkan LED board.
 - Intel HEX valid, checksum salah, dan extended address.
+- CLI memuat Intel HEX.
+- CSV dan VCD.
 
-Total test `sim-board`: 10.
+Total test `sim-board`: 12.
+Total test `sim-cli`: 5.
 
 ---
 
-## 5. Batas
+## 6. Batas
 
 - Board belum memakai netlist analog penuh.
 - LED model hanya arus dan forward voltage.

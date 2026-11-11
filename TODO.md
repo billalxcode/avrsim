@@ -2,7 +2,7 @@
 
 Daftar tugas lengkap dari hal terkecil sampai rilis. Setiap item harus kecil, dapat diuji, dan tidak menambah dependensi eksternal.
 
-> **Status:** P8 hampir selesai: GPIO, timer, UART, SPI, TWI, ADC, sistem, dan board. Sisa P8-09 model elektrik pin. P9 dan P10 sebagian.
+> **Status:** P8 selesai kecuali P8-09. P9 board, loader HEX, CLI run, CSV/VCD, dan blink end-to-end selesai. P10 belum.
 > **Aturan:** satu item selesai = kode + test + dokumentasi singkat.
 
 ---
@@ -512,16 +512,16 @@ Daftar tugas lengkap dari hal terkecil sampai rilis. Setiap item harus kecil, da
 - [ ] P9-18 Kompilasi firmware UART hello.
 - [ ] P9-19 Jalankan UART hello.
 - [ ] P9-20 Implementasikan timer interrupt demo.
-- [ ] P9-21 Implementasikan output CSV board.
-- [ ] P9-22 Implementasikan output VCD board.
-- [ ] P9-23 Implementasikan CLI `run`.
+- [x] P9-21 Implementasikan output CSV board.
+- [x] P9-22 Implementasikan output VCD board.
+- [x] P9-23 Implementasikan CLI `run`.
 - [x] P9-24 Implementasikan CLI `monitor`.
 - [x] P9-25 Implementasikan CLI argumen dan validasi.
 - [x] P9-26 Tulis test blink end-to-end.
 - [ ] P9-27 Tulis test UART end-to-end.
 - [x] P9-28 Tulis test reset.
 - [x] P9-29 Dokumentasikan board profile.
-- [ ] P9-30 Dokumentasikan contoh firmware.
+- [x] P9-30 Dokumentasikan contoh firmware.
 
 **Exit P9:** demo board end-to-end deterministik dan reproducible.
 
