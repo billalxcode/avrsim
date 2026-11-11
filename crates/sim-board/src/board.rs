@@ -72,8 +72,12 @@ impl Board {
 
     /// Drives PB5 high or low.
     pub fn set_pb5(&mut self, high: bool) {
-        let voltage = if high { 5.0 } else { 0.0 };
-        let across = (voltage - self.led.forward_voltage).max(0.0);
+        self.set_pb5_voltage(if high { 5.0 } else { 0.0 });
+    }
+
+    /// Drives PB5 with an electrical voltage.
+    pub fn set_pb5_voltage(&mut self, voltage: f64) {
+        let across = (voltage.max(0.0) - self.led.forward_voltage).max(0.0);
         self.led.set_current(self.resistor.current(across));
     }
 
@@ -122,6 +126,24 @@ mod tests {
         board.set_pb5(true);
         assert!(board.led().is_on());
         board.set_pb5(false);
+        assert!(!board.led().is_on());
+    }
+
+    #[test]
+    fn pb5_voltage_scales_led_current() {
+        let mut board = Board::new();
+        board.set_pb5_voltage(5.0);
+        let full = board.led().current();
+        board.set_pb5_voltage(3.0);
+        let dim = board.led().current();
+        assert!(full > dim);
+        assert!(dim > 0.0);
+    }
+
+    #[test]
+    fn pb5_voltage_below_forward_keeps_led_off() {
+        let mut board = Board::new();
+        board.set_pb5_voltage(1.0);
         assert!(!board.led().is_on());
     }
 

@@ -6,6 +6,7 @@ use super::fetch::ProgramMemory;
 use super::gpio::GpioPort;
 use super::instruction::{Instruction, Mnemonic, Operand};
 use super::multiply::{MultiplyUnit, multiply_unit};
+use super::pin::{ExternalPin, PinElectrical, PinElectricalConfig, measure_pin};
 use super::register_bank::RegisterBank;
 use super::shift::{ShiftUnit, shift_unit};
 use super::spi::Spi;
@@ -313,6 +314,36 @@ impl Cpu {
         self.handle_pin_change(port, pin)
     }
 
+    /// Returns the electrical state of one pin.
+    pub fn pin_electrical(
+        &self,
+        port: u8,
+        bit: u8,
+        external: ExternalPin,
+        config: &PinElectricalConfig,
+    ) -> Result<PinElectrical, SimError> {
+        let mode = self.gpio_ref(port)?.pin_mode(&self.circuit, bit)?;
+        measure_pin(mode, external, config)
+    }
+
+    /// Applies an external voltage and updates the digital input when needed.
+    pub fn set_pin_voltage(
+        &mut self,
+        port: u8,
+        bit: u8,
+        external: ExternalPin,
+        config: &PinElectricalConfig,
+    ) -> Result<PinElectrical, SimError> {
+        let mode = self.gpio_ref(port)?.pin_mode(&self.circuit, bit)?;
+        let state = measure_pin(mode, external, config)?;
+        if mode.is_input() {
+            self.set_pin_input_bit(port, bit, state.logic_level(config))?;
+            let pin = self.gpio_pin(port)?;
+            self.handle_pin_change(port, pin)?;
+        }
+        Ok(state)
+    }
+
     /// Sets the pin-change mask for port B, C, or D.
     pub fn set_pin_change_mask(&mut self, port: u8, mask: u8) -> Result<(), SimError> {
         if port > 2 {
@@ -364,10 +395,28 @@ impl Cpu {
     }
 
     fn gpio_pin(&self, port: u8) -> Result<u8, SimError> {
+        Ok(self.gpio_ref(port)?.read_pin(&self.circuit))
+    }
+
+    fn gpio_ref(&self, port: u8) -> Result<&GpioPort, SimError> {
         match port {
-            0 => Ok(self.datapath.gpio.b.read_pin(&self.circuit)),
-            1 => Ok(self.datapath.gpio.c.read_pin(&self.circuit)),
-            2 => Ok(self.datapath.gpio.d.read_pin(&self.circuit)),
+            0 => Ok(&self.datapath.gpio.b),
+            1 => Ok(&self.datapath.gpio.c),
+            2 => Ok(&self.datapath.gpio.d),
+            _ => Err(SimError::InvalidNetlist(
+                "port index out of range".to_string(),
+            )),
+        }
+    }
+
+    fn set_pin_input_bit(&mut self, port: u8, bit: u8, value: bool) -> Result<(), SimError> {
+        let Self {
+            circuit, datapath, ..
+        } = self;
+        match port {
+            0 => datapath.gpio.b.set_pin_input_bit(circuit, bit, value),
+            1 => datapath.gpio.c.set_pin_input_bit(circuit, bit, value),
+            2 => datapath.gpio.d.set_pin_input_bit(circuit, bit, value),
             _ => Err(SimError::InvalidNetlist(
                 "port index out of range".to_string(),
             )),
@@ -1927,6 +1976,7 @@ fn unsupported(mnemonic: Mnemonic) -> SimError {
 #[cfg(test)]
 mod tests {
     use super::Cpu;
+    use crate::pin::{ExternalPin, PinElectricalConfig};
 
     fn ldi(register: u16, value: u16) -> u16 {
         0xE000 | ((value & 0xF0) << 4) | ((register - 16) << 4) | (value & 0x0F)
@@ -2749,5 +2799,48 @@ mod tests {
         }
         assert!(cpu.twi().twint());
         assert_eq!(cpu.twi().status(), 0x08);
+    }
+
+    #[test]
+    fn pin_voltage_updates_digital_input() {
+        let mut cpu = Cpu::new(vec![0x0000]).expect("cpu");
+        let config = PinElectricalConfig::default();
+        let external = ExternalPin::Thevenin {
+            voltage: 5.0,
+            resistance: 1000.0,
+        };
+        let state = cpu.set_pin_voltage(0, 5, external, &config).expect("pin");
+        assert!(state.high_z);
+        assert!(state.logic_level(&config));
+        assert_eq!(cpu.io(0x03) & 0x20, 0x20);
+    }
+
+    fn pb5_output_cpu() -> Cpu {
+        let program = vec![
+            io_bit_op(0x9A00, 0x04, 5),
+            io_bit_op(0x9A00, 0x05, 5),
+            0x0000,
+        ];
+        let mut cpu = Cpu::new(program).expect("cpu");
+        cpu.step().expect("ddr");
+        cpu.step().expect("port");
+        cpu
+    }
+
+    #[test]
+    fn output_contention_is_detected() {
+        let cpu = pb5_output_cpu();
+        let config = PinElectricalConfig::default();
+        let open = cpu
+            .pin_electrical(0, 5, ExternalPin::HighZ, &config)
+            .expect("open");
+        assert!((open.voltage - 5.0).abs() < 1e-12, "v={}", open.voltage);
+        let external = ExternalPin::Thevenin {
+            voltage: 0.0,
+            resistance: 10.0,
+        };
+        let state = cpu.pin_electrical(0, 5, external, &config).expect("pin");
+        assert!(state.contention);
+        assert!(!state.high_z);
     }
 }

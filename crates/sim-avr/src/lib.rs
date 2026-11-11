@@ -10,6 +10,7 @@ pub mod gpio;
 pub mod instruction;
 pub mod instruction_register;
 pub mod multiply;
+pub mod pin;
 pub mod register_bank;
 pub mod shift;
 pub mod spi;
@@ -38,6 +39,7 @@ pub use instruction_register::InstructionRegister;
 pub use multiply::{
     MultiplyUnit, multiply_signed_unit, multiply_signed_unsigned_unit, multiply_unit,
 };
+pub use pin::{ExternalPin, PinElectrical, PinElectricalConfig, PinMode, measure_pin};
 pub use register_bank::RegisterBank;
 pub use shift::{ShiftUnit, shift_unit};
 pub use spi::Spi;

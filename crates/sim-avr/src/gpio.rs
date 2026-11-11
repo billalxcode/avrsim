@@ -1,5 +1,6 @@
 //! Structural AVR GPIO port.
 
+use crate::pin::PinMode;
 use sim_cells::{DigitalBuilder, DigitalCircuit, NetId, and_all, read_bits, register};
 use sim_core::SimError;
 
@@ -53,6 +54,40 @@ impl GpioPort {
     ) -> Result<(), SimError> {
         set_bits(circuit, &format!("{}pin", self.prefix), value, 8)?;
         circuit.settle()
+    }
+
+    /// Drives one external pin input.
+    pub fn set_pin_input_bit(
+        &mut self,
+        circuit: &mut DigitalCircuit,
+        bit: u8,
+        value: bool,
+    ) -> Result<(), SimError> {
+        if bit >= 8 {
+            return Err(SimError::InvalidNetlist(format!(
+                "pin bit out of range: {bit}"
+            )));
+        }
+        circuit.set_input(&format!("{}pin{bit}", self.prefix), value)?;
+        circuit.settle()
+    }
+
+    /// Returns the electrical mode of one pin.
+    pub fn pin_mode(&self, circuit: &DigitalCircuit, bit: u8) -> Result<PinMode, SimError> {
+        if bit >= 8 {
+            return Err(SimError::InvalidNetlist(format!(
+                "pin bit out of range: {bit}"
+            )));
+        }
+        let mask = 1u8 << bit;
+        let output = self.read_ddr(circuit) & mask != 0;
+        let high = self.read_port(circuit) & mask != 0;
+        Ok(match (output, high) {
+            (true, true) => PinMode::OutputHigh,
+            (true, false) => PinMode::OutputLow,
+            (false, true) => PinMode::InputPullUp,
+            (false, false) => PinMode::Input,
+        })
     }
 
     /// Reads the DDR register.
@@ -142,6 +177,7 @@ fn set_bits(
 #[cfg(test)]
 mod tests {
     use super::GpioPort;
+    use crate::pin::PinMode;
     use sim_cells::{DigitalBuilder, DigitalCircuit};
 
     fn fixture() -> (DigitalCircuit, GpioPort) {
@@ -185,6 +221,24 @@ mod tests {
         assert_eq!(gpio.read_pull_up(&circuit), 0xFF);
         gpio.set_ddr(&mut circuit, 0xFF).expect("ddr");
         assert_eq!(gpio.read_pull_up(&circuit), 0x00);
+    }
+
+    #[test]
+    fn pin_mode_tracks_ddr_and_port() {
+        let (mut circuit, mut gpio) = fixture();
+        gpio.set_ddr(&mut circuit, 0b0000_0011).expect("ddr");
+        gpio.set_port(&mut circuit, 0b0000_0101).expect("port");
+        let modes = [
+            PinMode::OutputHigh,
+            PinMode::OutputLow,
+            PinMode::InputPullUp,
+            PinMode::Input,
+        ];
+        for (bit, expected) in modes.iter().enumerate() {
+            let mode = gpio.pin_mode(&circuit, bit as u8).expect("mode");
+            assert_eq!(mode, *expected);
+        }
+        assert!(gpio.pin_mode(&circuit, 8).is_err());
     }
 
     #[test]
