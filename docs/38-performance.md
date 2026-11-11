@@ -21,10 +21,10 @@ Belum ada profiler eksternal, pengukuran release, atau analisis memori.
 Command:
 
 ```
-embed-emu bench [iterations]
+embed-emu bench [iterations] [nodes]
 ```
 
-Default `iterations = 1000`.
+Default `iterations = 1000` dan `nodes = 10`.
 
 Benchmark memakai rangkaian RC:
 
@@ -37,11 +37,16 @@ Setiap iterasi menjalankan:
 - Satu DC operating point.
 - Satu transient 100 langkah.
 
+Benchmark kedua memakai resistor ladder dengan jumlah node yang dapat
+ dipilih. Setiap node dihubungkan oleh resistor seri `1 kOhm` dan resistor
+ shunt `2 kOhm` ke ground. Ladder mengukur biaya per node.
+
 Output:
 
 ```
 dc: 1000 runs, 0.037 s, 37.1 us/run, ...
 transient: 1000 runs, 0.290 s, 290.4 us/run, 2.90 ns/step
+ladder-10: 200 runs, 0.091 s, 454.1 us/run, 45.41 us/node
 ```
 
 Angka bergantung mesin dan build.
@@ -98,8 +103,8 @@ Angka ini bukan jaminan untuk mesin lain.
 - Seluruh test workspace lulus.
 
 Total test `sim-core`: 62.
-Total test `sim-cli`: 8.
-Total workspace: 433.
+Total test `sim-cli`: 11.
+Total workspace: 459.
 
 ---
 

@@ -2,7 +2,7 @@
 
 Daftar tugas lengkap dari hal terkecil sampai rilis. Setiap item harus kecil, dapat diuji, dan tidak menambah dependensi eksternal.
 
-> **Status:** P8 selesai. P9 sebagian besar selesai. P10 sparse, adaptive step, trapezoidal/Gear, AC linear, noise termal, distorsi kuasi-statis, sensitivitas numerik, suhu device, process corner, BJT, JFET, transmission line, determinisme Linux, fidelity matrix, batasan model, profiling, dan optimasi selesai. Golden suite dan determinisme macOS/Windows belum. P4 harness ngspice dan golden data belum.
+> **Status:** P8 selesai. P9 sebagian besar selesai. P10 sparse, adaptive step, trapezoidal/Gear, AC linear, noise termal, distorsi kuasi-statis, sensitivitas numerik, suhu device, process corner, BJT, JFET, transmission line, determinisme Linux, fidelity matrix, batasan model, profiling, dan optimasi selesai. Golden suite dan determinisme macOS/Windows belum. P4 harness ngspice dan golden data belum karena ngspice tidak tersedia.
 > **Aturan:** satu item selesai = kode + test + dokumentasi singkat.
 
 ---
@@ -225,7 +225,7 @@ Daftar tugas lengkap dari hal terkecil sampai rilis. Setiap item harus kecil, da
 - [x] P4-32 Tulis test inverter VTC.
 - [ ] P4-33 Buat harness perbandingan ngspice.
 - [ ] P4-34 Simpan golden data pertama.
-- [ ] P4-35 Tulis benchmark node/solve.
+- [x] P4-35 Tulis benchmark node/solve.
 - [x] P4-36 Dokumentasikan analisis dan toleransi.
 
 **Exit P4:** VTC inverter dan RC transient lulus toleransi.
