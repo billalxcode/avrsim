@@ -100,6 +100,7 @@ Baca berurutan:
 | [`docs/47-controlled-sources.md`](docs/47-controlled-sources.md) | VCVS dan VCCS linear |
 | [`docs/48-cccs-switch.md`](docs/48-cccs-switch.md) | Current-controlled source dan switch |
 | [`docs/49-ccvs.md`](docs/49-ccvs.md) | Current-controlled voltage source |
+| [`docs/50-elf.md`](docs/50-elf.md) | Loader ELF32 dan simbol |
 | [`docs/43-user-guide.md`](docs/43-user-guide.md) | Quick start, API, dan contoh |
 | [`docs/44-body-effect.md`](docs/44-body-effect.md) | Threshold bias body dan `gmb` |
 | [`docs/45-mosfet-capacitance.md`](docs/45-mosfet-capacitance.md) | Meyer dan overlap capacitance |
@@ -107,6 +108,7 @@ Baca berurutan:
 | [`docs/47-controlled-sources.md`](docs/47-controlled-sources.md) | VCVS dan VCCS linear |
 | [`docs/48-cccs-switch.md`](docs/48-cccs-switch.md) | Current-controlled source dan switch |
 | [`docs/49-ccvs.md`](docs/49-ccvs.md) | Current-controlled voltage source |
+| [`docs/50-elf.md`](docs/50-elf.md) | Loader ELF32 dan simbol |
 | [`TODO.md`](TODO.md) | **Todolist lengkap dari hal terkecil** |
 
 ---
