@@ -9,6 +9,21 @@ pub(crate) fn params(name: &str, value: f64) -> BTreeMap<String, f64> {
     map
 }
 
+fn pulse_parameters(
+    levels: (f64, f64),
+    timing: (f64, f64, f64, f64, f64),
+) -> BTreeMap<String, f64> {
+    let mut map = BTreeMap::new();
+    map.insert("v1".to_string(), levels.0);
+    map.insert("v2".to_string(), levels.1);
+    map.insert("delay".to_string(), timing.0);
+    map.insert("rise".to_string(), timing.1);
+    map.insert("fall".to_string(), timing.2);
+    map.insert("width".to_string(), timing.3);
+    map.insert("period".to_string(), timing.4);
+    map
+}
+
 pub(crate) fn mos_params(width: f64) -> BTreeMap<String, f64> {
     let mut map = BTreeMap::new();
     map.insert("vto".to_string(), 0.7);
@@ -124,6 +139,24 @@ impl TestCircuit {
             .expect(name);
     }
 
+    pub(crate) fn pulse(
+        &mut self,
+        name: &str,
+        positive: NodeId,
+        negative: NodeId,
+        levels: (f64, f64),
+        timing: (f64, f64, f64, f64, f64),
+    ) {
+        let parameters = pulse_parameters(levels, timing);
+        self.two_pin(
+            name,
+            DeviceKind::PulseVoltageSource,
+            positive,
+            negative,
+            parameters,
+        );
+    }
+
     pub(crate) fn transmission_line(
         &mut self,
         name: &str,
@@ -217,6 +250,17 @@ pub(crate) fn current_source_circuit() -> (Circuit, NodeId) {
     let ground = circuit.ground();
     circuit.current("i1", ground, output, 0.001);
     circuit.resistor("r1", output, ground, 1000.0);
+    (circuit.build(), output)
+}
+
+pub(crate) fn pulse_divider() -> (Circuit, NodeId) {
+    let mut circuit = TestCircuit::new();
+    let input = circuit.node("in");
+    let output = circuit.node("out");
+    let ground = circuit.ground();
+    circuit.pulse("v1", input, ground, (0.0, 5.0), (0.0, 0.0, 0.0, 1e-6, 2e-6));
+    circuit.resistor("r1", input, output, 1000.0);
+    circuit.resistor("r2", output, ground, 1000.0);
     (circuit.build(), output)
 }
 

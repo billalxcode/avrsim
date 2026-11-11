@@ -17,5 +17,5 @@ pub use jfet::JfetModel;
 pub use model::{DeviceModel, IntegrationMethod, model_from_instance};
 pub use mosfet::{MosfetModel, MosfetParams};
 pub use passive::{CapacitorModel, InductorModel, ResistorModel};
-pub use source::{CurrentSourceModel, VoltageSourceModel};
+pub use source::{CurrentSourceModel, PulseSourceModel, VoltageSourceModel};
 pub use transmission::TransmissionLineModel;

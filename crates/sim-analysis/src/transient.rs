@@ -139,7 +139,9 @@ fn validate_config(config: &TransientConfig) -> Result<(), SimError> {
 #[cfg(test)]
 mod tests {
     use super::{TransientConfig, transient, transient_with_method};
-    use crate::test_support::{matched_line, rc_circuit, rc_circuit_no_source, rl_circuit};
+    use crate::test_support::{
+        matched_line, pulse_divider, rc_circuit, rc_circuit_no_source, rl_circuit,
+    };
     use sim_device::IntegrationMethod;
 
     #[test]
@@ -371,5 +373,24 @@ mod tests {
         let last = last.solution.voltage(output).expect("last");
         assert!(early > 4.0, "early={early}");
         assert!(last.abs() < 0.01, "last={last}");
+    }
+
+    #[test]
+    fn pulse_source_switches_transient_output() {
+        let (circuit, output) = pulse_divider();
+        let config = TransientConfig {
+            dt: 0.25e-6,
+            steps: 8,
+            gmin: 1e-12,
+            use_dc_op: false,
+            initial_voltages: Vec::new(),
+        };
+        let samples = transient(&circuit, &config).expect("transient");
+        let high = samples[0].solution.voltage(output).expect("high");
+        let low = samples[5].solution.voltage(output).expect("low");
+        let again = samples[7].solution.voltage(output).expect("again");
+        assert!((high - 2.5).abs() < 1e-6, "high={high}");
+        assert!(low.abs() < 1e-6, "low={low}");
+        assert!((again - 2.5).abs() < 1e-6, "again={again}");
     }
 }

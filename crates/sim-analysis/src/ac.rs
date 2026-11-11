@@ -431,7 +431,7 @@ mod tests {
     use super::{ac_analysis, ac_sweep};
     use crate::test_support::{
         common_emitter, common_source_n, current_source_circuit, diode_clamp, matched_line,
-        rc_circuit, rl_circuit,
+        pulse_divider, rc_circuit, rl_circuit,
     };
 
     #[test]
@@ -479,6 +479,12 @@ mod tests {
     #[test]
     fn ac_rejects_transmission_line() {
         let (circuit, _) = matched_line();
+        assert!(ac_analysis(&circuit, 1000.0).is_err());
+    }
+
+    #[test]
+    fn ac_rejects_pulse_source() {
+        let (circuit, _) = pulse_divider();
         assert!(ac_analysis(&circuit, 1000.0).is_err());
     }
 

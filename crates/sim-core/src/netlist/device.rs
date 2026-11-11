@@ -15,6 +15,8 @@ pub enum DeviceKind {
     Inductor,
     /// An independent voltage source.
     VoltageSource,
+    /// An independent pulse voltage source.
+    PulseVoltageSource,
     /// An independent current source.
     CurrentSource,
     /// An N-channel MOSFET.
@@ -46,6 +48,7 @@ impl DeviceKind {
             Self::Capacitor => "capacitor",
             Self::Inductor => "inductor",
             Self::VoltageSource => "voltage_source",
+            Self::PulseVoltageSource => "pulse_voltage_source",
             Self::CurrentSource => "current_source",
             Self::Nmos => "nmos",
             Self::Pmos => "pmos",

@@ -5,7 +5,7 @@ use crate::diode::DiodeModel;
 use crate::jfet::JfetModel;
 use crate::mosfet::MosfetModel;
 use crate::passive::{CapacitorModel, InductorModel, ResistorModel};
-use crate::source::{CurrentSourceModel, VoltageSourceModel};
+use crate::source::{CurrentSourceModel, PulseSourceModel, VoltageSourceModel};
 use crate::transmission::TransmissionLineModel;
 use sim_core::{
     BOLTZMANN, Device, DeviceId, DeviceInstance, DeviceKind, ELEMENTARY_CHARGE, MnaContext,
@@ -63,6 +63,7 @@ pub fn model_from_instance(instance: &DeviceInstance) -> Result<Box<dyn DeviceMo
         DeviceKind::Capacitor => Ok(Box::new(CapacitorModel::from_instance(instance)?)),
         DeviceKind::Inductor => Ok(Box::new(InductorModel::from_instance(instance)?)),
         DeviceKind::VoltageSource => Ok(Box::new(VoltageSourceModel::from_instance(instance)?)),
+        DeviceKind::PulseVoltageSource => Ok(Box::new(PulseSourceModel::from_instance(instance)?)),
         DeviceKind::CurrentSource => Ok(Box::new(CurrentSourceModel::from_instance(instance)?)),
         DeviceKind::Nmos | DeviceKind::Pmos => Ok(Box::new(MosfetModel::from_instance(instance)?)),
         DeviceKind::Npn | DeviceKind::Pnp => Ok(Box::new(BjtModel::from_instance(instance)?)),
@@ -77,6 +78,20 @@ pub fn model_from_instance(instance: &DeviceInstance) -> Result<Box<dyn DeviceMo
 
 pub(crate) fn parameter(params: &BTreeMap<String, f64>, name: &str, default: f64) -> f64 {
     params.get(name).copied().unwrap_or(default)
+}
+
+pub(crate) fn non_negative_parameter(
+    params: &BTreeMap<String, f64>,
+    name: &str,
+    default: f64,
+) -> Result<f64, SimError> {
+    let value = parameter(params, name, default);
+    if !value.is_finite() || value < 0.0 {
+        return Err(SimError::InvalidNetlist(format!(
+            "parameter {name} must be non-negative"
+        )));
+    }
+    Ok(value)
 }
 
 pub(crate) fn positive_parameter(
