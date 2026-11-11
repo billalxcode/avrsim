@@ -108,6 +108,11 @@ impl DenseMatrix {
 
     /// Solves `A * x = rhs` using LU decomposition with partial pivoting.
     pub fn solve(&self, rhs: &[f64]) -> Result<Vec<f64>, SimError> {
+        self.clone().solve_owned(rhs)
+    }
+
+    /// Solves `A * x = rhs`, consuming the matrix.
+    pub fn solve_owned(mut self, rhs: &[f64]) -> Result<Vec<f64>, SimError> {
         self.ensure_square()?;
         if rhs.len() != self.rows {
             return Err(SimError::DimensionMismatch {
@@ -118,12 +123,11 @@ impl DenseMatrix {
         if self.rows == 0 {
             return Ok(Vec::new());
         }
-        let mut lu = self.clone();
-        let pivots = lu.lu_decompose()?;
+        let pivots = self.lu_decompose()?;
         let mut y = rhs.to_vec();
         apply_pivots(&mut y, &pivots);
-        let y = forward_substitute(&lu, &y);
-        back_substitute(&lu, &y)
+        let y = forward_substitute(&self, &y);
+        back_substitute(&self, &y)
     }
 
     fn ensure_square(&self) -> Result<(), SimError> {
@@ -241,6 +245,14 @@ mod tests {
 
     fn assert_close(actual: f64, expected: f64) {
         assert!((actual - expected).abs() < 1e-9, "{actual} != {expected}");
+    }
+
+    #[test]
+    fn solves_owned_matrix() {
+        let matrix = DenseMatrix::from_vec(2, 2, vec![4.0, 3.0, 6.0, 3.0]).expect("matrix");
+        let solution = matrix.solve_owned(&[10.0, 12.0]).expect("solution");
+        assert_close(solution[0], 1.0);
+        assert_close(solution[1], 2.0);
     }
 
     #[test]

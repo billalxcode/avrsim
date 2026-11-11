@@ -69,15 +69,19 @@ pub(crate) fn solve_dc_system(
 
 fn solve_with_gmin_stepping(
     system: &mut SimulationSystem,
-    mut solution: Solution,
+    solution: Solution,
     config: &DcConfig,
 ) -> Result<DcResult, SimError> {
+    if system.is_linear() {
+        return solve_dc(system, solution, config.gmin, config);
+    }
+    let mut current = solution;
     let mut gmin = config.gmin_start.max(config.gmin);
     while gmin > config.gmin {
-        solution = solve_dc(system, solution, gmin, config)?.solution;
+        current = solve_dc(system, current, gmin, config)?.solution;
         gmin = (gmin * 0.1).max(config.gmin);
     }
-    solve_dc(system, solution, config.gmin, config)
+    solve_dc(system, current, config.gmin, config)
 }
 
 /// Sweeps a device parameter and solves the DC operating point at each step.

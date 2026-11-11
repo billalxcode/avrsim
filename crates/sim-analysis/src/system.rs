@@ -2,15 +2,17 @@
 
 use sim_core::{Circuit, Device, DeviceKind, MnaContext, SimError, Solution};
 use sim_device::{DeviceModel, IntegrationMethod, model_from_instance};
+use std::sync::Arc;
 
 /// A circuit prepared for analysis.
 pub struct SimulationSystem {
-    node_map: Vec<Option<usize>>,
-    branch_map: Vec<Option<usize>>,
+    node_map: Arc<Vec<Option<usize>>>,
+    branch_map: Arc<Vec<Option<usize>>>,
     models: Vec<Box<dyn DeviceModel>>,
     node_count: usize,
     branch_count: usize,
     node_slots: usize,
+    linear: bool,
 }
 
 impl SimulationSystem {
@@ -24,14 +26,25 @@ impl SimulationSystem {
             .iter()
             .map(model_from_instance)
             .collect::<Result<Vec<_>, _>>()?;
+        let linear = !circuit
+            .devices()
+            .iter()
+            .any(|device| is_nonlinear(device.kind()));
         Ok(Self {
-            node_map,
-            branch_map,
+            node_map: Arc::new(node_map),
+            branch_map: Arc::new(branch_map),
             models,
             node_count,
             branch_count,
             node_slots: circuit.nodes().len(),
+            linear,
         })
+    }
+
+    /// Returns true when the circuit has no nonlinear device.
+    #[must_use]
+    pub(crate) fn is_linear(&self) -> bool {
+        self.linear
     }
 
     /// Returns a zero solution with matching dimensions.
@@ -56,11 +69,11 @@ impl SimulationSystem {
         gmin: f64,
         method: IntegrationMethod,
     ) -> Result<Solution, SimError> {
-        let mut context = MnaContext::new(
+        let mut context = MnaContext::from_shared(
             self.node_count,
             self.branch_count,
-            self.node_map.clone(),
-            self.branch_map.clone(),
+            Arc::clone(&self.node_map),
+            Arc::clone(&self.branch_map),
         )?;
         self.add_gmin(&mut context, gmin)?;
         for model in &mut self.models {
@@ -83,6 +96,19 @@ impl SimulationSystem {
         }
         Ok(())
     }
+}
+
+fn is_nonlinear(kind: &DeviceKind) -> bool {
+    matches!(
+        kind,
+        DeviceKind::Diode
+            | DeviceKind::Nmos
+            | DeviceKind::Pmos
+            | DeviceKind::Npn
+            | DeviceKind::Pnp
+            | DeviceKind::JfetN
+            | DeviceKind::JfetP
+    )
 }
 
 fn build_node_map(circuit: &Circuit) -> Vec<Option<usize>> {

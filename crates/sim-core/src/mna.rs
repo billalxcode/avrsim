@@ -4,14 +4,15 @@ use crate::error::SimError;
 use crate::ids::{DeviceId, NodeId};
 use crate::matrix::DenseMatrix;
 use crate::netlist::Solution;
+use std::sync::Arc;
 
 /// MNA matrix, right-hand side, and node/branch mappings.
 #[derive(Debug)]
 pub struct MnaContext {
     matrix: DenseMatrix,
     rhs: Vec<f64>,
-    node_map: Vec<Option<usize>>,
-    branch_map: Vec<Option<usize>>,
+    node_map: Arc<Vec<Option<usize>>>,
+    branch_map: Arc<Vec<Option<usize>>>,
     node_count: usize,
     branch_count: usize,
 }
@@ -23,6 +24,21 @@ impl MnaContext {
         branch_count: usize,
         node_map: Vec<Option<usize>>,
         branch_map: Vec<Option<usize>>,
+    ) -> Result<Self, SimError> {
+        Self::from_shared(
+            node_count,
+            branch_count,
+            Arc::new(node_map),
+            Arc::new(branch_map),
+        )
+    }
+
+    /// Creates an MNA system that shares precomputed mappings.
+    pub fn from_shared(
+        node_count: usize,
+        branch_count: usize,
+        node_map: Arc<Vec<Option<usize>>>,
+        branch_map: Arc<Vec<Option<usize>>>,
     ) -> Result<Self, SimError> {
         let size = node_count + branch_count;
         Ok(Self {
@@ -100,7 +116,7 @@ impl MnaContext {
 
     /// Solves the system and splits node voltages from branch currents.
     pub fn solve(self) -> Result<Solution, SimError> {
-        let values = self.matrix.solve(&self.rhs)?;
+        let values = self.matrix.solve_owned(&self.rhs)?;
         let mut node_voltages = vec![0.0; self.node_map.len()];
         for (raw, slot) in self.node_map.iter().enumerate() {
             if let Some(index) = slot {
