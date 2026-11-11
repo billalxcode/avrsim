@@ -49,6 +49,8 @@ Dokumen ini adalah indeks lengkap spesifikasi **embed-emulation**.
 | 40 | [Pin electrical](40-pin-electrical.md) | Tegangan, arus, high-Z, contention |
 | 41 | [Pulse source](41-pulse-source.md) | Sumber pulsa untuk transient switching |
 | 42 | [Characterization](42-characterization.md) | Rise, fall, dan propagation delay |
+| 43 | [User guide](43-user-guide.md) | Quick start, API, dan contoh |
+| 43 | [User guide](43-user-guide.md) | Quick start, API, dan contoh |
 | - | [Todolist](../TODO.md) | Daftar tugas lengkap dari hal terkecil |
 
 ## Konvensi dokumen

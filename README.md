@@ -93,6 +93,8 @@ Baca berurutan:
 | [`docs/40-pin-electrical.md`](docs/40-pin-electrical.md) | Tegangan, arus, high-Z, contention |
 | [`docs/41-pulse-source.md`](docs/41-pulse-source.md) | Sumber pulsa untuk transient switching |
 | [`docs/42-characterization.md`](docs/42-characterization.md) | Rise, fall, dan propagation delay |
+| [`docs/43-user-guide.md`](docs/43-user-guide.md) | Quick start, API, dan contoh |
+| [`docs/43-user-guide.md`](docs/43-user-guide.md) | Quick start, API, dan contoh |
 | [`TODO.md`](TODO.md) | **Todolist lengkap dari hal terkecil** |
 
 ---
