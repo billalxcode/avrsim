@@ -141,7 +141,33 @@ impl ProgramMemory {
 - Test seluruh 256 nilai operand pertama, beberapa operand kedua atau immediate, dan kedua nilai carry.
 - Flag hasil dibandingkan dengan reference subtraction.
 
-## 11. Test
+## 11. CPU Integration
+
+CPU kecil di `sim-avr/src/cpu.rs` menghubungkan fetch, register bank, dan unit
+ALU menjadi eksekusi instruksi end-to-end.
+
+- Control masih behavioral di Rust, bukan PLA gate-level.
+- Datapath memakai register bank DFF dan unit arithmetic/logic/shift/multiply struktural.
+- SREG disimpan sebagai state Rust.
+- PC disimpan sebagai word address Rust.
+- Trace mencatat PC, instruksi, 32 register, SREG, dan halt.
+
+Instruksi yang sudah berjalan end-to-end:
+
+- LDI, MOV, MOVW.
+- ADD, ADC, SUB, SBC, SUBI, SBCI.
+- AND, ANDI, OR, ORI, EOR, COM.
+- NEG, INC, DEC.
+- CP, CPC, CPI.
+- LSR, ASR, ROR, SWAP.
+- MUL.
+- RJMP, JMP, BRBS, BRBC.
+- NOP, BREAK.
+
+Test program mencakup arithmetic, carry, logic, compare, branch, jump, MOVW,
+shift, rotate, multiply, trace, dan halt.
+
+## 12. Test
 
 Test decoder mencakup:
 
@@ -163,11 +189,11 @@ Test decoder mencakup:
 - IR load, hold, reset, dan validasi lebar data.
 - Register bank write/read, dua read port, pasangan little-endian, hold, dan reset.
 
-Total test `sim-avr`: 47.
+Total test `sim-avr`: 59.
 
 ---
 
-## 12. Batas
+## 13. Batas
 
 - Fetch dan register bank belum mengeksekusi instruksi.
 - Belum ada timing per instruksi.

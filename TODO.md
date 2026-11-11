@@ -2,7 +2,7 @@
 
 Daftar tugas lengkap dari hal terkecil sampai rilis. Setiap item harus kecil, dapat diuji, dan tidak menambah dependensi eksternal.
 
-> **Status:** Unit ALU AVR selesai sampai compare: arithmetic, logic, shift, multiply, CP/CPC/CPI. Lanjut ke integrasi control FSM dan CPU.
+> **Status:** CPU AVR subset berjalan end-to-end: arithmetic, logic, shift, multiply, move, jump, dan branch. Lanjut ke load/store, call/stack, dan control PLA struktural.
 > **Aturan:** satu item selesai = kode + test + dokumentasi singkat.
 
 ---
@@ -339,9 +339,9 @@ Daftar tugas lengkap dari hal terkecil sampai rilis. Setiap item harus kecil, da
 - [x] P7-31 Implementasikan MUL.
 - [x] P7-32 Implementasikan MULS.
 - [x] P7-33 Implementasikan MULSU.
-- [ ] P7-34 Implementasikan MOV.
-- [ ] P7-35 Implementasikan MOVW.
-- [ ] P7-36 Implementasikan LDI.
+- [x] P7-34 Implementasikan MOV.
+- [x] P7-35 Implementasikan MOVW.
+- [x] P7-36 Implementasikan LDI.
 - [ ] P7-37 Implementasikan LD X.
 - [ ] P7-38 Implementasikan LD X+.
 - [ ] P7-39 Implementasikan LD -X.
@@ -368,16 +368,16 @@ Daftar tugas lengkap dari hal terkecil sampai rilis. Setiap item harus kecil, da
 - [ ] P7-60 Implementasikan ELPM.
 - [ ] P7-61 Implementasikan PUSH.
 - [ ] P7-62 Implementasikan POP.
-- [ ] P7-63 Implementasikan RJMP.
-- [ ] P7-64 Implementasikan JMP.
+- [x] P7-63 Implementasikan RJMP.
+- [x] P7-64 Implementasikan JMP.
 - [ ] P7-65 Implementasikan IJMP.
 - [ ] P7-66 Implementasikan RCALL.
 - [ ] P7-67 Implementasikan CALL.
 - [ ] P7-68 Implementasikan ICALL.
 - [ ] P7-69 Implementasikan RET.
 - [ ] P7-70 Implementasikan RETI.
-- [ ] P7-71 Implementasikan BRBS.
-- [ ] P7-72 Implementasikan BRBC.
+- [x] P7-71 Implementasikan BRBS.
+- [x] P7-72 Implementasikan BRBC.
 - [ ] P7-73 Implementasikan SBRC.
 - [ ] P7-74 Implementasikan SBRS.
 - [ ] P7-75 Implementasikan SBI.

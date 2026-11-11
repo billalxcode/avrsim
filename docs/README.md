@@ -39,6 +39,6 @@ Dokumen ini adalah indeks lengkap spesifikasi **embed-emulation**.
 |---|---|
 | Brainstorming | Selesai |
 | Spesifikasi | Dokumen ini |
-| Kode | P7-01..30 decode, register, ALU, dan shift AVR selesai |
+| Kode | P7 CPU subset berjalan end-to-end |
 | Toolchain Rust | Terpasang (1.99.1) |
 | `avr-gcc` | Belum terpasang |
