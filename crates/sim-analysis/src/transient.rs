@@ -140,7 +140,8 @@ fn validate_config(config: &TransientConfig) -> Result<(), SimError> {
 mod tests {
     use super::{TransientConfig, transient, transient_with_method};
     use crate::test_support::{
-        matched_line, mos_capacitor, pulse_divider, rc_circuit, rc_circuit_no_source, rl_circuit,
+        matched_line, mos_capacitor, pulse_divider, rc_circuit, rc_circuit_no_source,
+        reverse_diode_rc, rl_circuit,
     };
     use sim_device::IntegrationMethod;
 
@@ -408,5 +409,26 @@ mod tests {
         let gate = samples.last().expect("last");
         let gate = gate.solution.voltage(output).expect("gate");
         assert!(gate > 2.8 && gate < 3.3, "gate={gate}");
+    }
+
+    #[test]
+    fn diode_junction_capacitance_slows_reverse_edge() {
+        let config = TransientConfig {
+            dt: 1e-7,
+            steps: 10,
+            gmin: 1e-12,
+            use_dc_op: false,
+            initial_voltages: Vec::new(),
+        };
+        let (without, without_output) = reverse_diode_rc(0.0);
+        let (with, with_output) = reverse_diode_rc(5e-9);
+        let without = transient(&without, &config).expect("without");
+        let with = transient(&with, &config).expect("with");
+        let without = without.last().expect("last");
+        let with = with.last().expect("last");
+        let without = without.solution.voltage(without_output).expect("v0");
+        let with = with.solution.voltage(with_output).expect("v1");
+        assert!(without < -1.9, "without={without}");
+        assert!(with > -1.5, "with={with}");
     }
 }

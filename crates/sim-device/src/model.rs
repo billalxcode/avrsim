@@ -125,6 +125,14 @@ pub(crate) fn junction_critical_voltage(saturation: f64, thermal_voltage: f64) -
     thermal_voltage * (thermal_voltage / (std::f64::consts::SQRT_2 * saturation)).ln()
 }
 
+pub(crate) fn terminal_conductance(junction: f64, series_resistance: f64) -> f64 {
+    if series_resistance <= 0.0 {
+        junction
+    } else {
+        junction / (1.0 + series_resistance * junction)
+    }
+}
+
 /// Limits a large junction voltage step.
 pub(crate) fn pnjlim(voltage: f64, previous: f64, thermal: f64, critical: f64) -> f64 {
     if voltage <= critical || (voltage - previous).abs() <= 2.0 * thermal {

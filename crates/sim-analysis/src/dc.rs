@@ -519,6 +519,15 @@ mod tests {
     }
 
     #[test]
+    fn diode_series_resistance_raises_clamp_voltage() {
+        let (mut circuit, output) = diode_clamp();
+        circuit.set_device_parameter("d1", "rs", 100.0).expect("rs");
+        let result = dc_operating_point(&circuit, &DcConfig::default()).expect("dc");
+        let voltage = result.solution.voltage(output).expect("output");
+        assert!(voltage > 0.9 && voltage < 1.3, "voltage={voltage}");
+    }
+
+    #[test]
     fn source_stepping_recovers_large_diode_supply() {
         let (mut circuit, output) = diode_clamp();
         circuit

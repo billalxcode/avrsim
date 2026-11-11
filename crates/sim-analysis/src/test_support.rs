@@ -427,6 +427,25 @@ fn add_mos_capacitor(circuit: &mut TestCircuit, gate: NodeId, ground: NodeId) {
         .expect("m1");
 }
 
+pub(crate) fn reverse_diode_rc(cj0: f64) -> (Circuit, NodeId) {
+    let mut circuit = TestCircuit::new();
+    let input = circuit.node("in");
+    let output = circuit.node("out");
+    let ground = circuit.ground();
+    circuit.pulse(
+        "v1",
+        input,
+        ground,
+        (0.0, -2.0),
+        (0.0, 0.0, 0.0, 10e-6, 20e-6),
+    );
+    circuit.resistor("r1", input, output, 1000.0);
+    let mut parameters = BTreeMap::new();
+    parameters.insert("cj0".to_string(), cj0);
+    circuit.two_pin("d1", DeviceKind::Diode, output, ground, parameters);
+    (circuit.build(), output)
+}
+
 pub(crate) fn diode_clamp() -> (Circuit, NodeId) {
     let mut circuit = TestCircuit::new();
     let input = circuit.node("in");
