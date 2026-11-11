@@ -5,6 +5,7 @@ pub mod decode;
 pub mod fetch;
 pub mod instruction;
 pub mod instruction_register;
+pub mod multiply;
 pub mod register_bank;
 pub mod shift;
 
@@ -19,5 +20,8 @@ pub use decode::{decode, uses_second_word};
 pub use fetch::{Fetched, ProgramMemory};
 pub use instruction::{Instruction, Mnemonic, Operand};
 pub use instruction_register::InstructionRegister;
+pub use multiply::{
+    MultiplyUnit, multiply_signed_unit, multiply_signed_unsigned_unit, multiply_unit,
+};
 pub use register_bank::RegisterBank;
 pub use shift::{ShiftUnit, shift_unit};
