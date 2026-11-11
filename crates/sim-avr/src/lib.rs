@@ -10,7 +10,10 @@ pub mod register_bank;
 #[cfg(test)]
 mod test_support;
 
-pub use alu::{ArithmeticUnit, LogicUnit, arithmetic_unit, logic_unit, select_operand};
+pub use alu::{
+    ArithmeticUnit, LogicUnit, arithmetic_unit, decrement_unit, increment_unit, logic_unit,
+    negate_unit, select_operand,
+};
 pub use decode::{decode, uses_second_word};
 pub use fetch::{Fetched, ProgramMemory};
 pub use instruction::{Instruction, Mnemonic, Operand};

@@ -189,6 +189,47 @@ fn validate(first: &[NetId], second: &[NetId]) -> Result<(), SimError> {
     Ok(())
 }
 
+/// Builds a NEG unit: result is zero minus the input.
+pub fn negate_unit(
+    builder: &mut DigitalBuilder,
+    input: &[NetId],
+) -> Result<ArithmeticUnit, SimError> {
+    let zero = constant_byte(builder, 0);
+    let subtract = builder.constant(true);
+    let carry = builder.constant(false);
+    arithmetic_unit(builder, &zero, input, subtract, carry)
+}
+
+/// Builds an INC unit: result is the input plus one.
+pub fn increment_unit(
+    builder: &mut DigitalBuilder,
+    input: &[NetId],
+) -> Result<ArithmeticUnit, SimError> {
+    let one = constant_byte(builder, 1);
+    let add = builder.constant(false);
+    let carry = builder.constant(false);
+    arithmetic_unit(builder, input, &one, add, carry)
+}
+
+/// Builds a DEC unit: result is the input minus one.
+pub fn decrement_unit(
+    builder: &mut DigitalBuilder,
+    input: &[NetId],
+) -> Result<ArithmeticUnit, SimError> {
+    let one = constant_byte(builder, 1);
+    let subtract = builder.constant(true);
+    let carry = builder.constant(false);
+    arithmetic_unit(builder, input, &one, subtract, carry)
+}
+
+fn constant_byte(builder: &mut DigitalBuilder, value: u8) -> Vec<NetId> {
+    let zero = builder.constant(false);
+    let one = builder.constant(true);
+    (0..8)
+        .map(|bit| if value & (1 << bit) != 0 { one } else { zero })
+        .collect()
+}
+
 fn add_bytes(
     builder: &mut DigitalBuilder,
     first: &[NetId],
@@ -299,9 +340,15 @@ fn subtraction_overflow(
 
 #[cfg(test)]
 mod tests {
-    use super::{ArithmeticUnit, LogicUnit, arithmetic_unit, logic_unit, select_operand};
+    use super::{
+        ArithmeticUnit, LogicUnit, arithmetic_unit, decrement_unit, increment_unit, logic_unit,
+        negate_unit, select_operand,
+    };
     use crate::test_support::{named_inputs, set_bits};
-    use sim_cells::{DigitalBuilder, DigitalCircuit, add_with_carry, read_bits, sub_with_borrow};
+    use sim_cells::{
+        DigitalBuilder, DigitalCircuit, NetId, add_with_carry, read_bits, sub_with_borrow,
+    };
+    use sim_core::SimError;
 
     #[derive(Debug, PartialEq, Eq)]
     struct Outcome {
@@ -581,6 +628,58 @@ mod tests {
                     assert_eq!(actual, logic_reference(op, first, immediate));
                 }
             }
+        }
+    }
+
+    type UnitBuilder = fn(&mut DigitalBuilder, &[NetId]) -> Result<ArithmeticUnit, SimError>;
+
+    fn update_fixture(builder: UnitBuilder) -> (DigitalCircuit, ArithmeticUnit) {
+        let mut digital = DigitalBuilder::new();
+        let input = named_inputs(&mut digital, "a", 8);
+        let unit = builder(&mut digital, &input).expect("unit");
+        (digital.build(), unit)
+    }
+
+    fn evaluate_update(circuit: &mut DigitalCircuit, unit: &ArithmeticUnit, value: u8) -> Outcome {
+        set_bits(circuit, "a", u64::from(value), 8);
+        circuit.settle().expect("settle");
+        read_outcome(circuit, unit)
+    }
+
+    #[test]
+    fn neg_matches_reference() {
+        let (mut circuit, unit) = update_fixture(negate_unit);
+        for value in 0..=u8::MAX {
+            let actual = evaluate_update(&mut circuit, &unit, value);
+            assert_eq!(actual, subtraction(0, value, false));
+        }
+    }
+
+    #[test]
+    fn inc_matches_reference() {
+        let (mut circuit, unit) = update_fixture(increment_unit);
+        for value in 0..=u8::MAX {
+            let actual = evaluate_update(&mut circuit, &unit, value);
+            let expected = value.wrapping_add(1);
+            assert_eq!(actual.value, expected);
+            assert_eq!(actual.zero, expected == 0);
+            assert_eq!(actual.negative, expected & 0x80 != 0);
+            assert_eq!(actual.overflow, expected == 0x80);
+            assert_eq!(actual.sign, actual.negative ^ actual.overflow);
+        }
+    }
+
+    #[test]
+    fn dec_matches_reference() {
+        let (mut circuit, unit) = update_fixture(decrement_unit);
+        for value in 0..=u8::MAX {
+            let actual = evaluate_update(&mut circuit, &unit, value);
+            let expected = value.wrapping_sub(1);
+            assert_eq!(actual.value, expected);
+            assert_eq!(actual.zero, expected == 0);
+            assert_eq!(actual.negative, expected & 0x80 != 0);
+            assert_eq!(actual.overflow, expected == 0x7F);
+            assert_eq!(actual.sign, actual.negative ^ actual.overflow);
         }
     }
 }
