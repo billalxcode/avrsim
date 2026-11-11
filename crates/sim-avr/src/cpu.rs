@@ -89,6 +89,17 @@ impl Sreg {
     }
 }
 
+/// ATmega328P interrupt vector word addresses.
+pub const VECTORS: [u16; 26] = [
+    0x0000, 0x0002, 0x0004, 0x0006, 0x0008, 0x000A, 0x000C, 0x000E, 0x0010, 0x0012, 0x0014, 0x0016,
+    0x0018, 0x001A, 0x001C, 0x001E, 0x0020, 0x0022, 0x0024, 0x0026, 0x0028, 0x002A, 0x002C, 0x002E,
+    0x0030, 0x0032,
+];
+
+fn vector_address(index: u8) -> u16 {
+    VECTORS.get(usize::from(index)).copied().unwrap_or(0)
+}
+
 /// One executed instruction trace.
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct AvrTrace {
@@ -140,6 +151,9 @@ pub struct Cpu {
     io: [u8; 64],
     data: Vec<u8>,
     sp: u16,
+    pending: u32,
+    sei_delay: u8,
+    sleeping: bool,
 }
 
 impl Cpu {
@@ -150,6 +164,10 @@ impl Cpu {
                 "AVR program must not be empty".to_string(),
             ));
         }
+        Self::build(program)
+    }
+
+    fn build(program: Vec<u16>) -> Result<Self, SimError> {
         let mut builder = DigitalBuilder::new();
         let datapath = build_datapath(&mut builder)?;
         Ok(Self {
@@ -162,6 +180,9 @@ impl Cpu {
             io: [0; 64],
             data: vec![0; 0x1000],
             sp: 0x08FF,
+            pending: 0,
+            sei_delay: 0,
+            sleeping: false,
         })
     }
 
@@ -170,9 +191,15 @@ impl Cpu {
         if self.halted {
             return Ok(None);
         }
+        if self.sleeping && !self.wake_ready() {
+            return Ok(None);
+        }
+        self.sleeping = false;
+        self.service_interrupt()?;
         let fetched = self.program.fetch(self.pc)?;
         let next_pc = self.pc.wrapping_add(u16::from(fetched.words));
         self.execute(&fetched.instruction, next_pc)?;
+        self.finish_sei();
         Ok(Some(self.trace(fetched.instruction)))
     }
 
@@ -217,6 +244,44 @@ impl Cpu {
         self.sp
     }
 
+    /// Requests an interrupt by vector index.
+    pub fn request_interrupt(&mut self, index: u8) -> Result<(), SimError> {
+        if usize::from(index) >= VECTORS.len() {
+            return Err(SimError::InvalidNetlist(
+                "interrupt vector out of range".to_string(),
+            ));
+        }
+        self.pending |= 1 << index;
+        Ok(())
+    }
+
+    /// Replaces the status register.
+    pub fn set_sreg(&mut self, sreg: Sreg) {
+        self.sreg = sreg;
+    }
+
+    fn service_interrupt(&mut self) -> Result<(), SimError> {
+        if !self.sreg.interrupt || self.pending == 0 {
+            return Ok(());
+        }
+        let index = self.pending.trailing_zeros() as u8;
+        self.pending &= !(1u32 << index);
+        self.push_word(self.pc);
+        self.sreg.interrupt = false;
+        self.pc = vector_address(index);
+        Ok(())
+    }
+
+    fn finish_sei(&mut self) {
+        if self.sei_delay == 0 {
+            return;
+        }
+        self.sei_delay -= 1;
+        if self.sei_delay == 0 {
+            self.sreg.interrupt = true;
+        }
+    }
+
     /// Returns the program counter.
     #[must_use]
     pub const fn pc(&self) -> u16 {
@@ -235,6 +300,21 @@ impl Cpu {
         self.halted
     }
 
+    /// Returns true when sleeping.
+    #[must_use]
+    pub const fn is_sleeping(&self) -> bool {
+        self.sleeping
+    }
+
+    fn wake_ready(&self) -> bool {
+        self.sreg.interrupt && self.pending != 0
+    }
+
+    fn sleep(&mut self) -> Result<(), SimError> {
+        self.sleeping = true;
+        Ok(())
+    }
+
     /// Resets the core to its initial state.
     pub fn reset(&mut self) -> Result<(), SimError> {
         self.circuit.reset()?;
@@ -244,13 +324,17 @@ impl Cpu {
         self.sp = 0x08FF;
         self.io.fill(0);
         self.data.fill(0);
+        self.pending = 0;
+        self.sei_delay = 0;
+        self.sleeping = false;
         Ok(())
     }
 
     fn execute(&mut self, instruction: &Instruction, next_pc: u16) -> Result<(), SimError> {
         match instruction.mnemonic {
             Mnemonic::Nop | Mnemonic::Wdr => return self.advance(next_pc),
-            Mnemonic::Break | Mnemonic::Sleep => return self.halt(),
+            Mnemonic::Break => return self.halt(),
+            Mnemonic::Sleep => return self.sleep(),
             _ => {}
         }
         self.execute_complex(instruction, next_pc)
@@ -626,13 +710,26 @@ impl Cpu {
 
     fn execute_flag(&mut self, instruction: &Instruction, next_pc: u16) -> Result<(), SimError> {
         match instruction.mnemonic {
-            Mnemonic::Bset => self.sreg.set(flag(instruction.first)?, true),
-            Mnemonic::Bclr => self.sreg.set(flag(instruction.first)?, false),
+            Mnemonic::Bset => self.set_flag(flag(instruction.first)?, true),
+            Mnemonic::Bclr => self.set_flag(flag(instruction.first)?, false),
             Mnemonic::Bst => self.execute_bst(instruction)?,
             Mnemonic::Bld => return self.execute_bld(instruction, next_pc),
             _ => return Err(unsupported(instruction.mnemonic)),
         }
         self.advance(next_pc)
+    }
+
+    fn set_flag(&mut self, flag: u8, value: bool) {
+        if flag == 7 {
+            if value {
+                self.sei_delay = 2;
+            } else {
+                self.sreg.interrupt = false;
+                self.sei_delay = 0;
+            }
+        } else {
+            self.sreg.set(flag, value);
+        }
     }
 
     fn execute_bst(&mut self, instruction: &Instruction) -> Result<(), SimError> {
@@ -1706,12 +1803,29 @@ mod tests {
     }
 
     #[test]
-    fn sleep_halts_core() {
+    fn sleep_sets_sleeping_state() {
         let mut cpu = Cpu::new(vec![0x9588, ldi(16, 5), 0x9598]).expect("cpu");
         let trace = cpu.step().expect("step").expect("trace");
-        assert!(trace.halted);
-        assert!(cpu.is_halted());
+        assert!(!trace.halted);
+        assert!(cpu.is_sleeping());
         assert!(cpu.step().expect("step").is_none());
+    }
+
+    #[test]
+    fn sleep_wakes_on_interrupt() {
+        let mut cpu =
+            Cpu::new(vec![0x9588, 0xCFFF, 0x0000, 0x0000, ldi(17, 7), 0x9518]).expect("cpu");
+        cpu.request_interrupt(2).expect("interrupt");
+        cpu.step().expect("step");
+        assert!(cpu.is_sleeping());
+        cpu.set_sreg(super::Sreg {
+            interrupt: true,
+            ..super::Sreg::default()
+        });
+        let trace = cpu.step().expect("step").expect("trace");
+        assert_eq!(trace.pc, 5);
+        assert_eq!(cpu.register(17), 7);
+        assert!(!cpu.is_sleeping());
     }
 
     #[test]
@@ -1745,5 +1859,59 @@ mod tests {
             interrupt: true,
         };
         assert_eq!(super::Sreg::from_byte(sreg.to_byte()), sreg);
+    }
+
+    #[test]
+    fn vector_table_matches_datasheet() {
+        assert_eq!(super::VECTORS.len(), 26);
+        assert_eq!(super::VECTORS[0], 0x0000);
+        assert_eq!(super::VECTORS[1], 0x0002);
+        assert_eq!(super::VECTORS[25], 0x0032);
+    }
+
+    #[test]
+    fn interrupt_entry_and_reti() {
+        let mut cpu = Cpu::new(vec![ldi(16, 1), 0x9598, ldi(17, 7), 0x9518]).expect("cpu");
+        cpu.step().expect("step");
+        cpu.set_sreg(super::Sreg {
+            interrupt: true,
+            ..super::Sreg::default()
+        });
+        cpu.request_interrupt(1).expect("interrupt");
+        let trace = cpu.step().expect("step").expect("trace");
+        assert_eq!(trace.pc, 3);
+        assert_eq!(cpu.register(17), 7);
+        assert!(!cpu.sreg().interrupt);
+        assert_eq!(cpu.sp(), 0x08FD);
+        let trace = cpu.step().expect("step").expect("trace");
+        assert_eq!(trace.pc, 1);
+        assert!(cpu.sreg().interrupt);
+    }
+
+    #[test]
+    fn sei_delays_interrupt_until_after_next_instruction() {
+        let mut cpu = Cpu::new(vec![
+            sreg_flag(0x9408, 7),
+            ldi(16, 1),
+            0xCFFF,
+            0x0000,
+            ldi(17, 7),
+            0x9518,
+        ])
+        .expect("cpu");
+        cpu.request_interrupt(2).expect("interrupt");
+        cpu.step().expect("step");
+        assert!(!cpu.sreg().interrupt);
+        cpu.step().expect("step");
+        assert!(cpu.sreg().interrupt);
+        let trace = cpu.step().expect("step").expect("trace");
+        assert_eq!(trace.pc, 5);
+        assert_eq!(cpu.register(17), 7);
+    }
+
+    #[test]
+    fn interrupt_rejects_bad_vector() {
+        let mut cpu = Cpu::new(vec![0x9598]).expect("cpu");
+        assert!(cpu.request_interrupt(26).is_err());
     }
 }
