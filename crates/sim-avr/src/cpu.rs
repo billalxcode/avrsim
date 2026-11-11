@@ -59,6 +59,34 @@ impl Sreg {
             _ => self.interrupt = value,
         }
     }
+
+    /// Packs the register into an AVR SREG byte.
+    #[must_use]
+    pub const fn to_byte(self) -> u8 {
+        (self.carry as u8)
+            | ((self.zero as u8) << 1)
+            | ((self.negative as u8) << 2)
+            | ((self.overflow as u8) << 3)
+            | ((self.sign as u8) << 4)
+            | ((self.half_carry as u8) << 5)
+            | ((self.transfer as u8) << 6)
+            | ((self.interrupt as u8) << 7)
+    }
+
+    /// Unpacks an AVR SREG byte.
+    #[must_use]
+    pub const fn from_byte(value: u8) -> Self {
+        Self {
+            carry: value & 0x01 != 0,
+            zero: value & 0x02 != 0,
+            negative: value & 0x04 != 0,
+            overflow: value & 0x08 != 0,
+            sign: value & 0x10 != 0,
+            half_carry: value & 0x20 != 0,
+            transfer: value & 0x40 != 0,
+            interrupt: value & 0x80 != 0,
+        }
+    }
 }
 
 /// One executed instruction trace.
@@ -174,7 +202,7 @@ impl Cpu {
     /// Returns an I/O register value.
     #[must_use]
     pub fn io(&self, address: u8) -> u8 {
-        self.io.get(usize::from(address)).copied().unwrap_or(0)
+        self.io_read(address)
     }
 
     /// Returns a data space value.
@@ -207,10 +235,22 @@ impl Cpu {
         self.halted
     }
 
+    /// Resets the core to its initial state.
+    pub fn reset(&mut self) -> Result<(), SimError> {
+        self.circuit.reset()?;
+        self.pc = 0;
+        self.sreg = Sreg::default();
+        self.halted = false;
+        self.sp = 0x08FF;
+        self.io.fill(0);
+        self.data.fill(0);
+        Ok(())
+    }
+
     fn execute(&mut self, instruction: &Instruction, next_pc: u16) -> Result<(), SimError> {
         match instruction.mnemonic {
-            Mnemonic::Nop => return self.advance(next_pc),
-            Mnemonic::Break => return self.halt(),
+            Mnemonic::Nop | Mnemonic::Wdr => return self.advance(next_pc),
+            Mnemonic::Break | Mnemonic::Sleep => return self.halt(),
             _ => {}
         }
         self.execute_complex(instruction, next_pc)
@@ -559,13 +599,15 @@ impl Cpu {
     }
 
     fn set_io_bit(&mut self, instruction: &Instruction, set: bool) -> Result<(), SimError> {
-        let address = usize::from(io_address(instruction.first)?);
+        let address = io_address(instruction.first)?;
         let bit = bit(instruction.second)?;
+        let mut value = self.io_read(address);
         if set {
-            self.io[address] |= 1 << bit;
+            value |= 1 << bit;
         } else {
-            self.io[address] &= !(1 << bit);
+            value &= !(1 << bit);
         }
+        self.io_write(address, value);
         Ok(())
     }
 
@@ -576,9 +618,9 @@ impl Cpu {
     }
 
     fn execute_out(&mut self, instruction: &Instruction) -> Result<(), SimError> {
-        let address = usize::from(io_address(instruction.first)?);
+        let address = io_address(instruction.first)?;
         let source = register(instruction.second)?;
-        self.io[address] = self.register(source);
+        self.io_write(address, self.register(source));
         Ok(())
     }
 
@@ -745,6 +787,21 @@ impl Cpu {
 
     fn read_data(&self, address: u16) -> u8 {
         self.data[usize::from(address) & 0x0FFF]
+    }
+
+    fn io_read(&self, address: u8) -> u8 {
+        if address == 0x3F {
+            return self.sreg.to_byte();
+        }
+        self.io.get(usize::from(address)).copied().unwrap_or(0)
+    }
+
+    fn io_write(&mut self, address: u8, value: u8) {
+        if address == 0x3F {
+            self.sreg = Sreg::from_byte(value);
+        } else if let Some(slot) = self.io.get_mut(usize::from(address)) {
+            *slot = value;
+        }
     }
 
     fn write_data(&mut self, address: u16, value: u8) {
@@ -1631,5 +1688,62 @@ mod tests {
         ]);
         assert_eq!(cpu.register(16), 0);
         assert_eq!(cpu.register(17), 4);
+    }
+
+    #[test]
+    fn sreg_is_visible_through_io() {
+        let cpu = run(vec![
+            ldi(16, 0xFF),
+            ldi(17, 1),
+            reg_op(0x0C00, 16, 17),
+            in_out(0xB000, 18, 0x3F),
+            ldi(19, 0x80),
+            in_out(0xB800, 19, 0x3F),
+            0x9598,
+        ]);
+        assert_eq!(cpu.register(18) & 0x03, 0x03);
+        assert!(cpu.sreg().interrupt);
+    }
+
+    #[test]
+    fn sleep_halts_core() {
+        let mut cpu = Cpu::new(vec![0x9588, ldi(16, 5), 0x9598]).expect("cpu");
+        let trace = cpu.step().expect("step").expect("trace");
+        assert!(trace.halted);
+        assert!(cpu.is_halted());
+        assert!(cpu.step().expect("step").is_none());
+    }
+
+    #[test]
+    fn wdr_is_noop() {
+        let cpu = run(vec![0x95A8, ldi(16, 5), 0x9598]);
+        assert_eq!(cpu.register(16), 5);
+    }
+
+    #[test]
+    fn reset_clears_core_state() {
+        let mut cpu = Cpu::new(vec![ldi(16, 9), 0x9598]).expect("cpu");
+        cpu.step().expect("step");
+        cpu.reset().expect("reset");
+        assert_eq!(cpu.pc(), 0);
+        assert_eq!(cpu.register(16), 0);
+        assert_eq!(cpu.sreg(), super::Sreg::default());
+        assert_eq!(cpu.sp(), 0x08FF);
+        assert!(!cpu.is_halted());
+    }
+
+    #[test]
+    fn sreg_byte_round_trip() {
+        let sreg = super::Sreg {
+            carry: true,
+            zero: true,
+            negative: true,
+            overflow: true,
+            sign: true,
+            half_carry: true,
+            transfer: true,
+            interrupt: true,
+        };
+        assert_eq!(super::Sreg::from_byte(sreg.to_byte()), sreg);
     }
 }
