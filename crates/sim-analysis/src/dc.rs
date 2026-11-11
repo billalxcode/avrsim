@@ -41,6 +41,8 @@ pub struct DcResult {
     pub solution: Solution,
     /// Number of iterations used.
     pub iterations: usize,
+    /// Maximum node-voltage change at convergence.
+    pub residual: f64,
 }
 
 /// One point in a DC sweep.
@@ -219,12 +221,10 @@ fn solve_dc(
 ) -> Result<DcResult, SimError> {
     let mut solution = initial;
     for iteration in 0..config.max_iterations {
-        let raw = system.solve(&solution, None, gmin)?;
-        let next = damp_solution(&solution, &raw, config.max_step);
-        let converged = solution_close(&solution, &next, config);
+        let (next, residual, converged) = solve_iteration(system, &solution, gmin, config)?;
         solution = next;
         if converged {
-            return finish_dc(system, solution, iteration + 1);
+            return finish_dc(system, solution, iteration + 1, residual);
         }
     }
     Err(SimError::ConvergenceFailure {
@@ -232,13 +232,21 @@ fn solve_dc(
     })
 }
 
+fn solve_iteration(
+    system: &mut SimulationSystem,
+    solution: &Solution,
+    gmin: f64,
+    config: &DcConfig,
+) -> Result<(Solution, f64, bool), SimError> {
+    let raw = system.solve(solution, None, gmin)?;
+    let next = damp_solution(solution, &raw, config.max_step);
+    let residual = max_node_delta(solution, &next);
+    let converged = solution_close(solution, &next, config);
+    Ok((next, residual, converged))
+}
+
 fn damp_solution(old: &Solution, new: &Solution, max_step: f64) -> Solution {
-    let max_delta = old
-        .node_voltages
-        .iter()
-        .zip(&new.node_voltages)
-        .map(|(first, second)| (second - first).abs())
-        .fold(0.0, f64::max);
+    let max_delta = max_node_delta(old, new);
     if max_delta <= max_step || max_step <= 0.0 {
         return new.clone();
     }
@@ -247,6 +255,14 @@ fn damp_solution(old: &Solution, new: &Solution, max_step: f64) -> Solution {
         node_voltages: interpolate(&old.node_voltages, &new.node_voltages, alpha),
         branch_currents: interpolate(&old.branch_currents, &new.branch_currents, alpha),
     }
+}
+
+fn max_node_delta(old: &Solution, new: &Solution) -> f64 {
+    old.node_voltages
+        .iter()
+        .zip(&new.node_voltages)
+        .map(|(first, second)| (second - first).abs())
+        .fold(0.0, f64::max)
 }
 
 fn interpolate(old: &[f64], new: &[f64], alpha: f64) -> Vec<f64> {
@@ -260,11 +276,13 @@ fn finish_dc(
     system: &mut SimulationSystem,
     solution: Solution,
     iterations: usize,
+    residual: f64,
 ) -> Result<DcResult, SimError> {
     system.update(&solution)?;
     Ok(DcResult {
         solution,
         iterations,
+        residual,
     })
 }
 
@@ -310,6 +328,7 @@ mod tests {
         let result = dc_operating_point(&circuit, &DcConfig::default()).expect("dc");
         let voltage = result.solution.voltage(output).expect("output");
         assert!((voltage - 5.0).abs() < 1e-6);
+        assert!(result.residual.is_finite() && result.residual < 1e-3);
     }
 
     #[test]
