@@ -1,7 +1,9 @@
 //! Shichman-Hodges Level 1 MOSFET model.
 
 use crate::model::{DeviceModel, parameter, pins_exact, positive_parameter};
-use sim_core::{Device, DeviceInstance, DeviceKind, MnaContext, NodeId, SimError, Solution};
+use sim_core::{
+    Device, DeviceInstance, DeviceKind, MnaContext, NOMINAL_TEMPERATURE, NodeId, SimError, Solution,
+};
 use std::collections::BTreeMap;
 
 const DERIVATIVE_STEP: f64 = 1e-6;
@@ -31,8 +33,16 @@ impl MosfetParams {
 
     /// Builds parameters from a device parameter map.
     pub fn from_map(params: &BTreeMap<String, f64>) -> Result<Self, SimError> {
+        let temperature = parameter(params, "temp", NOMINAL_TEMPERATURE);
+        let tcv = parameter(params, "tcv", 0.0);
+        let vto = parameter(params, "vto", 0.7) + tcv * (temperature - NOMINAL_TEMPERATURE);
+        if !vto.is_finite() {
+            return Err(SimError::InvalidNetlist(
+                "mosfet vto must be finite".to_string(),
+            ));
+        }
         Ok(Self {
-            vto: parameter(params, "vto", 0.7),
+            vto,
             kp: positive_parameter(params, "kp", Some(1e-3))?,
             lambda: parameter(params, "lambda", 0.0),
             width: positive_parameter(params, "w", Some(1e-6))?,

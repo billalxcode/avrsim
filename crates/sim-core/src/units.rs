@@ -33,6 +33,15 @@ define_unit!(Current, "Electrical current in amperes.");
 define_unit!(Resistance, "Electrical resistance in ohms.");
 define_unit!(Capacitance, "Electrical capacitance in farads.");
 
+/// Boltzmann constant in joule per kelvin.
+pub const BOLTZMANN: f64 = 1.380_649e-23;
+
+/// Elementary charge in coulomb.
+pub const ELEMENTARY_CHARGE: f64 = 1.602_176_634e-19;
+
+/// Reference temperature for device models in kelvin.
+pub const NOMINAL_TEMPERATURE: f64 = 300.15;
+
 #[cfg(test)]
 mod tests {
     use super::{Capacitance, Current, Resistance, Voltage};

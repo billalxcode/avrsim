@@ -5,10 +5,10 @@ use sim_core::{Circuit, Device, DeviceKind, NodeId, SimError};
 use std::collections::BTreeMap;
 
 /// Boltzmann constant in joule per kelvin.
-pub const BOLTZMANN: f64 = 1.380_649e-23;
+pub use sim_core::BOLTZMANN;
 
 /// Default temperature in kelvin (27 deg C).
-pub const DEFAULT_TEMPERATURE: f64 = 300.15;
+pub const DEFAULT_TEMPERATURE: f64 = sim_core::NOMINAL_TEMPERATURE;
 
 /// Noise sweep configuration.
 #[derive(Clone, Copy, Debug)]

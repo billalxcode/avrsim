@@ -1,10 +1,13 @@
 //! Passive device models.
 
 use crate::model::{
-    DeviceModel, IntegrationMethod, branch_index, pins_exact, positive_parameter,
+    DeviceModel, IntegrationMethod, branch_index, parameter, pins_exact, positive_parameter,
     stamp_conductance, stamp_inductor_branch, stamp_voltage_branch,
 };
-use sim_core::{Device, DeviceId, DeviceInstance, MnaContext, NodeId, SimError, Solution};
+use sim_core::{
+    Device, DeviceId, DeviceInstance, MnaContext, NOMINAL_TEMPERATURE, NodeId, SimError, Solution,
+};
+use std::collections::BTreeMap;
 
 /// An ideal resistor.
 pub struct ResistorModel {
@@ -15,12 +18,27 @@ pub struct ResistorModel {
 impl ResistorModel {
     pub(crate) fn from_instance(instance: &DeviceInstance) -> Result<Self, SimError> {
         let pins = pins_exact(instance, 2)?;
-        let resistance = positive_parameter(instance.parameters(), "resistance", None)?;
+        let resistance = resistance_value(instance.parameters())?;
         Ok(Self {
             resistance,
             pins: [pins[0], pins[1]],
         })
     }
+}
+
+fn resistance_value(params: &BTreeMap<String, f64>) -> Result<f64, SimError> {
+    let nominal = positive_parameter(params, "resistance", None)?;
+    let temperature = parameter(params, "temp", NOMINAL_TEMPERATURE);
+    let delta = temperature - NOMINAL_TEMPERATURE;
+    let tc1 = parameter(params, "tc1", 0.0);
+    let tc2 = parameter(params, "tc2", 0.0);
+    let scale = 1.0 + tc1 * delta + tc2 * delta * delta;
+    if !scale.is_finite() || scale <= 0.0 {
+        return Err(SimError::InvalidNetlist(
+            "resistor temperature scale is invalid".to_string(),
+        ));
+    }
+    Ok(nominal * scale)
 }
 
 impl DeviceModel for ResistorModel {

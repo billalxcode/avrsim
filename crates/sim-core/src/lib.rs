@@ -28,4 +28,6 @@ pub use netlist::{
 };
 pub use sparse::{SparseMatrix, minimum_degree_order, solve_sparse};
 pub use time::Time;
-pub use units::{Capacitance, Current, Resistance, Voltage};
+pub use units::{
+    BOLTZMANN, Capacitance, Current, ELEMENTARY_CHARGE, NOMINAL_TEMPERATURE, Resistance, Voltage,
+};

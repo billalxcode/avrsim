@@ -1,7 +1,11 @@
 //! Shockley diode model.
 
-use crate::model::{DeviceModel, pins_exact, positive_parameter, stamp_conductance};
-use sim_core::{Device, DeviceInstance, MnaContext, NodeId, SimError, Solution};
+use crate::model::{DeviceModel, parameter, pins_exact, positive_parameter, stamp_conductance};
+use sim_core::{
+    BOLTZMANN, Device, DeviceInstance, ELEMENTARY_CHARGE, MnaContext, NOMINAL_TEMPERATURE, NodeId,
+    SimError, Solution,
+};
+use std::collections::BTreeMap;
 
 const MAX_EXPONENT: f64 = 40.0;
 const MAX_FORWARD_VOLTAGE: f64 = 0.9;
@@ -19,7 +23,7 @@ impl DiodeModel {
         let pins = pins_exact(instance, 2)?;
         let saturation_current = positive_parameter(instance.parameters(), "is", Some(1e-12))?;
         let emission = positive_parameter(instance.parameters(), "n", Some(1.0))?;
-        let thermal_voltage = positive_parameter(instance.parameters(), "vt", Some(0.02585))?;
+        let thermal_voltage = thermal_voltage(instance.parameters())?;
         Ok(Self {
             saturation_current,
             emission,
@@ -39,6 +43,12 @@ impl DiodeModel {
         let exponent = (limited / (self.emission * self.thermal_voltage)).min(MAX_EXPONENT);
         self.saturation_current / (self.emission * self.thermal_voltage) * exponent.exp()
     }
+}
+
+fn thermal_voltage(params: &BTreeMap<String, f64>) -> Result<f64, SimError> {
+    let temperature = parameter(params, "temp", NOMINAL_TEMPERATURE);
+    let default = BOLTZMANN * temperature / ELEMENTARY_CHARGE;
+    positive_parameter(params, "vt", Some(default))
 }
 
 impl DeviceModel for DiodeModel {
