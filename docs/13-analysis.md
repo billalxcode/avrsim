@@ -9,7 +9,7 @@ Dokumentasi analisis DC, transient, AC, noise, distorsi, dan sensitivitas yang s
 P4 diimplementasikan sebagian:
 
 - MNA context.
-- Stamping resistor, capacitor, inductor, source, MOSFET, diode, BJT, JFET.
+- Stamping resistor, capacitor, inductor, source, pulse source, MOSFET, diode, BJT, JFET.
 - DC operating point.
 - Newton-style linearization loop.
 - Kriteria konvergensi.
@@ -25,6 +25,7 @@ P4 diimplementasikan sebagian:
 - Transmission line lossless untuk transient.
 - Continuation sweep dan initial state device untuk discharge.
 - Voltage limiting junction, source stepping, dan writer CSV/VCD analog.
+- Pulse voltage source untuk transient switching.
 - Benchmark solver dan optimasi alokasi.
 - Prosedur kalibrasi parameter device.
 - Model pin elektrik untuk GPIO.
@@ -218,12 +219,12 @@ P4 lanjutan:
 Total test workspace saat ini:
 
 - `sim-core`: 62.
-- `sim-device`: 34 (29 unit + 5 integration).
-- `sim-analysis`: 70.
+- `sim-device`: 36 (31 unit + 5 integration).
+- `sim-analysis`: 72.
 - `sim-cells`: 67.
 - `sim-avr`: 198.
 - `sim-board`: 17.
 - `sim-cli`: 11.
-- Total: 459.
+- Total: 463.
 
 Semua fungsi maksimal 20 baris dan semua file baru ASCII-only.

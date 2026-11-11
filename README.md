@@ -91,6 +91,7 @@ Baca berurutan:
 | [`docs/38-performance.md`](docs/38-performance.md) | Benchmark dan optimasi solver |
 | [`docs/39-calibration.md`](docs/39-calibration.md) | Prosedur dan inventaris parameter |
 | [`docs/40-pin-electrical.md`](docs/40-pin-electrical.md) | Tegangan, arus, high-Z, contention |
+| [`docs/41-pulse-source.md`](docs/41-pulse-source.md) | Sumber pulsa untuk transient switching |
 | [`TODO.md`](TODO.md) | **Todolist lengkap dari hal terkecil** |
 
 ---

@@ -47,6 +47,7 @@ Dokumen ini adalah indeks lengkap spesifikasi **embed-emulation**.
 | 38 | [Performa](38-performance.md) | Benchmark dan optimasi solver |
 | 39 | [Kalibrasi](39-calibration.md) | Prosedur dan inventaris parameter |
 | 40 | [Pin electrical](40-pin-electrical.md) | Tegangan, arus, high-Z, contention |
+| 41 | [Pulse source](41-pulse-source.md) | Sumber pulsa untuk transient switching |
 | - | [Todolist](../TODO.md) | Daftar tugas lengkap dari hal terkecil |
 
 ## Konvensi dokumen
