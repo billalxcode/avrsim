@@ -189,6 +189,41 @@ fn validate(first: &[NetId], second: &[NetId]) -> Result<(), SimError> {
     Ok(())
 }
 
+/// Flags produced by an AVR compare operation.
+pub struct CompareUnit {
+    /// Carry or borrow.
+    pub carry: NetId,
+    /// Result is zero.
+    pub zero: NetId,
+    /// Result bit 7.
+    pub negative: NetId,
+    /// Signed overflow.
+    pub overflow: NetId,
+    /// Signed result sign.
+    pub sign: NetId,
+    /// Carry or borrow from bit 3.
+    pub half_carry: NetId,
+}
+
+/// Builds a compare unit. The arithmetic result is not written back.
+pub fn compare_unit(
+    builder: &mut DigitalBuilder,
+    first: &[NetId],
+    second: &[NetId],
+    carry_in: NetId,
+) -> Result<CompareUnit, SimError> {
+    let subtract = builder.constant(true);
+    let unit = arithmetic_unit(builder, first, second, subtract, carry_in)?;
+    Ok(CompareUnit {
+        carry: unit.carry,
+        zero: unit.zero,
+        negative: unit.negative,
+        overflow: unit.overflow,
+        sign: unit.sign,
+        half_carry: unit.half_carry,
+    })
+}
+
 /// Builds a NEG unit: result is zero minus the input.
 pub fn negate_unit(
     builder: &mut DigitalBuilder,
@@ -341,8 +376,8 @@ fn subtraction_overflow(
 #[cfg(test)]
 mod tests {
     use super::{
-        ArithmeticUnit, LogicUnit, arithmetic_unit, decrement_unit, increment_unit, logic_unit,
-        negate_unit, select_operand,
+        ArithmeticUnit, CompareUnit, LogicUnit, arithmetic_unit, compare_unit, decrement_unit,
+        increment_unit, logic_unit, negate_unit, select_operand,
     };
     use crate::test_support::{named_inputs, set_bits};
     use sim_cells::{
@@ -680,6 +715,105 @@ mod tests {
             assert_eq!(actual.negative, expected & 0x80 != 0);
             assert_eq!(actual.overflow, expected == 0x7F);
             assert_eq!(actual.sign, actual.negative ^ actual.overflow);
+        }
+    }
+
+    fn compare_fixture() -> (DigitalCircuit, CompareUnit) {
+        let mut builder = DigitalBuilder::new();
+        let first = named_inputs(&mut builder, "a", 8);
+        let second = named_inputs(&mut builder, "b", 8);
+        let carry = builder.input("cin");
+        let unit = compare_unit(&mut builder, &first, &second, carry).expect("compare");
+        (builder.build(), unit)
+    }
+
+    fn compare_outcome(circuit: &DigitalCircuit, unit: &CompareUnit) -> Outcome {
+        Outcome {
+            value: 0,
+            carry: circuit.value(unit.carry),
+            zero: circuit.value(unit.zero),
+            negative: circuit.value(unit.negative),
+            overflow: circuit.value(unit.overflow),
+            sign: circuit.value(unit.sign),
+            half_carry: circuit.value(unit.half_carry),
+        }
+    }
+
+    fn evaluate_compare(
+        circuit: &mut DigitalCircuit,
+        unit: &CompareUnit,
+        first: u8,
+        second: u8,
+        carry_in: bool,
+    ) -> Outcome {
+        set_bits(circuit, "a", u64::from(first), 8);
+        set_bits(circuit, "b", u64::from(second), 8);
+        circuit.set_input("cin", carry_in).expect("cin");
+        circuit.settle().expect("settle");
+        compare_outcome(circuit, unit)
+    }
+
+    fn assert_same_flags(actual: &Outcome, expected: &Outcome) {
+        assert_eq!(actual.carry, expected.carry);
+        assert_eq!(actual.zero, expected.zero);
+        assert_eq!(actual.negative, expected.negative);
+        assert_eq!(actual.overflow, expected.overflow);
+        assert_eq!(actual.sign, expected.sign);
+        assert_eq!(actual.half_carry, expected.half_carry);
+    }
+
+    #[test]
+    fn cp_and_cpc_match_reference() {
+        let (mut circuit, unit) = compare_fixture();
+        let values = [0, 1, 0x0F, 0x10, 0x7F, 0x80, 0xFF];
+        for first in 0..=u8::MAX {
+            for second in values {
+                for carry in [false, true] {
+                    let actual = evaluate_compare(&mut circuit, &unit, first, second, carry);
+                    let expected = subtraction(first, second, carry);
+                    assert_same_flags(&actual, &expected);
+                }
+            }
+        }
+    }
+
+    fn immediate_compare_fixture() -> (DigitalCircuit, CompareUnit) {
+        let mut builder = DigitalBuilder::new();
+        let first = named_inputs(&mut builder, "a", 8);
+        let register = named_inputs(&mut builder, "b", 8);
+        let immediate = named_inputs(&mut builder, "k", 8);
+        let use_immediate = builder.input("imm");
+        let selected =
+            select_operand(&mut builder, &register, &immediate, use_immediate).expect("select");
+        let carry = builder.constant(false);
+        let unit = compare_unit(&mut builder, &first, &selected, carry).expect("compare");
+        (builder.build(), unit)
+    }
+
+    fn evaluate_immediate_compare(
+        circuit: &mut DigitalCircuit,
+        unit: &CompareUnit,
+        first: u8,
+        immediate: u8,
+    ) -> Outcome {
+        set_bits(circuit, "a", u64::from(first), 8);
+        set_bits(circuit, "b", 0, 8);
+        set_bits(circuit, "k", u64::from(immediate), 8);
+        circuit.set_input("imm", true).expect("imm");
+        circuit.settle().expect("settle");
+        compare_outcome(circuit, unit)
+    }
+
+    #[test]
+    fn cpi_matches_reference() {
+        let (mut circuit, unit) = immediate_compare_fixture();
+        let values = [0, 1, 0x0F, 0x10, 0x7F, 0x80, 0xFF];
+        for first in 0..=u8::MAX {
+            for immediate in values {
+                let actual = evaluate_immediate_compare(&mut circuit, &unit, first, immediate);
+                let expected = subtraction(first, immediate, false);
+                assert_same_flags(&actual, &expected);
+            }
         }
     }
 }

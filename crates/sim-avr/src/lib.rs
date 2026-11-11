@@ -13,8 +13,8 @@ pub mod shift;
 mod test_support;
 
 pub use alu::{
-    ArithmeticUnit, LogicUnit, arithmetic_unit, decrement_unit, increment_unit, logic_unit,
-    negate_unit, select_operand,
+    ArithmeticUnit, CompareUnit, LogicUnit, arithmetic_unit, compare_unit, decrement_unit,
+    increment_unit, logic_unit, negate_unit, select_operand,
 };
 pub use decode::{decode, uses_second_word};
 pub use fetch::{Fetched, ProgramMemory};
