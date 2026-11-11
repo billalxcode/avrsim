@@ -3,6 +3,7 @@
 #![forbid(unsafe_code)]
 
 mod bjt;
+mod controlled;
 mod diode;
 mod jfet;
 mod model;
@@ -12,6 +13,7 @@ mod source;
 mod transmission;
 
 pub use bjt::BjtModel;
+pub use controlled::{VccsModel, VcvsModel};
 pub use diode::DiodeModel;
 pub use jfet::JfetModel;
 pub use model::{DeviceModel, IntegrationMethod, model_from_instance};

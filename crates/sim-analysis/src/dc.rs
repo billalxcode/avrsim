@@ -320,7 +320,7 @@ mod tests {
     use crate::test_support::{
         common_emitter, common_emitter_pnp, common_source_body, common_source_n,
         common_source_n_biased, common_source_p, diode_clamp, inverter, rc_circuit, rl_circuit,
-        voltage_divider,
+        vccs_circuit, vcvs_circuit, voltage_divider,
     };
 
     #[test]
@@ -601,5 +601,21 @@ mod tests {
         let biased = dc_operating_point(&circuit, &DcConfig::default()).expect("biased");
         let biased = biased.solution.voltage(output).expect("biased v");
         assert!(biased > base + 0.1, "base={base} biased={biased}");
+    }
+
+    #[test]
+    fn vcvs_output_is_gain_times_control() {
+        let (circuit, output) = vcvs_circuit();
+        let result = dc_operating_point(&circuit, &DcConfig::default()).expect("dc");
+        let voltage = result.solution.voltage(output).expect("output");
+        assert!((voltage - 2.0).abs() < 1e-9, "voltage={voltage}");
+    }
+
+    #[test]
+    fn vccs_output_is_gm_times_control_times_load() {
+        let (circuit, output) = vccs_circuit();
+        let result = dc_operating_point(&circuit, &DcConfig::default()).expect("dc");
+        let voltage = result.solution.voltage(output).expect("output");
+        assert!((voltage - 1.0).abs() < 1e-9, "voltage={voltage}");
     }
 }

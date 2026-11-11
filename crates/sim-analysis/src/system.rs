@@ -135,7 +135,10 @@ fn build_branch_map(circuit: &Circuit) -> (Vec<Option<usize>>, usize) {
     let mut branches = 0;
     for device in circuit.devices() {
         match device.kind() {
-            DeviceKind::VoltageSource | DeviceKind::PulseVoltageSource | DeviceKind::Inductor => {
+            DeviceKind::VoltageSource
+            | DeviceKind::PulseVoltageSource
+            | DeviceKind::Vcvs
+            | DeviceKind::Inductor => {
                 map.push(Some(index));
                 index += 1;
                 branches += 1;

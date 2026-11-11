@@ -19,6 +19,10 @@ pub enum DeviceKind {
     PulseVoltageSource,
     /// An independent current source.
     CurrentSource,
+    /// A voltage-controlled voltage source.
+    Vcvs,
+    /// A voltage-controlled current source.
+    Vccs,
     /// An N-channel MOSFET.
     Nmos,
     /// A P-channel MOSFET.
@@ -44,12 +48,27 @@ impl DeviceKind {
     #[must_use]
     pub fn name(&self) -> &str {
         match self {
+            Self::Custom(name) => name,
+            other => other.static_name(),
+        }
+    }
+
+    fn static_name(&self) -> &'static str {
+        match self {
             Self::Resistor => "resistor",
             Self::Capacitor => "capacitor",
             Self::Inductor => "inductor",
             Self::VoltageSource => "voltage_source",
             Self::PulseVoltageSource => "pulse_voltage_source",
             Self::CurrentSource => "current_source",
+            Self::Vcvs => "vcvs",
+            Self::Vccs => "vccs",
+            other => other.analog_name(),
+        }
+    }
+
+    fn analog_name(&self) -> &'static str {
+        match self {
             Self::Nmos => "nmos",
             Self::Pmos => "pmos",
             Self::Npn => "npn",
@@ -58,7 +77,7 @@ impl DeviceKind {
             Self::JfetP => "jfet_p",
             Self::TransmissionLine => "transmission_line",
             Self::Diode => "diode",
-            Self::Custom(name) => name,
+            _ => "custom",
         }
     }
 

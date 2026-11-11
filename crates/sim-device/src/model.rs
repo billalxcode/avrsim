@@ -1,6 +1,7 @@
 //! Device model API and factory.
 
 use crate::bjt::BjtModel;
+use crate::controlled::{VccsModel, VcvsModel};
 use crate::diode::DiodeModel;
 use crate::jfet::JfetModel;
 use crate::mosfet::MosfetModel;
@@ -65,6 +66,8 @@ pub fn model_from_instance(instance: &DeviceInstance) -> Result<Box<dyn DeviceMo
         DeviceKind::VoltageSource => Ok(Box::new(VoltageSourceModel::from_instance(instance)?)),
         DeviceKind::PulseVoltageSource => Ok(Box::new(PulseSourceModel::from_instance(instance)?)),
         DeviceKind::CurrentSource => Ok(Box::new(CurrentSourceModel::from_instance(instance)?)),
+        DeviceKind::Vcvs => Ok(Box::new(VcvsModel::from_instance(instance)?)),
+        DeviceKind::Vccs => Ok(Box::new(VccsModel::from_instance(instance)?)),
         DeviceKind::Nmos | DeviceKind::Pmos => Ok(Box::new(MosfetModel::from_instance(instance)?)),
         DeviceKind::Npn | DeviceKind::Pnp => Ok(Box::new(BjtModel::from_instance(instance)?)),
         DeviceKind::JfetN | DeviceKind::JfetP => Ok(Box::new(JfetModel::from_instance(instance)?)),

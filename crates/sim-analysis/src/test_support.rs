@@ -172,6 +172,28 @@ impl TestCircuit {
         );
     }
 
+    pub(crate) fn vcvs(
+        &mut self,
+        name: &str,
+        output: [NodeId; 2],
+        control: [NodeId; 2],
+        gain: f64,
+    ) {
+        let parameters = params("gain", gain);
+        let pins = vec![output[0], output[1], control[0], control[1]];
+        self.builder
+            .device(name, DeviceKind::Vcvs, pins, parameters)
+            .expect(name);
+    }
+
+    pub(crate) fn vccs(&mut self, name: &str, output: [NodeId; 2], control: [NodeId; 2], gm: f64) {
+        let parameters = params("gm", gm);
+        let pins = vec![output[0], output[1], control[0], control[1]];
+        self.builder
+            .device(name, DeviceKind::Vccs, pins, parameters)
+            .expect(name);
+    }
+
     pub(crate) fn transmission_line(
         &mut self,
         name: &str,
@@ -425,6 +447,28 @@ fn add_mos_capacitor(circuit: &mut TestCircuit, gate: NodeId, ground: NodeId) {
             parameters,
         )
         .expect("m1");
+}
+
+pub(crate) fn vcvs_circuit() -> (Circuit, NodeId) {
+    let mut circuit = TestCircuit::new();
+    let input = circuit.node("in");
+    let output = circuit.node("out");
+    let ground = circuit.ground();
+    circuit.voltage("vin", input, ground, 1.0);
+    circuit.vcvs("e1", [output, ground], [input, ground], 2.0);
+    circuit.resistor("rl", output, ground, 1000.0);
+    (circuit.build(), output)
+}
+
+pub(crate) fn vccs_circuit() -> (Circuit, NodeId) {
+    let mut circuit = TestCircuit::new();
+    let input = circuit.node("in");
+    let output = circuit.node("out");
+    let ground = circuit.ground();
+    circuit.voltage("vin", input, ground, 1.0);
+    circuit.vccs("g1", [output, ground], [input, ground], 1e-3);
+    circuit.resistor("rl", output, ground, 1000.0);
+    (circuit.build(), output)
 }
 
 pub(crate) fn reverse_diode_rc(cj0: f64) -> (Circuit, NodeId) {
