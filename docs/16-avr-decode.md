@@ -151,6 +151,7 @@ ALU menjadi eksekusi instruksi end-to-end.
 - SREG disimpan sebagai state Rust.
 - PC disimpan sebagai word address Rust.
 - Trace mencatat PC, instruksi, 32 register, SREG, dan halt.
+- I/O register disimpan sebagai array 64 byte behavioral.
 
 Instruksi yang sudah berjalan end-to-end:
 
@@ -162,6 +163,9 @@ Instruksi yang sudah berjalan end-to-end:
 - LSR, ASR, ROR, SWAP.
 - MUL.
 - RJMP, JMP, BRBS, BRBC.
+- CPSE, SBRC, SBRS, SBIC, SBIS.
+- SBI, CBI, IN, OUT.
+- BSET, BCLR, BST, BLD.
 - NOP, BREAK.
 
 Test program mencakup arithmetic, carry, logic, compare, branch, jump, MOVW,
@@ -189,7 +193,7 @@ Test decoder mencakup:
 - IR load, hold, reset, dan validasi lebar data.
 - Register bank write/read, dua read port, pasangan little-endian, hold, dan reset.
 
-Total test `sim-avr`: 59.
+Total test `sim-avr`: 64.
 
 ---
 

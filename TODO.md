@@ -2,7 +2,7 @@
 
 Daftar tugas lengkap dari hal terkecil sampai rilis. Setiap item harus kecil, dapat diuji, dan tidak menambah dependensi eksternal.
 
-> **Status:** CPU AVR subset berjalan end-to-end: arithmetic, logic, shift, multiply, move, jump, dan branch. Lanjut ke load/store, call/stack, dan control PLA struktural.
+> **Status:** CPU subset mendukung skip, bit, flag, dan I/O. Lanjut ke load/store, stack/call, dan control PLA struktural.
 > **Aturan:** satu item selesai = kode + test + dokumentasi singkat.
 
 ---
@@ -331,7 +331,7 @@ Daftar tugas lengkap dari hal terkecil sampai rilis. Setiap item harus kecil, da
 - [x] P7-23 Implementasikan CP.
 - [x] P7-24 Implementasikan CPC.
 - [x] P7-25 Implementasikan CPI.
-- [ ] P7-26 Implementasikan CPSE.
+- [x] P7-26 Implementasikan CPSE.
 - [x] P7-27 Implementasikan LSR.
 - [x] P7-28 Implementasikan ASR.
 - [x] P7-29 Implementasikan ROR.
@@ -378,18 +378,18 @@ Daftar tugas lengkap dari hal terkecil sampai rilis. Setiap item harus kecil, da
 - [ ] P7-70 Implementasikan RETI.
 - [x] P7-71 Implementasikan BRBS.
 - [x] P7-72 Implementasikan BRBC.
-- [ ] P7-73 Implementasikan SBRC.
-- [ ] P7-74 Implementasikan SBRS.
-- [ ] P7-75 Implementasikan SBI.
-- [ ] P7-76 Implementasikan CBI.
-- [ ] P7-77 Implementasikan SBIC.
-- [ ] P7-78 Implementasikan SBIS.
-- [ ] P7-79 Implementasikan BST.
-- [ ] P7-80 Implementasikan BLD.
-- [ ] P7-81 Implementasikan BSET.
-- [ ] P7-82 Implementasikan BCLR.
-- [ ] P7-83 Implementasikan IN.
-- [ ] P7-84 Implementasikan OUT.
+- [x] P7-73 Implementasikan SBRC.
+- [x] P7-74 Implementasikan SBRS.
+- [x] P7-75 Implementasikan SBI.
+- [x] P7-76 Implementasikan CBI.
+- [x] P7-77 Implementasikan SBIC.
+- [x] P7-78 Implementasikan SBIS.
+- [x] P7-79 Implementasikan BST.
+- [x] P7-80 Implementasikan BLD.
+- [x] P7-81 Implementasikan BSET.
+- [x] P7-82 Implementasikan BCLR.
+- [x] P7-83 Implementasikan IN.
+- [x] P7-84 Implementasikan OUT.
 - [ ] P7-85 Implementasikan SREG.
 - [ ] P7-86 Implementasikan interrupt controller.
 - [ ] P7-87 Implementasikan vector table.
