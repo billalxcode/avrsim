@@ -2,7 +2,7 @@
 
 Daftar tugas lengkap dari hal terkecil sampai rilis. Setiap item harus kecil, dapat diuji, dan tidak menambah dependensi eksternal.
 
-> **Status:** P8 selesai. P9 sebagian besar selesai. P10 sparse, adaptive step, trapezoidal/Gear, AC linear, noise termal, distorsi kuasi-statis, sensitivitas numerik, suhu device, process corner, BJT, JFET, transmission line, determinisme Linux, fidelity matrix, batasan model, profiling, dan optimasi selesai. Golden suite dan determinisme macOS/Windows belum. P4 harness ngspice dan golden data belum karena ngspice tidak tersedia. P5 switching characterization selesai; input capacitance dan drive strength belum. P11 user guide dan contoh runnable selesai; UART hello, CI, packaging, dan release belum.
+> **Status:** P8 selesai. P9 sebagian besar selesai. P10 sparse, adaptive step, trapezoidal/Gear, AC linear, noise termal, distorsi kuasi-statis, sensitivitas numerik, suhu device, process corner, BJT, JFET, transmission line, determinisme Linux, fidelity matrix, batasan model, profiling, dan optimasi selesai. Golden suite dan determinisme macOS/Windows belum. P4 harness ngspice dan golden data belum karena ngspice tidak tersedia. P5 switching characterization selesai; input capacitance dan drive strength belum. P11 user guide dan contoh runnable selesai; CI, packaging, dan release belum.
 > **Aturan:** satu item selesai = kode + test + dokumentasi singkat.
 
 ---
@@ -570,7 +570,7 @@ Daftar tugas lengkap dari hal terkecil sampai rilis. Setiap item harus kecil, da
 - [x] P11-04 Tambahkan contoh ring oscillator.
 - [x] P11-05 Tambahkan contoh CPU uji.
 - [x] P11-06 Tambahkan contoh blink.
-- [ ] P11-07 Tambahkan contoh UART hello.
+- [x] P11-07 Tambahkan contoh UART hello.
 - [ ] P11-08 Jalankan CI Linux.
 - [ ] P11-09 Jalankan CI macOS.
 - [ ] P11-10 Jalankan CI Windows.
