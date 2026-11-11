@@ -95,7 +95,7 @@ fn add_or(builder: &mut CellBuilder, first: NodeId, second: NodeId) -> Result<No
     Ok(output)
 }
 
-fn add_nand(
+pub(crate) fn add_nand(
     builder: &mut CellBuilder,
     name: &str,
     first: NodeId,

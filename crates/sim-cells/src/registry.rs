@@ -3,6 +3,7 @@
 use super::buffer::buffer;
 use super::cell::Cell;
 use super::inverter::inverter;
+use super::logic::{and2, mux2, or2, xor2};
 use super::memory::sram6t;
 use super::nand::nand2;
 use super::nor::nor2;
@@ -21,6 +22,14 @@ pub enum CellKind {
     Nand2,
     /// Two-input NOR.
     Nor2,
+    /// Two-input AND.
+    And2,
+    /// Two-input OR.
+    Or2,
+    /// Two-input XOR.
+    Xor2,
+    /// Two-input multiplexer.
+    Mux2,
     /// Two-stage buffer.
     Buffer,
     /// Transmission gate.
@@ -38,6 +47,24 @@ pub enum CellKind {
 }
 
 impl CellKind {
+    /// All registered cell kinds.
+    pub const ALL: [Self; 14] = [
+        Self::Inverter,
+        Self::Nand2,
+        Self::Nor2,
+        Self::And2,
+        Self::Or2,
+        Self::Xor2,
+        Self::Mux2,
+        Self::Buffer,
+        Self::TransmissionGate,
+        Self::TriStateInverter,
+        Self::DLatch,
+        Self::DFlipFlop,
+        Self::Sram6t,
+        Self::RingOscillator,
+    ];
+
     /// Returns the cell name.
     #[must_use]
     pub const fn name(self) -> &'static str {
@@ -45,6 +72,10 @@ impl CellKind {
             Self::Inverter => "inverter",
             Self::Nand2 => "nand2",
             Self::Nor2 => "nor2",
+            Self::And2 => "and2",
+            Self::Or2 => "or2",
+            Self::Xor2 => "xor2",
+            Self::Mux2 => "mux2",
             Self::Buffer => "buffer",
             Self::TransmissionGate => "transmission_gate",
             Self::TriStateInverter => "tri_state_inverter",
@@ -61,6 +92,10 @@ impl CellKind {
             Self::Inverter => inverter(),
             Self::Nand2 => nand2(),
             Self::Nor2 => nor2(),
+            Self::And2 => and2(),
+            Self::Or2 => or2(),
+            Self::Xor2 => xor2(),
+            Self::Mux2 => mux2(),
             Self::Buffer => buffer(),
             Self::TransmissionGate => transmission_gate(),
             Self::TriStateInverter => tri_state_inverter(),

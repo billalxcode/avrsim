@@ -1,8 +1,8 @@
 use sim_analysis::{DcConfig, dc_operating_point, dc_sweep};
 use sim_cells::{
-    CellKind, adder8, buffer, d_flip_flop, d_latch, full_adder, half_adder, inverter, nand2,
-    noise_margins, nor2, ring_oscillator, ripple_carry_adder, sram6t, transmission_gate,
-    tri_state_inverter,
+    CellKind, adder8, and2, buffer, d_flip_flop, d_latch, full_adder, half_adder, inverter, mux2,
+    nand2, noise_margins, nor2, or2, ring_oscillator, ripple_carry_adder, sram6t,
+    transmission_gate, tri_state_inverter, xor2,
 };
 use sim_core::{Circuit, DeviceKind, NodeId, SimError};
 use std::collections::BTreeMap;
@@ -204,19 +204,7 @@ fn ring_oscillator_has_output() {
 
 #[test]
 fn registry_builds_every_cell() {
-    let kinds = [
-        CellKind::Inverter,
-        CellKind::Nand2,
-        CellKind::Nor2,
-        CellKind::Buffer,
-        CellKind::TransmissionGate,
-        CellKind::TriStateInverter,
-        CellKind::DLatch,
-        CellKind::DFlipFlop,
-        CellKind::Sram6t,
-        CellKind::RingOscillator,
-    ];
-    for kind in kinds {
+    for kind in CellKind::ALL {
         let cell = kind.build().expect("cell");
         assert!(!kind.name().is_empty());
         assert!(cell.vdd().is_some());
@@ -380,4 +368,56 @@ fn eight_bit_adder_has_ports() {
     assert!(cell.port("b7").is_some());
     assert!(cell.port("sum7").is_some());
     assert!(cell.port("cout").is_some());
+}
+
+fn gate_output(cell: sim_cells::Cell, inputs: &[(&str, f64)]) -> f64 {
+    let mut circuit = cell.powered(5.0).expect("powered");
+    for (index, (port, voltage)) in inputs.iter().enumerate() {
+        let node = cell.port(port).expect("input port");
+        add_source(&mut circuit, &format!("v{index}"), node, *voltage).expect("source");
+    }
+    output(&circuit, cell.port("y").expect("y"))
+}
+
+#[test]
+fn and_gate_truth_table() {
+    assert!(gate_output(and2().expect("cell"), &[("a", 0.0), ("b", 0.0)]) < 1.0);
+    assert!(gate_output(and2().expect("cell"), &[("a", 0.0), ("b", 5.0)]) < 1.0);
+    assert!(gate_output(and2().expect("cell"), &[("a", 5.0), ("b", 0.0)]) < 1.0);
+    assert!(gate_output(and2().expect("cell"), &[("a", 5.0), ("b", 5.0)]) > 4.0);
+}
+
+#[test]
+fn or_gate_truth_table() {
+    assert!(gate_output(or2().expect("cell"), &[("a", 0.0), ("b", 0.0)]) < 1.0);
+    assert!(gate_output(or2().expect("cell"), &[("a", 0.0), ("b", 5.0)]) > 4.0);
+    assert!(gate_output(or2().expect("cell"), &[("a", 5.0), ("b", 0.0)]) > 4.0);
+    assert!(gate_output(or2().expect("cell"), &[("a", 5.0), ("b", 5.0)]) > 4.0);
+}
+
+#[test]
+fn xor_gate_truth_table() {
+    assert!(gate_output(xor2().expect("cell"), &[("a", 0.0), ("b", 0.0)]) < 1.0);
+    assert!(gate_output(xor2().expect("cell"), &[("a", 0.0), ("b", 5.0)]) > 4.0);
+    assert!(gate_output(xor2().expect("cell"), &[("a", 5.0), ("b", 0.0)]) > 4.0);
+    assert!(gate_output(xor2().expect("cell"), &[("a", 5.0), ("b", 5.0)]) < 1.0);
+}
+
+#[test]
+fn mux_selects_inputs() {
+    let cases = [
+        (0.0, 0.0, 0.0, 0.0),
+        (5.0, 0.0, 0.0, 5.0),
+        (0.0, 5.0, 0.0, 0.0),
+        (0.0, 0.0, 5.0, 0.0),
+        (5.0, 0.0, 5.0, 0.0),
+        (0.0, 5.0, 5.0, 5.0),
+    ];
+    for (first, second, select, expected) in cases {
+        let result = gate_output(
+            mux2().expect("cell"),
+            &[("a", first), ("b", second), ("sel", select)],
+        );
+        assert!((result - expected).abs() < 1.0);
+    }
 }
