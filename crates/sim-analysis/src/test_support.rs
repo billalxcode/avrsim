@@ -124,6 +124,20 @@ impl TestCircuit {
             .expect(name);
     }
 
+    pub(crate) fn transmission_line(
+        &mut self,
+        name: &str,
+        ports: [NodeId; 4],
+        parameters: (f64, f64),
+    ) {
+        let mut map = BTreeMap::new();
+        map.insert("z0".to_string(), parameters.0);
+        map.insert("delay".to_string(), parameters.1);
+        self.builder
+            .device(name, DeviceKind::TransmissionLine, ports.to_vec(), map)
+            .expect(name);
+    }
+
     pub(crate) fn build(self) -> Circuit {
         self.builder.build().expect("circuit")
     }
@@ -266,6 +280,19 @@ pub(crate) fn common_source_p() -> (Circuit, NodeId) {
     circuit.resistor("rd", drain, ground, 1000.0);
     circuit.jfet("j1", DeviceKind::JfetP, drain, vcc, vcc, (2.0, 1e-3));
     (circuit.build(), drain)
+}
+
+pub(crate) fn matched_line() -> (Circuit, NodeId) {
+    let mut circuit = TestCircuit::new();
+    let source = circuit.node("source");
+    let input = circuit.node("input");
+    let output = circuit.node("output");
+    let ground = circuit.ground();
+    circuit.voltage("vs", source, ground, 5.0);
+    circuit.resistor("rs", source, input, 50.0);
+    circuit.resistor("rl", output, ground, 50.0);
+    circuit.transmission_line("t1", [input, ground, output, ground], (50.0, 1e-6));
+    (circuit.build(), output)
 }
 
 pub(crate) fn diode_clamp() -> (Circuit, NodeId) {

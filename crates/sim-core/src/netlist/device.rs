@@ -29,6 +29,8 @@ pub enum DeviceKind {
     JfetN,
     /// A P-channel JFET.
     JfetP,
+    /// A lossless transmission line.
+    TransmissionLine,
     /// A diode.
     Diode,
     /// A model supplied by another crate or a future device library.
@@ -51,6 +53,7 @@ impl DeviceKind {
             Self::Pnp => "pnp",
             Self::JfetN => "jfet_n",
             Self::JfetP => "jfet_p",
+            Self::TransmissionLine => "transmission_line",
             Self::Diode => "diode",
             Self::Custom(name) => name,
         }

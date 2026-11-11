@@ -6,6 +6,7 @@ use crate::jfet::JfetModel;
 use crate::mosfet::MosfetModel;
 use crate::passive::{CapacitorModel, InductorModel, ResistorModel};
 use crate::source::{CurrentSourceModel, VoltageSourceModel};
+use crate::transmission::TransmissionLineModel;
 use sim_core::{
     BOLTZMANN, Device, DeviceId, DeviceInstance, DeviceKind, ELEMENTARY_CHARGE, MnaContext,
     NOMINAL_TEMPERATURE, NodeId, SimError, Solution,
@@ -66,6 +67,9 @@ pub fn model_from_instance(instance: &DeviceInstance) -> Result<Box<dyn DeviceMo
         DeviceKind::Nmos | DeviceKind::Pmos => Ok(Box::new(MosfetModel::from_instance(instance)?)),
         DeviceKind::Npn | DeviceKind::Pnp => Ok(Box::new(BjtModel::from_instance(instance)?)),
         DeviceKind::JfetN | DeviceKind::JfetP => Ok(Box::new(JfetModel::from_instance(instance)?)),
+        DeviceKind::TransmissionLine => {
+            Ok(Box::new(TransmissionLineModel::from_instance(instance)?))
+        }
         DeviceKind::Diode => Ok(Box::new(DiodeModel::from_instance(instance)?)),
         other => Err(SimError::UnsupportedDevice(other.name().to_string())),
     }

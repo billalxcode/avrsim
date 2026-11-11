@@ -138,7 +138,7 @@ fn validate_config(config: &TransientConfig) -> Result<(), SimError> {
 #[cfg(test)]
 mod tests {
     use super::{TransientConfig, transient, transient_with_method};
-    use crate::test_support::{rc_circuit, rl_circuit};
+    use crate::test_support::{matched_line, rc_circuit, rl_circuit};
     use sim_device::IntegrationMethod;
 
     #[test]
@@ -335,5 +335,22 @@ mod tests {
             .voltage(output)
             .expect("v");
         assert!(voltage.abs() < 0.05, "voltage={voltage}");
+    }
+
+    #[test]
+    fn transmission_line_delays_matched_step() {
+        let (circuit, output) = matched_line();
+        let config = TransientConfig {
+            dt: 1e-7,
+            steps: 20,
+            gmin: 1e-12,
+            use_dc_op: false,
+            initial_voltages: Vec::new(),
+        };
+        let samples = transient(&circuit, &config).expect("transient");
+        let early = samples[8].solution.voltage(output).expect("early");
+        let late = samples[14].solution.voltage(output).expect("late");
+        assert!(early.abs() < 0.01, "early={early}");
+        assert!((late - 2.5).abs() < 0.1, "late={late}");
     }
 }

@@ -430,8 +430,8 @@ fn source_value(device: &impl Device, fallback: &str) -> Result<Complex64, SimEr
 mod tests {
     use super::{ac_analysis, ac_sweep};
     use crate::test_support::{
-        common_emitter, common_source_n, current_source_circuit, diode_clamp, rc_circuit,
-        rl_circuit,
+        common_emitter, common_source_n, current_source_circuit, diode_clamp, matched_line,
+        rc_circuit, rl_circuit,
     };
 
     #[test]
@@ -473,6 +473,12 @@ mod tests {
     #[test]
     fn ac_rejects_jfet() {
         let (circuit, _) = common_source_n();
+        assert!(ac_analysis(&circuit, 1000.0).is_err());
+    }
+
+    #[test]
+    fn ac_rejects_transmission_line() {
+        let (circuit, _) = matched_line();
         assert!(ac_analysis(&circuit, 1000.0).is_err());
     }
 

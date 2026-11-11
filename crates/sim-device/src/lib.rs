@@ -9,6 +9,7 @@ mod model;
 mod mosfet;
 mod passive;
 mod source;
+mod transmission;
 
 pub use bjt::BjtModel;
 pub use diode::DiodeModel;
@@ -17,3 +18,4 @@ pub use model::{DeviceModel, IntegrationMethod, model_from_instance};
 pub use mosfet::{MosfetModel, MosfetParams};
 pub use passive::{CapacitorModel, InductorModel, ResistorModel};
 pub use source::{CurrentSourceModel, VoltageSourceModel};
+pub use transmission::TransmissionLineModel;
