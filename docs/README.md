@@ -59,6 +59,7 @@ Dokumen ini adalah indeks lengkap spesifikasi **embed-emulation**.
 | 50 | [ELF](50-elf.md) | Loader ELF32 dan simbol |
 | 51 | [CI](51-ci.md) | Workflow Linux, macOS, Windows |
 | 52 | [Lisensi](52-licenses.md) | Lisensi kode, model, dan data |
+| 53 | [Release notes](53-release-notes.md) | Catatan rilis 0.0.1 dan packaging |
 | 43 | [User guide](43-user-guide.md) | Quick start, API, dan contoh |
 | 44 | [Body effect](44-body-effect.md) | Threshold bias body dan `gmb` |
 | 45 | [MOSFET capacitance](45-mosfet-capacitance.md) | Meyer dan overlap capacitance |
@@ -69,6 +70,7 @@ Dokumen ini adalah indeks lengkap spesifikasi **embed-emulation**.
 | 50 | [ELF](50-elf.md) | Loader ELF32 dan simbol |
 | 51 | [CI](51-ci.md) | Workflow Linux, macOS, Windows |
 | 52 | [Lisensi](52-licenses.md) | Lisensi kode, model, dan data |
+| 53 | [Release notes](53-release-notes.md) | Catatan rilis 0.0.1 dan packaging |
 | - | [Todolist](../TODO.md) | Daftar tugas lengkap dari hal terkecil |
 
 ## Konvensi dokumen

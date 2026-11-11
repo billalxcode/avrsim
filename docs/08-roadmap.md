@@ -1,4 +1,4 @@
-# 08 — Roadmap
+# 08 - Roadmap
 
 Roadmap ini mengubah visi besar menjadi milestone kecil yang dapat diuji.
 
@@ -23,7 +23,24 @@ Roadmap ini mengubah visi besar menjadi milestone kecil yang dapat diuji.
 
 ---
 
-## 2. M0 — Fondasi Proyek
+## 1.1 Status Saat Ini
+
+| Milestone | Status | Catatan |
+|---|---|---|
+| M0 | Selesai | Workspace, toolchain, docs, scripts, CI workflow |
+| M1 | Sebagian besar | VTC, CSV/VCD, transient; golden ngspice belum |
+| M2 | Selesai | Sel CMOS dan digital; osilasi analog belum diverifikasi |
+| M3 | Selesai | ALU, register, control, CPU uji |
+| M4 | Selesai sebagian | CPU AVR subset, blink manual; firmware `avr-gcc` belum |
+| M5 | Selesai | GPIO, timer, UART, UART end-to-end |
+| M6 | Selesai | SPI, TWI, ADC, EEPROM, watchdog |
+| M7 | Selesai sebagian | Board, pin elektrik, HEX, ELF; firmware kompilasi belum |
+| M8 | Sebagian besar | AC, noise, corner, sparse, kalibrasi pin; golden dan OS lain belum |
+| M9 | Sebagian | Docs, CI workflow, packaging; tag dan publikasi belum |
+
+---
+
+## 2. M0 - Fondasi Proyek
 
 ### Scope
 
@@ -59,7 +76,7 @@ Roadmap ini mengubah visi besar menjadi milestone kecil yang dapat diuji.
 
 ---
 
-## 3. M1 — Device + Solver + VTC Inverter
+## 3. M1 - Device + Solver + VTC Inverter
 
 ### Scope
 
@@ -104,7 +121,7 @@ Roadmap ini mengubah visi besar menjadi milestone kecil yang dapat diuji.
 
 ---
 
-## 4. M2 — Pustaka CMOS
+## 4. M2 - Pustaka CMOS
 
 ### Scope
 
@@ -146,7 +163,7 @@ Roadmap ini mengubah visi besar menjadi milestone kecil yang dapat diuji.
 
 ---
 
-## 5. M3 — Blok CPU
+## 5. M3 - Blok CPU
 
 ### Scope
 
@@ -154,7 +171,7 @@ Roadmap ini mengubah visi besar menjadi milestone kecil yang dapat diuji.
 - 8-bit ripple-carry adder.
 - Flag logic.
 - ALU bit-slice.
-- Register file 32×8.
+- Register file 32x8.
 - PC/IR/SP.
 - Address decoder/mux.
 - Control PLA/FSM.
@@ -187,7 +204,7 @@ Roadmap ini mengubah visi besar menjadi milestone kecil yang dapat diuji.
 
 ---
 
-## 6. M4 — AVR CPU Struktural
+## 6. M4 - AVR CPU Struktural
 
 ### Scope
 
@@ -230,7 +247,7 @@ Roadmap ini mengubah visi besar menjadi milestone kecil yang dapat diuji.
 
 ---
 
-## 7. M5 — Peripheral Inti
+## 7. M5 - Peripheral Inti
 
 ### Scope
 
@@ -252,7 +269,7 @@ Roadmap ini mengubah visi besar menjadi milestone kecil yang dapat diuji.
 ### Exit Criteria
 
 - Blink berjalan.
-- UART “hello” benar.
+- UART "hello" benar.
 - Timer interrupt berjalan.
 - GPIO input/pull-up benar.
 - Pin electrical model terdokumentasi.
@@ -270,7 +287,7 @@ Roadmap ini mengubah visi besar menjadi milestone kecil yang dapat diuji.
 
 ---
 
-## 8. M6 — Peripheral Lengkap
+## 8. M6 - Peripheral Lengkap
 
 ### Scope
 
@@ -312,7 +329,7 @@ Roadmap ini mengubah visi besar menjadi milestone kecil yang dapat diuji.
 
 ---
 
-## 9. M7 — Board Struktural
+## 9. M7 - Board Struktural
 
 ### Scope
 
@@ -350,7 +367,7 @@ Roadmap ini mengubah visi besar menjadi milestone kecil yang dapat diuji.
 
 ---
 
-## 10. M8 — Full SPICE & Fidelity
+## 10. M8 - Full SPICE & Fidelity
 
 ### Scope
 
@@ -382,7 +399,7 @@ Roadmap ini mengubah visi besar menjadi milestone kecil yang dapat diuji.
 
 ### Dependencies
 
-- M1–M7.
+- M1-M7.
 
 ### Risiko
 
@@ -392,7 +409,7 @@ Roadmap ini mengubah visi besar menjadi milestone kecil yang dapat diuji.
 
 ---
 
-## 11. M9 — Release
+## 11. M9 - Release
 
 ### Scope
 
@@ -422,7 +439,7 @@ Roadmap ini mengubah visi besar menjadi milestone kecil yang dapat diuji.
 ## 12. Urutan Eksekusi yang Disarankan
 
 ```
-M0 → M1 → M2 → M3 → M4 → M5 → M6 → M7 → M8 → M9
+M0 -> M1 -> M2 -> M3 -> M4 -> M5 -> M6 -> M7 -> M8 -> M9
 ```
 
 Namun, beberapa pekerjaan bisa paralel:
@@ -432,7 +449,7 @@ Namun, beberapa pekerjaan bisa paralel:
 - CPU (M3/M4) setelah sel stabil.
 - Peripheral (M5/M6) setelah CPU.
 - Board (M7) setelah peripheral inti.
-- Full SPICE (M8) bisa dimulai kapan saja setelah M1, tetapi tidak memblokir M2–M7.
+- Full SPICE (M8) bisa dimulai kapan saja setelah M1, tetapi tidak memblokir M2-M7.
 
 ---
 
@@ -455,12 +472,12 @@ Jika gate tidak terpenuhi, milestone belum selesai.
 
 | Milestone | Effort |
 |---|---|
-| M0 | Hari–minggu |
-| M1 | Minggu–bulan |
+| M0 | Hari-minggu |
+| M1 | Minggu-bulan |
 | M2 | Bulan |
 | M3 | Bulan |
-| M4 | Bulan–tahun |
-| M5 | Bulan–tahun |
+| M4 | Bulan-tahun |
+| M5 | Bulan-tahun |
 | M6 | Tahun |
 | M7 | Tahun |
 | M8 | Tahun |
@@ -474,7 +491,7 @@ Angka ini bukan janji; hanya indikasi skala.
 
 | ID | Pertanyaan |
 |---|---|
-| R01 | Apakah M8 dijalankan paralel dengan M2–M7? |
+| R01 | Apakah M8 dijalankan paralel dengan M2-M7? |
 | R02 | Apakah ada milestone M4a (subset ISA) sebelum full ISA? |
 | R03 | Apakah M5 memakai UART behavioral sementara? |
 | R04 | Kapan sparse solver dimulai? |
