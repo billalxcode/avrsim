@@ -217,6 +217,14 @@ Test:
 - Menghitung `VOH`, `VOL`, `VIL`, `VIH`, `NMH`, `NML`.
 - Test inverter memastikan noise margin positif.
 
+### Ripple-Carry Adder
+
+- `ripple_carry_adder(bits)` membangun adder dari `bits` full adder.
+- `adder8()` adalah shorthand 8 bit.
+- Port `cin`, `a0..aN`, `b0..bN`, `sum0..sumN`, dan `cout`.
+- 4-bit truth table test lulus untuk beberapa kombinasi.
+- 8-bit test memeriksa port dan struktur.
+
 ## 9. Test
 
 Test `sim-cells` mencakup:
@@ -229,7 +237,7 @@ Test `sim-cells` mencakup:
 - Buffer follow input.
 - Powered cell memiliki supply.
 
-Total test `sim-cells`: 17.
+Total test `sim-cells`: 19.
 
 ---
 
@@ -247,10 +255,10 @@ Total test `sim-cells`: 17.
 
 ## 11. Berikutnya
 
-- Characterization harness.
-- Noise margin dan rise/fall/delay.
+- Rise/fall time dan propagation delay.
 - Verifikasi osilasi ring oscillator.
 - Test fungsional D flip-flop dan SRAM.
 - Golden data ngspice.
+- Flag arithmetic dan ALU bit-slice.
 
 Lihat `TODO.md` untuk daftar lengkap.
