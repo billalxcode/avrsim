@@ -152,6 +152,9 @@ ALU menjadi eksekusi instruksi end-to-end.
 - PC disimpan sebagai word address Rust.
 - Trace mencatat PC, instruksi, 32 register, SREG, dan halt.
 - I/O register disimpan sebagai array 64 byte behavioral.
+- Data space disimpan sebagai array 4 KB behavioral.
+- Stack pointer reset ke 0x08FF dan tumbuh ke bawah.
+- LPM/ELPM membaca byte dari program memory behavioral.
 
 Instruksi yang sudah berjalan end-to-end:
 
@@ -166,6 +169,9 @@ Instruksi yang sudah berjalan end-to-end:
 - CPSE, SBRC, SBRS, SBIC, SBIS.
 - SBI, CBI, IN, OUT.
 - BSET, BCLR, BST, BLD.
+- LD/ST X, Y, Z, post-increment, pre-decrement.
+- LDD/STD, LDS/STS, LPM, ELPM.
+- PUSH, POP, RCALL, CALL, ICALL, IJMP, RET, RETI.
 - NOP, BREAK.
 
 Test program mencakup arithmetic, carry, logic, compare, branch, jump, MOVW,
@@ -193,7 +199,7 @@ Test decoder mencakup:
 - IR load, hold, reset, dan validasi lebar data.
 - Register bank write/read, dua read port, pasangan little-endian, hold, dan reset.
 
-Total test `sim-avr`: 64.
+Total test `sim-avr`: 74.
 
 ---
 

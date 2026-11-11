@@ -2,7 +2,7 @@
 
 Daftar tugas lengkap dari hal terkecil sampai rilis. Setiap item harus kecil, dapat diuji, dan tidak menambah dependensi eksternal.
 
-> **Status:** CPU subset mendukung skip, bit, flag, dan I/O. Lanjut ke load/store, stack/call, dan control PLA struktural.
+> **Status:** CPU subset mendukung load/store, LPM, stack, call, dan return. Lanjut ke SREG, interrupt, control PLA, dan timing.
 > **Aturan:** satu item selesai = kode + test + dokumentasi singkat.
 
 ---
@@ -342,40 +342,40 @@ Daftar tugas lengkap dari hal terkecil sampai rilis. Setiap item harus kecil, da
 - [x] P7-34 Implementasikan MOV.
 - [x] P7-35 Implementasikan MOVW.
 - [x] P7-36 Implementasikan LDI.
-- [ ] P7-37 Implementasikan LD X.
-- [ ] P7-38 Implementasikan LD X+.
-- [ ] P7-39 Implementasikan LD -X.
-- [ ] P7-40 Implementasikan LD Y.
-- [ ] P7-41 Implementasikan LD Y+.
-- [ ] P7-42 Implementasikan LD -Y.
-- [ ] P7-43 Implementasikan LD Z.
-- [ ] P7-44 Implementasikan LD Z+.
-- [ ] P7-45 Implementasikan LD -Z.
-- [ ] P7-46 Implementasikan ST X.
-- [ ] P7-47 Implementasikan ST X+.
-- [ ] P7-48 Implementasikan ST -X.
-- [ ] P7-49 Implementasikan ST Y.
-- [ ] P7-50 Implementasikan ST Y+.
-- [ ] P7-51 Implementasikan ST -Y.
-- [ ] P7-52 Implementasikan ST Z.
-- [ ] P7-53 Implementasikan ST Z+.
-- [ ] P7-54 Implementasikan ST -Z.
-- [ ] P7-55 Implementasikan LDD/STD displacement.
-- [ ] P7-56 Implementasikan LDS.
-- [ ] P7-57 Implementasikan STS.
-- [ ] P7-58 Implementasikan LPM.
-- [ ] P7-59 Implementasikan LPM Z+.
-- [ ] P7-60 Implementasikan ELPM.
-- [ ] P7-61 Implementasikan PUSH.
-- [ ] P7-62 Implementasikan POP.
+- [x] P7-37 Implementasikan LD X.
+- [x] P7-38 Implementasikan LD X+.
+- [x] P7-39 Implementasikan LD -X.
+- [x] P7-40 Implementasikan LD Y.
+- [x] P7-41 Implementasikan LD Y+.
+- [x] P7-42 Implementasikan LD -Y.
+- [x] P7-43 Implementasikan LD Z.
+- [x] P7-44 Implementasikan LD Z+.
+- [x] P7-45 Implementasikan LD -Z.
+- [x] P7-46 Implementasikan ST X.
+- [x] P7-47 Implementasikan ST X+.
+- [x] P7-48 Implementasikan ST -X.
+- [x] P7-49 Implementasikan ST Y.
+- [x] P7-50 Implementasikan ST Y+.
+- [x] P7-51 Implementasikan ST -Y.
+- [x] P7-52 Implementasikan ST Z.
+- [x] P7-53 Implementasikan ST Z+.
+- [x] P7-54 Implementasikan ST -Z.
+- [x] P7-55 Implementasikan LDD/STD displacement.
+- [x] P7-56 Implementasikan LDS.
+- [x] P7-57 Implementasikan STS.
+- [x] P7-58 Implementasikan LPM.
+- [x] P7-59 Implementasikan LPM Z+.
+- [x] P7-60 Implementasikan ELPM.
+- [x] P7-61 Implementasikan PUSH.
+- [x] P7-62 Implementasikan POP.
 - [x] P7-63 Implementasikan RJMP.
 - [x] P7-64 Implementasikan JMP.
-- [ ] P7-65 Implementasikan IJMP.
-- [ ] P7-66 Implementasikan RCALL.
-- [ ] P7-67 Implementasikan CALL.
-- [ ] P7-68 Implementasikan ICALL.
-- [ ] P7-69 Implementasikan RET.
-- [ ] P7-70 Implementasikan RETI.
+- [x] P7-65 Implementasikan IJMP.
+- [x] P7-66 Implementasikan RCALL.
+- [x] P7-67 Implementasikan CALL.
+- [x] P7-68 Implementasikan ICALL.
+- [x] P7-69 Implementasikan RET.
+- [x] P7-70 Implementasikan RETI.
 - [x] P7-71 Implementasikan BRBS.
 - [x] P7-72 Implementasikan BRBC.
 - [x] P7-73 Implementasikan SBRC.
