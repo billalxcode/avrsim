@@ -155,6 +155,10 @@ ALU menjadi eksekusi instruksi end-to-end.
 - Data space disimpan sebagai array 4 KB behavioral.
 - Stack pointer reset ke 0x08FF dan tumbuh ke bawah.
 - LPM/ELPM membaca byte dari program memory behavioral.
+- SREG dapat dibaca dan ditulis melalui I/O address 0x3F.
+- SLEEP menghentikan core sampai interrupt, yang belum dimodelkan.
+- WDR tidak melakukan apa pun tanpa watchdog.
+- Reset mengosongkan register, data, I/O, SREG, PC, SP, dan halt.
 
 Instruksi yang sudah berjalan end-to-end:
 
@@ -199,7 +203,7 @@ Test decoder mencakup:
 - IR load, hold, reset, dan validasi lebar data.
 - Register bank write/read, dua read port, pasangan little-endian, hold, dan reset.
 
-Total test `sim-avr`: 74.
+Total test `sim-avr`: 79.
 
 ---
 

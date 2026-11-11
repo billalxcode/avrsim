@@ -2,7 +2,7 @@
 
 Daftar tugas lengkap dari hal terkecil sampai rilis. Setiap item harus kecil, dapat diuji, dan tidak menambah dependensi eksternal.
 
-> **Status:** CPU subset mendukung load/store, LPM, stack, call, dan return. Lanjut ke SREG, interrupt, control PLA, dan timing.
+> **Status:** CPU subset mendukung SREG I/O, SLEEP, WDR, dan reset. Lanjut ke interrupt controller, vector table, SEI delay, control PLA, dan timing.
 > **Aturan:** satu item selesai = kode + test + dokumentasi singkat.
 
 ---
@@ -390,13 +390,13 @@ Daftar tugas lengkap dari hal terkecil sampai rilis. Setiap item harus kecil, da
 - [x] P7-82 Implementasikan BCLR.
 - [x] P7-83 Implementasikan IN.
 - [x] P7-84 Implementasikan OUT.
-- [ ] P7-85 Implementasikan SREG.
+- [x] P7-85 Implementasikan SREG.
 - [ ] P7-86 Implementasikan interrupt controller.
 - [ ] P7-87 Implementasikan vector table.
 - [ ] P7-88 Implementasikan SEI delay.
-- [ ] P7-89 Implementasikan SLEEP.
-- [ ] P7-90 Implementasikan WDR.
-- [ ] P7-91 Implementasikan reset.
+- [x] P7-89 Implementasikan SLEEP.
+- [x] P7-90 Implementasikan WDR.
+- [x] P7-91 Implementasikan reset.
 - [ ] P7-92 Implementasikan FSM timing.
 - [ ] P7-93 Tulis test vector ADD.
 - [ ] P7-94 Tulis test vector ADC.
