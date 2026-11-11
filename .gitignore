@@ -3,3 +3,4 @@
 *.pdb
 .DS_Store
 .caches/
+/dist/
