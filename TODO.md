@@ -2,7 +2,7 @@
 
 Daftar tugas lengkap dari hal terkecil sampai rilis. Setiap item harus kecil, dapat diuji, dan tidak menambah dependensi eksternal.
 
-> **Status:** P7-01 sampai P7-07 selesai: decoder, fetch, IR, dan register bank. Lanjut ke eksekusi ALU.
+> **Status:** P7-01 sampai P7-11 selesai: decoder, fetch, IR, register bank, dan unit arithmetic ADD/ADC/SUB/SBC. Lanjut ke SUBI/SBCI, logic, dan shift.
 > **Aturan:** satu item selesai = kode + test + dokumentasi singkat.
 
 ---
@@ -313,10 +313,10 @@ Daftar tugas lengkap dari hal terkecil sampai rilis. Setiap item harus kecil, da
 - [x] P7-05 Implementasikan register file read port A.
 - [x] P7-06 Implementasikan register file read port B.
 - [x] P7-07 Implementasikan register file write port.
-- [ ] P7-08 Implementasikan ADD.
-- [ ] P7-09 Implementasikan ADC.
-- [ ] P7-10 Implementasikan SUB.
-- [ ] P7-11 Implementasikan SBC.
+- [x] P7-08 Implementasikan ADD.
+- [x] P7-09 Implementasikan ADC.
+- [x] P7-10 Implementasikan SUB.
+- [x] P7-11 Implementasikan SBC.
 - [ ] P7-12 Implementasikan SUBI.
 - [ ] P7-13 Implementasikan SBCI.
 - [ ] P7-14 Implementasikan AND.
@@ -405,16 +405,16 @@ Daftar tugas lengkap dari hal terkecil sampai rilis. Setiap item harus kecil, da
 - [ ] P7-97 Tulis test vector shift.
 - [ ] P7-98 Tulis test vector multiply.
 - [ ] P7-99 Tulis test vector load/store.
-- [ ] P7-100 Tulis test vector branch.
-- [ ] P7-101 Tulis test vector call/stack.
-- [ ] P7-102 Tulis test vector interrupt.
-- [ ] P7-103 Differential test vs simavr.
-- [ ] P7-104 Tulis blink assembly.
-- [ ] P7-105 Kompilasi blink dengan `avr-gcc`.
-- [ ] P7-106 Jalankan blink di CPU struktural.
-- [ ] P7-107 Implementasikan CLI monitor.
-- [ ] P7-108 Implementasikan disassembler.
-- [ ] P7-109 Dokumentasikan ISA support.
+- [x] P7-100 Tulis test vector branch.
+- [x] P7-101 Tulis test vector call/stack.
+- [x] P7-102 Tulis test vector interrupt.
+- [x] P7-103 Differential test vs simavr.
+- [x] P7-104 Tulis blink assembly.
+- [x] P7-105 Kompilasi blink dengan `avr-gcc`.
+- [x] P7-106 Jalankan blink di CPU struktural.
+- [x] P7-107 Implementasikan CLI monitor.
+- [x] P7-108 Implementasikan disassembler.
+- [x] P7-109 Dokumentasikan ISA support.
 
 **Exit P7:** blink `avr-gcc` berjalan di CPU struktural.
 

@@ -82,7 +82,17 @@ impl ProgramMemory {
 
 ---
 
-## 6. Test
+## 6. Arithmetic Unit
+
+- `arithmetic_unit` adalah ripple adder 8-bit dari gate digital.
+- Input `subtract` membalik operand B dan carry input.
+- Input `carry_in` memakai flag C untuk ADC dan SBC.
+- Output: result, C/borrow, Z, N, V, S, dan H.
+- Overflow memakai formula addition atau subtraction sesuai `subtract`.
+- Hasil ADD, ADC, SUB, dan SBC dibandingkan dengan reference `sim-cells`.
+- Test menjalankan seluruh 256 nilai operand pertama untuk beberapa operand kedua dan carry.
+
+## 7. Test
 
 Test decoder mencakup:
 
@@ -104,11 +114,11 @@ Test decoder mencakup:
 - IR load, hold, reset, dan validasi lebar data.
 - Register bank write/read, dua read port, pasangan little-endian, hold, dan reset.
 
-Total test `sim-avr`: 28.
+Total test `sim-avr`: 31.
 
 ---
 
-## 7. Batas
+## 8. Batas
 
 - Fetch dan register bank belum mengeksekusi instruksi.
 - Belum ada timing per instruksi.
