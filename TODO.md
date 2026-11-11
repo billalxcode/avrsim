@@ -2,7 +2,7 @@
 
 Daftar tugas lengkap dari hal terkecil sampai rilis. Setiap item harus kecil, dapat diuji, dan tidak menambah dependensi eksternal.
 
-> **Status:** P8 selesai. P9 sebagian besar selesai. P10 sparse, adaptive step, trapezoidal/Gear, AC linear, noise termal, distorsi kuasi-statis, sensitivitas numerik, suhu device, process corner, BJT, JFET, transmission line, determinisme Linux, fidelity matrix, batasan model, profiling, dan optimasi selesai. Golden suite dan determinisme macOS/Windows belum. P4 harness ngspice dan golden data belum karena ngspice tidak tersedia. P5 switching characterization selesai; input capacitance dan drive strength belum. P11 user guide dan contoh runnable selesai; CI, packaging, dan release belum.
+> **Status:** P8 selesai. P9 sebagian besar selesai. P10 sparse, adaptive step, trapezoidal/Gear, AC linear, noise termal, distorsi kuasi-statis, sensitivitas numerik, suhu device, process corner, BJT, JFET, transmission line, determinisme Linux, fidelity matrix, batasan model, profiling, dan optimasi selesai. Golden suite dan determinisme macOS/Windows belum. P4 harness ngspice dan golden data belum karena ngspice tidak tersedia. P5 switching characterization selesai; input capacitance dan drive strength belum. P11 user guide dan contoh runnable selesai; CI, packaging, dan release belum. P3 body effect dan gmb selesai; Meyer capacitance, overlap, diode series resistance, dan controlled sources belum.
 > **Aturan:** satu item selesai = kode + test + dokumentasi singkat.
 
 ---
@@ -137,7 +137,7 @@ Daftar tugas lengkap dari hal terkecil sampai rilis. Setiap item harus kecil, da
 ## P3 - Device Models
 
 - [x] P3-01 Definisikan parameter MOSFET Level 1.
-- [ ] P3-02 Implementasikan perhitungan `Vth` dengan body effect.
+- [x] P3-02 Implementasikan perhitungan `Vth` dengan body effect.
 - [x] P3-03 Implementasikan region cutoff.
 - [x] P3-04 Implementasikan region linear.
 - [x] P3-05 Implementasikan region saturation.
@@ -146,7 +146,7 @@ Daftar tugas lengkap dari hal terkecil sampai rilis. Setiap item harus kecil, da
 - [x] P3-08 Implementasikan polaritas PMOS.
 - [x] P3-09 Implementasikan `gm`.
 - [x] P3-10 Implementasikan `gds`.
-- [ ] P3-11 Implementasikan `gmb`.
+- [x] P3-11 Implementasikan `gmb`.
 - [x] P3-12 Implementasikan Jacobian MOSFET.
 - [ ] P3-13 Implementasikan kapasitansi Meyer cutoff.
 - [ ] P3-14 Implementasikan kapasitansi Meyer linear.

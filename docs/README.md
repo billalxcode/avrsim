@@ -50,7 +50,9 @@ Dokumen ini adalah indeks lengkap spesifikasi **embed-emulation**.
 | 41 | [Pulse source](41-pulse-source.md) | Sumber pulsa untuk transient switching |
 | 42 | [Characterization](42-characterization.md) | Rise, fall, dan propagation delay |
 | 43 | [User guide](43-user-guide.md) | Quick start, API, dan contoh |
+| 44 | [Body effect](44-body-effect.md) | Threshold bias body dan `gmb` |
 | 43 | [User guide](43-user-guide.md) | Quick start, API, dan contoh |
+| 44 | [Body effect](44-body-effect.md) | Threshold bias body dan `gmb` |
 | - | [Todolist](../TODO.md) | Daftar tugas lengkap dari hal terkecil |
 
 ## Konvensi dokumen
