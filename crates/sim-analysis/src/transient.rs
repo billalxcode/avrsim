@@ -1,7 +1,7 @@
 //! Transient analysis using backward Euler.
 
 use crate::system::SimulationSystem;
-use sim_core::{Circuit, SimError, Solution, Time};
+use sim_core::{Circuit, NodeId, SimError, Solution, Time};
 
 /// Transient solver configuration.
 #[derive(Clone, Debug)]
@@ -14,6 +14,8 @@ pub struct TransientConfig {
     pub gmin: f64,
     /// Use a DC operating point as the initial state.
     pub use_dc_op: bool,
+    /// Node voltage overrides applied after the initial state.
+    pub initial_voltages: Vec<(NodeId, f64)>,
 }
 
 impl Default for TransientConfig {
@@ -23,6 +25,7 @@ impl Default for TransientConfig {
             steps: 100,
             gmin: 1e-12,
             use_dc_op: true,
+            initial_voltages: Vec::new(),
         }
     }
 }
@@ -61,13 +64,23 @@ fn initial_solution(
 ) -> Result<Solution, SimError> {
     let initial = system.zero_solution();
     if !config.use_dc_op {
-        return Ok(initial);
+        return Ok(apply_initial_voltages(initial, &config.initial_voltages));
     }
     let dc_config = crate::DcConfig {
         gmin: config.gmin,
         ..crate::DcConfig::default()
     };
-    Ok(crate::dc::solve_dc_system(system, initial, &dc_config)?.solution)
+    let solution = crate::dc::solve_dc_system(system, initial, &dc_config)?.solution;
+    Ok(apply_initial_voltages(solution, &config.initial_voltages))
+}
+
+fn apply_initial_voltages(mut solution: Solution, overrides: &[(NodeId, f64)]) -> Solution {
+    for (node, voltage) in overrides {
+        if let Some(slot) = solution.node_voltages.get_mut(node.raw() as usize) {
+            *slot = *voltage;
+        }
+    }
+    solution
 }
 
 fn advance(
@@ -124,6 +137,7 @@ mod tests {
             steps: 1000,
             gmin: 1e-12,
             use_dc_op: false,
+            initial_voltages: Vec::new(),
         };
         let samples = transient(&circuit, &config).expect("transient");
         let last = samples.last().expect("last");
@@ -139,6 +153,7 @@ mod tests {
             steps: 1,
             gmin: 1e-12,
             use_dc_op: false,
+            initial_voltages: Vec::new(),
         };
         assert!(transient(&circuit, &config).is_err());
     }
@@ -151,6 +166,7 @@ mod tests {
             steps: 1,
             gmin: 1e-12,
             use_dc_op: false,
+            initial_voltages: Vec::new(),
         };
         assert!(transient(&circuit, &config).is_err());
     }
@@ -163,6 +179,7 @@ mod tests {
             steps: 1,
             gmin: -1e-12,
             use_dc_op: false,
+            initial_voltages: Vec::new(),
         };
         assert!(transient(&circuit, &config).is_err());
     }
@@ -175,6 +192,7 @@ mod tests {
             steps: 2,
             gmin: 1e-12,
             use_dc_op: false,
+            initial_voltages: Vec::new(),
         };
         let samples = transient(&circuit, &config).expect("transient");
         assert_eq!(samples[0].time.as_ps(), 1_000_000);
@@ -189,6 +207,7 @@ mod tests {
             steps: 0,
             gmin: 1e-12,
             use_dc_op: false,
+            initial_voltages: Vec::new(),
         };
         assert!(transient(&circuit, &config).expect("transient").is_empty());
     }
@@ -201,6 +220,7 @@ mod tests {
             steps: 1,
             gmin: 1e-12,
             use_dc_op: false,
+            initial_voltages: Vec::new(),
         };
         assert!(transient(&circuit, &config).is_err());
     }
@@ -213,6 +233,7 @@ mod tests {
             steps: 5,
             gmin: 1e-12,
             use_dc_op: true,
+            initial_voltages: Vec::new(),
         };
         let samples = transient(&circuit, &config).expect("transient");
         let last = samples.last().expect("last");
