@@ -12,6 +12,8 @@ pub struct TransientConfig {
     pub steps: usize,
     /// Minimum conductance added to each node.
     pub gmin: f64,
+    /// Use a DC operating point as the initial state.
+    pub use_dc_op: bool,
 }
 
 impl Default for TransientConfig {
@@ -20,6 +22,7 @@ impl Default for TransientConfig {
             dt: 1e-6,
             steps: 100,
             gmin: 1e-12,
+            use_dc_op: true,
         }
     }
 }
@@ -40,7 +43,7 @@ pub fn transient(
 ) -> Result<Vec<TransientSample>, SimError> {
     validate_config(config)?;
     let mut system = SimulationSystem::new(circuit)?;
-    let mut solution = system.zero_solution();
+    let mut solution = initial_solution(&mut system, config)?;
     let step = step_time(config.dt)?;
     let mut time = Time::ZERO;
     let mut samples = Vec::with_capacity(config.steps);
@@ -50,6 +53,21 @@ pub fn transient(
         samples.push(sample(time, &solution));
     }
     Ok(samples)
+}
+
+fn initial_solution(
+    system: &mut SimulationSystem,
+    config: &TransientConfig,
+) -> Result<Solution, SimError> {
+    let initial = system.zero_solution();
+    if !config.use_dc_op {
+        return Ok(initial);
+    }
+    let dc_config = crate::DcConfig {
+        gmin: config.gmin,
+        ..crate::DcConfig::default()
+    };
+    Ok(crate::dc::solve_dc_system(system, initial, &dc_config)?.solution)
 }
 
 fn advance(
@@ -105,6 +123,7 @@ mod tests {
             dt: 1e-6,
             steps: 1000,
             gmin: 1e-12,
+            use_dc_op: false,
         };
         let samples = transient(&circuit, &config).expect("transient");
         let last = samples.last().expect("last");
@@ -119,6 +138,7 @@ mod tests {
             dt: 0.0,
             steps: 1,
             gmin: 1e-12,
+            use_dc_op: false,
         };
         assert!(transient(&circuit, &config).is_err());
     }
@@ -130,6 +150,7 @@ mod tests {
             dt: -1e-6,
             steps: 1,
             gmin: 1e-12,
+            use_dc_op: false,
         };
         assert!(transient(&circuit, &config).is_err());
     }
@@ -141,6 +162,7 @@ mod tests {
             dt: 1e-6,
             steps: 1,
             gmin: -1e-12,
+            use_dc_op: false,
         };
         assert!(transient(&circuit, &config).is_err());
     }
@@ -152,6 +174,7 @@ mod tests {
             dt: 1e-6,
             steps: 2,
             gmin: 1e-12,
+            use_dc_op: false,
         };
         let samples = transient(&circuit, &config).expect("transient");
         assert_eq!(samples[0].time.as_ps(), 1_000_000);
@@ -165,6 +188,7 @@ mod tests {
             dt: 1e-6,
             steps: 0,
             gmin: 1e-12,
+            use_dc_op: false,
         };
         assert!(transient(&circuit, &config).expect("transient").is_empty());
     }
@@ -176,7 +200,23 @@ mod tests {
             dt: 1e20,
             steps: 1,
             gmin: 1e-12,
+            use_dc_op: false,
         };
         assert!(transient(&circuit, &config).is_err());
+    }
+
+    #[test]
+    fn dc_initial_condition_is_steady() {
+        let (circuit, output) = rc_circuit();
+        let config = TransientConfig {
+            dt: 1e-6,
+            steps: 5,
+            gmin: 1e-12,
+            use_dc_op: true,
+        };
+        let samples = transient(&circuit, &config).expect("transient");
+        let last = samples.last().expect("last");
+        let voltage = last.solution.voltage(output).expect("output");
+        assert!((voltage - 5.0).abs() < 1e-6);
     }
 }

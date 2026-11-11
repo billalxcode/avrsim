@@ -15,6 +15,10 @@ pub struct DcConfig {
     pub abs_tol: f64,
     /// Minimum conductance added to each node.
     pub gmin: f64,
+    /// Starting conductance for gmin stepping.
+    pub gmin_start: f64,
+    /// Maximum node-voltage change per Newton step.
+    pub max_step: f64,
 }
 
 impl Default for DcConfig {
@@ -24,6 +28,8 @@ impl Default for DcConfig {
             rel_tol: 1e-6,
             abs_tol: 1e-9,
             gmin: 1e-12,
+            gmin_start: 1e-3,
+            max_step: 0.5,
         }
     }
 }
@@ -50,7 +56,28 @@ pub struct DcPoint {
 pub fn dc_operating_point(circuit: &Circuit, config: &DcConfig) -> Result<DcResult, SimError> {
     let mut system = SimulationSystem::new(circuit)?;
     let initial = system.zero_solution();
-    solve_dc(&mut system, initial, config)
+    solve_dc_system(&mut system, initial, config)
+}
+
+pub(crate) fn solve_dc_system(
+    system: &mut SimulationSystem,
+    initial: Solution,
+    config: &DcConfig,
+) -> Result<DcResult, SimError> {
+    solve_with_gmin_stepping(system, initial, config)
+}
+
+fn solve_with_gmin_stepping(
+    system: &mut SimulationSystem,
+    mut solution: Solution,
+    config: &DcConfig,
+) -> Result<DcResult, SimError> {
+    let mut gmin = config.gmin_start.max(config.gmin);
+    while gmin > config.gmin {
+        solution = solve_dc(system, solution, gmin, config)?.solution;
+        gmin = (gmin * 0.1).max(config.gmin);
+    }
+    solve_dc(system, solution, config.gmin, config)
 }
 
 /// Sweeps a device parameter and solves the DC operating point at each step.
@@ -143,11 +170,13 @@ fn solve_sweep_point(
 fn solve_dc(
     system: &mut SimulationSystem,
     initial: Solution,
+    gmin: f64,
     config: &DcConfig,
 ) -> Result<DcResult, SimError> {
     let mut solution = initial;
     for iteration in 0..config.max_iterations {
-        let next = system.solve(&solution, None, config.gmin)?;
+        let raw = system.solve(&solution, None, gmin)?;
+        let next = damp_solution(&solution, &raw, config.max_step);
         let converged = solution_close(&solution, &next, config);
         solution = next;
         if converged {
@@ -157,6 +186,30 @@ fn solve_dc(
     Err(SimError::ConvergenceFailure {
         iteration: config.max_iterations,
     })
+}
+
+fn damp_solution(old: &Solution, new: &Solution, max_step: f64) -> Solution {
+    let max_delta = old
+        .node_voltages
+        .iter()
+        .zip(&new.node_voltages)
+        .map(|(first, second)| (second - first).abs())
+        .fold(0.0, f64::max);
+    if max_delta <= max_step || max_step <= 0.0 {
+        return new.clone();
+    }
+    let alpha = max_step / max_delta;
+    Solution {
+        node_voltages: interpolate(&old.node_voltages, &new.node_voltages, alpha),
+        branch_currents: interpolate(&old.branch_currents, &new.branch_currents, alpha),
+    }
+}
+
+fn interpolate(old: &[f64], new: &[f64], alpha: f64) -> Vec<f64> {
+    old.iter()
+        .zip(new)
+        .map(|(first, second)| first + alpha * (second - first))
+        .collect()
 }
 
 fn finish_dc(
