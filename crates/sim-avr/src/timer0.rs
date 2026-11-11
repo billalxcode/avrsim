@@ -11,6 +11,9 @@ pub struct Timer0 {
     divider: u16,
     compare: u8,
     ctc: bool,
+    pwm: bool,
+    inverting: bool,
+    pwm_output: bool,
     overflow: bool,
     compare_match: bool,
 }
@@ -26,6 +29,9 @@ impl Timer0 {
             divider: 1,
             compare: 0,
             ctc: false,
+            pwm: false,
+            inverting: false,
+            pwm_output: false,
             overflow: false,
             compare_match: false,
         })
@@ -57,6 +63,23 @@ impl Timer0 {
     /// Enables or disables CTC mode.
     pub fn set_ctc(&mut self, enabled: bool) {
         self.ctc = enabled;
+        self.pwm = false;
+        if !enabled {
+            self.pwm_output = false;
+        }
+    }
+
+    /// Enables fast PWM and selects inverting or non-inverting output.
+    pub fn set_pwm(&mut self, inverting: bool) {
+        self.pwm = true;
+        self.inverting = inverting;
+        self.ctc = false;
+    }
+
+    /// Returns the PWM output compare A signal.
+    #[must_use]
+    pub const fn pwm_output(&self) -> bool {
+        self.pwm_output
     }
 
     /// Advances the timer by CPU cycles.
@@ -117,6 +140,7 @@ impl Timer0 {
         let previous = self.counter();
         self.pulse()?;
         let current = self.counter();
+        self.update_pwm();
         self.overflow |= previous == 0xFF;
         if current != self.compare {
             return Ok(());
@@ -133,6 +157,19 @@ impl Timer0 {
         self.circuit.tick()?;
         self.set_bool("enable", false)?;
         self.circuit.settle()
+    }
+
+    fn update_pwm(&mut self) {
+        if !self.pwm {
+            self.pwm_output = false;
+            return;
+        }
+        let counter = self.counter();
+        self.pwm_output = if self.inverting {
+            counter >= self.compare
+        } else {
+            counter < self.compare
+        };
     }
 
     fn clear_counter(&mut self) -> Result<(), SimError> {
@@ -223,5 +260,30 @@ mod tests {
     fn invalid_prescaler_is_rejected() {
         let mut timer = timer();
         assert!(timer.set_prescaler(5).is_err());
+    }
+
+    #[test]
+    fn fast_pwm_tracks_compare_value() {
+        let mut timer = timer();
+        timer.set_compare(2);
+        timer.set_pwm(false);
+        timer.tick(1).expect("tick");
+        assert!(timer.pwm_output());
+        timer.tick(1).expect("tick");
+        assert!(!timer.pwm_output());
+        timer.tick(254).expect("tick");
+        assert_eq!(timer.counter(), 0);
+        assert!(timer.pwm_output());
+    }
+
+    #[test]
+    fn inverting_pwm_is_complementary() {
+        let mut timer = timer();
+        timer.set_compare(2);
+        timer.set_pwm(true);
+        timer.tick(1).expect("tick");
+        assert!(!timer.pwm_output());
+        timer.tick(1).expect("tick");
+        assert!(timer.pwm_output());
     }
 }

@@ -2,7 +2,7 @@
 
 Daftar tugas lengkap dari hal terkecil sampai rilis. Setiap item harus kecil, dapat diuji, dan tidak menambah dependensi eksternal.
 
-> **Status:** Timer0 terintegrasi ke CPU dengan flag dan overflow interrupt. Lanjut ke PWM, Timer1, dan Timer2.
+> **Status:** Timer0 counter, prescaler, normal, CTC, compare, overflow interrupt, dan fast PWM selesai. Lanjut ke Timer1 dan Timer2.
 > **Aturan:** satu item selesai = kode + test + dokumentasi singkat.
 
 ---
@@ -436,7 +436,7 @@ Daftar tugas lengkap dari hal terkecil sampai rilis. Setiap item harus kecil, da
 - [x] P8-12 Implementasikan Timer0 prescaler.
 - [x] P8-13 Implementasikan Timer0 normal mode.
 - [x] P8-14 Implementasikan Timer0 CTC.
-- [ ] P8-15 Implementasikan Timer0 PWM.
+- [x] P8-15 Implementasikan Timer0 PWM.
 - [x] P8-16 Implementasikan Timer0 compare.
 - [x] P8-17 Implementasikan Timer0 overflow interrupt.
 - [ ] P8-18 Implementasikan Timer1 16-bit.

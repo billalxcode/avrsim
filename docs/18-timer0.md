@@ -19,7 +19,18 @@ Dokumen ini menjelaskan core Timer0.
 
 ---
 
-## 2. API
+## 2. PWM
+
+- Fast PWM tersedia untuk output compare A.
+- Output non-inverting aktif saat counter lebih kecil dari compare.
+- Output inverting adalah kebalikannya.
+- TCCR0A WGM bits 0b11 mengaktifkan fast PWM.
+- COM0A1 dan COM0A0 memilih non-inverting atau inverting.
+- CPU menyediakan `pwm_a()`.
+
+---
+
+## 3. API
 
 ```rust
 pub struct Timer0 {
@@ -41,7 +52,7 @@ impl Timer0 {
 
 ---
 
-## 3. Test
+## 4. Test
 
 - Prescaler 8 membagi clock dengan benar.
 - Counter wrap dan flag overflow.
@@ -52,15 +63,19 @@ impl Timer0 {
 - Timer0 maju dari cycle instruksi CPU.
 - Overflow flag dan compare flag terbaca lewat TIFR0.
 - Overflow interrupt masuk ke vektor 16.
+- Fast PWM mengikuti compare value.
+- PWM inverting adalah kebalikan non-inverting.
+- CPU menghasilkan sinyal PWM dari TCCR0A, OCR0A, dan TCCR0B.
 
-Total test `sim-avr`: 114.
+Total test `sim-avr`: 117.
 
 ---
 
-## 4. Batas
+## 5. Batas
 
 - Prescaler masih behavioral, bukan rangkaian counter gate-level.
 - Pemetaan TIMSK0 memakai alamat I/O yang disederhanakan.
 - Compare interrupt sudah meminta vektor 14, tetapi belum diuji end-to-end.
-- PWM belum diimplementasikan.
+- PWM baru fast PWM untuk compare A.
+- Phase correct PWM dan output compare B belum diimplementasikan.
 - Timer1 dan Timer2 belum dimulai.

@@ -354,6 +354,12 @@ impl Cpu {
         }
     }
 
+    /// Returns the Timer0 PWM output compare A signal.
+    #[must_use]
+    pub const fn pwm_a(&self) -> bool {
+        self.datapath.timer0.pwm_output()
+    }
+
     /// Returns the stack pointer.
     #[must_use]
     pub const fn sp(&self) -> u16 {
@@ -1068,7 +1074,11 @@ impl Cpu {
         match address {
             0x24 => {
                 self.io[0x24] = value;
-                self.datapath.timer0.set_ctc(value & 0x02 != 0);
+                let wave = value & 0x03;
+                self.datapath.timer0.set_ctc(wave == 0x02);
+                if wave == 0x03 {
+                    self.datapath.timer0.set_pwm(value & 0xC0 == 0xC0);
+                }
             }
             0x25 => {
                 self.io[0x25] = value;
@@ -2481,5 +2491,29 @@ mod tests {
             }
         }
         assert_eq!(cpu.register(17), 7);
+    }
+
+    #[test]
+    fn timer0_pwm_output_from_cpu() {
+        let mut cpu = Cpu::new(vec![
+            ldi(16, 2),
+            in_out(0xB800, 16, 0x27),
+            ldi(16, 0x83),
+            in_out(0xB800, 16, 0x24),
+            ldi(16, 1),
+            in_out(0xB800, 16, 0x25),
+            0x0000,
+            0x9598,
+        ])
+        .expect("cpu");
+        cpu.step().expect("ldi");
+        cpu.step().expect("ocr");
+        cpu.step().expect("ldi");
+        cpu.step().expect("tccr0a");
+        cpu.step().expect("ldi");
+        cpu.step().expect("tccr0b");
+        assert!(cpu.pwm_a());
+        cpu.step().expect("nop");
+        assert!(!cpu.pwm_a());
     }
 }
