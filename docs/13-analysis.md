@@ -19,6 +19,7 @@ P4 diimplementasikan sebagian:
 - Noise termal resistor.
 - Distorsi harmonik kuasi-statis.
 - Sensitivitas DC numerik.
+- Suhu device dan process corner.
 - State update device.
 
 Belum diimplementasikan:
@@ -210,11 +211,11 @@ Total test workspace saat ini:
 
 - `sim-core`: 61.
 - `sim-device`: 23 (18 unit + 5 integration).
-- `sim-analysis`: 50.
+- `sim-analysis`: 56.
 - `sim-cells`: 67.
 - `sim-avr`: 187.
 - `sim-board`: 12.
 - `sim-cli`: 5.
-- Total: 405.
+- Total: 411.
 
 Semua fungsi maksimal 20 baris dan semua file baru ASCII-only.

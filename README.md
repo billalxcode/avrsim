@@ -83,6 +83,8 @@ Baca berurutan:
 | [`docs/30-noise.md`](docs/30-noise.md) | Noise termal resistor |
 | [`docs/31-distortion.md`](docs/31-distortion.md) | Distorsi harmonik kuasi-statis |
 | [`docs/32-sensitivity.md`](docs/32-sensitivity.md) | Sensitivitas DC numerik |
+| [`docs/33-temperature.md`](docs/33-temperature.md) | Suhu device dan koefisien suhu |
+| [`docs/34-process-corner.md`](docs/34-process-corner.md) | Scaling parameter device |
 | [`TODO.md`](TODO.md) | **Todolist lengkap dari hal terkecil** |
 
 ---

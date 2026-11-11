@@ -39,6 +39,8 @@ Dokumen ini adalah indeks lengkap spesifikasi **embed-emulation**.
 | 30 | [Noise](30-noise.md) | Noise termal resistor |
 | 31 | [Distorsi](31-distortion.md) | Distorsi harmonik kuasi-statis |
 | 32 | [Sensitivitas](32-sensitivity.md) | Sensitivitas DC numerik |
+| 33 | [Suhu](33-temperature.md) | Suhu device dan koefisien suhu |
+| 34 | [Process corner](34-process-corner.md) | Scaling parameter device |
 | - | [Todolist](../TODO.md) | Daftar tugas lengkap dari hal terkecil |
 
 ## Konvensi dokumen
