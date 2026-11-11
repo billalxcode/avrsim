@@ -1,5 +1,8 @@
 use sim_analysis::{DcConfig, dc_operating_point, dc_sweep};
-use sim_cells::{buffer, inverter, nand2, nor2};
+use sim_cells::{
+    CellKind, buffer, d_flip_flop, d_latch, inverter, nand2, nor2, ring_oscillator, sram6t,
+    transmission_gate, tri_state_inverter,
+};
 use sim_core::{Circuit, DeviceKind, NodeId, SimError};
 use std::collections::BTreeMap;
 
@@ -136,4 +139,85 @@ fn inverter_threshold_is_near_half_supply() {
         .find(|point| point.solution.voltage(output_port).expect("out") < 2.5)
         .expect("crossing");
     assert!(crossing.sweep > 2.0 && crossing.sweep < 3.0);
+}
+#[test]
+fn transmission_gate_has_ports() {
+    let cell = transmission_gate().expect("cell");
+    assert!(cell.port("a").is_some());
+    assert!(cell.port("b").is_some());
+    assert!(cell.port("en").is_some());
+    assert!(cell.port("enb").is_some());
+}
+
+#[test]
+fn tri_state_inverter_has_ports() {
+    let cell = tri_state_inverter().expect("cell");
+    assert!(cell.port("a").is_some());
+    assert!(cell.port("y").is_some());
+    assert!(cell.port("en").is_some());
+    assert!(cell.port("enb").is_some());
+}
+
+#[test]
+fn d_latch_captures_input() {
+    let cell = d_latch().expect("cell");
+    let mut circuit = cell.powered(5.0).expect("powered");
+    let data = cell.port("d").expect("d");
+    let enable = cell.port("en").expect("en");
+    let enable_bar = cell.port("enb").expect("enb");
+    add_source(&mut circuit, "vd", data, 5.0).expect("vd");
+    add_source(&mut circuit, "ven", enable, 5.0).expect("ven");
+    add_source(&mut circuit, "venb", enable_bar, 0.0).expect("venb");
+    let output_port = cell.port("q").expect("q");
+    assert!(output(&circuit, output_port) > 4.0);
+    circuit
+        .set_device_parameter("vd", "voltage", 0.0)
+        .expect("set data");
+    assert!(output(&circuit, output_port) < 1.0);
+}
+
+#[test]
+fn dff_has_ports() {
+    let cell = d_flip_flop().expect("cell");
+    assert!(cell.port("d").is_some());
+    assert!(cell.port("clk").is_some());
+    assert!(cell.port("q").is_some());
+}
+
+#[test]
+fn sram_has_ports() {
+    let cell = sram6t().expect("cell");
+    assert!(cell.port("q").is_some());
+    assert!(cell.port("qb").is_some());
+    assert!(cell.port("wl").is_some());
+    assert!(cell.port("bl").is_some());
+    assert!(cell.port("blb").is_some());
+}
+
+#[test]
+fn ring_oscillator_has_output() {
+    let cell = ring_oscillator().expect("cell");
+    assert!(cell.port("y").is_some());
+    assert!(cell.powered(5.0).is_ok());
+}
+
+#[test]
+fn registry_builds_every_cell() {
+    let kinds = [
+        CellKind::Inverter,
+        CellKind::Nand2,
+        CellKind::Nor2,
+        CellKind::Buffer,
+        CellKind::TransmissionGate,
+        CellKind::TriStateInverter,
+        CellKind::DLatch,
+        CellKind::DFlipFlop,
+        CellKind::Sram6t,
+        CellKind::RingOscillator,
+    ];
+    for kind in kinds {
+        let cell = kind.build().expect("cell");
+        assert!(!kind.name().is_empty());
+        assert!(cell.vdd().is_some());
+    }
 }

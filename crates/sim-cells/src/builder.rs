@@ -54,13 +54,36 @@ impl CellBuilder {
 
     /// Builds a cell with the provided port list.
     pub fn build(self, ports: &[(&str, NodeId)]) -> Result<Cell, SimError> {
-        let circuit = self.builder.build()?;
+        let circuit = self.builder.build_topology()?;
         let mut port_map = BTreeMap::new();
         port_map.insert("vdd".to_string(), self.vdd);
         for (name, node) in ports {
             port_map.insert((*name).to_string(), *node);
         }
         Ok(Cell::new(circuit, port_map))
+    }
+
+    /// Adds a CMOS inverter.
+    pub fn inverter(&mut self, name: &str, input: NodeId, output: NodeId) {
+        let pmos_name = format!("{name}_p");
+        let nmos_name = format!("{name}_n");
+        self.pmos(&pmos_name, input, output, self.vdd, 2e-6);
+        self.nmos(&nmos_name, input, output, self.ground, 1e-6);
+    }
+
+    /// Adds a CMOS transmission gate.
+    pub fn transmission_gate(
+        &mut self,
+        name: &str,
+        first: NodeId,
+        second: NodeId,
+        enable: NodeId,
+        enable_bar: NodeId,
+    ) {
+        let nmos_name = format!("{name}_n");
+        let pmos_name = format!("{name}_p");
+        self.nmos(&nmos_name, enable, second, first, 1e-6);
+        self.pmos(&pmos_name, enable_bar, second, first, 2e-6);
     }
 
     fn transistor(
