@@ -85,6 +85,8 @@ Baca berurutan:
 | [`docs/32-sensitivity.md`](docs/32-sensitivity.md) | Sensitivitas DC numerik |
 | [`docs/33-temperature.md`](docs/33-temperature.md) | Suhu device dan koefisien suhu |
 | [`docs/34-process-corner.md`](docs/34-process-corner.md) | Scaling parameter device |
+| [`docs/35-bjt.md`](docs/35-bjt.md) | Model Ebers-Moll NPN dan PNP |
+| [`docs/36-jfet.md`](docs/36-jfet.md) | Model Shichman-Hodges N dan P |
 | [`TODO.md`](TODO.md) | **Todolist lengkap dari hal terkecil** |
 
 ---

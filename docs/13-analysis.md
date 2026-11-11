@@ -9,7 +9,7 @@ Dokumentasi analisis DC, transient, AC, noise, distorsi, dan sensitivitas yang s
 P4 diimplementasikan sebagian:
 
 - MNA context.
-- Stamping resistor, capacitor, inductor, source, MOSFET, diode.
+- Stamping resistor, capacitor, inductor, source, MOSFET, diode, BJT, JFET.
 - DC operating point.
 - Newton-style linearization loop.
 - Kriteria konvergensi.
@@ -20,6 +20,8 @@ P4 diimplementasikan sebagian:
 - Distorsi harmonik kuasi-statis.
 - Sensitivitas DC numerik.
 - Suhu device dan process corner.
+- BJT Ebers-Moll NPN dan PNP.
+- JFET Shichman-Hodges N dan P.
 - State update device.
 
 Belum diimplementasikan:
@@ -210,12 +212,12 @@ P4 lanjutan:
 Total test workspace saat ini:
 
 - `sim-core`: 61.
-- `sim-device`: 23 (18 unit + 5 integration).
-- `sim-analysis`: 56.
+- `sim-device`: 31 (26 unit + 5 integration).
+- `sim-analysis`: 64.
 - `sim-cells`: 67.
 - `sim-avr`: 187.
 - `sim-board`: 12.
 - `sim-cli`: 5.
-- Total: 411.
+- Total: 427.
 
 Semua fungsi maksimal 20 baris dan semua file baru ASCII-only.
