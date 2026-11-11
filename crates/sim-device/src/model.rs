@@ -151,6 +151,18 @@ pub(crate) fn pins_exact(instance: &DeviceInstance, count: usize) -> Result<Vec<
     Ok(pins.to_vec())
 }
 
+pub(crate) fn pins_three_or_four(instance: &DeviceInstance) -> Result<[NodeId; 4], SimError> {
+    let pins = instance.pins();
+    if pins.len() != 3 && pins.len() != 4 {
+        return Err(SimError::InvalidNetlist(format!(
+            "{} requires three or four pins",
+            instance.name()
+        )));
+    }
+    let body = if pins.len() == 4 { pins[3] } else { pins[2] };
+    Ok([pins[0], pins[1], pins[2], body])
+}
+
 pub(crate) fn branch_index(ctx: &MnaContext, id: DeviceId) -> Result<usize, SimError> {
     ctx.branch_index(id)
         .ok_or_else(|| SimError::Internal(format!("missing branch for device {}", id.raw())))
@@ -227,6 +239,28 @@ pub(crate) fn finite_difference<F: Fn(f64) -> f64>(function: F, value: f64, step
     (function(value + step) - function(value)) / step
 }
 
+/// Linearized terminal current and its derivatives.
+#[derive(Clone, Copy, Default)]
+pub(crate) struct Linearized {
+    pub(crate) current: f64,
+    pub(crate) gm: f64,
+    pub(crate) gds: f64,
+    pub(crate) gms: f64,
+    pub(crate) gmb: f64,
+}
+
+impl Linearized {
+    pub(crate) fn from_three(current: f64, gm: f64, gds: f64, gms: f64) -> Self {
+        Self {
+            current,
+            gm,
+            gds,
+            gms,
+            gmb: 0.0,
+        }
+    }
+}
+
 pub(crate) fn stamp_three_terminal(
     ctx: &mut MnaContext,
     pins: [NodeId; 3],
@@ -236,26 +270,46 @@ pub(crate) fn stamp_three_terminal(
     gms: f64,
     voltages: (f64, f64, f64),
 ) -> Result<(), SimError> {
+    let (vg, vd, vs) = voltages;
+    let state = Linearized::from_three(current, gm, gds, gms);
+    stamp_four_terminal(
+        ctx,
+        [pins[0], pins[1], pins[2], pins[2]],
+        state,
+        (vg, vd, vs, vs),
+    )
+}
+
+pub(crate) fn stamp_four_terminal(
+    ctx: &mut MnaContext,
+    pins: [NodeId; 4],
+    state: Linearized,
+    voltages: (f64, f64, f64, f64),
+) -> Result<(), SimError> {
     let gate = ctx.node_index(pins[0]);
     let drain = ctx.node_index(pins[1]);
     let source = ctx.node_index(pins[2]);
-    let (vg, vd, vs) = voltages;
-    let constant = gm * vg + gds * vd + gms * vs - current;
-    let cols = (gate, drain, source);
-    stamp_row(ctx, drain, cols, (gm, gds, gms), constant)?;
-    stamp_row(ctx, source, cols, (-gm, -gds, -gms), -constant)
+    let body = ctx.node_index(pins[3]);
+    let (vg, vd, vs, vb) = voltages;
+    let constant = state.gm * vg + state.gds * vd + state.gms * vs + state.gmb * vb - state.current;
+    let cols = (gate, drain, source, body);
+    let values = (state.gm, state.gds, state.gms, state.gmb);
+    let negative = (-values.0, -values.1, -values.2, -values.3);
+    stamp_row(ctx, drain, cols, values, constant)?;
+    stamp_row(ctx, source, cols, negative, -constant)
 }
 
 fn stamp_row(
     ctx: &mut MnaContext,
     row: Option<usize>,
-    cols: (Option<usize>, Option<usize>, Option<usize>),
-    values: (f64, f64, f64),
+    cols: (Option<usize>, Option<usize>, Option<usize>, Option<usize>),
+    values: (f64, f64, f64, f64),
     constant: f64,
 ) -> Result<(), SimError> {
     ctx.add_matrix_opt(row, cols.0, values.0)?;
     ctx.add_matrix_opt(row, cols.1, values.1)?;
     ctx.add_matrix_opt(row, cols.2, values.2)?;
+    ctx.add_matrix_opt(row, cols.3, values.3)?;
     ctx.add_rhs_opt(row, constant)
 }
 

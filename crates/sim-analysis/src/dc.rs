@@ -318,8 +318,9 @@ fn validate_sweep(start: f64, stop: f64, step: f64) -> Result<(), SimError> {
 mod tests {
     use super::{DcConfig, dc_operating_point, dc_sweep};
     use crate::test_support::{
-        common_emitter, common_emitter_pnp, common_source_n, common_source_n_biased,
-        common_source_p, diode_clamp, inverter, rc_circuit, rl_circuit, voltage_divider,
+        common_emitter, common_emitter_pnp, common_source_body, common_source_n,
+        common_source_n_biased, common_source_p, diode_clamp, inverter, rc_circuit, rl_circuit,
+        voltage_divider,
     };
 
     #[test]
@@ -578,5 +579,18 @@ mod tests {
         let result = dc_operating_point(&circuit, &DcConfig::default()).expect("dc");
         let voltage = result.solution.voltage(output).expect("output");
         assert!(voltage > 3.0 && voltage < 4.5, "voltage={voltage}");
+    }
+
+    #[test]
+    fn body_bias_raises_drain_voltage() {
+        let (mut circuit, output) = common_source_body();
+        let base = dc_operating_point(&circuit, &DcConfig::default()).expect("base");
+        let base = base.solution.voltage(output).expect("base v");
+        circuit
+            .set_device_parameter("vb", "voltage", -2.0)
+            .expect("vb");
+        let biased = dc_operating_point(&circuit, &DcConfig::default()).expect("biased");
+        let biased = biased.solution.voltage(output).expect("biased v");
+        assert!(biased > base + 0.1, "base={base} biased={biased}");
     }
 }

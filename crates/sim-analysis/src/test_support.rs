@@ -107,6 +107,21 @@ impl TestCircuit {
             .expect(name);
     }
 
+    pub(crate) fn mosfet_body(
+        &mut self,
+        name: &str,
+        kind: DeviceKind,
+        pins: [NodeId; 4],
+        width: f64,
+    ) {
+        let mut parameters = mos_params(width);
+        parameters.insert("gamma".to_string(), 0.5);
+        parameters.insert("phi".to_string(), 0.7);
+        self.builder
+            .device(name, kind, pins.to_vec(), parameters)
+            .expect(name);
+    }
+
     pub(crate) fn bjt(
         &mut self,
         name: &str,
@@ -363,6 +378,21 @@ pub(crate) fn matched_line() -> (Circuit, NodeId) {
     circuit.resistor("rl", output, ground, 50.0);
     circuit.transmission_line("t1", [input, ground, output, ground], (50.0, 1e-6));
     (circuit.build(), output)
+}
+
+pub(crate) fn common_source_body() -> (Circuit, NodeId) {
+    let mut circuit = TestCircuit::new();
+    let vdd = circuit.node("vdd");
+    let gate = circuit.node("gate");
+    let body = circuit.node("body");
+    let drain = circuit.node("drain");
+    let ground = circuit.ground();
+    circuit.voltage("vdd_src", vdd, ground, 5.0);
+    circuit.voltage("vg", gate, ground, 1.5);
+    circuit.voltage("vb", body, ground, 0.0);
+    circuit.resistor("rd", vdd, drain, 1000.0);
+    circuit.mosfet_body("m1", DeviceKind::Nmos, [gate, drain, ground, body], 10e-6);
+    (circuit.build(), drain)
 }
 
 pub(crate) fn diode_clamp() -> (Circuit, NodeId) {
