@@ -198,6 +198,19 @@ Test:
 - `CellKind::build()` membangun sel.
 - `CellKind::name()` mengembalikan nama.
 
+
+### Half Adder
+
+- Dibangun dari 5 sel NAND2.
+- Output `sum` dan `carry`.
+- Truth table test lengkap.
+
+### Full Adder
+
+- Dibangun dari 2 half adder dan 3 NAND2.
+- Output `sum` dan `carry`.
+- Truth table test lengkap.
+
 ### Noise Margin
 
 - `noise_margins` mengambil sampel VTC `(input, output)`.
@@ -216,7 +229,7 @@ Test `sim-cells` mencakup:
 - Buffer follow input.
 - Powered cell memiliki supply.
 
-Total test `sim-cells`: 15.
+Total test `sim-cells`: 17.
 
 ---
 

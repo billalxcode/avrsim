@@ -2,7 +2,7 @@
 
 Daftar tugas lengkap dari hal terkecil sampai rilis. Setiap item harus kecil, dapat diuji, dan tidak menambah dependensi eksternal.
 
-> **Status:** P5 sel, sequential, memory, registry, dan noise margin selesai. Ring oscillator struktur ada, osilasi belum terverifikasi. Lanjut ke P6.
+> **Status:** P5 selesai sebagian dan P6 awal selesai: half adder dan full adder lulus. Lanjut ke komposisi digital lebih besar.
 > **Aturan:** satu item selesai = kode + test + dokumentasi singkat.
 
 ---
@@ -270,7 +270,7 @@ Daftar tugas lengkap dari hal terkecil sampai rilis. Setiap item harus kecil, da
 
 ## P6 - Komposisi Digital
 
-- [ ] P6-01 Implementasikan komposisi gerbang hierarkis.
+- [x] P6-01 Implementasikan komposisi gerbang hierarkis.
 - [ ] P6-02 Implementasikan helper bus/vector.
 - [ ] P6-03 Implementasikan clock ideal.
 - [ ] P6-04 Implementasikan reset ideal.
@@ -278,8 +278,8 @@ Daftar tugas lengkap dari hal terkecil sampai rilis. Setiap item harus kecil, da
 - [ ] P6-06 Bangun shift register.
 - [ ] P6-07 Bangun multiplexer.
 - [ ] P6-08 Bangun decoder.
-- [ ] P6-09 Bangun half adder.
-- [ ] P6-10 Bangun full adder.
+- [x] P6-09 Bangun half adder.
+- [x] P6-10 Bangun full adder.
 - [ ] P6-11 Bangun 8-bit ripple-carry adder.
 - [ ] P6-12 Implementasikan flag C.
 - [ ] P6-13 Implementasikan flag Z.

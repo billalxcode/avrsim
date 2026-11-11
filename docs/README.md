@@ -37,6 +37,6 @@ Dokumen ini adalah indeks lengkap spesifikasi **embed-emulation**.
 |---|---|
 | Brainstorming | Selesai |
 | Spesifikasi | Dokumen ini |
-| Kode | P5 cells + noise margin selesai |
+| Kode | P5/P6 awal selesai |
 | Toolchain Rust | Terpasang (1.99.1) |
 | `avr-gcc` | Belum terpasang |
