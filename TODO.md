@@ -2,7 +2,7 @@
 
 Daftar tugas lengkap dari hal terkecil sampai rilis. Setiap item harus kecil, dapat diuji, dan tidak menambah dependensi eksternal.
 
-> **Status:** P8 selesai penuh. P9 sebagian besar selesai; ELF loader, simbol, dan UART end-to-end selesai. P10 sparse, adaptive step, trapezoidal/Gear, AC linear, noise termal, distorsi kuasi-statis, sensitivitas numerik, suhu device, process corner, BJT, JFET, transmission line, determinisme Linux, fidelity matrix, batasan model, profiling, dan optimasi selesai. Golden suite dan determinisme macOS/Windows belum. P4 harness ngspice dan golden data belum karena ngspice tidak tersedia. P5 switching, input capacitance, dan drive strength selesai; ring oscillator dan perbandingan ngspice belum. P11 user guide dan contoh runnable selesai; CI, packaging, dan release belum. P3 body effect, gmb, Meyer capacitance, overlap, diode nonideal, BJT, JFET, transmission line, VCVS, VCCS, CCVS, CCCS, dan switch selesai; breakdown dan model termal lanjutan belum.
+> **Status:** P8 selesai penuh. P9 sebagian besar selesai; ELF loader, simbol, dan UART end-to-end selesai. P10 sparse, adaptive step, trapezoidal/Gear, AC linear, noise termal, distorsi kuasi-statis, sensitivitas numerik, suhu device, process corner, BJT, JFET, transmission line, determinisme Linux, fidelity matrix, batasan model, profiling, dan optimasi selesai. Golden suite dan determinisme macOS/Windows belum. P4 harness ngspice dan golden data belum karena ngspice tidak tersedia. P5 switching, input capacitance, dan drive strength selesai; ring oscillator dan perbandingan ngspice belum. P11 user guide, contoh runnable, dan workflow CI selesai; eksekusi GitHub Actions, packaging, dan release belum. P3 body effect, gmb, Meyer capacitance, overlap, diode nonideal, BJT, JFET, transmission line, VCVS, VCCS, CCVS, CCCS, dan switch selesai; breakdown dan model termal lanjutan belum.
 > **Aturan:** satu item selesai = kode + test + dokumentasi singkat.
 
 ---
@@ -53,16 +53,16 @@ Daftar tugas lengkap dari hal terkecil sampai rilis. Setiap item harus kecil, da
 - [ ] P0-24 Buat `scripts/lint.sh`.
 - [x] P0-25 Inisialisasi git repository.
 - [x] P0-26 Buat commit awal.
-- [ ] P0-27 Buat workflow CI Linux.
-- [ ] P0-28 Tambahkan CI macOS.
-- [ ] P0-29 Tambahkan CI Windows.
-- [ ] P0-30 Pastikan CI menjalankan fmt, lint, test, build release.
-- [ ] P0-31 Buat folder `examples/`.
-- [ ] P0-32 Buat folder `firmware/`.
-- [ ] P0-33 Buat placeholder `examples/README.md`.
-- [ ] P0-34 Buat placeholder `firmware/README.md`.
-- [ ] P0-35 Verifikasi `cargo test --workspace` hijau.
-- [ ] P0-36 Verifikasi `cargo build --workspace --release` hijau.
+- [x] P0-27 Buat workflow CI Linux.
+- [x] P0-28 Tambahkan CI macOS.
+- [x] P0-29 Tambahkan CI Windows.
+- [x] P0-30 Pastikan CI menjalankan fmt, lint, test, build release.
+- [x] P0-31 Buat folder `examples/`.
+- [x] P0-32 Buat folder `firmware/`.
+- [x] P0-33 Buat placeholder `examples/README.md`.
+- [x] P0-34 Buat placeholder `firmware/README.md`.
+- [x] P0-35 Verifikasi `cargo test --workspace` hijau.
+- [x] P0-36 Verifikasi `cargo build --workspace --release` hijau.
 
 **Exit P0:** workspace ter-build, test kosong hijau, CI jalan, zero dependency.
 
@@ -588,26 +588,26 @@ Daftar tugas lengkap dari hal terkecil sampai rilis. Setiap item harus kecil, da
 
 ## Cross-Cutting Tasks
 
-- [ ] X-01 Pastikan setiap crate punya dokumentasi modul.
-- [ ] X-02 Pastikan setiap error punya pesan jelas.
+- [x] X-01 Pastikan setiap crate punya dokumentasi modul.
+- [x] X-02 Pastikan setiap error punya pesan jelas.
 - [ ] X-03 Pastikan tidak ada panic pada input pengguna.
-- [ ] X-04 Pastikan tidak ada dependensi eksternal.
-- [ ] X-05 Jalankan fmt sebelum commit.
-- [ ] X-06 Jalankan clippy sebelum commit.
-- [ ] X-07 Jalankan test sebelum commit.
-- [ ] X-08 Perbarui fidelity matrix setiap milestone.
-- [ ] X-09 Perbarui TODO setiap menyelesaikan item.
+- [x] X-04 Pastikan tidak ada dependensi eksternal.
+- [x] X-05 Jalankan fmt sebelum commit.
+- [x] X-06 Jalankan clippy sebelum commit.
+- [x] X-07 Jalankan test sebelum commit.
+- [x] X-08 Perbarui fidelity matrix setiap milestone.
+- [x] X-09 Perbarui TODO setiap menyelesaikan item.
 - [ ] X-10 Simpan golden data dengan metadata.
 - [ ] X-11 Dokumentasikan cara regenerasi golden.
 - [ ] X-12 Audit lisensi model/data.
-- [ ] X-13 Buat benchmark baseline.
+- [x] X-13 Buat benchmark baseline.
 - [ ] X-14 Buat test snapshot/replay.
-- [ ] X-15 Buat test fuzz parser HEX.
-- [ ] X-16 Buat test fuzz decoder AVR.
-- [ ] X-17 Buat test error konvergensi.
+- [x] X-15 Buat test fuzz parser HEX.
+- [x] X-16 Buat test fuzz decoder AVR.
+- [x] X-17 Buat test error konvergensi.
 - [ ] X-18 Buat test node floating.
-- [ ] X-19 Buat test matriks singular.
-- [ ] X-20 Buat test input tidak valid.
+- [x] X-19 Buat test matriks singular.
+- [x] X-20 Buat test input tidak valid.
 
 ---
 
