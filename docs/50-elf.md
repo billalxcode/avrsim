@@ -32,6 +32,8 @@ impl ElfImage {
     pub fn symbols(&self) -> &[ElfSymbol];
     pub fn load_flash(&self, image: &mut [u8]) -> Result<(), SimError>;
     pub fn program_words(&self) -> Result<Vec<u16>, SimError>;
+    pub fn flash_bytes(&self) -> Result<Vec<u8>, SimError>;
+    pub fn to_hex(&self) -> Result<String, SimError>;
 }
 ```
 
@@ -93,10 +95,11 @@ Test memverifikasi:
 - Segment dan isi flash.
 - Nama dan jenis simbol.
 - Program words little-endian.
+- Konversi segment flash ke Intel HEX.
 - Penolakan magic salah, file terpotong, dan machine bukan AVR.
 
-Total test `sim-board`: 20.
-Total workspace: 486.
+Total test `sim-board`: 23.
+Total workspace: 492.
 
 ---
 

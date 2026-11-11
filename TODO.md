@@ -2,7 +2,7 @@
 
 Daftar tugas lengkap dari hal terkecil sampai rilis. Setiap item harus kecil, dapat diuji, dan tidak menambah dependensi eksternal.
 
-> **Status:** P0 fondasi selesai. P8 selesai penuh. P9 sebagian besar selesai; ELF loader, simbol, dan UART end-to-end selesai. P10 sparse, adaptive step, trapezoidal/Gear, AC linear, noise termal, distorsi kuasi-statis, sensitivitas numerik, suhu device, process corner, BJT, JFET, transmission line, determinisme Linux, fidelity matrix, batasan model, profiling, dan optimasi selesai. Golden suite dan determinisme macOS/Windows belum. P4 harness ngspice dan golden data belum karena ngspice tidak tersedia. P5 switching, input capacitance, dan drive strength selesai; ring oscillator dan perbandingan ngspice belum. P11 user guide, contoh runnable, workflow CI, dan notices selesai; eksekusi GitHub Actions, packaging, dan release belum. X-03 panic audit sebagian; builder sel masih memakai invariant expect. P3 body effect, gmb, Meyer capacitance, overlap, diode nonideal, BJT, JFET, transmission line, VCVS, VCCS, CCVS, CCCS, dan switch selesai; breakdown dan model termal lanjutan belum.
+> **Status:** P0 fondasi selesai. P8 selesai penuh. P9 sebagian besar selesai; ELF loader, simbol, ELF ke HEX, dan UART end-to-end selesai. P10 sparse, adaptive step, trapezoidal/Gear, AC linear, noise termal, distorsi kuasi-statis, sensitivitas numerik, suhu device, process corner, BJT, JFET, transmission line, determinisme Linux, fidelity matrix, batasan model, profiling, dan optimasi selesai. Golden suite dan determinisme macOS/Windows belum. P4 harness ngspice dan golden data belum karena ngspice tidak tersedia. P5 characterization harness, switching, input capacitance, dan drive strength selesai; ring oscillator dan perbandingan ngspice belum. P11 user guide, contoh runnable, workflow CI, dan notices selesai; eksekusi GitHub Actions, packaging, dan release belum. X-03 panic audit sebagian; builder sel masih memakai invariant expect. P3 body effect, gmb, Meyer capacitance, overlap, diode nonideal, BJT, JFET, transmission line, VCVS, VCCS, CCVS, CCCS, dan switch selesai; breakdown dan model termal lanjutan belum.
 > **Aturan:** satu item selesai = kode + test + dokumentasi singkat.
 
 ---
@@ -250,7 +250,7 @@ Daftar tugas lengkap dari hal terkecil sampai rilis. Setiap item harus kecil, da
 - [x] P5-14 Bangun SRAM cell 6T.
 - [x] P5-15 Bangun D latch.
 - [x] P5-16 Bangun D flip-flop master-slave.
-- [ ] P5-17 Buat characterization harness.
+- [x] P5-17 Buat characterization harness.
 - [x] P5-18 Ukur input capacitance.
 - [x] P5-19 Ukur drive strength.
 - [x] P5-20 Buat registry sel.
@@ -507,7 +507,7 @@ Daftar tugas lengkap dari hal terkecil sampai rilis. Setiap item harus kecil, da
 - [x] P9-13 Implementasikan startup state.
 - [ ] P9-14 Pasang `avr-gcc`.
 - [ ] P9-15 Kompilasi firmware blink.
-- [ ] P9-16 Konversi ELF ke HEX.
+- [x] P9-16 Konversi ELF ke HEX.
 - [ ] P9-17 Jalankan blink di board.
 - [ ] P9-18 Kompilasi firmware UART hello.
 - [ ] P9-19 Jalankan UART hello.
