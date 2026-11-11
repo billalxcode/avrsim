@@ -96,9 +96,11 @@ Baca berurutan:
 | [`docs/43-user-guide.md`](docs/43-user-guide.md) | Quick start, API, dan contoh |
 | [`docs/44-body-effect.md`](docs/44-body-effect.md) | Threshold bias body dan `gmb` |
 | [`docs/45-mosfet-capacitance.md`](docs/45-mosfet-capacitance.md) | Meyer dan overlap capacitance |
+| [`docs/46-diode-nonideal.md`](docs/46-diode-nonideal.md) | Series resistance dan junction capacitance |
 | [`docs/43-user-guide.md`](docs/43-user-guide.md) | Quick start, API, dan contoh |
 | [`docs/44-body-effect.md`](docs/44-body-effect.md) | Threshold bias body dan `gmb` |
 | [`docs/45-mosfet-capacitance.md`](docs/45-mosfet-capacitance.md) | Meyer dan overlap capacitance |
+| [`docs/46-diode-nonideal.md`](docs/46-diode-nonideal.md) | Series resistance dan junction capacitance |
 | [`TODO.md`](TODO.md) | **Todolist lengkap dari hal terkecil** |
 
 ---
