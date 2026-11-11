@@ -122,4 +122,48 @@ Test lapisan digital mencakup:
 - Prioritas SP: load, lalu increment, lalu decrement, lalu hold.
 - Reset global mengosongkan PC dan SP.
 
-Total test `sim-cells` saat ini: 51.
+---
+
+## 9. Digital ALU
+
+- Operand 8 bit, opcode 3 bit.
+- Operasi: ADD, SUB, AND, OR, XOR, dan pass B.
+- SUB memakai two's complement.
+- Output: result, zero, carry/borrow, negative, half carry/borrow.
+- Carry dan half carry dibalik saat SUB agar berarti borrow.
+
+---
+
+## 10. CPU Uji
+
+CPU kecil memakai FSM dua fase: FETCH dan EXECUTE.
+
+- FETCH: IR memuat instruction word, PC naik.
+- EXECUTE: register write, branch, atau halt.
+- Zero flag disimpan di D flip-flop saat operasi arithmetic/logic.
+- Branch memakai zero flag tersimpan, bukan output ALU saat instruksi branch.
+
+Instruksi:
+
+| Opcode | Instruksi | Format |
+|---|---|---|
+| 0 | NOP | - |
+| 1 | LDI rd, imm6 | rd 5 bit, imm 6 bit |
+| 2 | ADD rd, rs | rd 5 bit, rs 5 bit |
+| 3 | SUB rd, rs | rd 5 bit, rs 5 bit |
+| 4 | AND rd, rs | rd 5 bit, rs 5 bit |
+| 5 | OR rd, rs | rd 5 bit, rs 5 bit |
+| 6 | XOR rd, rs | rd 5 bit, rs 5 bit |
+| 7 | MOV rd, rs | rd 5 bit, rs 5 bit |
+| 8 | JMP addr11 | target 11 bit |
+| 9 | JZ addr11 | target 11 bit |
+| 10 | JNZ addr11 | target 11 bit |
+| 31 | HLT | - |
+
+- Register file: 32 x 8 bit.
+- Program memory: behavioral `Vec<u16>`, maksimum 2048 word.
+- Control PLA: decoder opcode, write enable, flag enable, ALU op, branch, dan halt.
+- `CpuTrace` mencatat PC, IR, halt, dan snapshot 32 register.
+- Test mencakup arithmetic, branch, loop, JMP, reset, halt, dan trace.
+
+Total test `sim-cells` saat ini: 66.

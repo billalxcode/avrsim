@@ -2,7 +2,7 @@
 
 Daftar tugas lengkap dari hal terkecil sampai rilis. Setiap item harus kecil, dapat diuji, dan tidak menambah dependensi eksternal.
 
-> **Status:** P6 register file, PC, IR, dan SP selesai. Lanjut ke control PLA/FSM dan CPU uji.
+> **Status:** P6 selesai: CPU uji menjalankan program, loop, branch, dan trace. Lanjut ke P7 AVR CPU struktural.
 > **Aturan:** satu item selesai = kode + test + dokumentasi singkat.
 
 ---
@@ -292,13 +292,13 @@ Daftar tugas lengkap dari hal terkecil sampai rilis. Setiap item harus kecil, da
 - [x] P6-20 Bangun PC.
 - [x] P6-21 Bangun IR.
 - [x] P6-22 Bangun stack pointer.
-- [ ] P6-23 Bangun control PLA.
-- [ ] P6-24 Bangun control FSM.
-- [ ] P6-25 Bangun CPU uji kecil.
-- [ ] P6-26 Tulis program uji CPU.
-- [ ] P6-27 Buat expected trace.
-- [ ] P6-28 Verifikasi trace.
-- [ ] P6-29 Dokumentasikan blok CPU.
+- [x] P6-23 Bangun control PLA.
+- [x] P6-24 Bangun control FSM.
+- [x] P6-25 Bangun CPU uji kecil.
+- [x] P6-26 Tulis program uji CPU.
+- [x] P6-27 Buat expected trace.
+- [x] P6-28 Verifikasi trace.
+- [x] P6-29 Dokumentasikan blok CPU.
 
 **Exit P6:** CPU uji kecil menjalankan program dan trace benar.
 
