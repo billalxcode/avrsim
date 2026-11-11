@@ -2,7 +2,7 @@
 
 Daftar tugas lengkap dari hal terkecil sampai rilis. Setiap item harus kecil, dapat diuji, dan tidak menambah dependensi eksternal.
 
-> **Status:** P8 selesai kecuali P8-09. P9 board, loader HEX, CLI run, CSV/VCD, dan blink end-to-end selesai. P10 belum.
+> **Status:** P8 selesai kecuali P8-09. P9 sebagian besar selesai. P10 baru fidelity matrix dan batasan model; AC/noise, sparse, adaptive step, kalibrasi, dan golden suite belum.
 > **Aturan:** satu item selesai = kode + test + dokumentasi singkat.
 
 ---
@@ -555,8 +555,8 @@ Daftar tugas lengkap dari hal terkecil sampai rilis. Setiap item harus kecil, da
 - [ ] P10-24 Uji determinisme Linux.
 - [ ] P10-25 Uji determinisme macOS.
 - [ ] P10-26 Uji determinisme Windows.
-- [ ] P10-27 Finalisasi fidelity matrix.
-- [ ] P10-28 Dokumentasikan batasan model.
+- [x] P10-27 Finalisasi fidelity matrix.
+- [x] P10-28 Dokumentasikan batasan model.
 
 **Exit P10:** seluruh analisis/device yang dideklarasikan lulus golden suite.
 

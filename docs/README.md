@@ -30,6 +30,7 @@ Dokumen ini adalah indeks lengkap spesifikasi **embed-emulation**.
 | 21 | [System](21-system.md) | EEPROM, watchdog, fuse, clock, comparator, POR |
 | 22 | [Board](22-board.md) | LED, resistor, button, UART host, Intel HEX |
 | 23 | [SPI, TWI, ADC](23-spi-twi-adc.md) | SPI, TWI, dan ADC behavioral |
+| 24 | [Fidelity](24-fidelity.md) | Matriks fidelity dan batasan model |
 | - | [Todolist](../TODO.md) | Daftar tugas lengkap dari hal terkecil |
 
 ## Konvensi dokumen
