@@ -138,6 +138,21 @@ pub fn decrement(builder: &mut DigitalBuilder, bits: &[NetId]) -> Vec<NetId> {
     output
 }
 
+/// Builds a combinational full adder.
+#[must_use]
+pub fn full_adder(
+    builder: &mut DigitalBuilder,
+    first: NetId,
+    second: NetId,
+    carry_in: NetId,
+) -> (NetId, NetId) {
+    let partial = builder.xor(first, second);
+    let sum = builder.xor(partial, carry_in);
+    let lower = builder.and(first, second);
+    let upper = builder.and(partial, carry_in);
+    (sum, builder.or(lower, upper))
+}
+
 /// Builds a ripple counter with enable.
 pub fn counter(
     builder: &mut DigitalBuilder,
@@ -343,8 +358,8 @@ fn sp_next(
 #[cfg(test)]
 mod tests {
     use super::{
-        ProgramCounter, StackPointer, and_all, counter, decoder, mux_tree, or_all, read_bits,
-        register, shift_register,
+        ProgramCounter, StackPointer, and_all, counter, decoder, full_adder, mux_tree, or_all,
+        read_bits, register, shift_register,
     };
     use crate::digital::{DigitalBuilder, DigitalCircuit, NetId};
 
@@ -554,5 +569,30 @@ mod tests {
         circuit.set_input("load", false).expect("load");
         circuit.tick().expect("tick");
         assert_eq!(read_bits(&circuit, &ir), 0xABCD);
+    }
+
+    fn set_adder_inputs(circuit: &mut DigitalCircuit, value: u8) {
+        circuit.set_input("a", value & 1 != 0).expect("a");
+        circuit.set_input("b", value & 2 != 0).expect("b");
+        circuit.set_input("c", value & 4 != 0).expect("c");
+        circuit.settle().expect("settle");
+    }
+
+    #[test]
+    fn digital_full_adder_truth_table() {
+        let mut builder = DigitalBuilder::new();
+        let first = builder.input("a");
+        let second = builder.input("b");
+        let carry_in = builder.input("c");
+        let (sum, carry_out) = full_adder(&mut builder, first, second, carry_in);
+        builder.output("sum", sum);
+        builder.output("carry", carry_out);
+        let mut circuit = builder.build();
+        for value in 0..8 {
+            set_adder_inputs(&mut circuit, value);
+            let total = u8::count_ones(value) as u8;
+            assert_eq!(circuit.output("sum").expect("sum"), total & 1 != 0);
+            assert_eq!(circuit.output("carry").expect("carry"), total >= 2);
+        }
     }
 }

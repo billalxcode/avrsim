@@ -8,8 +8,8 @@ pub mod registers;
 
 pub use alu::{DigitalAlu, digital_alu};
 pub use blocks::{
-    ProgramCounter, StackPointer, and_all, counter, decoder, decrement, increment, mux_tree,
-    or_all, read_bits, register, shift_register,
+    ProgramCounter, StackPointer, and_all, counter, decoder, decrement, full_adder, increment,
+    mux_tree, or_all, read_bits, register, shift_register,
 };
 pub use circuit::{DigitalBuilder, DigitalCircuit, NetId};
 pub use cpu::{

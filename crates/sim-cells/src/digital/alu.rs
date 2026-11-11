@@ -1,6 +1,6 @@
 //! Eight-bit digital ALU.
 
-use super::blocks::{decoder, mux_tree, or_all};
+use super::blocks::{decoder, full_adder, mux_tree, or_all};
 use super::circuit::{DigitalBuilder, NetId};
 use sim_core::SimError;
 
@@ -115,19 +115,6 @@ fn add_bit(
     let inverted = builder.not(second);
     let bit = builder.mux(second, inverted, subtract);
     full_adder(builder, first, bit, carry_in)
-}
-
-fn full_adder(
-    builder: &mut DigitalBuilder,
-    first: NetId,
-    second: NetId,
-    carry_in: NetId,
-) -> (NetId, NetId) {
-    let partial = builder.xor(first, second);
-    let sum = builder.xor(partial, carry_in);
-    let lower = builder.and(first, second);
-    let upper = builder.and(partial, carry_in);
-    (sum, builder.or(lower, upper))
 }
 
 fn logic_bytes(builder: &mut DigitalBuilder, first: &[NetId], second: &[NetId]) -> LogicBytes {
