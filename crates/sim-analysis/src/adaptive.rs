@@ -51,6 +51,7 @@ pub fn transient_adaptive(
         time: Time::ZERO,
         samples: Vec::with_capacity(config.steps),
     };
+    system.update(&state.solution)?;
     while state.samples.len() < config.steps {
         step_adaptive(&mut system, &mut state, base, config)?;
     }
@@ -217,8 +218,9 @@ fn next_time(time: Time, dt: f64) -> Result<Time, SimError> {
 #[cfg(test)]
 mod tests {
     use super::{AdaptiveConfig, transient_adaptive};
-    use crate::test_support::rc_circuit;
-    use crate::transient::TransientConfig;
+    use crate::test_support::{rc_circuit, rc_circuit_no_source};
+    use crate::transient::{TransientConfig, TransientSample};
+    use sim_core::NodeId;
 
     fn base() -> TransientConfig {
         TransientConfig {
@@ -249,6 +251,64 @@ mod tests {
             (voltage - expected).abs() < 0.1,
             "voltage={voltage} expected={expected}"
         );
+    }
+
+    #[test]
+    fn adaptive_respects_initial_capacitor_voltage() {
+        let (circuit, output) = rc_circuit_no_source();
+        let mut base_config = base();
+        base_config.initial_voltages = vec![(output, 5.0)];
+        let config = AdaptiveConfig {
+            initial_dt: 1e-4,
+            min_dt: 1e-8,
+            max_dt: 2e-4,
+            tolerance: 1e-3,
+            steps: 8,
+        };
+        let samples = transient_adaptive(&circuit, &base_config, &config).expect("transient");
+        let last = samples.last().expect("last");
+        let voltage = last.solution.voltage(output).expect("output");
+        assert!(voltage > 0.5, "voltage={voltage}");
+    }
+
+    #[test]
+    fn adaptive_matches_fixed_step_on_rc() {
+        let (circuit, output) = rc_circuit();
+        let fixed = crate::transient::transient(&circuit, &base()).expect("fixed");
+        let config = AdaptiveConfig {
+            initial_dt: 1e-5,
+            min_dt: 1e-8,
+            max_dt: 1e-4,
+            tolerance: 1e-4,
+            steps: 1000,
+        };
+        let adaptive = transient_adaptive(&circuit, &base(), &config).expect("adaptive");
+        let target = 1e-3;
+        let fixed_voltage = voltage_at(&fixed, output, target);
+        let adaptive_voltage = voltage_at(&adaptive, output, target);
+        assert!(
+            (fixed_voltage - adaptive_voltage).abs() < 0.1,
+            "fixed={fixed_voltage} adaptive={adaptive_voltage}"
+        );
+    }
+
+    fn voltage_at(samples: &[TransientSample], node: NodeId, target: f64) -> f64 {
+        for pair in samples.windows(2) {
+            let first = pair[0].time.as_secs_f64();
+            let second = pair[1].time.as_secs_f64();
+            if target >= first && target <= second {
+                let left = pair[0].solution.voltage(node).expect("left");
+                let right = pair[1].solution.voltage(node).expect("right");
+                let ratio = (target - first) / (second - first);
+                return left + ratio * (right - left);
+            }
+        }
+        samples
+            .last()
+            .expect("last")
+            .solution
+            .voltage(node)
+            .expect("last voltage")
     }
 
     #[test]
