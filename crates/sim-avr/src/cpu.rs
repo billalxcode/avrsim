@@ -163,6 +163,15 @@ pub struct Cpu {
     sei_delay: u8,
     sleeping: bool,
     cycles: u64,
+    pin_change: PinChange,
+}
+
+#[derive(Default)]
+struct PinChange {
+    pcicr: u8,
+    pcifr: u8,
+    pcmsk: [u8; 3],
+    last_pin: [u8; 3],
 }
 
 impl Cpu {
@@ -193,6 +202,7 @@ impl Cpu {
             sei_delay: 0,
             sleeping: false,
             cycles: 0,
+            pin_change: PinChange::default(),
         })
     }
 
@@ -253,6 +263,51 @@ impl Cpu {
 
     /// Drives external pin inputs for port B, C, or D.
     pub fn set_pin_input(&mut self, port: u8, value: u8) -> Result<(), SimError> {
+        self.drive_pin(port, value)?;
+        let pin = self.gpio_pin(port)?;
+        self.handle_pin_change(port, pin)
+    }
+
+    /// Sets the pin-change mask for port B, C, or D.
+    pub fn set_pin_change_mask(&mut self, port: u8, mask: u8) -> Result<(), SimError> {
+        if port > 2 {
+            return Err(SimError::InvalidNetlist(
+                "port index out of range".to_string(),
+            ));
+        }
+        self.pin_change.pcmsk[usize::from(port)] = mask;
+        Ok(())
+    }
+
+    /// Enables or disables pin-change interrupt for a port.
+    pub fn enable_pin_change(&mut self, port: u8, enabled: bool) -> Result<(), SimError> {
+        if port > 2 {
+            return Err(SimError::InvalidNetlist(
+                "port index out of range".to_string(),
+            ));
+        }
+        if enabled {
+            self.pin_change.pcicr |= 1 << port;
+        } else {
+            self.pin_change.pcicr &= !(1 << port);
+        }
+        Ok(())
+    }
+
+    /// Returns the pin-change flag register.
+    #[must_use]
+    pub const fn pin_change_flags(&self) -> u8 {
+        self.pin_change.pcifr
+    }
+
+    /// Clears one pin-change flag.
+    pub fn clear_pin_change_flag(&mut self, port: u8) {
+        if port <= 2 {
+            self.pin_change.pcifr &= !(1 << port);
+        }
+    }
+
+    fn drive_pin(&mut self, port: u8, value: u8) -> Result<(), SimError> {
         match port {
             0 => self.datapath.gpio_b.set_pin_input(&mut self.circuit, value),
             1 => self.datapath.gpio_c.set_pin_input(&mut self.circuit, value),
@@ -261,6 +316,28 @@ impl Cpu {
                 "port index out of range".to_string(),
             )),
         }
+    }
+
+    fn gpio_pin(&self, port: u8) -> Result<u8, SimError> {
+        match port {
+            0 => Ok(self.datapath.gpio_b.read_pin(&self.circuit)),
+            1 => Ok(self.datapath.gpio_c.read_pin(&self.circuit)),
+            2 => Ok(self.datapath.gpio_d.read_pin(&self.circuit)),
+            _ => Err(SimError::InvalidNetlist(
+                "port index out of range".to_string(),
+            )),
+        }
+    }
+
+    fn handle_pin_change(&mut self, port: u8, pin: u8) -> Result<(), SimError> {
+        let index = usize::from(port);
+        let changed = self.pin_change.last_pin[index] ^ pin;
+        self.pin_change.last_pin[index] = pin;
+        if changed & self.pin_change.pcmsk[index] == 0 || self.pin_change.pcicr & (1 << port) == 0 {
+            return Ok(());
+        }
+        self.pin_change.pcifr |= 1 << port;
+        self.request_interrupt(3 + port)
     }
 
     /// Returns active pull-up bits for port B, C, or D.
@@ -302,6 +379,9 @@ impl Cpu {
         }
         let index = self.pending.trailing_zeros() as u8;
         self.pending &= !(1u32 << index);
+        if (3..=5).contains(&index) {
+            self.pin_change.pcifr &= !(1 << (index - 3));
+        }
         self.push_word(self.pc);
         self.sreg.interrupt = false;
         self.pc = vector_address(index);
@@ -384,6 +464,7 @@ impl Cpu {
         self.sei_delay = 0;
         self.sleeping = false;
         self.cycles = 0;
+        self.pin_change = PinChange::default();
         Ok(())
     }
 
@@ -2179,5 +2260,59 @@ mod tests {
     fn gpio_pull_up_tracks_port_register() {
         let cpu = run(vec![ldi(16, 0xFF), in_out(0xB800, 16, 0x05), 0x9598]);
         assert_eq!(cpu.pull_up(0), 0xFF);
+    }
+
+    fn pin_change_cpu() -> Cpu {
+        Cpu::new(vec![
+            ldi(16, 1),
+            0xCFFF,
+            0x0000,
+            0x0000,
+            0x0000,
+            0x0000,
+            ldi(17, 7),
+            0x9518,
+        ])
+        .expect("cpu")
+    }
+
+    #[test]
+    fn pin_change_requests_interrupt() {
+        let mut cpu = pin_change_cpu();
+        cpu.set_sreg(super::Sreg {
+            interrupt: true,
+            ..super::Sreg::default()
+        });
+        cpu.set_pin_change_mask(0, 0x01).expect("mask");
+        cpu.enable_pin_change(0, true).expect("enable");
+        cpu.set_pin_input(0, 0x01).expect("pin");
+        let trace = cpu.step().expect("step").expect("trace");
+        assert_eq!(trace.pc, 7);
+        assert_eq!(cpu.register(17), 7);
+        assert_eq!(cpu.pin_change_flags(), 0);
+    }
+
+    #[test]
+    fn pin_change_ignores_masked_and_disabled_bits() {
+        let mut cpu = Cpu::new(vec![0x9598]).expect("cpu");
+        cpu.set_pin_change_mask(0, 0x02).expect("mask");
+        cpu.enable_pin_change(0, true).expect("enable");
+        cpu.set_pin_input(0, 0x01).expect("pin");
+        assert_eq!(cpu.pin_change_flags(), 0);
+        cpu.set_pin_change_mask(0, 0x01).expect("mask");
+        cpu.enable_pin_change(0, false).expect("disable");
+        cpu.set_pin_input(0, 0x00).expect("pin");
+        assert_eq!(cpu.pin_change_flags(), 0);
+    }
+
+    #[test]
+    fn pin_change_flag_can_be_cleared() {
+        let mut cpu = Cpu::new(vec![0x9598]).expect("cpu");
+        cpu.set_pin_change_mask(0, 0x01).expect("mask");
+        cpu.enable_pin_change(0, true).expect("enable");
+        cpu.set_pin_input(0, 0x01).expect("pin");
+        assert_eq!(cpu.pin_change_flags(), 1);
+        cpu.clear_pin_change_flag(0);
+        assert_eq!(cpu.pin_change_flags(), 0);
     }
 }

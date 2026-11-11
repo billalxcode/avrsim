@@ -2,7 +2,7 @@
 
 Daftar tugas lengkap dari hal terkecil sampai rilis. Setiap item harus kecil, dapat diuji, dan tidak menambah dependensi eksternal.
 
-> **Status:** P8-01 sampai P8-08 selesai: GPIO B/C/D struktural. Blocker P7: avr-gcc tidak tersedia dan differential simavr belum dilakukan.
+> **Status:** P8-01 sampai P8-08 dan P8-10 selesai: GPIO B/C/D dan pin-change interrupt. Blocker P7 tetap avr-gcc dan differential simavr.
 > **Aturan:** satu item selesai = kode + test + dokumentasi singkat.
 
 ---
@@ -431,7 +431,7 @@ Daftar tugas lengkap dari hal terkecil sampai rilis. Setiap item harus kecil, da
 - [x] P8-07 Implementasikan PIN toggle.
 - [x] P8-08 Implementasikan pull-up.
 - [ ] P8-09 Implementasikan pin electrical model.
-- [ ] P8-10 Implementasikan pin change interrupt.
+- [x] P8-10 Implementasikan pin change interrupt.
 - [ ] P8-11 Implementasikan Timer0 counter.
 - [ ] P8-12 Implementasikan Timer0 prescaler.
 - [ ] P8-13 Implementasikan Timer0 normal mode.

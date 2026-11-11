@@ -60,7 +60,19 @@ CPU menyediakan `set_pin_input(port, value)` dan `pull_up(port)`.
 
 ---
 
-## 4. Test
+## 4. Pin-Change Interrupt
+
+- Mask per port disimpan di `pcmsk`.
+- Enable per port disimpan di `pcicr`.
+- Flag per port disimpan di `pcifr`.
+- Perubahan pin dibandingkan dengan nilai terakhir.
+- Perubahan yang cocok dengan mask dan enable men-set flag dan request vektor PCINT0/1/2.
+- Flag dibersihkan saat interrupt dilayani.
+- CPU menyediakan `set_pin_change_mask`, `enable_pin_change`, `pin_change_flags`, dan `clear_pin_change_flag`.
+
+---
+
+## 5. Test
 
 - Output mengikuti DDR dan PORT.
 - Input mengikuti pin saat DDR rendah.
@@ -70,14 +82,16 @@ CPU menyediakan `set_pin_input(port, value)` dan `pull_up(port)`.
 - CPU menulis DDR/PORT dan membaca PIN.
 - CPU membaca pin input eksternal.
 - Pull-up CPU mengikuti PORT.
+- Pin-change interrupt masuk ke vektor dan flag dibersihkan.
+- Mask dan enable diverifikasi.
+- Flag dapat dibersihkan manual.
 
-Total test `sim-avr`: 101.
+Total test `sim-avr`: 104.
 
 ---
 
-## 5. Batas
+## 6. Batas
 
 - Model hanya dua-state, tanpa high-Z atau kontensi.
 - Belum ada tegangan, arus, kapasitansi, atau drive strength.
-- Belum ada pin-change interrupt.
 - Belum ada timer, UART, SPI, I2C, ADC, atau EEPROM.

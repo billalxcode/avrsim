@@ -208,8 +208,8 @@ Total test workspace saat ini:
 - `sim-device`: 23 (18 unit + 5 integration).
 - `sim-analysis`: 21.
 - `sim-cells`: 67.
-- `sim-avr`: 101.
+- `sim-avr`: 104.
 - `sim-cli`: 4.
-- Total: 269.
+- Total: 272.
 
 Semua fungsi maksimal 20 baris dan semua file baru ASCII-only.
