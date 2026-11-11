@@ -2,7 +2,7 @@
 
 Daftar tugas lengkap dari hal terkecil sampai rilis. Setiap item harus kecil, dapat diuji, dan tidak menambah dependensi eksternal.
 
-> **Status:** Arithmetic dan logic unit selesai, termasuk SUBI, SBCI, ANDI, dan ORI. Lanjut ke NEG, INC, DEC, compare, dan shift.
+> **Status:** Arithmetic dan logic unit selesai, termasuk NEG, INC, dan DEC. Lanjut ke compare, shift, rotate, dan multiply.
 > **Aturan:** satu item selesai = kode + test + dokumentasi singkat.
 
 ---
@@ -325,9 +325,9 @@ Daftar tugas lengkap dari hal terkecil sampai rilis. Setiap item harus kecil, da
 - [x] P7-17 Implementasikan ORI.
 - [x] P7-18 Implementasikan EOR.
 - [x] P7-19 Implementasikan COM.
-- [ ] P7-20 Implementasikan NEG.
-- [ ] P7-21 Implementasikan INC.
-- [ ] P7-22 Implementasikan DEC.
+- [x] P7-20 Implementasikan NEG.
+- [x] P7-21 Implementasikan INC.
+- [x] P7-22 Implementasikan DEC.
 - [ ] P7-23 Implementasikan CP.
 - [ ] P7-24 Implementasikan CPC.
 - [ ] P7-25 Implementasikan CPI.

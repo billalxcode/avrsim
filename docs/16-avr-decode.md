@@ -94,6 +94,10 @@ impl ProgramMemory {
 - `select_operand` memilih register atau immediate.
 - SUBI dan SBCI memakai subtractor yang sama dengan operand immediate.
 - Test SUBI dan SBCI memakai seluruh 256 nilai register, beberapa immediate, dan kedua nilai carry.
+- NEG memakai arithmetic unit dengan operand nol dan subtract aktif.
+- INC dan DEC memakai arithmetic unit dengan operand satu.
+- INC dan DEC mempertahankan C dan H; hanya Z, N, V, dan S yang dipakai.
+- Test NEG, INC, dan DEC menjalankan seluruh 256 nilai.
 
 ## 7. Logic Unit
 
@@ -127,7 +131,7 @@ Test decoder mencakup:
 - IR load, hold, reset, dan validasi lebar data.
 - Register bank write/read, dua read port, pasangan little-endian, hold, dan reset.
 
-Total test `sim-avr`: 35.
+Total test `sim-avr`: 38.
 
 ---
 
