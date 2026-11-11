@@ -2,7 +2,7 @@
 
 Daftar tugas lengkap dari hal terkecil sampai rilis. Setiap item harus kecil, dapat diuji, dan tidak menambah dependensi eksternal.
 
-> **Status:** P8 selesai penuh. P9 sebagian besar selesai; ELF loader, simbol, dan UART end-to-end selesai. P10 sparse, adaptive step, trapezoidal/Gear, AC linear, noise termal, distorsi kuasi-statis, sensitivitas numerik, suhu device, process corner, BJT, JFET, transmission line, determinisme Linux, fidelity matrix, batasan model, profiling, dan optimasi selesai. Golden suite dan determinisme macOS/Windows belum. P4 harness ngspice dan golden data belum karena ngspice tidak tersedia. P5 switching, input capacitance, dan drive strength selesai; ring oscillator dan perbandingan ngspice belum. P11 user guide, contoh runnable, workflow CI, dan notices selesai; eksekusi GitHub Actions, packaging, dan release belum. X-03 panic audit sebagian; builder sel masih memakai invariant expect. P3 body effect, gmb, Meyer capacitance, overlap, diode nonideal, BJT, JFET, transmission line, VCVS, VCCS, CCVS, CCCS, dan switch selesai; breakdown dan model termal lanjutan belum.
+> **Status:** P0 fondasi selesai. P8 selesai penuh. P9 sebagian besar selesai; ELF loader, simbol, dan UART end-to-end selesai. P10 sparse, adaptive step, trapezoidal/Gear, AC linear, noise termal, distorsi kuasi-statis, sensitivitas numerik, suhu device, process corner, BJT, JFET, transmission line, determinisme Linux, fidelity matrix, batasan model, profiling, dan optimasi selesai. Golden suite dan determinisme macOS/Windows belum. P4 harness ngspice dan golden data belum karena ngspice tidak tersedia. P5 switching, input capacitance, dan drive strength selesai; ring oscillator dan perbandingan ngspice belum. P11 user guide, contoh runnable, workflow CI, dan notices selesai; eksekusi GitHub Actions, packaging, dan release belum. X-03 panic audit sebagian; builder sel masih memakai invariant expect. P3 body effect, gmb, Meyer capacitance, overlap, diode nonideal, BJT, JFET, transmission line, VCVS, VCCS, CCVS, CCCS, dan switch selesai; breakdown dan model termal lanjutan belum.
 > **Aturan:** satu item selesai = kode + test + dokumentasi singkat.
 
 ---
@@ -27,30 +27,30 @@ Daftar tugas lengkap dari hal terkecil sampai rilis. Setiap item harus kecil, da
 
 ## P0 - Fondasi Proyek
 
-- [ ] P0-01 Periksa OS, arsitektur, dan prasyarat build.
-- [ ] P0-02 Pasang Rust stable via `rustup`.
-- [ ] P0-03 Verifikasi `rustc --version` dan `cargo --version`.
-- [ ] P0-04 Tentukan MSRV dan tulis `rust-toolchain.toml`.
-- [ ] P0-05 Buat `Cargo.toml` workspace dengan resolver dan edition.
-- [ ] P0-06 Buat crate `sim-core` (`Cargo.toml`, `src/lib.rs`).
-- [ ] P0-07 Buat crate `sim-device`.
-- [ ] P0-08 Buat crate `sim-analysis`.
-- [ ] P0-09 Buat crate `sim-cells`.
+- [x] P0-01 Periksa OS, arsitektur, dan prasyarat build.
+- [x] P0-02 Pasang Rust stable via `rustup`.
+- [x] P0-03 Verifikasi `rustc --version` dan `cargo --version`.
+- [x] P0-04 Tentukan MSRV dan tulis `rust-toolchain.toml`.
+- [x] P0-05 Buat `Cargo.toml` workspace dengan resolver dan edition.
+- [x] P0-06 Buat crate `sim-core` (`Cargo.toml`, `src/lib.rs`).
+- [x] P0-07 Buat crate `sim-device`.
+- [x] P0-08 Buat crate `sim-analysis`.
+- [x] P0-09 Buat crate `sim-cells`.
 - [x] P0-10 Buat crate `sim-avr`.
-- [ ] P0-11 Buat crate `sim-board`.
-- [ ] P0-12 Buat crate `sim-cli` dengan binary `embed-emu`.
-- [ ] P0-13 Pastikan seluruh `Cargo.toml` tidak punya dependensi eksternal.
+- [x] P0-11 Buat crate `sim-board`.
+- [x] P0-12 Buat crate `sim-cli` dengan binary `embed-emu`.
+- [x] P0-13 Pastikan seluruh `Cargo.toml` tidak punya dependensi eksternal.
 - [x] P0-14 Tambahkan `LICENSE` (MIT) dengan copyright Billal Fauzan.
 - [x] P0-15 Lisensi akhir: hanya MIT (Apache dihapus).
-- [ ] P0-16 Tulis `README.md`.
-- [ ] P0-17 Tulis `docs/README.md` dan seluruh dokumen 00-09.
-- [ ] P0-18 Tulis `TODO.md` ini.
-- [ ] P0-19 Tambahkan `.gitignore`.
-- [ ] P0-20 Tambahkan `rustfmt.toml`.
-- [ ] P0-21 Tambahkan konfigurasi lint di `Cargo.toml` atau `clippy.toml`.
-- [ ] P0-22 Buat `scripts/fmt.sh`.
-- [ ] P0-23 Buat `scripts/test.sh`.
-- [ ] P0-24 Buat `scripts/lint.sh`.
+- [x] P0-16 Tulis `README.md`.
+- [x] P0-17 Tulis `docs/README.md` dan seluruh dokumen 00-09.
+- [x] P0-18 Tulis `TODO.md` ini.
+- [x] P0-19 Tambahkan `.gitignore`.
+- [x] P0-20 Tambahkan `rustfmt.toml`.
+- [x] P0-21 Tambahkan konfigurasi lint di `Cargo.toml` atau `clippy.toml`.
+- [x] P0-22 Buat `scripts/fmt.sh`.
+- [x] P0-23 Buat `scripts/test.sh`.
+- [x] P0-24 Buat `scripts/lint.sh`.
 - [x] P0-25 Inisialisasi git repository.
 - [x] P0-26 Buat commit awal.
 - [x] P0-27 Buat workflow CI Linux.

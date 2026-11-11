@@ -180,6 +180,15 @@ Contoh firmware ada di `firmware/`.
 ## 10. Verifikasi
 
 ```bash
+./scripts/fmt.sh
+./scripts/lint.sh
+./scripts/test.sh
+./scripts/build.sh
+```
+
+Alternatif lengkap:
+
+```bash
 bash .opencode/skills/clean-code/scripts/check.sh
 ```
 
