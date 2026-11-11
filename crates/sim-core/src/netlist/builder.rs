@@ -78,6 +78,13 @@ impl CircuitBuilder {
         Ok(circuit)
     }
 
+    /// Builds a circuit with topology validation only.
+    pub fn build_topology(self) -> Result<Circuit, SimError> {
+        let circuit = Circuit::new(self.nodes, self.devices);
+        circuit.validate_topology()?;
+        Ok(circuit)
+    }
+
     /// Instantiates a subcircuit and flattens it into this builder.
     pub fn instantiate(
         &mut self,

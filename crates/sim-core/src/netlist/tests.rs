@@ -244,3 +244,15 @@ fn added_device_rejects_unknown_node() {
     );
     assert!(result.is_err());
 }
+
+#[test]
+fn unused_supply_is_allowed() {
+    let mut builder = CircuitBuilder::new();
+    let node = builder.node("a").expect("a");
+    let ground = builder.ground();
+    builder.supply("vdd").expect("vdd");
+    builder
+        .device("r1", DeviceKind::Resistor, vec![node, ground], params())
+        .expect("r1");
+    assert!(builder.build().is_ok());
+}

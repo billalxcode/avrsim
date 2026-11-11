@@ -140,10 +140,15 @@ impl Circuit {
 
     /// Validates ground, names, node usage, and DC connectivity.
     pub fn validate(&self) -> Result<(), SimError> {
+        self.validate_topology()?;
+        self.validate_dc_paths()
+    }
+
+    /// Validates ground, names, and node usage without DC connectivity.
+    pub fn validate_topology(&self) -> Result<(), SimError> {
         self.validate_ground()?;
         self.validate_unique_names()?;
-        self.validate_node_usage()?;
-        self.validate_dc_paths()
+        self.validate_node_usage()
     }
 
     fn validate_ground(&self) -> Result<(), SimError> {
@@ -188,7 +193,7 @@ impl Circuit {
     fn ensure_nodes_used(&self, degrees: &[usize]) -> Result<(), SimError> {
         for node in &self.nodes {
             let index = node.id().raw() as usize;
-            if !node.kind().is_ground() && degrees[index] == 0 {
+            if node.kind() == NodeKind::Signal && degrees[index] == 0 {
                 return Err(SimError::FloatingNode(node.id()));
             }
         }
@@ -200,7 +205,7 @@ impl Circuit {
         let visited = mark_reachable(&adjacency, self.ground);
         for node in &self.nodes {
             let index = node.id().raw() as usize;
-            if !node.kind().is_ground() && !visited[index] {
+            if node.kind() == NodeKind::Signal && !visited[index] {
                 return Err(SimError::NoDcPath { node: node.id() });
             }
         }
