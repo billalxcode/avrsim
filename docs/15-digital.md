@@ -68,6 +68,7 @@ impl DigitalBuilder {
 - `counter` adalah ripple counter dengan enable.
 - `shift_register` menggeser saat enable tinggi.
 - `read_bits` membaca vektor bit little-endian.
+- `register_file` menyediakan 32 x 8 bit, decoder tulis, dan dua read port.
 
 Semua blok diuji secara fungsional dengan clock ideal.
 
@@ -101,4 +102,13 @@ Test lapisan digital mencakup:
 - Counter dan hold.
 - Shift register dan hold.
 
-Total test `sim-cells` saat ini: 44.
+## 7. Register File
+
+- 32 register x 8 bit.
+- Decoder 5-ke-32 memilih register tulis.
+- Write enable menjaga isi saat rendah.
+- Dua read port 32:1 berbasis mux tree.
+- Reset mengosongkan seluruh register.
+- Test menulis dan membaca 32 register, hold, port independen, dan reset.
+
+Total test `sim-cells` saat ini: 48.

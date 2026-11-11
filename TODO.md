@@ -2,7 +2,7 @@
 
 Daftar tugas lengkap dari hal terkecil sampai rilis. Setiap item harus kecil, dapat diuji, dan tidak menambah dependensi eksternal.
 
-> **Status:** P6 blok digital selesai: clock, reset, counter, shift register, mux, decoder. Lanjut ke register file.
+> **Status:** P6 register file selesai. Lanjut ke PC, IR, SP, lalu kontrol dan CPU uji.
 > **Aturan:** satu item selesai = kode + test + dokumentasi singkat.
 
 ---
@@ -288,7 +288,7 @@ Daftar tugas lengkap dari hal terkecil sampai rilis. Setiap item harus kecil, da
 - [x] P6-16 Implementasikan flag S.
 - [x] P6-17 Implementasikan flag H.
 - [x] P6-18 Bangun ALU bit-slice.
-- [ ] P6-19 Bangun register file DFF + decoder.
+- [x] P6-19 Bangun register file DFF + decoder.
 - [ ] P6-20 Bangun PC.
 - [ ] P6-21 Bangun IR.
 - [ ] P6-22 Bangun stack pointer.
