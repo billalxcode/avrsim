@@ -2,7 +2,7 @@
 
 Daftar tugas lengkap dari hal terkecil sampai rilis. Setiap item harus kecil, dapat diuji, dan tidak menambah dependensi eksternal.
 
-> **Status:** P0 fondasi selesai. P8 selesai penuh. P9 sebagian besar selesai; ELF loader, simbol, ELF ke HEX, dan UART end-to-end selesai. P10 sparse, adaptive step, trapezoidal/Gear, AC linear, noise termal, distorsi kuasi-statis, sensitivitas numerik, suhu device, process corner, BJT, JFET, transmission line, determinisme Linux, fidelity matrix, batasan model, profiling, dan optimasi selesai. Golden suite dan determinisme macOS/Windows belum. P4 harness ngspice dan golden data belum karena ngspice tidak tersedia. P5 characterization, switching, input capacitance, drive strength, dan osilasi ring oscillator selesai; perbandingan ngspice belum. P11 user guide, contoh runnable, workflow CI, dan notices selesai; eksekusi GitHub Actions, tag, dan publikasi belum; packaging dan release notes siap. X-03 panic audit selesai; builder sel mencatat error dan melaporkannya di build. P3 body effect, gmb, Meyer capacitance, overlap, diode nonideal, BJT, JFET, transmission line, VCVS, VCCS, CCVS, CCCS, dan switch selesai; breakdown dan model termal lanjutan belum.
+> **Status:** P0 fondasi selesai. P8 selesai penuh. P9 sebagian besar selesai; ELF loader, simbol, ELF ke HEX, dan UART end-to-end selesai. P10 sparse, adaptive step, trapezoidal/Gear, AC linear, noise termal, distorsi kuasi-statis, sensitivitas numerik, suhu device, process corner, BJT, JFET, transmission line, determinisme Linux, fidelity matrix, batasan model, profiling, dan optimasi selesai. Golden suite dan determinisme macOS/Windows belum. P4 harness ngspice dan golden data belum karena ngspice tidak tersedia. P5 characterization, switching, input capacitance, drive strength, dan osilasi ring oscillator selesai; perbandingan ngspice belum. P11 user guide, contoh runnable, workflow CI, dan notices selesai; eksekusi GitHub Actions, tag, dan publikasi belum; packaging dan release notes siap. X-03 panic audit selesai; builder sel mencatat error dan melaporkannya di build. P3 body effect, gmb, Meyer capacitance, overlap, diode nonideal, BJT, JFET, transmission line, VCVS, VCCS, CCVS, CCCS, dan switch selesai; breakdown dan model termal lanjutan belum. P12 correctness transient dan AC didefinisikan, belum dikerjakan.
 > **Aturan:** satu item selesai = kode + test + dokumentasi singkat.
 
 ---
@@ -586,6 +586,51 @@ Daftar tugas lengkap dari hal terkecil sampai rilis. Setiap item harus kecil, da
 
 ---
 
+## P12 - Correctness Transient dan AC
+
+### 12.1 Adaptive Initial State
+
+- [ ] P12-01 Tulis test RC discharge adaptive dengan initial voltage.
+- [ ] P12-02 Panggil `system.update` setelah `initial_solution` di `transient_adaptive`.
+- [ ] P12-03 Tulis test perbandingan fixed-step dan adaptive-step.
+- [ ] P12-04 Dokumentasikan initial state adaptive transient.
+
+### 12.2 Newton Transient
+
+- [ ] P12-05 Definisikan parameter Newton transient.
+- [ ] P12-06 Ekstrak helper damping dan convergence bersama.
+- [ ] P12-07 Tambah satu iterasi Newton per langkah transient.
+- [ ] P12-08 Tambah loop Newton sampai konvergen.
+- [ ] P12-09 Kembalikan error konvergensi transient per langkah.
+- [ ] P12-10 Tulis test diode rectifier transient.
+- [ ] P12-11 Tulis test inverter switching dengan beban kapasitif.
+- [ ] P12-12 Tulis test BJT common emitter transient.
+- [ ] P12-13 Dokumentasikan parameter Newton transient.
+- [ ] P12-14 Dokumentasikan batas transient nonlinier.
+
+### 12.3 Dokumentasi
+
+- [ ] P12-15 Perbarui status README.
+- [ ] P12-16 Perbaiki klaim ngspice di docs/07.
+- [ ] P12-17 Perbarui fidelity matrix setelah transient.
+
+### 12.4 AC Nonlinier
+
+- [ ] P12-18 Definisikan API linearisasi small-signal.
+- [ ] P12-19 Implementasikan AC diode.
+- [ ] P12-20 Implementasikan AC MOSFET.
+- [ ] P12-21 Implementasikan AC BJT.
+- [ ] P12-22 Implementasikan AC JFET.
+- [ ] P12-23 Tulis test AC diode resistance.
+- [ ] P12-24 Tulis test AC common source gain.
+- [ ] P12-25 Tulis test AC common emitter gain.
+- [ ] P12-26 Dokumentasikan AC nonlinier.
+
+**Exit P12:** transient nonlinier konvergen per langkah dan AC mendukung
+device nonlinier pada titik operasi.
+
+---
+
 ## Cross-Cutting Tasks
 
 - [x] X-01 Pastikan setiap crate punya dokumentasi modul.
@@ -625,6 +670,7 @@ Daftar tugas lengkap dari hal terkecil sampai rilis. Setiap item harus kecil, da
 | M7 | P9-01 ... P9-30 |
 | M8 | P10-01 ... P10-28 |
 | M9 | P11-01 ... P11-17 |
+| M10 | P12-01 ... P12-26 |
 
 ---
 
