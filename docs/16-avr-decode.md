@@ -131,7 +131,17 @@ impl ProgramMemory {
 - Hasil 16-bit, flag Z, dan C dari bit 15.
 - Test MUL, MULS, dan MULSU memakai seluruh 256 nilai operand pertama, beberapa operand kedua, dan reference Rust.
 
-## 10. Test
+## 10. Compare Unit
+
+- `compare_unit` memakai arithmetic unit dengan subtract aktif.
+- Hasil arithmetic tidak diekspos karena compare tidak menulis register.
+- CP memakai carry input nol.
+- CPC memakai flag C sebagai carry input.
+- CPI memakai operand immediate dari `select_operand`.
+- Test seluruh 256 nilai operand pertama, beberapa operand kedua atau immediate, dan kedua nilai carry.
+- Flag hasil dibandingkan dengan reference subtraction.
+
+## 11. Test
 
 Test decoder mencakup:
 
@@ -153,11 +163,11 @@ Test decoder mencakup:
 - IR load, hold, reset, dan validasi lebar data.
 - Register bank write/read, dua read port, pasangan little-endian, hold, dan reset.
 
-Total test `sim-avr`: 45.
+Total test `sim-avr`: 47.
 
 ---
 
-## 11. Batas
+## 12. Batas
 
 - Fetch dan register bank belum mengeksekusi instruksi.
 - Belum ada timing per instruksi.

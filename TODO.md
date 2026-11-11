@@ -2,7 +2,7 @@
 
 Daftar tugas lengkap dari hal terkecil sampai rilis. Setiap item harus kecil, dapat diuji, dan tidak menambah dependensi eksternal.
 
-> **Status:** Shift dan multiply selesai: LSR, ASR, ROR, SWAP, MUL, MULS, MULSU. Lanjut ke compare dan integrasi CPU.
+> **Status:** Unit ALU AVR selesai sampai compare: arithmetic, logic, shift, multiply, CP/CPC/CPI. Lanjut ke integrasi control FSM dan CPU.
 > **Aturan:** satu item selesai = kode + test + dokumentasi singkat.
 
 ---
@@ -328,9 +328,9 @@ Daftar tugas lengkap dari hal terkecil sampai rilis. Setiap item harus kecil, da
 - [x] P7-20 Implementasikan NEG.
 - [x] P7-21 Implementasikan INC.
 - [x] P7-22 Implementasikan DEC.
-- [ ] P7-23 Implementasikan CP.
-- [ ] P7-24 Implementasikan CPC.
-- [ ] P7-25 Implementasikan CPI.
+- [x] P7-23 Implementasikan CP.
+- [x] P7-24 Implementasikan CPC.
+- [x] P7-25 Implementasikan CPI.
 - [ ] P7-26 Implementasikan CPSE.
 - [x] P7-27 Implementasikan LSR.
 - [x] P7-28 Implementasikan ASR.
