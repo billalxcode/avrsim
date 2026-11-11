@@ -9,6 +9,7 @@ pub struct CellBuilder {
     builder: CircuitBuilder,
     vdd: NodeId,
     ground: NodeId,
+    error: Option<SimError>,
 }
 
 impl CellBuilder {
@@ -16,18 +17,28 @@ impl CellBuilder {
     #[must_use]
     pub fn new() -> Self {
         let mut builder = CircuitBuilder::new();
-        let vdd = builder.supply("vdd").expect("vdd");
+        let (vdd, error) = match builder.supply("vdd") {
+            Ok(vdd) => (vdd, None),
+            Err(error) => (NodeId::GROUND, Some(error)),
+        };
         let ground = builder.ground();
         Self {
             builder,
             vdd,
             ground,
+            error,
         }
     }
 
     /// Adds a signal node.
     pub fn node(&mut self, name: &str) -> NodeId {
-        self.builder.node(name).expect(name)
+        match self.builder.node(name) {
+            Ok(node) => node,
+            Err(error) => {
+                self.remember(error);
+                NodeId::GROUND
+            }
+        }
     }
 
     /// Returns the VDD node.
@@ -67,6 +78,9 @@ impl CellBuilder {
 
     /// Builds a cell with the provided port list.
     pub fn build(self, ports: &[(&str, NodeId)]) -> Result<Cell, SimError> {
+        if let Some(error) = self.error {
+            return Err(error);
+        }
         let circuit = self.builder.build_topology()?;
         let mut port_map = BTreeMap::new();
         port_map.insert("vdd".to_string(), self.vdd);
@@ -109,9 +123,18 @@ impl CellBuilder {
         width: f64,
     ) {
         let parameters = mos_params(width);
-        self.builder
+        if let Err(error) = self
+            .builder
             .device(name, kind, vec![gate, drain, source], parameters)
-            .expect(name);
+        {
+            self.remember(error);
+        }
+    }
+
+    fn remember(&mut self, error: SimError) {
+        if self.error.is_none() {
+            self.error = Some(error);
+        }
     }
 }
 
@@ -129,4 +152,27 @@ fn mos_params(width: f64) -> BTreeMap<String, f64> {
     map.insert("w".to_string(), width);
     map.insert("l".to_string(), 1e-6);
     map
+}
+
+#[cfg(test)]
+mod tests {
+    use super::CellBuilder;
+
+    #[test]
+    fn duplicate_node_is_reported_at_build() {
+        let mut builder = CellBuilder::new();
+        let first = builder.node("a");
+        builder.node("a");
+        assert!(builder.build(&[("a", first)]).is_err());
+    }
+
+    #[test]
+    fn duplicate_device_is_reported_at_build() {
+        let mut builder = CellBuilder::new();
+        let input = builder.node("a");
+        let output = builder.node("y");
+        builder.inverter("inv", input, output);
+        builder.inverter("inv", input, output);
+        assert!(builder.build(&[("a", input), ("y", output)]).is_err());
+    }
 }
