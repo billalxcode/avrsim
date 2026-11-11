@@ -91,6 +91,9 @@ impl ProgramMemory {
 - Overflow memakai formula addition atau subtraction sesuai `subtract`.
 - Hasil ADD, ADC, SUB, dan SBC dibandingkan dengan reference `sim-cells`.
 - Test menjalankan seluruh 256 nilai operand pertama untuk beberapa operand kedua dan carry.
+- `select_operand` memilih register atau immediate.
+- SUBI dan SBCI memakai subtractor yang sama dengan operand immediate.
+- Test SUBI dan SBCI memakai seluruh 256 nilai register, beberapa immediate, dan kedua nilai carry.
 
 ## 7. Logic Unit
 
@@ -100,6 +103,7 @@ impl ProgramMemory {
 - V selalu nol untuk operasi logic.
 - C dan H tidak dihitung dan harus dipertahankan oleh control SREG.
 - Test membandingkan hasil dengan reference untuk seluruh 256 operand pertama, beberapa operand kedua, dan empat operasi.
+- ANDI dan ORI memakai logic unit dengan operand immediate dari `select_operand`.
 
 ## 8. Test
 
@@ -123,7 +127,7 @@ Test decoder mencakup:
 - IR load, hold, reset, dan validasi lebar data.
 - Register bank write/read, dua read port, pasangan little-endian, hold, dan reset.
 
-Total test `sim-avr`: 33.
+Total test `sim-avr`: 35.
 
 ---
 
