@@ -119,6 +119,7 @@ impl Default for Board {
 #[cfg(test)]
 mod tests {
     use super::{Board, UartHost};
+    use sim_avr::{Cpu, ExternalPin, PinElectricalConfig};
 
     #[test]
     fn pb5_high_turns_led_on() {
@@ -145,6 +146,20 @@ mod tests {
         let mut board = Board::new();
         board.set_pb5_voltage(1.0);
         assert!(!board.led().is_on());
+    }
+
+    #[test]
+    fn cpu_pin_voltage_drives_board_led() {
+        let mut cpu = Cpu::new(vec![0x9A25, 0x9A2D, 0x0000]).expect("cpu");
+        cpu.step().expect("ddr");
+        cpu.step().expect("port");
+        let config = PinElectricalConfig::default();
+        let state = cpu
+            .pin_electrical(0, 5, ExternalPin::HighZ, &config)
+            .expect("pin");
+        let mut board = Board::new();
+        board.set_pb5_voltage(state.voltage);
+        assert!(board.led().is_on());
     }
 
     #[test]
