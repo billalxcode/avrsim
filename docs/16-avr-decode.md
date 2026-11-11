@@ -56,7 +56,19 @@ impl ProgramMemory {
 
 ---
 
-## 4. Aturan Decode
+## 4. Instruction Register dan Register Bank
+
+- `InstructionRegister` adalah register 32-bit dari D flip-flop.
+- IR memuat instruction word hasil fetch dan menahannya saat load rendah.
+- Reset global mengosongkan IR.
+- `RegisterBank` membungkus register file 32 x 8.
+- Read port A dan B dapat mengakses register berbeda secara bersamaan.
+- Write port memakai alamat 5-bit dan write enable.
+- Pasangan register dibaca little-endian, misalnya X = r27:r26.
+
+---
+
+## 5. Aturan Decode
 
 - Instruksi 16-bit hanya memakai word pertama.
 - Instruksi 32-bit membutuhkan `second`.
@@ -70,7 +82,7 @@ impl ProgramMemory {
 
 ---
 
-## 5. Test
+## 6. Test
 
 Test decoder mencakup:
 
@@ -89,14 +101,16 @@ Test decoder mencakup:
 - Fetch 16-bit dan 32-bit dari program memory.
 - Fetch menggunakan word address.
 - Penolakan fetch terpotong dan alamat di luar batas.
+- IR load, hold, reset, dan validasi lebar data.
+- Register bank write/read, dua read port, pasangan little-endian, hold, dan reset.
 
-Total test `sim-avr`: 20.
+Total test `sim-avr`: 28.
 
 ---
 
-## 6. Batas
+## 7. Batas
 
-- Fetch belum mengeksekusi instruksi.
+- Fetch dan register bank belum mengeksekusi instruksi.
 - Belum ada timing per instruksi.
 - Belum ada disassembler.
 - Belum ada validasi terhadap `avr-objdump`.

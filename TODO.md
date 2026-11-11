@@ -2,7 +2,7 @@
 
 Daftar tugas lengkap dari hal terkecil sampai rilis. Setiap item harus kecil, dapat diuji, dan tidak menambah dependensi eksternal.
 
-> **Status:** P7-01 sampai P7-03 selesai: decoder dan fetch 16/32-bit. Lanjut ke instruction register.
+> **Status:** P7-01 sampai P7-07 selesai: decoder, fetch, IR, dan register bank. Lanjut ke eksekusi ALU.
 > **Aturan:** satu item selesai = kode + test + dokumentasi singkat.
 
 ---
@@ -309,10 +309,10 @@ Daftar tugas lengkap dari hal terkecil sampai rilis. Setiap item harus kecil, da
 - [x] P7-01 Buat tabel decode seluruh ISA AVR.
 - [x] P7-02 Implementasikan fetch 16-bit.
 - [x] P7-03 Implementasikan fetch 32-bit.
-- [ ] P7-04 Implementasikan instruction register.
-- [ ] P7-05 Implementasikan register file read port A.
-- [ ] P7-06 Implementasikan register file read port B.
-- [ ] P7-07 Implementasikan register file write port.
+- [x] P7-04 Implementasikan instruction register.
+- [x] P7-05 Implementasikan register file read port A.
+- [x] P7-06 Implementasikan register file read port B.
+- [x] P7-07 Implementasikan register file write port.
 - [ ] P7-08 Implementasikan ADD.
 - [ ] P7-09 Implementasikan ADC.
 - [ ] P7-10 Implementasikan SUB.
