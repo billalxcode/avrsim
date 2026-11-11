@@ -2,7 +2,7 @@
 
 Daftar tugas lengkap dari hal terkecil sampai rilis. Setiap item harus kecil, dapat diuji, dan tidak menambah dependensi eksternal.
 
-> **Status:** P1, P2, subset P3/P4 selesai. M1 inverter VTC dan RC transient lulus. Lanjut ke P5.
+> **Status:** P1-P5 subset selesai. M1 lulus, cell inverter/NAND/NOR/buffer lulus. Lanjut ke P5 lanjutan.
 > **Aturan:** satu item selesai = kode + test + dokumentasi singkat.
 
 ---
@@ -203,16 +203,16 @@ Daftar tugas lengkap dari hal terkecil sampai rilis. Setiap item harus kecil, da
 - [x] P4-10 Implementasikan Newton-Raphson.
 - [x] P4-11 Implementasikan kriteria konvergensi.
 - [ ] P4-12 Implementasikan voltage limiting `pnjlim`.
-- [ ] P4-13 Implementasikan damping.
-- [ ] P4-14 Implementasikan gmin stepping.
+- [x] P4-13 Implementasikan damping.
+- [x] P4-14 Implementasikan gmin stepping.
 - [ ] P4-15 Implementasikan source stepping.
 - [ ] P4-16 Implementasikan fallback dan error.
 - [ ] P4-17 Implementasikan diagnostik konvergensi.
 - [x] P4-18 Implementasikan DC sweep.
 - [ ] P4-19 Implementasikan continuation antar titik sweep.
 - [x] P4-20 Implementasikan transient Backward Euler.
-- [ ] P4-21 Implementasikan initial condition dari DC op.
-- [ ] P4-22 Implementasikan `UIC` (opsional).
+- [x] P4-21 Implementasikan initial condition dari DC op.
+- [x] P4-22 Implementasikan `UIC` (opsional).
 - [x] P4-23 Implementasikan update state device.
 - [ ] P4-24 Implementasikan CSV writer.
 - [ ] P4-25 Implementasikan VCD writer.
@@ -234,17 +234,17 @@ Daftar tugas lengkap dari hal terkecil sampai rilis. Setiap item harus kecil, da
 
 ## P5 - Pustaka CMOS
 
-- [ ] P5-01 Bangun netlist inverter CMOS.
-- [ ] P5-02 Jalankan DC sweep inverter.
-- [ ] P5-03 Hitung switching threshold.
+- [x] P5-01 Bangun netlist inverter CMOS.
+- [x] P5-02 Jalankan DC sweep inverter.
+- [x] P5-03 Hitung switching threshold.
 - [ ] P5-04 Hitung noise margin.
 - [ ] P5-05 Jalankan transient switching.
 - [ ] P5-06 Ukur rise time.
 - [ ] P5-07 Ukur fall time.
 - [ ] P5-08 Ukur propagation delay.
-- [ ] P5-09 Bangun NAND2.
-- [ ] P5-10 Bangun NOR2.
-- [ ] P5-11 Bangun buffer.
+- [x] P5-09 Bangun NAND2.
+- [x] P5-10 Bangun NOR2.
+- [x] P5-11 Bangun buffer.
 - [ ] P5-12 Bangun tri-state inverter.
 - [ ] P5-13 Bangun transmission gate.
 - [ ] P5-14 Bangun SRAM cell 6T.
@@ -254,15 +254,15 @@ Daftar tugas lengkap dari hal terkecil sampai rilis. Setiap item harus kecil, da
 - [ ] P5-18 Ukur input capacitance.
 - [ ] P5-19 Ukur drive strength.
 - [ ] P5-20 Buat registry sel.
-- [ ] P5-21 Tulis truth table test inverter.
-- [ ] P5-22 Tulis truth table test NAND.
-- [ ] P5-23 Tulis truth table test NOR.
+- [x] P5-21 Tulis truth table test inverter.
+- [x] P5-22 Tulis truth table test NAND.
+- [x] P5-23 Tulis truth table test NOR.
 - [ ] P5-24 Tulis test DFF.
 - [ ] P5-25 Tulis test SRAM cell.
 - [ ] P5-26 Bandingkan sel dengan ngspice.
 - [ ] P5-27 Bangun ring oscillator.
 - [ ] P5-28 Verifikasi osilasi.
-- [ ] P5-29 Dokumentasikan cell library.
+- [x] P5-29 Dokumentasikan cell library.
 
 **Exit P5:** cell library terkarakterisasi dan ring oscillator berosilasi.
 

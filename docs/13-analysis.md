@@ -59,12 +59,13 @@ Alur:
 
 1. Bangun `SimulationSystem`.
 2. Buat solusi awal nol.
-3. Stamp semua device.
-4. Tambahkan gmin ke diagonal node.
+3. Tambahkan gmin stepping dari `gmin_start` ke `gmin`.
+4. Stamp semua device.
 5. Solve MNA.
-6. Bandingkan solusi lama dan baru.
-7. Ulangi sampai konvergen.
-8. Update state device.
+6. Batasi perubahan node voltage dengan `max_step`.
+7. Bandingkan solusi lama dan baru.
+8. Ulangi sampai konvergen.
+9. Update state device.
 
 Konfigurasi default:
 
@@ -74,6 +75,9 @@ Konfigurasi default:
 | `rel_tol` | 1e-6 |
 | `abs_tol` | 1e-9 |
 | `gmin` | 1e-12 |
+| `use_dc_op` | true |
+| `gmin_start` | 1e-3 |
+| `max_step` | 0.5 V |
 
 Error:
 
@@ -116,7 +120,7 @@ let points = dc_sweep(
 Metode:
 
 - Backward Euler.
-- Zero initial state.
+- Initial state dari DC operating point atau zero state.
 - Waktu virtual `Time` dalam pikodetik.
 - State capacitor dan inductor diperbarui setiap langkah.
 
@@ -127,6 +131,9 @@ Konfigurasi default:
 | `dt` | 1e-6 s |
 | `steps` | 100 |
 | `gmin` | 1e-12 |
+| `use_dc_op` | true |
+| `gmin_start` | 1e-3 |
+| `max_step` | 0.5 V |
 
 Output:
 
@@ -139,9 +146,9 @@ pub struct TransientSample {
 
 Catatan:
 
-- Transient belum memakai DC operating point sebagai initial condition.
-- Semua capacitor mulai dari 0 V.
-- Semua inductor mulai dari 0 A.
+- `use_dc_op = true` memakai DC operating point sebagai initial state.
+- `use_dc_op = false` memakai zero state: capacitor 0 V, inductor 0 A.
+- Default adalah DC operating point.
 
 ---
 
@@ -168,16 +175,14 @@ Test yang sudah lulus:
 
 ## 7. Keterbatasan
 
-- Newton loop belum memakai voltage limiting eksplisit.
-- gmin hanya nilai tetap, belum stepping.
 - Belum ada source stepping.
-- Belum ada damping.
+- Voltage limiting eksplisit `pnjlim` belum ada; yang ada adalah damping dan clamp diode.
 - Convergence failure belum punya diagnostik node/device.
-- Transient belum memakai initial DC op.
 - Belum ada CSV/VCD.
 - Belum ada perbandingan ngspice.
 - Belum ada benchmark formal.
 - Diode memakai forward voltage clamp sederhana.
+- Transient default memakai DC op; zero state harus diminta eksplisit.
 
 ---
 
@@ -199,9 +204,10 @@ P4 lanjutan:
 
 Total test workspace saat ini:
 
-- `sim-core`: 50.
+- `sim-core`: 52.
 - `sim-device`: 23 (18 unit + 5 integration).
-- `sim-analysis`: 20.
-- Total: 93.
+- `sim-analysis`: 21.
+- `sim-cells`: 7.
+- Total: 103.
 
 Semua fungsi maksimal 20 baris dan semua file baru ASCII-only.
