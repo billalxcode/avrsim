@@ -34,12 +34,23 @@ Default:
 | Field | Nilai |
 |---|---|
 | `supply` | `5.0 V` |
-| `output_resistance` | `25 Ohm` |
-| `pull_up_resistance` | `20 kOhm` |
+| `output_resistance` | `45 Ohm` |
+| `pull_up_resistance` | `35 kOhm` |
 | `input_threshold` | `2.5 V` |
 
-Nilai default adalah asumsi board, belum dikalibrasi dari datasheet.
-P10-19 tetap diperlukan untuk kalibrasi pin-level.
+Default diturunkan dari ATmega328P datasheet, DC Characteristics:
+
+- `VOH = 4.1 V` pada `IOH = -20 mA` menghasilkan `(5.0 - 4.1) / 0.02 = 45 Ohm`.
+- `VOL = 0.8 V` pada `IOL = 20 mA` menghasilkan `0.8 / 0.02 = 40 Ohm`.
+- Pull-up internal `20 - 50 kOhm`; model memakai midpoint `35 kOhm`.
+- `input_threshold = 2.5 V` adalah asumsi `0.5 * supply`. Datasheet GPIO
+  memberikan threshold sebagai kurva, bukan satu batas tunggal.
+
+Model memakai satu `output_resistance` sebesar `45 Ohm`, nilai konservatif
+dari sisi high. Sisi low memiliki worst case `40 Ohm`.
+
+Sumber: Microchip ATmega328P datasheet, bagian DC Characteristics:
+<https://ww1.microchip.com/downloads/en/DeviceDoc/Atmel-7810-Automotive-Microcontrollers-ATmega328P_Datasheet.pdf>
 
 ---
 
@@ -159,9 +170,9 @@ I = max(V - Vf, 0) / R
 - Kontensi terdeteksi pada pin output.
 - LED board mengikuti tegangan pin.
 
-Total test `sim-avr`: 197.
+Total test `sim-avr`: 198.
 Total test `sim-board`: 14.
-Total workspace: 445.
+Total workspace: 446.
 
 ---
 
@@ -172,4 +183,7 @@ Total workspace: 445.
 - Belum ada batas arus short-circuit.
 - Belum ada integrasi netlist analog penuh.
 - Register PIN untuk pin output tetap membaca PORT, bukan hasil contention.
-- Nilai default belum dikalibrasi datasheet.
+- Satu `output_resistance` dipakai untuk high dan low; worst case low 40 Ohm
+  tidak dimodelkan terpisah.
+- Kalibrasi hanya pada VCC 5 V dan arus 20 mA.
+- Belum ada corner suhu atau tegangan untuk parameter pin.

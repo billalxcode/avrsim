@@ -2,7 +2,7 @@
 
 Daftar tugas lengkap dari hal terkecil sampai rilis. Setiap item harus kecil, dapat diuji, dan tidak menambah dependensi eksternal.
 
-> **Status:** P8 selesai. P9 sebagian besar selesai. P10 sparse, adaptive step, trapezoidal/Gear, AC linear, noise termal, distorsi kuasi-statis, sensitivitas numerik, suhu device, process corner, BJT, JFET, transmission line, determinisme Linux, fidelity matrix, batasan model, profiling, dan optimasi selesai. Kalibrasi pin-level, golden suite, dan determinisme macOS/Windows belum.
+> **Status:** P8 selesai. P9 sebagian besar selesai. P10 sparse, adaptive step, trapezoidal/Gear, AC linear, noise termal, distorsi kuasi-statis, sensitivitas numerik, suhu device, process corner, BJT, JFET, transmission line, determinisme Linux, fidelity matrix, batasan model, profiling, dan optimasi selesai. Golden suite dan determinisme macOS/Windows belum.
 > **Aturan:** satu item selesai = kode + test + dokumentasi singkat.
 
 ---
@@ -547,7 +547,7 @@ Daftar tugas lengkap dari hal terkecil sampai rilis. Setiap item harus kecil, da
 - [x] P10-16 Implementasikan LTE.
 - [x] P10-17 Implementasikan trapezoidal integration.
 - [x] P10-18 Implementasikan Gear integration.
-- [ ] P10-19 Kalibrasi pin-level dari datasheet.
+- [x] P10-19 Kalibrasi pin-level dari datasheet.
 - [x] P10-20 Dokumentasikan parameter kalibrasi.
 - [ ] P10-21 Jalankan golden suite vs ngspice.
 - [x] P10-22 Profiling solver.
