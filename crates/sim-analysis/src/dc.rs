@@ -59,6 +59,15 @@ pub fn dc_operating_point(circuit: &Circuit, config: &DcConfig) -> Result<DcResu
     solve_dc_system(&mut system, initial, config)
 }
 
+fn dc_operating_point_with_initial(
+    circuit: &Circuit,
+    initial: Solution,
+    config: &DcConfig,
+) -> Result<DcResult, SimError> {
+    let mut system = SimulationSystem::new(circuit)?;
+    solve_dc_system(&mut system, initial, config)
+}
+
 pub(crate) fn solve_dc_system(
     system: &mut SimulationSystem,
     initial: Solution,
@@ -127,44 +136,38 @@ fn collect_sweep_points(
     config: &DcConfig,
 ) -> Result<Vec<DcPoint>, SimError> {
     let mut points = Vec::new();
+    let mut previous = None;
     let mut value = sweep.start;
     while value <= sweep.stop + sweep.step * 1e-9 {
-        append_sweep_point(&mut points, circuit, sweep, value, config)?;
+        ensure_sweep_capacity(points.len())?;
+        let point = solve_sweep_point(circuit, sweep, value, config, previous.as_ref())?;
+        previous = Some(point.solution.clone());
+        points.push(point);
         value += sweep.step;
     }
     Ok(points)
 }
 
-fn append_sweep_point(
-    points: &mut Vec<DcPoint>,
-    circuit: &Circuit,
-    sweep: &SweepSpec<'_>,
-    value: f64,
-    config: &DcConfig,
-) -> Result<(), SimError> {
-    if points.len() >= 1_000_000 {
+fn ensure_sweep_capacity(len: usize) -> Result<(), SimError> {
+    if len >= 1_000_000 {
         return Err(SimError::InvalidNetlist("sweep limit exceeded".to_string()));
     }
-    points.push(solve_sweep_point(
-        circuit,
-        sweep.device,
-        sweep.parameter,
-        value,
-        config,
-    )?);
     Ok(())
 }
 
 fn solve_sweep_point(
     circuit: &Circuit,
-    device: &str,
-    parameter: &str,
+    sweep: &SweepSpec<'_>,
     value: f64,
     config: &DcConfig,
+    initial: Option<&Solution>,
 ) -> Result<DcPoint, SimError> {
     let mut swept = circuit.clone();
-    swept.set_device_parameter(device, parameter, value)?;
-    let result = dc_operating_point(&swept, config)?;
+    swept.set_device_parameter(sweep.device, sweep.parameter, value)?;
+    let result = match initial {
+        Some(initial) => dc_operating_point_with_initial(&swept, initial.clone(), config)?,
+        None => dc_operating_point(&swept, config)?,
+    };
     Ok(DcPoint {
         sweep: value,
         solution: result.solution,
@@ -416,6 +419,27 @@ mod tests {
         .expect("sweep");
         assert_eq!(points.len(), 1);
         assert!((points[0].sweep - 3.0).abs() < 1e-12);
+    }
+
+    #[test]
+    fn dc_sweep_tracks_previous_solution() {
+        let (circuit, output) = diode_clamp();
+        let points = dc_sweep(
+            &circuit,
+            "v1",
+            "voltage",
+            0.1,
+            2.0,
+            0.1,
+            &DcConfig::default(),
+        )
+        .expect("sweep");
+        assert_eq!(points.len(), 20);
+        let first = points.first().expect("first");
+        let last = points.last().expect("last");
+        let first = first.solution.voltage(output).expect("first v");
+        let last = last.solution.voltage(output).expect("last v");
+        assert!(last > first + 0.1, "first={first} last={last}");
     }
 
     #[test]
