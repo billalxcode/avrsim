@@ -2745,6 +2745,33 @@ mod tests {
     }
 
     #[test]
+    fn uart_frame_decodes_from_cpu_cycles() {
+        let mut cpu = Cpu::new(vec![0xCFFF]).expect("cpu");
+        cpu.uart().write_control(1, 0x08);
+        cpu.uart().write_tx(0xA5);
+        assert_eq!(decode_uart(&mut cpu), 0xA5);
+    }
+
+    fn decode_uart(cpu: &mut Cpu) -> u8 {
+        let mut value = 0u8;
+        for bit in 0..10 {
+            step_cpu(cpu, 4);
+            let level = cpu.uart().tx_line();
+            if (1..=8).contains(&bit) && level {
+                value |= 1 << (bit - 1);
+            }
+            step_cpu(cpu, 4);
+        }
+        value
+    }
+
+    fn step_cpu(cpu: &mut Cpu, count: usize) {
+        for _ in 0..count {
+            cpu.step().expect("step");
+        }
+    }
+
+    #[test]
     fn uart_rx_interrupt_enters_vector() {
         let mut program = vec![0u16; 40];
         program[0] = 0xCFFF;
