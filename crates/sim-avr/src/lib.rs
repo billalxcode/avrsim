@@ -6,6 +6,7 @@ pub mod fetch;
 pub mod instruction;
 pub mod instruction_register;
 pub mod register_bank;
+pub mod shift;
 
 #[cfg(test)]
 mod test_support;
@@ -19,3 +20,4 @@ pub use fetch::{Fetched, ProgramMemory};
 pub use instruction::{Instruction, Mnemonic, Operand};
 pub use instruction_register::InstructionRegister;
 pub use register_bank::RegisterBank;
+pub use shift::{ShiftUnit, shift_unit};
