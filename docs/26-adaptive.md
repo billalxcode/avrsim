@@ -13,6 +13,7 @@ Dokumen ini menjelaskan adaptive time stepping dan estimasi error.
 - Langkah ditolak jika error terlalu besar dan `dt` masih di atas minimum.
 - `dt` berikutnya memakai faktor 0.5 sampai 2.0.
 - State device dipulihkan saat langkah ditolak.
+- Initial solution memperbarui state device sebelum langkah pertama.
 
 ---
 
@@ -39,19 +40,21 @@ pub fn transient_adaptive(
 ## 3. Test
 
 - RC charge dibandingkan dengan solusi analitik pada waktu akhir.
+- RC discharge menghormati initial voltage kapasitor.
+- Hasil adaptive dibandingkan dengan fixed-step pada waktu yang sama.
 - Waktu selalu naik.
 - Tolerance tidak valid ditolak.
 - Zero steps menghasilkan output kosong.
 
-Total test `sim-analysis`: 25.
-Total workspace: 378.
+Total test `sim-analysis`: 91.
+Total workspace: 497.
 
 ---
 
 ## 4. Batas
 
 - Estimasi error memakai step doubling, bukan formula LTE lengkap.
-- Metode integrasi tetap backward Euler.
-- Belum ada trapezoidal atau Gear.
+- Adaptive step masih memakai backward Euler.
+- Trapezoidal dan Gear tersedia pada transient tetap, bukan pada adaptive.
 - Adaptive step belum dipakai oleh CLI atau board.
 - Belum ada kontrol error per device atau per arus.
