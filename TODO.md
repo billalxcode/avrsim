@@ -2,7 +2,7 @@
 
 Daftar tugas lengkap dari hal terkecil sampai rilis. Setiap item harus kecil, dapat diuji, dan tidak menambah dependensi eksternal.
 
-> **Status:** P8 selesai. P9 sebagian besar selesai. P10 sparse, adaptive step, trapezoidal/Gear, AC linear, noise termal, distorsi kuasi-statis, sensitivitas numerik, suhu device, process corner, BJT, JFET, transmission line, determinisme Linux, fidelity matrix, batasan model, profiling, dan optimasi selesai. Golden suite dan determinisme macOS/Windows belum. P4 harness ngspice dan golden data belum karena ngspice tidak tersedia. P5 pulse source selesai; characterization switching belum.
+> **Status:** P8 selesai. P9 sebagian besar selesai. P10 sparse, adaptive step, trapezoidal/Gear, AC linear, noise termal, distorsi kuasi-statis, sensitivitas numerik, suhu device, process corner, BJT, JFET, transmission line, determinisme Linux, fidelity matrix, batasan model, profiling, dan optimasi selesai. Golden suite dan determinisme macOS/Windows belum. P4 harness ngspice dan golden data belum karena ngspice tidak tersedia. P5 switching characterization selesai; input capacitance, drive strength, dan ring oscillator belum.
 > **Aturan:** satu item selesai = kode + test + dokumentasi singkat.
 
 ---
@@ -238,10 +238,10 @@ Daftar tugas lengkap dari hal terkecil sampai rilis. Setiap item harus kecil, da
 - [x] P5-02 Jalankan DC sweep inverter.
 - [x] P5-03 Hitung switching threshold.
 - [x] P5-04 Hitung noise margin.
-- [ ] P5-05 Jalankan transient switching.
-- [ ] P5-06 Ukur rise time.
-- [ ] P5-07 Ukur fall time.
-- [ ] P5-08 Ukur propagation delay.
+- [x] P5-05 Jalankan transient switching.
+- [x] P5-06 Ukur rise time.
+- [x] P5-07 Ukur fall time.
+- [x] P5-08 Ukur propagation delay.
 - [x] P5-09 Bangun NAND2.
 - [x] P5-10 Bangun NOR2.
 - [x] P5-11 Bangun buffer.

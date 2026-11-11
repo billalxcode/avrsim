@@ -92,6 +92,7 @@ Baca berurutan:
 | [`docs/39-calibration.md`](docs/39-calibration.md) | Prosedur dan inventaris parameter |
 | [`docs/40-pin-electrical.md`](docs/40-pin-electrical.md) | Tegangan, arus, high-Z, contention |
 | [`docs/41-pulse-source.md`](docs/41-pulse-source.md) | Sumber pulsa untuk transient switching |
+| [`docs/42-characterization.md`](docs/42-characterization.md) | Rise, fall, dan propagation delay |
 | [`TODO.md`](TODO.md) | **Todolist lengkap dari hal terkecil** |
 
 ---
