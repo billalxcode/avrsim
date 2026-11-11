@@ -2,6 +2,7 @@
 
 use crate::system::SimulationSystem;
 use sim_core::{Circuit, NodeId, SimError, Solution, Time};
+use sim_device::IntegrationMethod;
 
 /// Transient solver configuration.
 #[derive(Clone, Debug)]
@@ -44,6 +45,15 @@ pub fn transient(
     circuit: &Circuit,
     config: &TransientConfig,
 ) -> Result<Vec<TransientSample>, SimError> {
+    transient_with_method(circuit, config, IntegrationMethod::BackwardEuler)
+}
+
+/// Runs a transient simulation with an explicit integration method.
+pub fn transient_with_method(
+    circuit: &Circuit,
+    config: &TransientConfig,
+    method: IntegrationMethod,
+) -> Result<Vec<TransientSample>, SimError> {
     validate_config(config)?;
     let mut system = SimulationSystem::new(circuit)?;
     let mut solution = initial_solution(&mut system, config)?;
@@ -51,7 +61,7 @@ pub fn transient(
     let mut time = Time::ZERO;
     let mut samples = Vec::with_capacity(config.steps);
     for _ in 0..config.steps {
-        solution = advance(&mut system, &solution, config)?;
+        solution = advance(&mut system, &solution, config, method)?;
         time = next_time(time, step)?;
         samples.push(sample(time, &solution));
     }
@@ -87,8 +97,9 @@ fn advance(
     system: &mut SimulationSystem,
     solution: &Solution,
     config: &TransientConfig,
+    method: IntegrationMethod,
 ) -> Result<Solution, SimError> {
-    let next = system.solve(solution, Some(config.dt), config.gmin)?;
+    let next = system.solve_with_method(solution, Some(config.dt), config.gmin, method)?;
     system.update(&next)?;
     Ok(next)
 }
@@ -126,8 +137,9 @@ fn validate_config(config: &TransientConfig) -> Result<(), SimError> {
 
 #[cfg(test)]
 mod tests {
-    use super::{TransientConfig, transient};
-    use crate::test_support::rc_circuit;
+    use super::{TransientConfig, transient, transient_with_method};
+    use crate::test_support::{rc_circuit, rl_circuit};
+    use sim_device::IntegrationMethod;
 
     #[test]
     fn rc_charges_toward_supply() {
@@ -239,5 +251,89 @@ mod tests {
         let last = samples.last().expect("last");
         let voltage = last.solution.voltage(output).expect("output");
         assert!((voltage - 5.0).abs() < 1e-6);
+    }
+
+    #[test]
+    fn trapezoidal_rc_charges_toward_supply() {
+        let (circuit, output) = rc_circuit();
+        let config = TransientConfig {
+            dt: 1e-6,
+            steps: 1000,
+            gmin: 1e-12,
+            use_dc_op: false,
+            initial_voltages: Vec::new(),
+        };
+        let samples = transient_with_method(&circuit, &config, IntegrationMethod::Trapezoidal)
+            .expect("transient");
+        let voltage = samples
+            .last()
+            .expect("last")
+            .solution
+            .voltage(output)
+            .expect("v");
+        assert!((voltage - 3.16).abs() < 0.15, "voltage={voltage}");
+    }
+
+    #[test]
+    fn gear2_rc_charges_toward_supply() {
+        let (circuit, output) = rc_circuit();
+        let config = TransientConfig {
+            dt: 1e-6,
+            steps: 1000,
+            gmin: 1e-12,
+            use_dc_op: false,
+            initial_voltages: Vec::new(),
+        };
+        let samples =
+            transient_with_method(&circuit, &config, IntegrationMethod::Gear2).expect("transient");
+        let voltage = samples
+            .last()
+            .expect("last")
+            .solution
+            .voltage(output)
+            .expect("v");
+        assert!((voltage - 3.16).abs() < 0.15, "voltage={voltage}");
+    }
+
+    #[test]
+    fn trapezoidal_rl_voltage_decays() {
+        let (circuit, output) = rl_circuit();
+        let config = TransientConfig {
+            dt: 1e-7,
+            steps: 1000,
+            gmin: 1e-12,
+            use_dc_op: false,
+            initial_voltages: Vec::new(),
+        };
+        let samples = transient_with_method(&circuit, &config, IntegrationMethod::Trapezoidal)
+            .expect("transient");
+        let voltage = samples
+            .last()
+            .expect("last")
+            .solution
+            .voltage(output)
+            .expect("v");
+        assert!(voltage.abs() < 0.05, "voltage={voltage}");
+    }
+
+    #[test]
+    fn gear2_rl_voltage_decays() {
+        let (circuit, output) = rl_circuit();
+        let config = TransientConfig {
+            dt: 1e-7,
+            steps: 1000,
+            gmin: 1e-12,
+            use_dc_op: false,
+            initial_voltages: Vec::new(),
+        };
+        let samples =
+            transient_with_method(&circuit, &config, IntegrationMethod::Gear2).expect("transient");
+        let voltage = samples
+            .last()
+            .expect("last")
+            .solution
+            .voltage(output)
+            .expect("v");
+        assert!(voltage.abs() < 0.05, "voltage={voltage}");
     }
 }

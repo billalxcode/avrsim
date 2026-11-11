@@ -9,6 +9,18 @@ use sim_core::{
 };
 use std::collections::BTreeMap;
 
+/// Numerical integration method for reactive devices.
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+pub enum IntegrationMethod {
+    /// Backward Euler.
+    #[default]
+    BackwardEuler,
+    /// Trapezoidal.
+    Trapezoidal,
+    /// Second-order Gear.
+    Gear2,
+}
+
 /// A device model that can stamp an MNA system.
 pub trait DeviceModel {
     /// Stamps the device into the MNA system.
@@ -18,6 +30,17 @@ pub trait DeviceModel {
         solution: &Solution,
         dt: Option<f64>,
     ) -> Result<(), SimError>;
+
+    /// Stamps with an explicit integration method.
+    fn stamp_method(
+        &mut self,
+        ctx: &mut MnaContext,
+        solution: &Solution,
+        dt: Option<f64>,
+        _method: IntegrationMethod,
+    ) -> Result<(), SimError> {
+        self.stamp(ctx, solution, dt)
+    }
 
     /// Updates internal state after a converged solution.
     fn update(&mut self, solution: &Solution) -> Result<(), SimError>;
@@ -122,25 +145,23 @@ pub(crate) fn stamp_voltage_branch(
     ctx.add_rhs(branch, voltage)
 }
 
-pub(crate) fn stamp_inductor_transient(
+pub(crate) fn stamp_inductor_branch(
     ctx: &mut MnaContext,
     id: DeviceId,
     positive: NodeId,
     negative: NodeId,
-    inductance: f64,
-    dt: f64,
-    current_prev: f64,
+    resistance: f64,
+    rhs: f64,
 ) -> Result<(), SimError> {
     let branch = branch_index(ctx, id)?;
     let p = ctx.node_index(positive);
     let n = ctx.node_index(negative);
-    let resistance = inductance / dt;
     ctx.add_matrix_opt(p, Some(branch), 1.0)?;
     ctx.add_matrix_opt(n, Some(branch), -1.0)?;
     ctx.add_matrix_opt(Some(branch), p, 1.0)?;
     ctx.add_matrix_opt(Some(branch), n, -1.0)?;
     ctx.add_matrix(branch, branch, -resistance)?;
-    ctx.add_rhs(branch, -resistance * current_prev)
+    ctx.add_rhs(branch, rhs)
 }
 
 #[cfg(test)]

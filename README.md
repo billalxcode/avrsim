@@ -78,6 +78,7 @@ Baca berurutan:
 | [`docs/25-sparse.md`](docs/25-sparse.md) | CSR, sparse LU, degree ordering |
 | [`docs/26-adaptive.md`](docs/26-adaptive.md) | Adaptive step dan estimasi error |
 | [`docs/27-determinism.md`](docs/27-determinism.md) | Uji determinisme solver Linux |
+| [`docs/28-integration.md`](docs/28-integration.md) | Backward Euler, trapezoidal, Gear2 |
 | [`TODO.md`](TODO.md) | **Todolist lengkap dari hal terkecil** |
 
 ---

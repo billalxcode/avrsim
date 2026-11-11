@@ -14,5 +14,6 @@ mod test_support;
 
 pub use adaptive::{AdaptiveConfig, transient_adaptive};
 pub use dc::{DcConfig, DcPoint, DcResult, dc_operating_point, dc_sweep};
+pub use sim_device::IntegrationMethod;
 pub use system::SimulationSystem;
-pub use transient::{TransientConfig, TransientSample, transient};
+pub use transient::{TransientConfig, TransientSample, transient, transient_with_method};

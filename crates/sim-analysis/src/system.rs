@@ -1,7 +1,7 @@
 //! Simulation system mapping and device model orchestration.
 
 use sim_core::{Circuit, Device, DeviceKind, MnaContext, SimError, Solution};
-use sim_device::{DeviceModel, model_from_instance};
+use sim_device::{DeviceModel, IntegrationMethod, model_from_instance};
 
 /// A circuit prepared for analysis.
 pub struct SimulationSystem {
@@ -46,6 +46,16 @@ impl SimulationSystem {
         dt: Option<f64>,
         gmin: f64,
     ) -> Result<Solution, SimError> {
+        self.solve_with_method(solution, dt, gmin, IntegrationMethod::BackwardEuler)
+    }
+
+    pub(crate) fn solve_with_method(
+        &mut self,
+        solution: &Solution,
+        dt: Option<f64>,
+        gmin: f64,
+        method: IntegrationMethod,
+    ) -> Result<Solution, SimError> {
         let mut context = MnaContext::new(
             self.node_count,
             self.branch_count,
@@ -54,7 +64,7 @@ impl SimulationSystem {
         )?;
         self.add_gmin(&mut context, gmin)?;
         for model in &mut self.models {
-            model.stamp(&mut context, solution, dt)?;
+            model.stamp_method(&mut context, solution, dt, method)?;
         }
         context.solve()
     }

@@ -2,7 +2,7 @@
 
 Daftar tugas lengkap dari hal terkecil sampai rilis. Setiap item harus kecil, dapat diuji, dan tidak menambah dependensi eksternal.
 
-> **Status:** P8 selesai kecuali P8-09. P9 sebagian besar selesai. P10 sparse, adaptive step, determinisme Linux, fidelity matrix, dan batasan model selesai. AC/noise, trapezoidal/Gear, kalibrasi, dan golden suite belum.
+> **Status:** P8 selesai kecuali P8-09. P9 sebagian besar selesai. P10 sparse, adaptive step, trapezoidal/Gear, determinisme Linux, fidelity matrix, dan batasan model selesai. AC/noise, device lanjutan, kalibrasi, dan golden suite belum.
 > **Aturan:** satu item selesai = kode + test + dokumentasi singkat.
 
 ---
@@ -545,8 +545,8 @@ Daftar tugas lengkap dari hal terkecil sampai rilis. Setiap item harus kecil, da
 - [x] P10-14 Implementasikan ordering.
 - [x] P10-15 Implementasikan adaptive time step.
 - [x] P10-16 Implementasikan LTE.
-- [ ] P10-17 Implementasikan trapezoidal integration.
-- [ ] P10-18 Implementasikan Gear integration.
+- [x] P10-17 Implementasikan trapezoidal integration.
+- [x] P10-18 Implementasikan Gear integration.
 - [ ] P10-19 Kalibrasi pin-level dari datasheet.
 - [ ] P10-20 Dokumentasikan parameter kalibrasi.
 - [ ] P10-21 Jalankan golden suite vs ngspice.
