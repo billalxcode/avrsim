@@ -1,7 +1,8 @@
 //! Ebers-Moll bipolar junction transistor model.
 
 use crate::model::{
-    DeviceModel, MAX_EXPONENT, MAX_FORWARD_VOLTAGE, pins_exact, positive_parameter, thermal_voltage,
+    DeviceModel, MAX_EXPONENT, MAX_FORWARD_VOLTAGE, junction_critical_voltage, pins_exact, pnjlim,
+    positive_parameter, thermal_voltage,
 };
 use sim_core::{Device, DeviceInstance, DeviceKind, MnaContext, NodeId, SimError, Solution};
 
@@ -12,6 +13,9 @@ pub struct BjtModel {
     alpha_forward: f64,
     alpha_reverse: f64,
     thermal_voltage: f64,
+    critical_voltage: f64,
+    vbe_prev: f64,
+    vbc_prev: f64,
     pins: [NodeId; 3],
 }
 
@@ -35,6 +39,14 @@ struct BjtState {
     die: [f64; 3],
 }
 
+fn bjt_sign(kind: &DeviceKind) -> f64 {
+    if matches!(kind, DeviceKind::Pnp) {
+        -1.0
+    } else {
+        1.0
+    }
+}
+
 impl BjtModel {
     pub(crate) fn from_instance(instance: &DeviceInstance) -> Result<Self, SimError> {
         let pins = pins_exact(instance, 3)?;
@@ -43,16 +55,16 @@ impl BjtModel {
         let forward_beta = positive_parameter(params, "bf", Some(100.0))?;
         let reverse_beta = positive_parameter(params, "br", Some(1.0))?;
         let thermal_voltage = thermal_voltage(params)?;
-        let sign = match instance.kind() {
-            DeviceKind::Pnp => -1.0,
-            _ => 1.0,
-        };
+        let sign = bjt_sign(instance.kind());
         Ok(Self {
             sign,
             saturation_current,
             alpha_forward: beta_alpha(forward_beta),
             alpha_reverse: beta_alpha(reverse_beta),
             thermal_voltage,
+            critical_voltage: junction_critical_voltage(saturation_current, thermal_voltage),
+            vbe_prev: 0.0,
+            vbc_prev: 0.0,
             pins: [pins[0], pins[1], pins[2]],
         })
     }
@@ -65,9 +77,8 @@ impl BjtModel {
         ]
     }
 
-    fn linearize(&self, voltages: [f64; 3]) -> BjtState {
-        let vbe = self.sign * (voltages[0] - voltages[2]);
-        let vbc = self.sign * (voltages[0] - voltages[1]);
+    fn linearize(&mut self, voltages: [f64; 3]) -> BjtState {
+        let (vbe, vbc) = self.limited_voltages(voltages);
         let forward = junction(self.saturation_current, self.thermal_voltage, vbe);
         let reverse = junction(self.saturation_current, self.thermal_voltage, vbc);
         let derivatives = self.derivatives(&forward, &reverse);
@@ -80,6 +91,26 @@ impl BjtModel {
             dib: derivatives.ib,
             die: derivatives.ie,
         }
+    }
+
+    fn limited_voltages(&mut self, voltages: [f64; 3]) -> (f64, f64) {
+        let vbe = self.sign * (voltages[0] - voltages[2]);
+        let vbc = self.sign * (voltages[0] - voltages[1]);
+        let limited_vbe = pnjlim(
+            vbe,
+            self.vbe_prev,
+            self.thermal_voltage,
+            self.critical_voltage,
+        );
+        let limited_vbc = pnjlim(
+            vbc,
+            self.vbc_prev,
+            self.thermal_voltage,
+            self.critical_voltage,
+        );
+        self.vbe_prev = limited_vbe;
+        self.vbc_prev = limited_vbc;
+        (limited_vbe, limited_vbc)
     }
 
     fn derivatives(&self, forward: &Junction, reverse: &Junction) -> BjtDerivatives {
@@ -117,7 +148,12 @@ impl DeviceModel for BjtModel {
         stamp_state(ctx, self.pins, &state, voltages)
     }
 
-    fn update(&mut self, _solution: &Solution) -> Result<(), SimError> {
+    fn update(&mut self, solution: &Solution) -> Result<(), SimError> {
+        let first = solution.voltage(self.pins[0]).unwrap_or(0.0);
+        let base = solution.voltage(self.pins[1]).unwrap_or(0.0);
+        let emitter = solution.voltage(self.pins[2]).unwrap_or(0.0);
+        self.vbe_prev = self.sign * (base - emitter);
+        self.vbc_prev = self.sign * (base - first);
         Ok(())
     }
 }
@@ -190,6 +226,9 @@ mod tests {
             alpha_forward: beta_alpha(100.0),
             alpha_reverse: beta_alpha(1.0),
             thermal_voltage,
+            critical_voltage: 0.611,
+            vbe_prev: 0.0,
+            vbc_prev: 0.0,
             pins: [NodeId::new(1), NodeId::new(2), NodeId::GROUND],
         }
     }
@@ -203,7 +242,9 @@ mod tests {
 
     #[test]
     fn forward_active_gain_matches_beta() {
-        let state = model(DeviceKind::Npn, 0.02585).linearize([0.65, 5.0, 0.0]);
+        let mut model = model(DeviceKind::Npn, 0.02585);
+        model.vbe_prev = 0.65;
+        let state = model.linearize([0.65, 5.0, 0.0]);
         let ratio = state.ic / state.ib;
         assert!((ratio - 100.0).abs() < 1e-6, "ratio={ratio}");
     }
@@ -220,5 +261,12 @@ mod tests {
         let cold = model(DeviceKind::Npn, 0.02585).linearize([0.65, 5.0, 0.0]);
         let hot = model(DeviceKind::Npn, 0.03447).linearize([0.65, 5.0, 0.0]);
         assert!(hot.ic < cold.ic, "cold={} hot={}", cold.ic, hot.ic);
+    }
+
+    #[test]
+    fn linearization_limits_large_junction_step() {
+        let mut model = model(DeviceKind::Npn, 0.02585);
+        model.linearize([5.0, 5.0, 0.0]);
+        assert!(model.vbe_prev > 0.0 && model.vbe_prev < 0.2);
     }
 }

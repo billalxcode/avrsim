@@ -105,6 +105,26 @@ pub(crate) fn thermal_voltage(params: &BTreeMap<String, f64>) -> Result<f64, Sim
     positive_parameter(params, "vt", Some(default))
 }
 
+/// Returns the critical junction voltage used by limiting.
+pub(crate) fn junction_critical_voltage(saturation: f64, thermal_voltage: f64) -> f64 {
+    thermal_voltage * (thermal_voltage / (std::f64::consts::SQRT_2 * saturation)).ln()
+}
+
+/// Limits a large junction voltage step.
+pub(crate) fn pnjlim(voltage: f64, previous: f64, thermal: f64, critical: f64) -> f64 {
+    if voltage <= critical || (voltage - previous).abs() <= 2.0 * thermal {
+        return voltage;
+    }
+    if previous > 0.0 {
+        let argument = 1.0 + (voltage - previous) / thermal;
+        if argument > 0.0 {
+            return previous + thermal * argument.ln();
+        }
+        return critical;
+    }
+    thermal * (voltage / thermal).ln()
+}
+
 pub(crate) fn pins_exact(instance: &DeviceInstance, count: usize) -> Result<Vec<NodeId>, SimError> {
     let pins = instance.pins();
     if pins.len() != count {
@@ -226,7 +246,7 @@ fn stamp_row(
 
 #[cfg(test)]
 mod tests {
-    use super::{parameter, positive_parameter};
+    use super::{junction_critical_voltage, parameter, pnjlim, positive_parameter};
     use std::collections::BTreeMap;
 
     fn map(pairs: &[(&str, f64)]) -> BTreeMap<String, f64> {
@@ -272,5 +292,19 @@ mod tests {
     #[test]
     fn positive_parameter_rejects_nan() {
         assert!(positive_parameter(&map(&[("x", f64::NAN)]), "x", None).is_err());
+    }
+
+    #[test]
+    fn pnjlim_limits_large_forward_step() {
+        let critical = junction_critical_voltage(1e-12, 0.02585);
+        let limited = pnjlim(5.0, 0.0, 0.02585, critical);
+        assert!(limited > 0.0 && limited < 0.2, "limited={limited}");
+    }
+
+    #[test]
+    fn pnjlim_keeps_small_step() {
+        let critical = junction_critical_voltage(1e-12, 0.02585);
+        let value = 0.62;
+        assert_eq!(pnjlim(value, 0.60, 0.02585, critical), value);
     }
 }

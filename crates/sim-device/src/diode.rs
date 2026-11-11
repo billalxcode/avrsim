@@ -1,8 +1,8 @@
 //! Shockley diode model.
 
 use crate::model::{
-    DeviceModel, MAX_EXPONENT, MAX_FORWARD_VOLTAGE, pins_exact, positive_parameter,
-    stamp_conductance, thermal_voltage,
+    DeviceModel, MAX_EXPONENT, MAX_FORWARD_VOLTAGE, junction_critical_voltage, pins_exact, pnjlim,
+    positive_parameter, stamp_conductance, thermal_voltage,
 };
 use sim_core::{Device, DeviceInstance, MnaContext, NodeId, SimError, Solution};
 
@@ -11,6 +11,8 @@ pub struct DiodeModel {
     saturation_current: f64,
     emission: f64,
     thermal_voltage: f64,
+    critical_voltage: f64,
+    voltage_prev: f64,
     pins: [NodeId; 2],
 }
 
@@ -24,8 +26,21 @@ impl DiodeModel {
             saturation_current,
             emission,
             thermal_voltage,
+            critical_voltage: junction_critical_voltage(saturation_current, thermal_voltage),
+            voltage_prev: 0.0,
             pins: [pins[0], pins[1]],
         })
+    }
+
+    fn limited_voltage(&mut self, voltage: f64) -> f64 {
+        let limited = pnjlim(
+            voltage,
+            self.voltage_prev,
+            self.thermal_voltage,
+            self.critical_voltage,
+        );
+        self.voltage_prev = limited;
+        limited
     }
 
     fn current(&self, voltage: f64) -> f64 {
@@ -51,17 +66,21 @@ impl DeviceModel for DiodeModel {
         let first = solution.voltage(self.pins[0]).unwrap_or(0.0);
         let second = solution.voltage(self.pins[1]).unwrap_or(0.0);
         let voltage = first - second;
-        let current = self.current(voltage);
-        let conductance = self.conductance(voltage);
+        let limited = self.limited_voltage(voltage);
+        let current = self.current(limited);
+        let conductance = self.conductance(limited);
         stamp_conductance(ctx, self.pins[0], self.pins[1], conductance)?;
-        let constant = conductance * voltage.min(MAX_FORWARD_VOLTAGE) - current;
+        let constant = conductance * limited.min(MAX_FORWARD_VOLTAGE) - current;
         let a = ctx.node_index(self.pins[0]);
         let b = ctx.node_index(self.pins[1]);
         ctx.add_rhs_opt(a, constant)?;
         ctx.add_rhs_opt(b, -constant)
     }
 
-    fn update(&mut self, _solution: &Solution) -> Result<(), SimError> {
+    fn update(&mut self, solution: &Solution) -> Result<(), SimError> {
+        let first = solution.voltage(self.pins[0]).unwrap_or(0.0);
+        let second = solution.voltage(self.pins[1]).unwrap_or(0.0);
+        self.voltage_prev = first - second;
         Ok(())
     }
 }
@@ -76,6 +95,8 @@ mod tests {
             saturation_current: 1e-12,
             emission: 1.0,
             thermal_voltage: 0.02585,
+            critical_voltage: 0.611,
+            voltage_prev: 0.0,
             pins: [NodeId::new(1), NodeId::GROUND],
         }
     }

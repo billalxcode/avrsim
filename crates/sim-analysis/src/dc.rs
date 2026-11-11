@@ -451,6 +451,17 @@ mod tests {
     }
 
     #[test]
+    fn diode_clamp_converges_from_large_supply() {
+        let (mut circuit, output) = diode_clamp();
+        circuit
+            .set_device_parameter("v1", "voltage", 20.0)
+            .expect("v1");
+        let result = dc_operating_point(&circuit, &DcConfig::default()).expect("dc");
+        let voltage = result.solution.voltage(output).expect("output");
+        assert!(voltage > 0.4 && voltage < 0.95, "voltage={voltage}");
+    }
+
+    #[test]
     fn npn_common_emitter_conducts() {
         let (circuit, output) = common_emitter();
         let result = dc_operating_point(&circuit, &DcConfig::default()).expect("dc");
