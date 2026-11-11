@@ -171,8 +171,8 @@ I = max(V - Vf, 0) / R
 - LED board mengikuti tegangan pin.
 
 Total test `sim-avr`: 198.
-Total test `sim-board`: 14.
-Total workspace: 446.
+Total test `sim-board`: 15.
+Total workspace: 447.
 
 ---
 
