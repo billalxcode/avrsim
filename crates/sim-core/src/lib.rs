@@ -5,6 +5,7 @@
 #![forbid(unsafe_code)]
 
 pub mod complex;
+pub mod complex_matrix;
 pub mod error;
 pub mod ids;
 pub mod matrix;
@@ -16,6 +17,7 @@ pub mod tolerance;
 pub mod units;
 
 pub use complex::Complex64;
+pub use complex_matrix::ComplexMatrix;
 pub use error::SimError;
 pub use ids::{BranchId, DeviceId, NodeId};
 pub use matrix::DenseMatrix;
