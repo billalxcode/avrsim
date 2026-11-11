@@ -2,7 +2,7 @@
 
 Daftar tugas lengkap dari hal terkecil sampai rilis. Setiap item harus kecil, dapat diuji, dan tidak menambah dependensi eksternal.
 
-> **Status:** P6 adder, gerbang logika, dan flag arithmetic selesai. Lanjut ke ALU bit-slice.
+> **Status:** P6 adder, gerbang logika, flag, dan ALU bit-slice selesai. Lanjut ke register file dan kontrol.
 > **Aturan:** satu item selesai = kode + test + dokumentasi singkat.
 
 ---
@@ -287,7 +287,7 @@ Daftar tugas lengkap dari hal terkecil sampai rilis. Setiap item harus kecil, da
 - [x] P6-15 Implementasikan flag V.
 - [x] P6-16 Implementasikan flag S.
 - [x] P6-17 Implementasikan flag H.
-- [ ] P6-18 Bangun ALU bit-slice.
+- [x] P6-18 Bangun ALU bit-slice.
 - [ ] P6-19 Bangun register file DFF + decoder.
 - [ ] P6-20 Bangun PC.
 - [ ] P6-21 Bangun IR.

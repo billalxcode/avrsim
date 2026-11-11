@@ -21,6 +21,7 @@ Sel yang sudah diimplementasikan:
 - Registry sel.
 - AND2, OR2, XOR2, dan MUX2 dari NAND2.
 - Flag arithmetic C, Z, N, V, S, H.
+- ALU bit-slice 1 bit.
 
 Belum diimplementasikan:
 
@@ -221,6 +222,14 @@ Test:
 - `mux2` memilih `a` saat `sel` rendah dan `b` saat `sel` tinggi.
 - Semua punya truth table test.
 
+### ALU Bit-Slice
+
+- Port `a`, `b`, `cin`, `op0`, `op1`, `y`, `carry`.
+- `op1:op0` memilih AND, OR, XOR, dan ADD.
+- ADD memakai full adder.
+- Output dipilih oleh tiga MUX2.
+- Truth table test mencakup empat operasi.
+
 ### Arithmetic Flags
 
 - `AluFlags` memuat `carry`, `zero`, `negative`, `overflow`, `sign`, `half_carry`.
@@ -254,7 +263,7 @@ Test `sim-cells` mencakup:
 - Buffer follow input.
 - Powered cell memiliki supply.
 
-Total test `sim-cells`: 31.
+Total test `sim-cells`: 33.
 
 ---
 
