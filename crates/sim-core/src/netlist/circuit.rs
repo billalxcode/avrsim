@@ -1,10 +1,11 @@
 //! Flat circuit representation and validation.
 
-use super::device::{Device, DeviceInstance};
+use super::device::{Device, DeviceInstance, DeviceKind};
+use super::ensure_name;
 use super::node::{Node, NodeKind};
 use crate::error::SimError;
 use crate::ids::{DeviceId, NodeId};
-use std::collections::BTreeSet;
+use std::collections::{BTreeMap, BTreeSet};
 
 /// A validated, flat circuit netlist.
 #[derive(Clone, Debug, PartialEq)]
@@ -84,6 +85,56 @@ impl Circuit {
             .find(|device| device.name() == device_name)
             .ok_or_else(|| SimError::InvalidNetlist(format!("unknown device: {device_name}")))?;
         device.set_parameter(parameter, value);
+        Ok(())
+    }
+
+    /// Adds a device to an existing circuit.
+    pub fn add_device(
+        &mut self,
+        name: impl Into<String>,
+        kind: DeviceKind,
+        pins: Vec<NodeId>,
+        parameters: BTreeMap<String, f64>,
+    ) -> Result<DeviceId, SimError> {
+        let name = name.into();
+        self.validate_new_device(&name, &pins)?;
+        let raw = u32::try_from(self.devices.len())
+            .map_err(|_| SimError::Internal("device limit exceeded".to_string()))?;
+        let id = DeviceId::new(raw);
+        self.devices
+            .push(DeviceInstance::new(id, name, kind, pins, parameters));
+        Ok(id)
+    }
+
+    fn validate_new_device(&self, name: &str, pins: &[NodeId]) -> Result<(), SimError> {
+        self.validate_device_name(name)?;
+        self.validate_device_pins(pins)
+    }
+
+    fn validate_device_name(&self, name: &str) -> Result<(), SimError> {
+        ensure_name(name)?;
+        if self.device_by_name(name).is_some() {
+            return Err(SimError::InvalidNetlist(format!(
+                "duplicate device name: {name}"
+            )));
+        }
+        Ok(())
+    }
+
+    fn validate_device_pins(&self, pins: &[NodeId]) -> Result<(), SimError> {
+        if pins.len() < 2 {
+            return Err(SimError::InvalidNetlist(
+                "device must have at least two pins".to_string(),
+            ));
+        }
+        for &pin in pins {
+            if self.node(pin).is_none() {
+                return Err(SimError::InvalidNetlist(format!(
+                    "unknown node: {}",
+                    pin.raw()
+                )));
+            }
+        }
         Ok(())
     }
 

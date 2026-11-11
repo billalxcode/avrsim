@@ -215,3 +215,32 @@ fn ground_is_zero() {
     assert_eq!(builder.ground(), NodeId::GROUND);
     assert_eq!(NodeId::GROUND.raw(), 0);
 }
+
+#[test]
+fn device_can_be_added_after_build() {
+    let mut circuit = inverter_template();
+    let output = circuit.node_by_name("output").expect("output").id();
+    let ground = circuit.ground();
+    circuit
+        .add_device(
+            "rload",
+            DeviceKind::Resistor,
+            vec![output, ground],
+            params(),
+        )
+        .expect("add device");
+    assert!(circuit.device_by_name("rload").is_some());
+}
+
+#[test]
+fn added_device_rejects_unknown_node() {
+    let mut circuit = inverter_template();
+    let ground = circuit.ground();
+    let result = circuit.add_device(
+        "bad",
+        DeviceKind::Resistor,
+        vec![NodeId::new(99), ground],
+        params(),
+    );
+    assert!(result.is_err());
+}
