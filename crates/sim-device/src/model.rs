@@ -1,12 +1,13 @@
 //! Device model API and factory.
 
 use crate::bjt::BjtModel;
-use crate::controlled::{VccsModel, VcvsModel};
+use crate::controlled::{CccsModel, VccsModel, VcvsModel};
 use crate::diode::DiodeModel;
 use crate::jfet::JfetModel;
 use crate::mosfet::MosfetModel;
 use crate::passive::{CapacitorModel, InductorModel, ResistorModel};
 use crate::source::{CurrentSourceModel, PulseSourceModel, VoltageSourceModel};
+use crate::switch::SwitchModel;
 use crate::transmission::TransmissionLineModel;
 use sim_core::{
     BOLTZMANN, Device, DeviceId, DeviceInstance, DeviceKind, ELEMENTARY_CHARGE, MnaContext,
@@ -68,6 +69,8 @@ pub fn model_from_instance(instance: &DeviceInstance) -> Result<Box<dyn DeviceMo
         DeviceKind::CurrentSource => Ok(Box::new(CurrentSourceModel::from_instance(instance)?)),
         DeviceKind::Vcvs => Ok(Box::new(VcvsModel::from_instance(instance)?)),
         DeviceKind::Vccs => Ok(Box::new(VccsModel::from_instance(instance)?)),
+        DeviceKind::Cccs => Ok(Box::new(CccsModel::from_instance(instance)?)),
+        DeviceKind::Switch => Ok(Box::new(SwitchModel::from_instance(instance)?)),
         DeviceKind::Nmos | DeviceKind::Pmos => Ok(Box::new(MosfetModel::from_instance(instance)?)),
         DeviceKind::Npn | DeviceKind::Pnp => Ok(Box::new(BjtModel::from_instance(instance)?)),
         DeviceKind::JfetN | DeviceKind::JfetP => Ok(Box::new(JfetModel::from_instance(instance)?)),

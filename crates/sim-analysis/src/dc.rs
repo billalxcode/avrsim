@@ -318,9 +318,9 @@ fn validate_sweep(start: f64, stop: f64, step: f64) -> Result<(), SimError> {
 mod tests {
     use super::{DcConfig, dc_operating_point, dc_sweep};
     use crate::test_support::{
-        common_emitter, common_emitter_pnp, common_source_body, common_source_n,
+        cccs_circuit, common_emitter, common_emitter_pnp, common_source_body, common_source_n,
         common_source_n_biased, common_source_p, diode_clamp, inverter, rc_circuit, rl_circuit,
-        vccs_circuit, vcvs_circuit, voltage_divider,
+        switch_circuit, vccs_circuit, vcvs_circuit, voltage_divider,
     };
 
     #[test]
@@ -617,5 +617,25 @@ mod tests {
         let result = dc_operating_point(&circuit, &DcConfig::default()).expect("dc");
         let voltage = result.solution.voltage(output).expect("output");
         assert!((voltage - 1.0).abs() < 1e-9, "voltage={voltage}");
+    }
+
+    #[test]
+    fn cccs_output_is_gain_times_control_current() {
+        let (circuit, output) = cccs_circuit();
+        let result = dc_operating_point(&circuit, &DcConfig::default()).expect("dc");
+        let voltage = result.solution.voltage(output).expect("output");
+        assert!((voltage - 2.0).abs() < 1e-6, "voltage={voltage}");
+    }
+
+    #[test]
+    fn switch_pulls_output_low_when_on() {
+        let (on, on_output) = switch_circuit(true);
+        let (off, off_output) = switch_circuit(false);
+        let on = dc_operating_point(&on, &DcConfig::default()).expect("on");
+        let off = dc_operating_point(&off, &DcConfig::default()).expect("off");
+        let on = on.solution.voltage(on_output).expect("on v");
+        let off = off.solution.voltage(off_output).expect("off v");
+        assert!(on < 0.1, "on={on}");
+        assert!(off > 4.9, "off={off}");
     }
 }

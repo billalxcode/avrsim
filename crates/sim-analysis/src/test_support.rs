@@ -194,6 +194,38 @@ impl TestCircuit {
             .expect(name);
     }
 
+    pub(crate) fn cccs(
+        &mut self,
+        name: &str,
+        output: [NodeId; 2],
+        control: [NodeId; 2],
+        gain: f64,
+    ) {
+        let parameters = params("gain", gain);
+        let pins = vec![output[0], output[1], control[0], control[1]];
+        self.builder
+            .device(name, DeviceKind::Cccs, pins, parameters)
+            .expect(name);
+    }
+
+    pub(crate) fn switch(
+        &mut self,
+        name: &str,
+        output: [NodeId; 2],
+        control: [NodeId; 2],
+        parameters: (f64, f64, f64, f64),
+    ) {
+        let mut map = BTreeMap::new();
+        map.insert("ron".to_string(), parameters.0);
+        map.insert("roff".to_string(), parameters.1);
+        map.insert("vth".to_string(), parameters.2);
+        map.insert("width".to_string(), parameters.3);
+        let pins = vec![output[0], output[1], control[0], control[1]];
+        self.builder
+            .device(name, DeviceKind::Switch, pins, map)
+            .expect(name);
+    }
+
     pub(crate) fn transmission_line(
         &mut self,
         name: &str,
@@ -468,6 +500,37 @@ pub(crate) fn vccs_circuit() -> (Circuit, NodeId) {
     circuit.voltage("vin", input, ground, 1.0);
     circuit.vccs("g1", [output, ground], [input, ground], 1e-3);
     circuit.resistor("rl", output, ground, 1000.0);
+    (circuit.build(), output)
+}
+
+pub(crate) fn cccs_circuit() -> (Circuit, NodeId) {
+    let mut circuit = TestCircuit::new();
+    let input = circuit.node("in");
+    let control = circuit.node("control");
+    let output = circuit.node("out");
+    let ground = circuit.ground();
+    circuit.voltage("vin", input, ground, 1.0);
+    circuit.resistor("rc", input, control, 1000.0);
+    circuit.cccs("f1", [output, ground], [control, ground], 2.0);
+    circuit.resistor("rl", output, ground, 1000.0);
+    (circuit.build(), output)
+}
+
+pub(crate) fn switch_circuit(on: bool) -> (Circuit, NodeId) {
+    let mut circuit = TestCircuit::new();
+    let input = circuit.node("in");
+    let control = circuit.node("control");
+    let output = circuit.node("out");
+    let ground = circuit.ground();
+    circuit.voltage("vcc", input, ground, 5.0);
+    circuit.voltage("vc", control, ground, if on { 5.0 } else { 0.0 });
+    circuit.resistor("r1", input, output, 1000.0);
+    circuit.switch(
+        "s1",
+        [output, ground],
+        [control, ground],
+        (1.0, 1e9, 2.5, 0.1),
+    );
     (circuit.build(), output)
 }
 

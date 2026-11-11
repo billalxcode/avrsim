@@ -138,6 +138,7 @@ fn build_branch_map(circuit: &Circuit) -> (Vec<Option<usize>>, usize) {
             DeviceKind::VoltageSource
             | DeviceKind::PulseVoltageSource
             | DeviceKind::Vcvs
+            | DeviceKind::Cccs
             | DeviceKind::Inductor => {
                 map.push(Some(index));
                 index += 1;
