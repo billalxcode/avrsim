@@ -2,7 +2,7 @@
 
 Daftar tugas lengkap dari hal terkecil sampai rilis. Setiap item harus kecil, dapat diuji, dan tidak menambah dependensi eksternal.
 
-> **Status:** P0 fondasi selesai. P8 selesai penuh. P9 sebagian besar selesai; ELF loader, simbol, ELF ke HEX, dan UART end-to-end selesai. P10 sparse, adaptive step, trapezoidal/Gear, AC linear, noise termal, distorsi kuasi-statis, sensitivitas numerik, suhu device, process corner, BJT, JFET, transmission line, determinisme Linux, fidelity matrix, batasan model, profiling, dan optimasi selesai. Golden suite dan determinisme macOS/Windows belum. P4 harness ngspice dan golden data belum karena ngspice tidak tersedia. P5 characterization harness, switching, input capacitance, dan drive strength selesai; ring oscillator dan perbandingan ngspice belum. P11 user guide, contoh runnable, workflow CI, dan notices selesai; eksekusi GitHub Actions, tag, dan publikasi belum; packaging dan release notes siap. X-03 panic audit sebagian; builder sel masih memakai invariant expect. P3 body effect, gmb, Meyer capacitance, overlap, diode nonideal, BJT, JFET, transmission line, VCVS, VCCS, CCVS, CCCS, dan switch selesai; breakdown dan model termal lanjutan belum.
+> **Status:** P0 fondasi selesai. P8 selesai penuh. P9 sebagian besar selesai; ELF loader, simbol, ELF ke HEX, dan UART end-to-end selesai. P10 sparse, adaptive step, trapezoidal/Gear, AC linear, noise termal, distorsi kuasi-statis, sensitivitas numerik, suhu device, process corner, BJT, JFET, transmission line, determinisme Linux, fidelity matrix, batasan model, profiling, dan optimasi selesai. Golden suite dan determinisme macOS/Windows belum. P4 harness ngspice dan golden data belum karena ngspice tidak tersedia. P5 characterization harness, switching, input capacitance, dan drive strength selesai; ring oscillator dan perbandingan ngspice belum. P11 user guide, contoh runnable, workflow CI, dan notices selesai; eksekusi GitHub Actions, tag, dan publikasi belum; packaging dan release notes siap. X-03 panic audit selesai; builder sel mencatat error dan melaporkannya di build. P3 body effect, gmb, Meyer capacitance, overlap, diode nonideal, BJT, JFET, transmission line, VCVS, VCCS, CCVS, CCCS, dan switch selesai; breakdown dan model termal lanjutan belum.
 > **Aturan:** satu item selesai = kode + test + dokumentasi singkat.
 
 ---
@@ -590,7 +590,7 @@ Daftar tugas lengkap dari hal terkecil sampai rilis. Setiap item harus kecil, da
 
 - [x] X-01 Pastikan setiap crate punya dokumentasi modul.
 - [x] X-02 Pastikan setiap error punya pesan jelas.
-- [ ] X-03 Pastikan tidak ada panic pada input pengguna.
+- [x] X-03 Pastikan tidak ada panic pada input pengguna.
 - [x] X-04 Pastikan tidak ada dependensi eksternal.
 - [x] X-05 Jalankan fmt sebelum commit.
 - [x] X-06 Jalankan clippy sebelum commit.
@@ -647,16 +647,16 @@ Daftar tugas lengkap dari hal terkecil sampai rilis. Setiap item harus kecil, da
 
 Sebuah task dianggap selesai jika:
 
-- [ ] Kode ditulis.
-- [ ] Test ditulis dan lulus.
-- [ ] Tidak ada dependensi eksternal.
-- [ ] Dokumentasi diperbarui.
-- [ ] `cargo fmt` bersih.
-- [ ] `cargo clippy` bersih.
-- [ ] `cargo test --workspace` hijau.
-- [ ] Tidak ada `unwrap()` yang tidak aman pada input pengguna.
-- [ ] Error ditangani dengan `Result`.
-- [ ] Perubahan di-commit dengan pesan jelas.
+- [x] Kode ditulis.
+- [x] Test ditulis dan lulus.
+- [x] Tidak ada dependensi eksternal.
+- [x] Dokumentasi diperbarui.
+- [x] `cargo fmt` bersih.
+- [x] `cargo clippy` bersih.
+- [x] `cargo test --workspace` hijau.
+- [x] Tidak ada `unwrap()` yang tidak aman pada input pengguna.
+- [x] Error ditangani dengan `Result`.
+- [x] Perubahan di-commit dengan pesan jelas.
 
 ---
 
