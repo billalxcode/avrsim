@@ -33,6 +33,7 @@ Dokumen ini adalah indeks lengkap spesifikasi **embed-emulation**.
 | 24 | [Fidelity](24-fidelity.md) | Matriks fidelity dan batasan model |
 | 25 | [Sparse](25-sparse.md) | CSR, sparse LU, degree ordering |
 | 26 | [Adaptive](26-adaptive.md) | Adaptive step dan estimasi error |
+| 27 | [Determinisme](27-determinism.md) | Uji determinisme solver Linux |
 | - | [Todolist](../TODO.md) | Daftar tugas lengkap dari hal terkecil |
 
 ## Konvensi dokumen

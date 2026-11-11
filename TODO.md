@@ -2,7 +2,7 @@
 
 Daftar tugas lengkap dari hal terkecil sampai rilis. Setiap item harus kecil, dapat diuji, dan tidak menambah dependensi eksternal.
 
-> **Status:** P8 selesai kecuali P8-09. P9 sebagian besar selesai. P10 sparse, adaptive step, fidelity matrix, dan batasan model selesai. AC/noise, trapezoidal/Gear, kalibrasi, dan golden suite belum.
+> **Status:** P8 selesai kecuali P8-09. P9 sebagian besar selesai. P10 sparse, adaptive step, determinisme Linux, fidelity matrix, dan batasan model selesai. AC/noise, trapezoidal/Gear, kalibrasi, dan golden suite belum.
 > **Aturan:** satu item selesai = kode + test + dokumentasi singkat.
 
 ---
@@ -552,7 +552,7 @@ Daftar tugas lengkap dari hal terkecil sampai rilis. Setiap item harus kecil, da
 - [ ] P10-21 Jalankan golden suite vs ngspice.
 - [ ] P10-22 Profiling solver.
 - [ ] P10-23 Optimasi hot path.
-- [ ] P10-24 Uji determinisme Linux.
+- [x] P10-24 Uji determinisme Linux.
 - [ ] P10-25 Uji determinisme macOS.
 - [ ] P10-26 Uji determinisme Windows.
 - [x] P10-27 Finalisasi fidelity matrix.

@@ -4,6 +4,8 @@
 
 mod adaptive;
 mod dc;
+#[cfg(test)]
+mod determinism;
 mod system;
 mod transient;
 

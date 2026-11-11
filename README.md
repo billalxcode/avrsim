@@ -77,6 +77,7 @@ Baca berurutan:
 | [`docs/24-fidelity.md`](docs/24-fidelity.md) | Matriks fidelity dan batasan model |
 | [`docs/25-sparse.md`](docs/25-sparse.md) | CSR, sparse LU, degree ordering |
 | [`docs/26-adaptive.md`](docs/26-adaptive.md) | Adaptive step dan estimasi error |
+| [`docs/27-determinism.md`](docs/27-determinism.md) | Uji determinisme solver Linux |
 | [`TODO.md`](TODO.md) | **Todolist lengkap dari hal terkecil** |
 
 ---
