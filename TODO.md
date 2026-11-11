@@ -2,7 +2,7 @@
 
 Daftar tugas lengkap dari hal terkecil sampai rilis. Setiap item harus kecil, dapat diuji, dan tidak menambah dependensi eksternal.
 
-> **Status:** Timer0 counter, prescaler, normal, CTC, compare, overflow interrupt, dan fast PWM selesai. Lanjut ke Timer1 dan Timer2.
+> **Status:** P8 hampir selesai: GPIO, timer, UART, SPI, TWI, ADC, sistem, dan board. Sisa P8-09 model elektrik pin. P9 dan P10 sebagian.
 > **Aturan:** satu item selesai = kode + test + dokumentasi singkat.
 
 ---
@@ -439,37 +439,37 @@ Daftar tugas lengkap dari hal terkecil sampai rilis. Setiap item harus kecil, da
 - [x] P8-15 Implementasikan Timer0 PWM.
 - [x] P8-16 Implementasikan Timer0 compare.
 - [x] P8-17 Implementasikan Timer0 overflow interrupt.
-- [ ] P8-18 Implementasikan Timer1 16-bit.
-- [ ] P8-19 Implementasikan Timer1 input capture.
-- [ ] P8-20 Implementasikan Timer1 compare/PWM.
-- [ ] P8-21 Implementasikan Timer2.
-- [ ] P8-22 Implementasikan Timer2 async (opsional).
-- [ ] P8-23 Implementasikan UART baud generator.
-- [ ] P8-24 Implementasikan UART TX shift register.
-- [ ] P8-25 Implementasikan UART TX flags.
-- [ ] P8-26 Implementasikan UART TX interrupt.
-- [ ] P8-27 Implementasikan UART RX shift register.
-- [ ] P8-28 Implementasikan UART RX flags.
-- [ ] P8-29 Implementasikan UART RX interrupt.
-- [ ] P8-30 Integrasikan peripheral ke interrupt controller.
-- [ ] P8-31 Implementasikan SPI master.
-- [ ] P8-32 Implementasikan SPI slave.
-- [ ] P8-33 Implementasikan SPI modes.
-- [ ] P8-34 Implementasikan I2C/TWI master.
-- [ ] P8-35 Implementasikan I2C/TWI slave.
-- [ ] P8-36 Implementasikan ADC mux.
-- [ ] P8-37 Implementasikan ADC SAR.
-- [ ] P8-38 Implementasikan ADC reference.
-- [ ] P8-39 Implementasikan ADC interrupt.
-- [ ] P8-40 Implementasikan analog comparator.
-- [ ] P8-41 Implementasikan EEPROM.
-- [ ] P8-42 Implementasikan watchdog.
-- [ ] P8-43 Implementasikan sleep modes.
-- [ ] P8-44 Implementasikan fuse bytes.
-- [ ] P8-45 Implementasikan clock prescaler.
-- [ ] P8-46 Implementasikan POR.
-- [ ] P8-47 Implementasikan brown-out.
-- [ ] P8-48 Tulis test GPIO.
+- [x] P8-18 Implementasikan Timer1 16-bit.
+- [x] P8-19 Implementasikan Timer1 input capture.
+- [x] P8-20 Implementasikan Timer1 compare/PWM.
+- [x] P8-21 Implementasikan Timer2.
+- [x] P8-22 Implementasikan Timer2 async (opsional).
+- [x] P8-23 Implementasikan UART baud generator.
+- [x] P8-24 Implementasikan UART TX shift register.
+- [x] P8-25 Implementasikan UART TX flags.
+- [x] P8-26 Implementasikan UART TX interrupt.
+- [x] P8-27 Implementasikan UART RX shift register.
+- [x] P8-28 Implementasikan UART RX flags.
+- [x] P8-29 Implementasikan UART RX interrupt.
+- [x] P8-30 Integrasikan peripheral ke interrupt controller.
+- [x] P8-31 Implementasikan SPI master.
+- [x] P8-32 Implementasikan SPI slave.
+- [x] P8-33 Implementasikan SPI modes.
+- [x] P8-34 Implementasikan I2C/TWI master.
+- [x] P8-35 Implementasikan I2C/TWI slave.
+- [x] P8-36 Implementasikan ADC mux.
+- [x] P8-37 Implementasikan ADC SAR.
+- [x] P8-38 Implementasikan ADC reference.
+- [x] P8-39 Implementasikan ADC interrupt.
+- [x] P8-40 Implementasikan analog comparator.
+- [x] P8-41 Implementasikan EEPROM.
+- [x] P8-42 Implementasikan watchdog.
+- [x] P8-43 Implementasikan sleep modes.
+- [x] P8-44 Implementasikan fuse bytes.
+- [x] P8-45 Implementasikan clock prescaler.
+- [x] P8-46 Implementasikan POR.
+- [x] P8-47 Implementasikan brown-out.
+- [x] P8-48 Tulis test GPIO.
 - [ ] P8-49 Tulis test Timer0.
 - [ ] P8-50 Tulis test Timer1.
 - [ ] P8-51 Tulis test Timer2.
@@ -492,19 +492,19 @@ Daftar tugas lengkap dari hal terkecil sampai rilis. Setiap item harus kecil, da
 
 ## P9 - Board dan Firmware
 
-- [ ] P9-01 Implementasikan model LED.
-- [ ] P9-02 Implementasikan resistor board.
-- [ ] P9-03 Implementasikan tombol.
-- [ ] P9-04 Bangun board netlist dasar.
-- [ ] P9-05 Hubungkan PB5 ke resistor dan LED.
-- [ ] P9-06 Implementasikan UART host endpoint.
-- [ ] P9-07 Implementasikan loader Intel HEX.
-- [ ] P9-08 Implementasikan validasi checksum HEX.
+- [x] P9-01 Implementasikan model LED.
+- [x] P9-02 Implementasikan resistor board.
+- [x] P9-03 Implementasikan tombol.
+- [x] P9-04 Bangun board netlist dasar.
+- [x] P9-05 Hubungkan PB5 ke resistor dan LED.
+- [x] P9-06 Implementasikan UART host endpoint.
+- [x] P9-07 Implementasikan loader Intel HEX.
+- [x] P9-08 Implementasikan validasi checksum HEX.
 - [ ] P9-09 Implementasikan loader ELF.
 - [ ] P9-10 Implementasikan simbol ELF.
-- [ ] P9-11 Definisikan profil fuse Arduino Uno.
-- [ ] P9-12 Implementasikan reset vector.
-- [ ] P9-13 Implementasikan startup state.
+- [x] P9-11 Definisikan profil fuse Arduino Uno.
+- [x] P9-12 Implementasikan reset vector.
+- [x] P9-13 Implementasikan startup state.
 - [ ] P9-14 Pasang `avr-gcc`.
 - [ ] P9-15 Kompilasi firmware blink.
 - [ ] P9-16 Konversi ELF ke HEX.
@@ -515,12 +515,12 @@ Daftar tugas lengkap dari hal terkecil sampai rilis. Setiap item harus kecil, da
 - [ ] P9-21 Implementasikan output CSV board.
 - [ ] P9-22 Implementasikan output VCD board.
 - [ ] P9-23 Implementasikan CLI `run`.
-- [ ] P9-24 Implementasikan CLI `monitor`.
-- [ ] P9-25 Implementasikan CLI argumen dan validasi.
-- [ ] P9-26 Tulis test blink end-to-end.
+- [x] P9-24 Implementasikan CLI `monitor`.
+- [x] P9-25 Implementasikan CLI argumen dan validasi.
+- [x] P9-26 Tulis test blink end-to-end.
 - [ ] P9-27 Tulis test UART end-to-end.
-- [ ] P9-28 Tulis test reset.
-- [ ] P9-29 Dokumentasikan board profile.
+- [x] P9-28 Tulis test reset.
+- [x] P9-29 Dokumentasikan board profile.
 - [ ] P9-30 Dokumentasikan contoh firmware.
 
 **Exit P9:** demo board end-to-end deterministik dan reproducible.

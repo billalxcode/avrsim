@@ -69,6 +69,11 @@ Baca berurutan:
 | [`docs/16-avr-decode.md`](docs/16-avr-decode.md) | Decoder, fetch, register bank, ALU arithmetic/logic/shift AVR |
 | [`docs/17-gpio.md`](docs/17-gpio.md) | Port B/C/D, DDR, PORT, PIN, pull-up |
 | [`docs/18-timer0.md`](docs/18-timer0.md) | Timer0 counter, prescaler, normal, CTC, compare |
+| [`docs/19-timer1-timer2.md`](docs/19-timer1-timer2.md) | Timer1 16-bit, capture, compare/PWM, Timer2 |
+| [`docs/20-uart.md`](docs/20-uart.md) | UART TX/RX, baud, flag, interrupt |
+| [`docs/21-system.md`](docs/21-system.md) | EEPROM, watchdog, fuse, clock, comparator, POR |
+| [`docs/22-board.md`](docs/22-board.md) | LED, resistor, button, UART host, Intel HEX |
+| [`docs/23-spi-twi-adc.md`](docs/23-spi-twi-adc.md) | SPI, TWI, dan ADC |
 | [`TODO.md`](TODO.md) | **Todolist lengkap dari hal terkecil** |
 
 ---

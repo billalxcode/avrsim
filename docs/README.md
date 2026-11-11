@@ -25,6 +25,11 @@ Dokumen ini adalah indeks lengkap spesifikasi **embed-emulation**.
 | 16 | [AVR Decode](16-avr-decode.md) | Decoder, fetch, register bank, ALU arithmetic/logic/shift AVR |
 | 17 | [GPIO](17-gpio.md) | Port B/C/D, DDR, PORT, PIN, pull-up |
 | 18 | [Timer0](18-timer0.md) | Counter, prescaler, normal, CTC, compare |
+| 19 | [Timer1 dan Timer2](19-timer1-timer2.md) | Timer1 16-bit, capture, compare/PWM, Timer2 |
+| 20 | [UART](20-uart.md) | TX/RX shift, baud, flag, interrupt |
+| 21 | [System](21-system.md) | EEPROM, watchdog, fuse, clock, comparator, POR |
+| 22 | [Board](22-board.md) | LED, resistor, button, UART host, Intel HEX |
+| 23 | [SPI, TWI, ADC](23-spi-twi-adc.md) | SPI, TWI, dan ADC behavioral |
 | - | [Todolist](../TODO.md) | Daftar tugas lengkap dari hal terkecil |
 
 ## Konvensi dokumen
@@ -41,6 +46,6 @@ Dokumen ini adalah indeks lengkap spesifikasi **embed-emulation**.
 |---|---|
 | Brainstorming | Selesai |
 | Spesifikasi | Dokumen ini |
-| Kode | P8 GPIO dan Timer0 core selesai |
+| Kode | P8 selesai kecuali model elektrik pin |
 | Toolchain Rust | Terpasang (1.99.1) |
 | `avr-gcc` | Belum terpasang |
