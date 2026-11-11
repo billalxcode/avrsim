@@ -161,6 +161,25 @@ fn carry_flags(
     )
 }
 
+/// Selects between a register operand and an immediate operand.
+pub fn select_operand(
+    builder: &mut DigitalBuilder,
+    register: &[NetId],
+    immediate: &[NetId],
+    use_immediate: NetId,
+) -> Result<Vec<NetId>, SimError> {
+    if register.len() != immediate.len() {
+        return Err(SimError::InvalidNetlist(
+            "operand width mismatch".to_string(),
+        ));
+    }
+    Ok(register
+        .iter()
+        .zip(immediate)
+        .map(|(&register, &immediate)| builder.mux(register, immediate, use_immediate))
+        .collect())
+}
+
 fn validate(first: &[NetId], second: &[NetId]) -> Result<(), SimError> {
     if first.len() != 8 || second.len() != 8 {
         return Err(SimError::InvalidNetlist(
@@ -280,7 +299,7 @@ fn subtraction_overflow(
 
 #[cfg(test)]
 mod tests {
-    use super::{ArithmeticUnit, LogicUnit, arithmetic_unit, logic_unit};
+    use super::{ArithmeticUnit, LogicUnit, arithmetic_unit, logic_unit, select_operand};
     use crate::test_support::{named_inputs, set_bits};
     use sim_cells::{DigitalBuilder, DigitalCircuit, add_with_carry, read_bits, sub_with_borrow};
 
@@ -469,5 +488,99 @@ mod tests {
         let second = named_inputs(&mut builder, "b", 8);
         let op = named_inputs(&mut builder, "op", 3);
         assert!(logic_unit(&mut builder, &first, &second, &op).is_err());
+    }
+
+    fn immediate_arithmetic_fixture() -> (DigitalCircuit, ArithmeticUnit) {
+        let mut builder = DigitalBuilder::new();
+        let first = named_inputs(&mut builder, "a", 8);
+        let register = named_inputs(&mut builder, "b", 8);
+        let immediate = named_inputs(&mut builder, "k", 8);
+        let use_immediate = builder.input("imm");
+        let selected =
+            select_operand(&mut builder, &register, &immediate, use_immediate).expect("select");
+        let subtract = builder.input("sub");
+        let carry = builder.input("cin");
+        let unit = arithmetic_unit(&mut builder, &first, &selected, subtract, carry).expect("unit");
+        (builder.build(), unit)
+    }
+
+    fn evaluate_immediate(
+        circuit: &mut DigitalCircuit,
+        unit: &ArithmeticUnit,
+        first: u8,
+        immediate: u8,
+        carry_in: bool,
+    ) -> Outcome {
+        set_bits(circuit, "a", u64::from(first), 8);
+        set_bits(circuit, "b", 0, 8);
+        set_bits(circuit, "k", u64::from(immediate), 8);
+        circuit.set_input("imm", true).expect("imm");
+        circuit.set_input("sub", true).expect("sub");
+        circuit.set_input("cin", carry_in).expect("cin");
+        circuit.settle().expect("settle");
+        read_outcome(circuit, unit)
+    }
+
+    #[test]
+    fn subi_and_sbci_match_reference() {
+        let (mut circuit, unit) = immediate_arithmetic_fixture();
+        let values = [0, 1, 0x0F, 0x80, 0xFF];
+        for first in 0..=u8::MAX {
+            for immediate in values {
+                for carry in [false, true] {
+                    let actual = evaluate_immediate(&mut circuit, &unit, first, immediate, carry);
+                    assert_eq!(actual, subtraction(first, immediate, carry));
+                }
+            }
+        }
+    }
+
+    fn immediate_logic_fixture() -> (DigitalCircuit, LogicUnit) {
+        let mut builder = DigitalBuilder::new();
+        let first = named_inputs(&mut builder, "a", 8);
+        let register = named_inputs(&mut builder, "b", 8);
+        let immediate = named_inputs(&mut builder, "k", 8);
+        let use_immediate = builder.input("imm");
+        let selected =
+            select_operand(&mut builder, &register, &immediate, use_immediate).expect("select");
+        let op = named_inputs(&mut builder, "op", 2);
+        let unit = logic_unit(&mut builder, &first, &selected, &op).expect("unit");
+        (builder.build(), unit)
+    }
+
+    fn evaluate_immediate_logic(
+        circuit: &mut DigitalCircuit,
+        unit: &LogicUnit,
+        first: u8,
+        immediate: u8,
+        op: u8,
+    ) -> LogicOutcome {
+        set_bits(circuit, "a", u64::from(first), 8);
+        set_bits(circuit, "b", 0, 8);
+        set_bits(circuit, "k", u64::from(immediate), 8);
+        set_bits(circuit, "op", u64::from(op), 2);
+        circuit.set_input("imm", true).expect("imm");
+        circuit.settle().expect("settle");
+        LogicOutcome {
+            value: read_bits(circuit, &unit.result) as u8,
+            zero: circuit.value(unit.zero),
+            negative: circuit.value(unit.negative),
+            sign: circuit.value(unit.sign),
+        }
+    }
+
+    #[test]
+    fn andi_and_ori_match_reference() {
+        let (mut circuit, unit) = immediate_logic_fixture();
+        let values = [0, 1, 0x0F, 0x55, 0x80, 0xAA, 0xFF];
+        for first in 0..=u8::MAX {
+            for immediate in values {
+                for op in [0, 1] {
+                    let actual =
+                        evaluate_immediate_logic(&mut circuit, &unit, first, immediate, op);
+                    assert_eq!(actual, logic_reference(op, first, immediate));
+                }
+            }
+        }
     }
 }
