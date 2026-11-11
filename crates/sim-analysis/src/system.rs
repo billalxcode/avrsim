@@ -21,15 +21,8 @@ impl SimulationSystem {
         let node_map = build_node_map(circuit);
         let node_count = node_map.iter().filter(|slot| slot.is_some()).count();
         let (branch_map, branch_count) = build_branch_map(circuit);
-        let models = circuit
-            .devices()
-            .iter()
-            .map(model_from_instance)
-            .collect::<Result<Vec<_>, _>>()?;
-        let linear = !circuit
-            .devices()
-            .iter()
-            .any(|device| is_nonlinear(device.kind()));
+        let models = build_models(circuit)?;
+        let linear = is_linear(circuit);
         Ok(Self {
             node_map: Arc::new(node_map),
             branch_map: Arc::new(branch_map),
@@ -96,6 +89,17 @@ impl SimulationSystem {
         }
         Ok(())
     }
+}
+
+fn build_models(circuit: &Circuit) -> Result<Vec<Box<dyn DeviceModel>>, SimError> {
+    circuit.devices().iter().map(model_from_instance).collect()
+}
+
+fn is_linear(circuit: &Circuit) -> bool {
+    !circuit
+        .devices()
+        .iter()
+        .any(|device| is_nonlinear(device.kind()))
 }
 
 fn is_nonlinear(kind: &DeviceKind) -> bool {
