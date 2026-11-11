@@ -80,6 +80,18 @@ impl Timer0 {
         value
     }
 
+    /// Returns the overflow flag without clearing it.
+    #[must_use]
+    pub const fn overflow_flag(&self) -> bool {
+        self.overflow
+    }
+
+    /// Returns the compare flag without clearing it.
+    #[must_use]
+    pub const fn compare_flag(&self) -> bool {
+        self.compare_match
+    }
+
     /// Takes and clears the compare flag.
     pub fn take_compare(&mut self) -> bool {
         let value = self.compare_match;

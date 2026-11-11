@@ -12,6 +12,10 @@ Dokumen ini menjelaskan core Timer0.
 - Mode CTC mereset counter saat nilai compare tercapai.
 - Flag overflow dan compare tersedia.
 - Counter dapat direset.
+- Timer0 terhubung ke CPU dan maju mengikuti cycle instruksi.
+- Register I/O: TCCR0A 0x24, TCCR0B 0x25, TCNT0 0x26, OCR0A 0x27, OCR0B 0x28, TIFR0 0x35.
+- TIMSK0 dapat ditulis pada 0x2E dan 0x6E untuk model I/O yang disederhanakan.
+- Overflow memakai vektor 16; compare A memakai vektor 14.
 
 ---
 
@@ -45,15 +49,18 @@ impl Timer0 {
 - CTC mereset counter saat compare.
 - Reset mengosongkan counter dan flag.
 - Prescaler tidak valid ditolak.
+- Timer0 maju dari cycle instruksi CPU.
+- Overflow flag dan compare flag terbaca lewat TIFR0.
+- Overflow interrupt masuk ke vektor 16.
 
-Total test `sim-avr`: 110.
+Total test `sim-avr`: 114.
 
 ---
 
 ## 4. Batas
 
 - Prescaler masih behavioral, bukan rangkaian counter gate-level.
-- Timer belum dihubungkan ke I/O register CPU.
-- Overflow dan compare belum masuk ke interrupt controller.
+- Pemetaan TIMSK0 memakai alamat I/O yang disederhanakan.
+- Compare interrupt sudah meminta vektor 14, tetapi belum diuji end-to-end.
 - PWM belum diimplementasikan.
 - Timer1 dan Timer2 belum dimulai.

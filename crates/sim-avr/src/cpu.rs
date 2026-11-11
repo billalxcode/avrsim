@@ -7,6 +7,7 @@ use super::instruction::{Instruction, Mnemonic, Operand};
 use super::multiply::{MultiplyUnit, multiply_unit};
 use super::register_bank::RegisterBank;
 use super::shift::{ShiftUnit, shift_unit};
+use super::timer0::Timer0;
 use sim_cells::{DigitalBuilder, DigitalCircuit, NetId, RegisterPorts, read_bits};
 use sim_core::SimError;
 
@@ -146,6 +147,7 @@ struct Datapath {
     gpio_b: GpioPort,
     gpio_c: GpioPort,
     gpio_d: GpioPort,
+    timer0: Timer0,
 }
 
 /// A small AVR core for instruction integration tests.
@@ -156,7 +158,7 @@ pub struct Cpu {
     pc: u16,
     sreg: Sreg,
     halted: bool,
-    io: [u8; 64],
+    io: [u8; 256],
     data: Vec<u8>,
     sp: u16,
     pending: u32,
@@ -195,7 +197,7 @@ impl Cpu {
             pc: 0,
             sreg: Sreg::default(),
             halted: false,
-            io: [0; 64],
+            io: [0; 256],
             data: vec![0; 0x1000],
             sp: 0x08FF,
             pending: 0,
@@ -223,6 +225,7 @@ impl Cpu {
         let cycles = self.instruction_cycles(fetched.instruction.mnemonic, next_pc);
         let total = u64::from(cycles) + if interrupt { 4 } else { 0 };
         self.cycles += total;
+        self.advance_timer0(total as u32)?;
         Ok(Some(self.trace(fetched.instruction, cycles)))
     }
 
@@ -465,6 +468,7 @@ impl Cpu {
         self.sleeping = false;
         self.cycles = 0;
         self.pin_change = PinChange::default();
+        self.datapath.timer0.reset()?;
         Ok(())
     }
 
@@ -1025,6 +1029,9 @@ impl Cpu {
     }
 
     fn io_read(&self, address: u8) -> u8 {
+        if let Some(value) = self.timer0_read(address) {
+            return value;
+        }
         if let Some(value) = self.gpio_read(address) {
             return value;
         }
@@ -1035,6 +1042,9 @@ impl Cpu {
     }
 
     fn io_write(&mut self, address: u8, value: u8) -> Result<(), SimError> {
+        if self.timer0_write(address, value)? {
+            return Ok(());
+        }
         if self.gpio_write(address, value)? {
             return Ok(());
         }
@@ -1042,6 +1052,84 @@ impl Cpu {
             self.sreg = Sreg::from_byte(value);
         } else if let Some(slot) = self.io.get_mut(usize::from(address)) {
             *slot = value;
+        }
+        Ok(())
+    }
+
+    fn timer0_read(&self, address: u8) -> Option<u8> {
+        match address {
+            0x26 => Some(self.datapath.timer0.counter()),
+            0x35 => Some(self.io[0x35]),
+            _ => None,
+        }
+    }
+
+    fn timer0_write(&mut self, address: u8, value: u8) -> Result<bool, SimError> {
+        match address {
+            0x24 => {
+                self.io[0x24] = value;
+                self.datapath.timer0.set_ctc(value & 0x02 != 0);
+            }
+            0x25 => {
+                self.io[0x25] = value;
+                self.apply_timer0_clock()?;
+            }
+            0x27 => {
+                self.io[0x27] = value;
+                self.datapath.timer0.set_compare(value);
+            }
+            0x28 | 0x2E | 0x6E => self.io[usize::from(address)] = value,
+            0x35 => self.write_timer0_flags(value),
+            _ => return Ok(false),
+        }
+        Ok(true)
+    }
+
+    fn write_timer0_flags(&mut self, value: u8) {
+        if value & 0x01 != 0 {
+            self.datapath.timer0.take_overflow();
+        }
+        if value & 0x02 != 0 {
+            self.datapath.timer0.take_compare();
+        }
+        self.io[0x35] &= !(value & 0x03);
+    }
+
+    fn apply_timer0_clock(&mut self) -> Result<(), SimError> {
+        let select = match self.io[0x25] & 0x07 {
+            1 => 0,
+            2 => 1,
+            3 => 2,
+            4 => 3,
+            5 => 4,
+            _ => return Ok(()),
+        };
+        self.datapath.timer0.set_prescaler(select)
+    }
+
+    fn advance_timer0(&mut self, cycles: u32) -> Result<(), SimError> {
+        if !(1..=5).contains(&(self.io[0x25] & 0x07)) {
+            return Ok(());
+        }
+        self.datapath.timer0.tick(cycles)?;
+        self.update_timer0_flags()
+    }
+
+    fn update_timer0_flags(&mut self) -> Result<(), SimError> {
+        let mut flags = self.io[0x35] & 0xF8;
+        if self.datapath.timer0.overflow_flag() {
+            flags |= 0x01;
+        }
+        if self.datapath.timer0.compare_flag() {
+            flags |= 0x02;
+        }
+        self.io[0x35] = flags;
+        let mask = self.io[0x2E] | self.io[0x6E];
+        if flags & 0x01 != 0 && mask & 0x01 != 0 {
+            self.request_interrupt(16)?;
+        }
+        if flags & 0x02 != 0 && mask & 0x02 != 0 {
+            self.request_interrupt(14)?;
         }
         Ok(())
     }
@@ -1222,6 +1310,7 @@ fn build_datapath(builder: &mut DigitalBuilder) -> Result<Datapath, SimError> {
     let units = build_units(builder, &nets, &selected)?;
     let (gpio_b, gpio_c, gpio_d) = build_gpio(builder)?;
     let bank = build_bank(builder)?;
+    let timer0 = Timer0::new()?;
     Ok(Datapath {
         bank,
         arithmetic: units.arithmetic,
@@ -1231,6 +1320,7 @@ fn build_datapath(builder: &mut DigitalBuilder) -> Result<Datapath, SimError> {
         gpio_b,
         gpio_c,
         gpio_d,
+        timer0,
     })
 }
 
@@ -2314,5 +2404,82 @@ mod tests {
         assert_eq!(cpu.pin_change_flags(), 1);
         cpu.clear_pin_change_flag(0);
         assert_eq!(cpu.pin_change_flags(), 0);
+    }
+
+    #[test]
+    fn timer0_counts_cpu_cycles() {
+        let cpu = run(vec![
+            ldi(16, 1),
+            in_out(0xB800, 16, 0x25),
+            0x0000,
+            0x0000,
+            0x0000,
+            0x0000,
+            0x0000,
+            in_out(0xB000, 17, 0x26),
+            0x9598,
+        ]);
+        assert_eq!(cpu.register(17), 6);
+    }
+
+    #[test]
+    fn timer0_sets_overflow_flag() {
+        let mut cpu = Cpu::new(vec![
+            ldi(16, 1),
+            in_out(0xB800, 16, 0x25),
+            ldi(18, 255),
+            one_reg(0x940A, 18),
+            0xF7F1,
+            in_out(0xB000, 17, 0x35),
+            0x9598,
+        ])
+        .expect("cpu");
+        cpu.run(2000).expect("run");
+        assert_eq!(cpu.register(17) & 0x01, 0x01);
+    }
+
+    #[test]
+    fn timer0_sets_compare_flag_in_ctc() {
+        let cpu = run(vec![
+            ldi(16, 3),
+            in_out(0xB800, 16, 0x27),
+            ldi(16, 2),
+            in_out(0xB800, 16, 0x24),
+            ldi(16, 1),
+            in_out(0xB800, 16, 0x25),
+            0x0000,
+            0x0000,
+            0x0000,
+            in_out(0xB000, 17, 0x35),
+            0x9598,
+        ]);
+        assert_eq!(cpu.register(17) & 0x02, 0x02);
+    }
+
+    #[test]
+    fn timer0_overflow_interrupt_enters_vector() {
+        let mut program = vec![0u16; 40];
+        program[0] = ldi(16, 1);
+        program[1] = in_out(0xB800, 16, 0x25);
+        program[2] = ldi(16, 1);
+        program[3] = in_out(0xB800, 16, 0x2E);
+        program[4] = ldi(18, 255);
+        program[5] = one_reg(0x940A, 18);
+        program[6] = 0xF7F1;
+        program[7] = 0xCFFF;
+        program[32] = ldi(17, 7);
+        program[33] = 0x9518;
+        let mut cpu = Cpu::new(program).expect("cpu");
+        cpu.set_sreg(super::Sreg {
+            interrupt: true,
+            ..super::Sreg::default()
+        });
+        for _ in 0..2000 {
+            cpu.step().expect("step");
+            if cpu.register(17) == 7 {
+                break;
+            }
+        }
+        assert_eq!(cpu.register(17), 7);
     }
 }

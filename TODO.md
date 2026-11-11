@@ -2,7 +2,7 @@
 
 Daftar tugas lengkap dari hal terkecil sampai rilis. Setiap item harus kecil, dapat diuji, dan tidak menambah dependensi eksternal.
 
-> **Status:** GPIO dan core Timer0 selesai. Prescaler Timer0 masih behavioral. Lanjut ke PWM, integrasi interrupt, dan Timer1.
+> **Status:** Timer0 terintegrasi ke CPU dengan flag dan overflow interrupt. Lanjut ke PWM, Timer1, dan Timer2.
 > **Aturan:** satu item selesai = kode + test + dokumentasi singkat.
 
 ---
@@ -438,7 +438,7 @@ Daftar tugas lengkap dari hal terkecil sampai rilis. Setiap item harus kecil, da
 - [x] P8-14 Implementasikan Timer0 CTC.
 - [ ] P8-15 Implementasikan Timer0 PWM.
 - [x] P8-16 Implementasikan Timer0 compare.
-- [ ] P8-17 Implementasikan Timer0 overflow interrupt.
+- [x] P8-17 Implementasikan Timer0 overflow interrupt.
 - [ ] P8-18 Implementasikan Timer1 16-bit.
 - [ ] P8-19 Implementasikan Timer1 input capture.
 - [ ] P8-20 Implementasikan Timer1 compare/PWM.
