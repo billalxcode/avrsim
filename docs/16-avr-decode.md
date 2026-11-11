@@ -214,6 +214,7 @@ Test decoder mencakup:
 - Register bank write/read, dua read port, pasangan little-endian, hold, dan reset.
 
 Total test `sim-avr`: 92.
+Total test `sim-cli`: 4.
 
 ---
 
@@ -238,7 +239,25 @@ Total test `sim-avr`: 92.
 - Test mencakup arithmetic, logic, memory, control flow, I/O, dan bit operations.
 - Belum ada validasi output terhadap `avr-objdump`.
 
-## 16. Batas
+## 16. CLI Monitor
+
+`embed-emu monitor <hex words...>` menjalankan monitor interaktif.
+
+Perintah:
+
+- `step`: eksekusi satu instruksi.
+- `run [n]`: eksekusi sampai halt atau batas langkah.
+- `regs`: dump 32 register.
+- `sreg`: dump flag SREG.
+- `pc`: tampilkan PC dan cycle.
+- `disasm <pc> <count>`: disassembly dari program memory.
+- `mem <addr> <len>`: dump data space.
+- `io <addr>`: baca I/O register.
+- `quit`: keluar.
+
+`embed-emu disasm <hex words...>` mencetak disassembly tanpa menjalankan program.
+
+## 17. Batas
 
 - Control CPU masih behavioral, bukan PLA gate-level.
 - Belum ada validasi disassembler terhadap `avr-objdump`.

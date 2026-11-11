@@ -39,6 +39,6 @@ Dokumen ini adalah indeks lengkap spesifikasi **embed-emulation**.
 |---|---|
 | Brainstorming | Selesai |
 | Spesifikasi | Dokumen ini |
-| Kode | P7 CPU subset dengan interrupt berjalan |
+| Kode | P7 CPU subset dengan CLI monitor |
 | Toolchain Rust | Terpasang (1.99.1) |
 | `avr-gcc` | Belum terpasang |
