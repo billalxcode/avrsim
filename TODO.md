@@ -2,7 +2,7 @@
 
 Daftar tugas lengkap dari hal terkecil sampai rilis. Setiap item harus kecil, dapat diuji, dan tidak menambah dependensi eksternal.
 
-> **Status:** P8 selesai kecuali P8-09. P9 sebagian besar selesai. P10 sparse, adaptive step, trapezoidal/Gear, AC linear, determinisme Linux, fidelity matrix, dan batasan model selesai. Noise, device lanjutan, kalibrasi, dan golden suite belum.
+> **Status:** P8 selesai kecuali P8-09. P9 sebagian besar selesai. P10 sparse, adaptive step, trapezoidal/Gear, AC linear, noise termal, distorsi kuasi-statis, sensitivitas numerik, determinisme Linux, fidelity matrix, dan batasan model selesai. Device lanjutan, kalibrasi, dan golden suite belum.
 > **Aturan:** satu item selesai = kode + test + dokumentasi singkat.
 
 ---
@@ -532,9 +532,9 @@ Daftar tugas lengkap dari hal terkecil sampai rilis. Setiap item harus kecil, da
 - [x] P10-01 Implementasikan AC small-signal.
 - [x] P10-02 Implementasikan sweep frekuensi.
 - [x] P10-03 Implementasikan output magnitude/phase.
-- [ ] P10-04 Implementasikan noise analysis.
-- [ ] P10-05 Implementasikan distortion analysis.
-- [ ] P10-06 Implementasikan sensitivity analysis.
+- [x] P10-04 Implementasikan noise analysis.
+- [x] P10-05 Implementasikan distortion analysis.
+- [x] P10-06 Implementasikan sensitivity analysis.
 - [ ] P10-07 Implementasikan model suhu.
 - [ ] P10-08 Implementasikan process corner.
 - [ ] P10-09 Implementasikan full BJT model.

@@ -36,6 +36,9 @@ Dokumen ini adalah indeks lengkap spesifikasi **embed-emulation**.
 | 27 | [Determinisme](27-determinism.md) | Uji determinisme solver Linux |
 | 28 | [Integrasi](28-integration.md) | Backward Euler, trapezoidal, Gear2 |
 | 29 | [AC](29-ac.md) | AC small-signal dan sweep frekuensi |
+| 30 | [Noise](30-noise.md) | Noise termal resistor |
+| 31 | [Distorsi](31-distortion.md) | Distorsi harmonik kuasi-statis |
+| 32 | [Sensitivitas](32-sensitivity.md) | Sensitivitas DC numerik |
 | - | [Todolist](../TODO.md) | Daftar tugas lengkap dari hal terkecil |
 
 ## Konvensi dokumen

@@ -1,6 +1,6 @@
 # 13 - Analysis
 
-Dokumentasi analisis DC, transient, dan AC yang sudah diimplementasikan.
+Dokumentasi analisis DC, transient, AC, noise, distorsi, dan sensitivitas yang sudah diimplementasikan.
 
 ---
 
@@ -16,6 +16,9 @@ P4 diimplementasikan sebagian:
 - DC sweep.
 - Transient Backward Euler.
 - AC small-signal linear.
+- Noise termal resistor.
+- Distorsi harmonik kuasi-statis.
+- Sensitivitas DC numerik.
 - State update device.
 
 Belum diimplementasikan:
@@ -207,11 +210,11 @@ Total test workspace saat ini:
 
 - `sim-core`: 61.
 - `sim-device`: 23 (18 unit + 5 integration).
-- `sim-analysis`: 39.
+- `sim-analysis`: 50.
 - `sim-cells`: 67.
 - `sim-avr`: 187.
 - `sim-board`: 12.
 - `sim-cli`: 5.
-- Total: 394.
+- Total: 405.
 
 Semua fungsi maksimal 20 baris dan semua file baru ASCII-only.

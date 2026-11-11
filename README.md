@@ -80,6 +80,9 @@ Baca berurutan:
 | [`docs/27-determinism.md`](docs/27-determinism.md) | Uji determinisme solver Linux |
 | [`docs/28-integration.md`](docs/28-integration.md) | Backward Euler, trapezoidal, Gear2 |
 | [`docs/29-ac.md`](docs/29-ac.md) | AC small-signal dan sweep frekuensi |
+| [`docs/30-noise.md`](docs/30-noise.md) | Noise termal resistor |
+| [`docs/31-distortion.md`](docs/31-distortion.md) | Distorsi harmonik kuasi-statis |
+| [`docs/32-sensitivity.md`](docs/32-sensitivity.md) | Sensitivitas DC numerik |
 | [`TODO.md`](TODO.md) | **Todolist lengkap dari hal terkecil** |
 
 ---
