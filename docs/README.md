@@ -44,6 +44,7 @@ Dokumen ini adalah indeks lengkap spesifikasi **embed-emulation**.
 | 35 | [BJT](35-bjt.md) | Model Ebers-Moll NPN dan PNP |
 | 36 | [JFET](36-jfet.md) | Model Shichman-Hodges N dan P |
 | 37 | [Transmission line](37-transmission-line.md) | Line lossless dengan delay |
+| 38 | [Performa](38-performance.md) | Benchmark dan optimasi solver |
 | - | [Todolist](../TODO.md) | Daftar tugas lengkap dari hal terkecil |
 
 ## Konvensi dokumen

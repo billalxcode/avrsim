@@ -88,6 +88,7 @@ Baca berurutan:
 | [`docs/35-bjt.md`](docs/35-bjt.md) | Model Ebers-Moll NPN dan PNP |
 | [`docs/36-jfet.md`](docs/36-jfet.md) | Model Shichman-Hodges N dan P |
 | [`docs/37-transmission-line.md`](docs/37-transmission-line.md) | Line lossless dengan delay |
+| [`docs/38-performance.md`](docs/38-performance.md) | Benchmark dan optimasi solver |
 | [`TODO.md`](TODO.md) | **Todolist lengkap dari hal terkecil** |
 
 ---
