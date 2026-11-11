@@ -58,9 +58,10 @@ Mask adalah penyederhanaan dari bit enable UCSR0B.
 - RX byte dan flag.
 - RX shift delapan bit.
 - UART transmit dari cycle CPU.
+- Frame TX didekode kembali dari TX line memakai cycle CPU.
 - RX interrupt masuk ke vektor 18.
 
-Total test `sim-avr`: 140.
+Total test `sim-avr`: 199.
 
 ---
 
@@ -70,4 +71,4 @@ Total test `sim-avr`: 140.
 - RX timing belum mengikuti baud divider.
 - Parity, stop bit ganda, dan mode sinkron belum didukung.
 - TX dan UDRE interrupt sudah meminta vektor tetapi belum diuji end-to-end.
-- Belum ada loopback UART board.
+- Belum ada loopback UART board dua arah.

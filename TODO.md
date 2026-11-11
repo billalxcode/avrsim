@@ -2,7 +2,7 @@
 
 Daftar tugas lengkap dari hal terkecil sampai rilis. Setiap item harus kecil, dapat diuji, dan tidak menambah dependensi eksternal.
 
-> **Status:** P8 selesai penuh. P9 sebagian besar selesai; ELF loader dan simbol selesai. P10 sparse, adaptive step, trapezoidal/Gear, AC linear, noise termal, distorsi kuasi-statis, sensitivitas numerik, suhu device, process corner, BJT, JFET, transmission line, determinisme Linux, fidelity matrix, batasan model, profiling, dan optimasi selesai. Golden suite dan determinisme macOS/Windows belum. P4 harness ngspice dan golden data belum karena ngspice tidak tersedia. P5 switching, input capacitance, dan drive strength selesai; ring oscillator dan perbandingan ngspice belum. P11 user guide dan contoh runnable selesai; CI, packaging, dan release belum. P3 body effect, gmb, Meyer capacitance, overlap, diode nonideal, BJT, JFET, transmission line, VCVS, VCCS, CCVS, CCCS, dan switch selesai; breakdown dan model termal lanjutan belum.
+> **Status:** P8 selesai penuh. P9 sebagian besar selesai; ELF loader, simbol, dan UART end-to-end selesai. P10 sparse, adaptive step, trapezoidal/Gear, AC linear, noise termal, distorsi kuasi-statis, sensitivitas numerik, suhu device, process corner, BJT, JFET, transmission line, determinisme Linux, fidelity matrix, batasan model, profiling, dan optimasi selesai. Golden suite dan determinisme macOS/Windows belum. P4 harness ngspice dan golden data belum karena ngspice tidak tersedia. P5 switching, input capacitance, dan drive strength selesai; ring oscillator dan perbandingan ngspice belum. P11 user guide dan contoh runnable selesai; CI, packaging, dan release belum. P3 body effect, gmb, Meyer capacitance, overlap, diode nonideal, BJT, JFET, transmission line, VCVS, VCCS, CCVS, CCCS, dan switch selesai; breakdown dan model termal lanjutan belum.
 > **Aturan:** satu item selesai = kode + test + dokumentasi singkat.
 
 ---
@@ -518,7 +518,7 @@ Daftar tugas lengkap dari hal terkecil sampai rilis. Setiap item harus kecil, da
 - [x] P9-24 Implementasikan CLI `monitor`.
 - [x] P9-25 Implementasikan CLI argumen dan validasi.
 - [x] P9-26 Tulis test blink end-to-end.
-- [ ] P9-27 Tulis test UART end-to-end.
+- [x] P9-27 Tulis test UART end-to-end.
 - [x] P9-28 Tulis test reset.
 - [x] P9-29 Dokumentasikan board profile.
 - [x] P9-30 Dokumentasikan contoh firmware.
