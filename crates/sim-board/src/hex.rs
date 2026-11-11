@@ -139,6 +139,15 @@ mod tests {
     }
 
     #[test]
+    fn rejects_malformed_records() {
+        let mut image = HexImage::new(16);
+        assert!(image.load("00000001FF\n").is_err());
+        assert!(image.load(":01000000AA\n").is_err());
+        assert!(image.load(":ZZ\n").is_err());
+        assert!(image.load(":0100000401FA\n").is_err());
+    }
+
+    #[test]
     fn supports_extended_address() {
         let mut image = HexImage::new(0x20000);
         let count = image
