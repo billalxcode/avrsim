@@ -85,6 +85,14 @@ struct AluNets {
     carry: NetId,
 }
 
+#[derive(Clone, Copy)]
+struct MemoryMode {
+    base: u8,
+    post: bool,
+    pre: bool,
+    load: bool,
+}
+
 struct Datapath {
     bank: RegisterBank,
     arithmetic: ArithmeticUnit,
@@ -102,6 +110,8 @@ pub struct Cpu {
     sreg: Sreg,
     halted: bool,
     io: [u8; 64],
+    data: Vec<u8>,
+    sp: u16,
 }
 
 impl Cpu {
@@ -122,6 +132,8 @@ impl Cpu {
             sreg: Sreg::default(),
             halted: false,
             io: [0; 64],
+            data: vec![0; 0x1000],
+            sp: 0x08FF,
         })
     }
 
@@ -163,6 +175,18 @@ impl Cpu {
     #[must_use]
     pub fn io(&self, address: u8) -> u8 {
         self.io.get(usize::from(address)).copied().unwrap_or(0)
+    }
+
+    /// Returns a data space value.
+    #[must_use]
+    pub fn data(&self, address: u16) -> u8 {
+        self.data[usize::from(address) & 0x0FFF]
+    }
+
+    /// Returns the stack pointer.
+    #[must_use]
+    pub const fn sp(&self) -> u16 {
+        self.sp
     }
 
     /// Returns the program counter.
@@ -214,14 +238,109 @@ impl Cpu {
         if mnemonic == Mnemonic::Mul {
             return self.execute_multiply(instruction, next_pc);
         }
+        self.execute_control(instruction, next_pc)
+    }
+
+    fn execute_control(&mut self, instruction: &Instruction, next_pc: u16) -> Result<(), SimError> {
+        let mnemonic = instruction.mnemonic;
         if is_flow(mnemonic) {
             return self.execute_flow(instruction, next_pc);
+        }
+        if is_stack(mnemonic) {
+            return self.execute_stack(instruction, next_pc);
+        }
+        if is_call(mnemonic) {
+            return self.execute_call(instruction, next_pc);
         }
         self.execute_io_flag(instruction, next_pc)
     }
 
+    fn execute_stack(&mut self, instruction: &Instruction, next_pc: u16) -> Result<(), SimError> {
+        match instruction.mnemonic {
+            Mnemonic::Push => {
+                let source = register(instruction.first)?;
+                self.push_byte(self.register(source));
+            }
+            Mnemonic::Pop => {
+                let destination = register(instruction.first)?;
+                let value = self.pop_byte();
+                self.write_register(destination, value)?;
+            }
+            _ => return Err(unsupported(instruction.mnemonic)),
+        }
+        self.advance(next_pc)
+    }
+
+    fn execute_call(&mut self, instruction: &Instruction, next_pc: u16) -> Result<(), SimError> {
+        match instruction.mnemonic {
+            Mnemonic::Rcall => self.call_relative(instruction, next_pc),
+            Mnemonic::Call => self.call_absolute(instruction, next_pc),
+            Mnemonic::Icall | Mnemonic::Eicall => self.call_indirect(next_pc),
+            Mnemonic::Ijmp | Mnemonic::Eijmp => {
+                self.pc = self.read_pointer(30);
+                Ok(())
+            }
+            Mnemonic::Ret => self.return_from(false),
+            Mnemonic::Reti => self.return_from(true),
+            _ => Err(unsupported(instruction.mnemonic)),
+        }
+    }
+
+    fn return_from(&mut self, interrupt: bool) -> Result<(), SimError> {
+        self.pc = self.pop_word();
+        if interrupt {
+            self.sreg.interrupt = true;
+        }
+        Ok(())
+    }
+
+    fn call_relative(&mut self, instruction: &Instruction, next_pc: u16) -> Result<(), SimError> {
+        let offset = offset(instruction.first)?;
+        self.push_word(next_pc);
+        self.pc = next_pc.wrapping_add(offset as u16);
+        Ok(())
+    }
+
+    fn call_absolute(&mut self, instruction: &Instruction, next_pc: u16) -> Result<(), SimError> {
+        let address = long_address(instruction.first)? as u16;
+        self.push_word(next_pc);
+        self.pc = address;
+        Ok(())
+    }
+
+    fn call_indirect(&mut self, next_pc: u16) -> Result<(), SimError> {
+        let address = self.read_pointer(30);
+        self.push_word(next_pc);
+        self.pc = address;
+        Ok(())
+    }
+
+    fn push_byte(&mut self, value: u8) {
+        self.write_data(self.sp, value);
+        self.sp = self.sp.wrapping_sub(1);
+    }
+
+    fn pop_byte(&mut self) -> u8 {
+        self.sp = self.sp.wrapping_add(1);
+        self.read_data(self.sp)
+    }
+
+    fn push_word(&mut self, value: u16) {
+        self.push_byte(value as u8);
+        self.push_byte((value >> 8) as u8);
+    }
+
+    fn pop_word(&mut self) -> u16 {
+        let high = self.pop_byte();
+        let low = self.pop_byte();
+        u16::from(low) | (u16::from(high) << 8)
+    }
+
     fn execute_io_flag(&mut self, instruction: &Instruction, next_pc: u16) -> Result<(), SimError> {
         let mnemonic = instruction.mnemonic;
+        if is_memory(mnemonic) {
+            return self.execute_memory(instruction, next_pc);
+        }
         if is_skip(mnemonic) {
             return self.execute_skip(instruction, next_pc);
         }
@@ -494,6 +613,153 @@ impl Cpu {
         self.advance(next_pc)
     }
 
+    fn execute_memory(&mut self, instruction: &Instruction, next_pc: u16) -> Result<(), SimError> {
+        match instruction.mnemonic {
+            Mnemonic::LddY | Mnemonic::LddZ => {
+                self.execute_displacement(instruction, next_pc, true)
+            }
+            Mnemonic::StdY | Mnemonic::StdZ => {
+                self.execute_displacement(instruction, next_pc, false)
+            }
+            Mnemonic::Lds => self.execute_direct(instruction, next_pc, true),
+            Mnemonic::Sts => self.execute_direct(instruction, next_pc, false),
+            Mnemonic::LpmZ | Mnemonic::LpmZPost | Mnemonic::ElpmZ | Mnemonic::ElpmZPost => {
+                self.execute_lpm(instruction, next_pc)
+            }
+            _ => self.execute_indirect(instruction, next_pc),
+        }
+    }
+
+    fn execute_indirect(
+        &mut self,
+        instruction: &Instruction,
+        next_pc: u16,
+    ) -> Result<(), SimError> {
+        let mode =
+            indirect_mode(instruction.mnemonic).ok_or_else(|| unsupported(instruction.mnemonic))?;
+        let mut address = self.read_pointer(mode.base);
+        if mode.pre {
+            address = address.wrapping_sub(1);
+            self.write_pointer(mode.base, address)?;
+        }
+        self.access_indirect(instruction.first, mode.load, address)?;
+        if mode.post {
+            address = address.wrapping_add(1);
+            self.write_pointer(mode.base, address)?;
+        }
+        self.advance(next_pc)
+    }
+
+    fn access_indirect(
+        &mut self,
+        operand: Operand,
+        load: bool,
+        address: u16,
+    ) -> Result<(), SimError> {
+        if load {
+            let destination = register(operand)?;
+            let value = self.read_data(address);
+            self.write_register(destination, value)
+        } else {
+            let source = register(operand)?;
+            let value = self.register(source);
+            self.write_data(address, value);
+            Ok(())
+        }
+    }
+
+    fn execute_displacement(
+        &mut self,
+        instruction: &Instruction,
+        next_pc: u16,
+        load: bool,
+    ) -> Result<(), SimError> {
+        let base = pointer_base(instruction.mnemonic);
+        let address = self.displacement_address(instruction, load, base)?;
+        let operand = if load {
+            instruction.first
+        } else {
+            instruction.second
+        };
+        self.access_indirect(operand, load, address)?;
+        self.advance(next_pc)
+    }
+
+    fn displacement_address(
+        &self,
+        instruction: &Instruction,
+        load: bool,
+        base: u8,
+    ) -> Result<u16, SimError> {
+        let displacement = if load {
+            displacement(instruction.second)?
+        } else {
+            displacement(instruction.first)?
+        };
+        Ok(self
+            .read_pointer(base)
+            .wrapping_add(u16::from(displacement)))
+    }
+
+    fn execute_direct(
+        &mut self,
+        instruction: &Instruction,
+        next_pc: u16,
+        load: bool,
+    ) -> Result<(), SimError> {
+        let address = data_address(instruction.second)?;
+        if load {
+            let destination = register(instruction.first)?;
+            let value = self.read_data(address);
+            self.write_register(destination, value)?;
+        } else {
+            let source = register(instruction.first)?;
+            let value = self.register(source);
+            self.write_data(address, value);
+        }
+        self.advance(next_pc)
+    }
+
+    fn execute_lpm(&mut self, instruction: &Instruction, next_pc: u16) -> Result<(), SimError> {
+        let destination = register(instruction.first)?;
+        let address = self.read_pointer(30);
+        let value = self.read_program_byte(address);
+        self.write_register(destination, value)?;
+        if matches!(
+            instruction.mnemonic,
+            Mnemonic::LpmZPost | Mnemonic::ElpmZPost
+        ) {
+            self.write_pointer(30, address.wrapping_add(1))?;
+        }
+        self.advance(next_pc)
+    }
+
+    fn read_pointer(&self, low: u8) -> u16 {
+        u16::from(self.register(low)) | (u16::from(self.register(low + 1)) << 8)
+    }
+
+    fn write_pointer(&mut self, low: u8, value: u16) -> Result<(), SimError> {
+        self.write_register(low, value as u8)?;
+        self.write_register(low + 1, (value >> 8) as u8)
+    }
+
+    fn read_data(&self, address: u16) -> u8 {
+        self.data[usize::from(address) & 0x0FFF]
+    }
+
+    fn write_data(&mut self, address: u16, value: u8) {
+        self.data[usize::from(address) & 0x0FFF] = value;
+    }
+
+    fn read_program_byte(&self, address: u16) -> u8 {
+        let word = self.program.read(usize::from(address) >> 1).unwrap_or(0);
+        if address & 1 == 0 {
+            word as u8
+        } else {
+            (word >> 8) as u8
+        }
+    }
+
     fn load_arithmetic(
         &mut self,
         destination: u8,
@@ -709,6 +975,24 @@ fn is_flow(mnemonic: Mnemonic) -> bool {
     )
 }
 
+fn is_stack(mnemonic: Mnemonic) -> bool {
+    matches!(mnemonic, Mnemonic::Push | Mnemonic::Pop)
+}
+
+fn is_call(mnemonic: Mnemonic) -> bool {
+    matches!(
+        mnemonic,
+        Mnemonic::Rcall
+            | Mnemonic::Call
+            | Mnemonic::Icall
+            | Mnemonic::Eicall
+            | Mnemonic::Ijmp
+            | Mnemonic::Eijmp
+            | Mnemonic::Ret
+            | Mnemonic::Reti
+    )
+}
+
 fn is_skip(mnemonic: Mnemonic) -> bool {
     matches!(
         mnemonic,
@@ -728,6 +1012,103 @@ fn is_flag(mnemonic: Mnemonic) -> bool {
         mnemonic,
         Mnemonic::Bset | Mnemonic::Bclr | Mnemonic::Bst | Mnemonic::Bld
     )
+}
+
+fn is_memory(mnemonic: Mnemonic) -> bool {
+    is_load(mnemonic) || is_store(mnemonic)
+}
+
+fn is_load(mnemonic: Mnemonic) -> bool {
+    is_indirect_load(mnemonic)
+        || matches!(
+            mnemonic,
+            Mnemonic::LddY
+                | Mnemonic::LddZ
+                | Mnemonic::Lds
+                | Mnemonic::LpmZ
+                | Mnemonic::LpmZPost
+                | Mnemonic::ElpmZ
+                | Mnemonic::ElpmZPost
+        )
+}
+
+fn is_indirect_load(mnemonic: Mnemonic) -> bool {
+    matches!(
+        mnemonic,
+        Mnemonic::LdX
+            | Mnemonic::LdXPost
+            | Mnemonic::LdXPre
+            | Mnemonic::LdY
+            | Mnemonic::LdYPost
+            | Mnemonic::LdYPre
+            | Mnemonic::LdZ
+            | Mnemonic::LdZPost
+            | Mnemonic::LdZPre
+    )
+}
+
+fn is_store(mnemonic: Mnemonic) -> bool {
+    matches!(
+        mnemonic,
+        Mnemonic::StX
+            | Mnemonic::StXPost
+            | Mnemonic::StXPre
+            | Mnemonic::StY
+            | Mnemonic::StYPost
+            | Mnemonic::StYPre
+            | Mnemonic::StZ
+            | Mnemonic::StZPost
+            | Mnemonic::StZPre
+            | Mnemonic::StdY
+            | Mnemonic::StdZ
+            | Mnemonic::Sts
+    )
+}
+
+fn indirect_mode(mnemonic: Mnemonic) -> Option<MemoryMode> {
+    load_mode(mnemonic).or_else(|| store_mode(mnemonic))
+}
+
+fn load_mode(mnemonic: Mnemonic) -> Option<MemoryMode> {
+    let (base, post, pre) = match mnemonic {
+        Mnemonic::LdX => (26, false, false),
+        Mnemonic::LdXPost => (26, true, false),
+        Mnemonic::LdXPre => (26, false, true),
+        Mnemonic::LdY => (28, false, false),
+        Mnemonic::LdYPost => (28, true, false),
+        Mnemonic::LdYPre => (28, false, true),
+        Mnemonic::LdZ => (30, false, false),
+        Mnemonic::LdZPost => (30, true, false),
+        Mnemonic::LdZPre => (30, false, true),
+        _ => return None,
+    };
+    Some(MemoryMode {
+        base,
+        post,
+        pre,
+        load: true,
+    })
+}
+
+fn store_mode(mnemonic: Mnemonic) -> Option<MemoryMode> {
+    let (base, post, pre) = match mnemonic {
+        Mnemonic::StX => (26, false, false),
+        Mnemonic::StXPost => (26, true, false),
+        Mnemonic::StXPre => (26, false, true),
+        Mnemonic::StY => (28, false, false),
+        Mnemonic::StYPost => (28, true, false),
+        Mnemonic::StYPre => (28, false, true),
+        Mnemonic::StZ => (30, false, false),
+        Mnemonic::StZPost => (30, true, false),
+        Mnemonic::StZPre => (30, false, true),
+        _ => return None,
+    };
+    Some(MemoryMode {
+        base,
+        post,
+        pre,
+        load: false,
+    })
 }
 
 fn arithmetic_control(mnemonic: Mnemonic) -> Result<(bool, bool, bool, bool), SimError> {
@@ -825,6 +1206,28 @@ fn io_address(operand: Operand) -> Result<u8, SimError> {
     match operand {
         Operand::Io(value) => Ok(value),
         _ => Err(SimError::Parse("expected I/O address".to_string())),
+    }
+}
+
+fn displacement(operand: Operand) -> Result<u8, SimError> {
+    match operand {
+        Operand::Displacement(value) => Ok(value),
+        _ => Err(SimError::Parse("expected displacement".to_string())),
+    }
+}
+
+fn data_address(operand: Operand) -> Result<u16, SimError> {
+    match operand {
+        Operand::Address(value) => Ok(value),
+        _ => Err(SimError::Parse("expected data address".to_string())),
+    }
+}
+
+fn pointer_base(mnemonic: Mnemonic) -> u8 {
+    if matches!(mnemonic, Mnemonic::LddY | Mnemonic::StdY) {
+        28
+    } else {
+        30
     }
 }
 
@@ -1113,5 +1516,120 @@ mod tests {
         assert_eq!(cpu.register(17), 0x08);
         assert!(cpu.sreg().transfer);
         assert!(!cpu.sreg().carry);
+    }
+
+    #[test]
+    fn indirect_load_store_with_post_and_pre() {
+        let cpu = run(vec![
+            ldi(26, 0x00),
+            ldi(27, 0x01),
+            ldi(16, 0x55),
+            0x920D | (16 << 4),
+            0x900E | (17 << 4),
+            0x9598,
+        ]);
+        assert_eq!(cpu.data(0x0100), 0x55);
+        assert_eq!(cpu.register(17), 0x55);
+        assert_eq!(cpu.register(26), 0x00);
+        assert_eq!(cpu.register(27), 0x01);
+    }
+
+    #[test]
+    fn ldd_and_std_displacement() {
+        let cpu = run(vec![
+            ldi(28, 0x00),
+            ldi(29, 0x02),
+            ldi(16, 0x66),
+            0x8208 | (16 << 4) | 5,
+            0x8008 | (17 << 4) | 5,
+            0x9598,
+        ]);
+        assert_eq!(cpu.data(0x0205), 0x66);
+        assert_eq!(cpu.register(17), 0x66);
+    }
+
+    #[test]
+    fn lds_and_sts_direct() {
+        let cpu = run(vec![
+            ldi(16, 0x77),
+            0x9200 | (16 << 4),
+            0x0300,
+            0x9000 | (17 << 4),
+            0x0300,
+            0x9598,
+        ]);
+        assert_eq!(cpu.data(0x0300), 0x77);
+        assert_eq!(cpu.register(17), 0x77);
+    }
+
+    #[test]
+    fn lpm_reads_program_byte() {
+        let first = ldi(30, 0);
+        let cpu = run(vec![first, ldi(16, 0), 0x9104, 0x9598]);
+        assert_eq!(cpu.register(16), first as u8);
+    }
+
+    #[test]
+    fn lpm_post_increment_advances_z() {
+        let first = ldi(30, 0);
+        let cpu = run(vec![first, 0x9105, 0x9005 | (17 << 4), 0x9598]);
+        assert_eq!(cpu.register(16), first as u8);
+        assert_eq!(cpu.register(17), (first >> 8) as u8);
+        assert_eq!(cpu.register(30), 2);
+    }
+
+    #[test]
+    fn push_and_pop_use_stack() {
+        let cpu = run(vec![
+            ldi(16, 0x5A),
+            0x920F | (16 << 4),
+            ldi(16, 0),
+            0x900F | (17 << 4),
+            0x9598,
+        ]);
+        assert_eq!(cpu.register(17), 0x5A);
+        assert_eq!(cpu.sp(), 0x08FF);
+    }
+
+    #[test]
+    fn rcall_and_ret_return_to_caller() {
+        let cpu = run(vec![
+            0xD003,
+            ldi(16, 1),
+            0x9598,
+            ldi(17, 9),
+            ldi(17, 7),
+            0x9508,
+        ]);
+        assert_eq!(cpu.register(16), 1);
+        assert_eq!(cpu.register(17), 7);
+        assert_eq!(cpu.sp(), 0x08FF);
+    }
+
+    #[test]
+    fn call_and_ret_use_two_word_target() {
+        let cpu = run(vec![0x940E, 0x0004, ldi(16, 1), 0x9598, ldi(17, 7), 0x9508]);
+        assert_eq!(cpu.register(16), 1);
+        assert_eq!(cpu.register(17), 7);
+    }
+
+    #[test]
+    fn reti_sets_interrupt_flag() {
+        let cpu = run(vec![0xD002, 0x9598, 0x0000, 0x9518]);
+        assert!(cpu.sreg().interrupt);
+    }
+
+    #[test]
+    fn ijmp_uses_z_pointer() {
+        let cpu = run(vec![
+            ldi(30, 4),
+            ldi(31, 0),
+            0x9409,
+            ldi(16, 9),
+            ldi(17, 4),
+            0x9598,
+        ]);
+        assert_eq!(cpu.register(16), 0);
+        assert_eq!(cpu.register(17), 4);
     }
 }
