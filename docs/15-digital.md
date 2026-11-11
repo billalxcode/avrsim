@@ -69,6 +69,9 @@ impl DigitalBuilder {
 - `shift_register` menggeser saat enable tinggi.
 - `read_bits` membaca vektor bit little-endian.
 - `register_file` menyediakan 32 x 8 bit, decoder tulis, dan dua read port.
+- `ProgramCounter` adalah register 16-bit dengan load dan increment.
+- `StackPointer` adalah register 16-bit dengan load, increment, dan decrement.
+- `register` adalah register loadable yang dipakai IR dan register file.
 
 Semua blok diuji secara fungsional dengan clock ideal.
 
@@ -111,4 +114,12 @@ Test lapisan digital mencakup:
 - Reset mengosongkan seluruh register.
 - Test menulis dan membaca 32 register, hold, port independen, dan reset.
 
-Total test `sim-cells` saat ini: 48.
+## 8. Program Counter, IR, dan Stack Pointer
+
+- PC 16-bit: increment setiap tick atau load alamat target.
+- IR 16-bit: load instruction word dan menahan nilainya.
+- SP 16-bit: load, increment, dan decrement.
+- Prioritas SP: load, lalu increment, lalu decrement, lalu hold.
+- Reset global mengosongkan PC dan SP.
+
+Total test `sim-cells` saat ini: 51.

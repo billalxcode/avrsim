@@ -2,7 +2,7 @@
 
 Daftar tugas lengkap dari hal terkecil sampai rilis. Setiap item harus kecil, dapat diuji, dan tidak menambah dependensi eksternal.
 
-> **Status:** P6 register file selesai. Lanjut ke PC, IR, SP, lalu kontrol dan CPU uji.
+> **Status:** P6 register file, PC, IR, dan SP selesai. Lanjut ke control PLA/FSM dan CPU uji.
 > **Aturan:** satu item selesai = kode + test + dokumentasi singkat.
 
 ---
@@ -289,9 +289,9 @@ Daftar tugas lengkap dari hal terkecil sampai rilis. Setiap item harus kecil, da
 - [x] P6-17 Implementasikan flag H.
 - [x] P6-18 Bangun ALU bit-slice.
 - [x] P6-19 Bangun register file DFF + decoder.
-- [ ] P6-20 Bangun PC.
-- [ ] P6-21 Bangun IR.
-- [ ] P6-22 Bangun stack pointer.
+- [x] P6-20 Bangun PC.
+- [x] P6-21 Bangun IR.
+- [x] P6-22 Bangun stack pointer.
 - [ ] P6-23 Bangun control PLA.
 - [ ] P6-24 Bangun control FSM.
 - [ ] P6-25 Bangun CPU uji kecil.
