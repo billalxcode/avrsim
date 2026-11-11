@@ -2,7 +2,7 @@
 
 use crate::system::SimulationSystem;
 use sim_core::tolerance::approx_eq;
-use sim_core::{Circuit, SimError, Solution};
+use sim_core::{Circuit, Device, DeviceKind, SimError, Solution};
 
 /// DC solver configuration.
 #[derive(Clone, Debug)]
@@ -56,7 +56,44 @@ pub struct DcPoint {
 pub fn dc_operating_point(circuit: &Circuit, config: &DcConfig) -> Result<DcResult, SimError> {
     let mut system = SimulationSystem::new(circuit)?;
     let initial = system.zero_solution();
-    solve_dc_system(&mut system, initial, config)
+    match solve_dc_system(&mut system, initial, config) {
+        Ok(result) => Ok(result),
+        Err(error) => source_stepping(circuit, config).map_err(|_| error),
+    }
+}
+
+fn source_stepping(circuit: &Circuit, config: &DcConfig) -> Result<DcResult, SimError> {
+    let steps = 20;
+    let mut solution = None;
+    let mut result = None;
+    for step in 1..=steps {
+        let scale = step as f64 / steps as f64;
+        let scaled = scaled_sources(circuit, scale)?;
+        let mut system = SimulationSystem::new(&scaled)?;
+        let initial = match solution.take() {
+            Some(value) => value,
+            None => system.zero_solution(),
+        };
+        let solved = solve_dc_system(&mut system, initial, config)?;
+        solution = Some(solved.solution.clone());
+        result = Some(solved);
+    }
+    result.ok_or_else(|| SimError::InvalidNetlist("source stepping failed".to_string()))
+}
+
+fn scaled_sources(circuit: &Circuit, scale: f64) -> Result<Circuit, SimError> {
+    let mut scaled = circuit.snapshot();
+    for device in circuit.devices() {
+        let parameter = match device.kind() {
+            DeviceKind::VoltageSource => "voltage",
+            DeviceKind::CurrentSource => "current",
+            _ => continue,
+        };
+        if let Some(value) = device.parameters().get(parameter).copied() {
+            scaled.set_device_parameter(device.name(), parameter, value * scale)?;
+        }
+    }
+    Ok(scaled)
 }
 
 fn dc_operating_point_with_initial(
@@ -459,6 +496,17 @@ mod tests {
         let result = dc_operating_point(&circuit, &DcConfig::default()).expect("dc");
         let voltage = result.solution.voltage(output).expect("output");
         assert!(voltage > 0.4 && voltage < 0.95, "voltage={voltage}");
+    }
+
+    #[test]
+    fn source_stepping_recovers_large_diode_supply() {
+        let (mut circuit, output) = diode_clamp();
+        circuit
+            .set_device_parameter("v1", "voltage", 100.0)
+            .expect("v1");
+        let result = dc_operating_point(&circuit, &DcConfig::default()).expect("dc");
+        let voltage = result.solution.voltage(output).expect("output");
+        assert!(voltage > 0.5 && voltage < 0.9, "voltage={voltage}");
     }
 
     #[test]
