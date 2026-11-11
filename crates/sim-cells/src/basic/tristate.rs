@@ -1,7 +1,7 @@
 //! CMOS tri-state inverter.
 
-use super::builder::CellBuilder;
-use super::cell::Cell;
+use crate::builder::CellBuilder;
+use crate::cell::Cell;
 use sim_core::SimError;
 
 /// Builds a tri-state inverter with an active-high enable.

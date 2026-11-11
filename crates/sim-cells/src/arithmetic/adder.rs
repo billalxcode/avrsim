@@ -1,8 +1,8 @@
 //! Ripple-carry adder composition.
 
-use super::builder::CellBuilder;
-use super::cell::Cell;
-use super::compose::full_adder;
+use crate::arithmetic::compose::full_adder;
+use crate::builder::CellBuilder;
+use crate::cell::Cell;
 use sim_core::{NodeId, SimError};
 
 /// Builds an 8-bit ripple-carry adder.

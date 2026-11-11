@@ -1,16 +1,16 @@
 //! Cell registry.
 
-use super::buffer::buffer;
-use super::cell::Cell;
-use super::inverter::inverter;
-use super::logic::{and2, mux2, or2, xor2};
-use super::memory::sram6t;
-use super::nand::nand2;
-use super::nor::nor2;
-use super::oscillator::ring_oscillator;
-use super::sequential::{d_flip_flop, d_latch};
-use super::transmission::transmission_gate;
-use super::tristate::tri_state_inverter;
+use crate::basic::buffer::buffer;
+use crate::basic::inverter::inverter;
+use crate::basic::logic::{and2, mux2, or2, xor2};
+use crate::basic::nand::nand2;
+use crate::basic::nor::nor2;
+use crate::basic::transmission::transmission_gate;
+use crate::basic::tristate::tri_state_inverter;
+use crate::cell::Cell;
+use crate::sequential::latches::{d_flip_flop, d_latch};
+use crate::sequential::memory::sram6t;
+use crate::sequential::oscillator::ring_oscillator;
 use sim_core::SimError;
 
 /// Available cell kinds.

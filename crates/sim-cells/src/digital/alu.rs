@@ -1,7 +1,7 @@
 //! Eight-bit digital ALU.
 
-use super::digital::{DigitalBuilder, NetId};
-use super::digital_blocks::{decoder, mux_tree, or_all};
+use super::blocks::{decoder, mux_tree, or_all};
+use super::circuit::{DigitalBuilder, NetId};
 use sim_core::SimError;
 
 /// Result and flags of the digital ALU.

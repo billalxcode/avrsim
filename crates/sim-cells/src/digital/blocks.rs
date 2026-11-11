@@ -1,6 +1,6 @@
 //! Digital building blocks for registers and counters.
 
-use super::digital::{DigitalBuilder, DigitalCircuit, NetId};
+use super::circuit::{DigitalBuilder, DigitalCircuit, NetId};
 use sim_core::SimError;
 
 /// Reduces nets with AND. An empty list yields true.

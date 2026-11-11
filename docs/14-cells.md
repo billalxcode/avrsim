@@ -34,7 +34,15 @@ Belum diimplementasikan:
 
 ---
 
-## 2. API
+## 2. Struktur Modul
+
+- `basic/`: inverter, NAND, NOR, buffer, logic gates, transmission gate, tri-state.
+- `arithmetic/`: half/full adder, ripple-carry adder, ALU slice, flags.
+- `sequential/`: latch, D flip-flop, SRAM6T, ring oscillator.
+- `digital/`: simulator dua-state, blok digital, ALU digital, register file, CPU uji.
+- Root: `builder`, `cell`, `characterize`, dan `registry`.
+
+## 3. API
 
 ```rust
 pub struct Cell {
@@ -71,7 +79,7 @@ impl CellBuilder {
 
 ---
 
-## 3. Parameter Transistor
+## 4. Parameter Transistor
 
 | Parameter | Nilai |
 |---|---|
@@ -86,7 +94,7 @@ PMOS dibuat dua kali lebih lebar untuk mendekati simetri inverter.
 
 ---
 
-## 4. Inverter
+## 5. Inverter
 
 Struktur:
 
@@ -102,7 +110,7 @@ Test:
 
 ---
 
-## 5. NAND2
+## 6. NAND2
 
 Struktur:
 
@@ -120,7 +128,7 @@ Test truth table:
 
 ---
 
-## 6. NOR2
+## 7. NOR2
 
 Struktur:
 
@@ -138,7 +146,7 @@ Test truth table:
 
 ---
 
-## 7. Buffer
+## 8. Buffer
 
 Struktur:
 
@@ -153,7 +161,7 @@ Test:
 ---
 
 
-## 8. Sel Tambahan
+## 9. Sel Tambahan
 
 ### Transmission Gate
 
@@ -251,7 +259,7 @@ Test:
 - 4-bit truth table test lulus untuk beberapa kombinasi.
 - 8-bit test memeriksa port dan struktur.
 
-## 9. Test
+## 10. Test
 
 Test `sim-cells` mencakup:
 
@@ -267,7 +275,7 @@ Total test `sim-cells`: 33.
 
 ---
 
-## 10. Keterbatasan
+## 11. Keterbatasan
 
 - Belum ada analisis rise/fall time.
 - Belum ada propagation delay.
@@ -279,7 +287,7 @@ Total test `sim-cells`: 33.
 
 ---
 
-## 11. Berikutnya
+## 12. Berikutnya
 
 - Rise/fall time dan propagation delay.
 - Verifikasi osilasi ring oscillator.

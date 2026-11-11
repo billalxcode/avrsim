@@ -1,8 +1,8 @@
 //! Combinational logic gates composed from NAND cells.
 
-use super::builder::CellBuilder;
-use super::cell::Cell;
-use super::compose::add_nand;
+use crate::arithmetic::compose::add_nand;
+use crate::builder::CellBuilder;
+use crate::cell::Cell;
 use sim_core::SimError;
 
 /// Builds an AND gate from a NAND gate and an inverter.

@@ -1,9 +1,9 @@
 //! One-bit ALU slice composed from digital cells.
 
-use super::builder::CellBuilder;
-use super::cell::Cell;
-use super::compose::full_adder;
-use super::logic::{and2, mux2, or2, xor2};
+use crate::arithmetic::compose::full_adder;
+use crate::basic::logic::{and2, mux2, or2, xor2};
+use crate::builder::CellBuilder;
+use crate::cell::Cell;
 use sim_core::{NodeId, SimError};
 
 /// Builds a one-bit ALU slice.

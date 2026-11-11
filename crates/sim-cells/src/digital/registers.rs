@@ -1,7 +1,7 @@
 //! Digital register file with two read ports.
 
-use super::digital::{DigitalBuilder, NetId};
-use super::digital_blocks::{decoder, mux_tree, register};
+use super::blocks::{decoder, mux_tree, register};
+use super::circuit::{DigitalBuilder, NetId};
 use sim_core::SimError;
 
 /// Wiring for a register file.

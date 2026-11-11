@@ -1,9 +1,9 @@
 //! Small multi-cycle CPU for digital integration tests.
 
-use super::digital::{DigitalBuilder, DigitalCircuit, NetId};
-use super::digital_alu::{DigitalAlu, digital_alu};
-use super::digital_blocks::{ProgramCounter, decoder, or_all, read_bits, register};
-use super::register_file::{RegisterFile, RegisterPorts, register_file};
+use super::alu::{DigitalAlu, digital_alu};
+use super::blocks::{ProgramCounter, decoder, or_all, read_bits, register};
+use super::circuit::{DigitalBuilder, DigitalCircuit, NetId};
+use super::registers::{RegisterFile, RegisterPorts, register_file};
 use sim_core::SimError;
 
 /// No operation.

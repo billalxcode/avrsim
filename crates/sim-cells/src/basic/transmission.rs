@@ -1,7 +1,7 @@
 //! CMOS transmission gate.
 
-use super::builder::CellBuilder;
-use super::cell::Cell;
+use crate::builder::CellBuilder;
+use crate::cell::Cell;
 use sim_core::SimError;
 
 /// Builds a transmission gate.

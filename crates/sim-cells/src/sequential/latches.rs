@@ -1,7 +1,7 @@
 //! CMOS sequential cells.
 
-use super::builder::CellBuilder;
-use super::cell::Cell;
+use crate::builder::CellBuilder;
+use crate::cell::Cell;
 use sim_core::{NodeId, SimError};
 
 /// Builds a level-sensitive D latch.

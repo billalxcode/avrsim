@@ -1,8 +1,8 @@
 //! Digital composition of cells.
 
-use super::builder::CellBuilder;
-use super::cell::Cell;
-use super::nand::nand2;
+use crate::basic::nand::nand2;
+use crate::builder::CellBuilder;
+use crate::cell::Cell;
 use sim_core::{NodeId, SimError};
 
 /// Builds a half adder from NAND cells.
