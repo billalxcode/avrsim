@@ -399,7 +399,7 @@ mod tests {
         let (circuit, output) = mos_capacitor();
         let config = TransientConfig {
             dt: 1e-7,
-            steps: 10,
+            steps: 20,
             gmin: 1e-12,
             use_dc_op: false,
             initial_voltages: Vec::new(),

@@ -405,7 +405,7 @@ pub(crate) fn mos_capacitor() -> (Circuit, NodeId) {
         input,
         ground,
         (0.0, 5.0),
-        (0.0, 0.0, 0.0, 10e-6, 20e-6),
+        (1e-6, 0.0, 0.0, 10e-6, 20e-6),
     );
     circuit.resistor("rg", input, gate, 1e6);
     add_mos_capacitor(&mut circuit, gate, ground);
