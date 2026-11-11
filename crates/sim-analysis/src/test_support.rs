@@ -395,6 +395,38 @@ pub(crate) fn common_source_body() -> (Circuit, NodeId) {
     (circuit.build(), drain)
 }
 
+pub(crate) fn mos_capacitor() -> (Circuit, NodeId) {
+    let mut circuit = TestCircuit::new();
+    let input = circuit.node("in");
+    let gate = circuit.node("gate");
+    let ground = circuit.ground();
+    circuit.pulse(
+        "v1",
+        input,
+        ground,
+        (0.0, 5.0),
+        (0.0, 0.0, 0.0, 10e-6, 20e-6),
+    );
+    circuit.resistor("rg", input, gate, 1e6);
+    add_mos_capacitor(&mut circuit, gate, ground);
+    (circuit.build(), gate)
+}
+
+fn add_mos_capacitor(circuit: &mut TestCircuit, gate: NodeId, ground: NodeId) {
+    let mut parameters = mos_params(10e-6);
+    parameters.insert("cox".to_string(), 1e-12);
+    parameters.insert("gamma".to_string(), 0.0);
+    circuit
+        .builder
+        .device(
+            "m1",
+            DeviceKind::Nmos,
+            vec![gate, ground, ground, ground],
+            parameters,
+        )
+        .expect("m1");
+}
+
 pub(crate) fn diode_clamp() -> (Circuit, NodeId) {
     let mut circuit = TestCircuit::new();
     let input = circuit.node("in");

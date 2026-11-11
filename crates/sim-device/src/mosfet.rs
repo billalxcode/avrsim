@@ -1,8 +1,8 @@
 //! Shichman-Hodges Level 1 MOSFET model.
 
 use crate::model::{
-    DERIVATIVE_STEP, DeviceModel, Linearized, finite_difference, parameter, pins_three_or_four,
-    positive_parameter, stamp_four_terminal,
+    DERIVATIVE_STEP, DeviceModel, Linearized, finite_difference, non_negative_parameter, parameter,
+    pins_three_or_four, positive_parameter, stamp_capacitor, stamp_four_terminal,
 };
 use sim_core::{
     Device, DeviceInstance, DeviceKind, MnaContext, NOMINAL_TEMPERATURE, NodeId, SimError, Solution,
@@ -19,6 +19,9 @@ pub struct MosfetParams {
     length: f64,
     gamma: f64,
     phi: f64,
+    cox: f64,
+    cgso: f64,
+    cgdo: f64,
 }
 
 impl MosfetParams {
@@ -33,18 +36,17 @@ impl MosfetParams {
             length,
             gamma: 0.0,
             phi: 0.7,
+            cox: 0.0,
+            cgso: 0.0,
+            cgdo: 0.0,
         }
     }
 
     /// Builds parameters from a device parameter map.
     pub fn from_map(params: &BTreeMap<String, f64>) -> Result<Self, SimError> {
         let vto = threshold_from_map(params)?;
-        let gamma = parameter(params, "gamma", 0.0);
-        if !gamma.is_finite() {
-            return Err(SimError::InvalidNetlist(
-                "mosfet gamma must be finite".to_string(),
-            ));
-        }
+        let gamma = finite_parameter(params, "gamma", 0.0)?;
+        let (cox, cgso, cgdo) = capacitance_from_map(params)?;
         Ok(Self {
             vto,
             kp: positive_parameter(params, "kp", Some(1e-3))?,
@@ -53,9 +55,11 @@ impl MosfetParams {
             length: positive_parameter(params, "l", Some(1e-6))?,
             gamma,
             phi: positive_parameter(params, "phi", Some(0.7))?,
+            cox,
+            cgso,
+            cgdo,
         })
     }
-
     /// Returns the threshold voltage.
     #[must_use]
     pub const fn vto(self) -> f64 {
@@ -99,6 +103,20 @@ impl MosfetParams {
     }
 }
 
+fn finite_parameter(
+    params: &BTreeMap<String, f64>,
+    name: &str,
+    default: f64,
+) -> Result<f64, SimError> {
+    let value = parameter(params, name, default);
+    if !value.is_finite() {
+        return Err(SimError::InvalidNetlist(format!(
+            "mosfet {name} must be finite"
+        )));
+    }
+    Ok(value)
+}
+
 fn threshold_from_map(params: &BTreeMap<String, f64>) -> Result<f64, SimError> {
     let temperature = parameter(params, "temp", NOMINAL_TEMPERATURE);
     let tcv = parameter(params, "tcv", 0.0);
@@ -111,11 +129,22 @@ fn threshold_from_map(params: &BTreeMap<String, f64>) -> Result<f64, SimError> {
     Ok(vto)
 }
 
+fn capacitance_from_map(params: &BTreeMap<String, f64>) -> Result<(f64, f64, f64), SimError> {
+    Ok((
+        non_negative_parameter(params, "cox", 0.0)?,
+        non_negative_parameter(params, "cgso", 0.0)?,
+        non_negative_parameter(params, "cgdo", 0.0)?,
+    ))
+}
+
 /// A three-terminal or four-terminal MOSFET model.
 pub struct MosfetModel {
     kind: DeviceKind,
     params: MosfetParams,
     pins: [NodeId; 4],
+    vgs_prev: f64,
+    vgd_prev: f64,
+    vgb_prev: f64,
 }
 
 impl MosfetModel {
@@ -126,6 +155,9 @@ impl MosfetModel {
             kind: instance.kind().clone(),
             params,
             pins,
+            vgs_prev: 0.0,
+            vgd_prev: 0.0,
+            vgb_prev: 0.0,
         })
     }
 
@@ -160,6 +192,52 @@ impl MosfetModel {
             gmb,
         }
     }
+
+    fn voltages(&self, solution: &Solution) -> (f64, f64, f64, f64) {
+        (
+            solution.voltage(self.pins[0]).unwrap_or(0.0),
+            solution.voltage(self.pins[1]).unwrap_or(0.0),
+            solution.voltage(self.pins[2]).unwrap_or(0.0),
+            solution.voltage(self.pins[3]).unwrap_or(0.0),
+        )
+    }
+
+    fn capacitances(&self, vgs: f64, vds: f64, vbs: f64) -> (f64, f64, f64) {
+        let overdrive = vgs - threshold(self.params, vbs);
+        if overdrive <= 0.0 {
+            return (self.params.cgso, self.params.cgdo, self.params.cox);
+        }
+        if vds < overdrive {
+            return (
+                self.params.cgso + 0.5 * self.params.cox,
+                self.params.cgdo + 0.5 * self.params.cox,
+                0.0,
+            );
+        }
+        (
+            self.params.cgso + 2.0 / 3.0 * self.params.cox,
+            self.params.cgdo,
+            0.0,
+        )
+    }
+
+    fn stamp_caps(
+        &self,
+        ctx: &mut MnaContext,
+        dt: Option<f64>,
+        voltages: (f64, f64, f64, f64),
+    ) -> Result<(), SimError> {
+        let dt = match dt {
+            Some(value) => value,
+            None => return Ok(()),
+        };
+        let (vg, vd, vs, vb) = voltages;
+        let sign = self.sign();
+        let caps = self.capacitances(sign * (vg - vs), sign * (vd - vs), sign * (vb - vs));
+        stamp_capacitor(ctx, self.pins[0], self.pins[2], caps.0, self.vgs_prev, dt)?;
+        stamp_capacitor(ctx, self.pins[0], self.pins[1], caps.1, self.vgd_prev, dt)?;
+        stamp_capacitor(ctx, self.pins[0], self.pins[3], caps.2, self.vgb_prev, dt)
+    }
 }
 
 impl DeviceModel for MosfetModel {
@@ -167,17 +245,20 @@ impl DeviceModel for MosfetModel {
         &mut self,
         ctx: &mut MnaContext,
         solution: &Solution,
-        _dt: Option<f64>,
+        dt: Option<f64>,
     ) -> Result<(), SimError> {
-        let vg = solution.voltage(self.pins[0]).unwrap_or(0.0);
-        let vd = solution.voltage(self.pins[1]).unwrap_or(0.0);
-        let vs = solution.voltage(self.pins[2]).unwrap_or(0.0);
-        let vb = solution.voltage(self.pins[3]).unwrap_or(0.0);
+        let voltages = self.voltages(solution);
+        let (vg, vd, vs, vb) = voltages;
         let state = self.linearization(vg, vd, vs, vb);
-        stamp_four_terminal(ctx, self.pins, state, (vg, vd, vs, vb))
+        self.stamp_caps(ctx, dt, voltages)?;
+        stamp_four_terminal(ctx, self.pins, state, voltages)
     }
 
-    fn update(&mut self, _solution: &Solution) -> Result<(), SimError> {
+    fn update(&mut self, solution: &Solution) -> Result<(), SimError> {
+        let (vg, vd, vs, vb) = self.voltages(solution);
+        self.vgs_prev = vg - vs;
+        self.vgd_prev = vg - vd;
+        self.vgb_prev = vg - vb;
         Ok(())
     }
 }
@@ -221,6 +302,40 @@ mod tests {
             length: 1e-6,
             gamma: 0.5,
             phi: 0.7,
+            cox: 0.0,
+            cgso: 0.0,
+            cgdo: 0.0,
+        }
+    }
+
+    fn cap_params() -> MosfetParams {
+        MosfetParams {
+            vto: VTO,
+            kp: 1e-3,
+            lambda: 0.0,
+            width: 1e-6,
+            length: 1e-6,
+            gamma: 0.0,
+            phi: 0.7,
+            cox: 1e-12,
+            cgso: 1e-13,
+            cgdo: 2e-13,
+        }
+    }
+
+    fn model(kind: DeviceKind, params: MosfetParams) -> MosfetModel {
+        MosfetModel {
+            kind,
+            params,
+            pins: [
+                NodeId::new(1),
+                NodeId::new(2),
+                NodeId::GROUND,
+                NodeId::new(3),
+            ],
+            vgs_prev: 0.0,
+            vgd_prev: 0.0,
+            vgb_prev: 0.0,
         }
     }
 
@@ -280,17 +395,22 @@ mod tests {
 
     #[test]
     fn gmb_is_positive_for_reverse_body_bias() {
-        let model = MosfetModel {
-            kind: DeviceKind::Nmos,
-            params: body_params(),
-            pins: [
-                NodeId::new(1),
-                NodeId::new(2),
-                NodeId::GROUND,
-                NodeId::new(3),
-            ],
-        };
+        let model = model(DeviceKind::Nmos, body_params());
         let gmb = model.linearization(1.2, 1.0, 0.0, -1.0).gmb;
         assert!(gmb > 0.0, "gmb={gmb}");
+    }
+
+    #[test]
+    fn capacitance_partition_matches_region() {
+        let model = model(DeviceKind::Nmos, cap_params());
+        let cutoff = model.capacitances(0.4, 1.0, 0.0);
+        assert!((cutoff.0 - 1e-13).abs() < 1e-20);
+        assert!((cutoff.2 - 1e-12).abs() < 1e-20);
+        let linear = model.capacitances(1.0, 0.2, 0.0);
+        assert!((linear.0 - 6e-13).abs() < 1e-20);
+        assert!((linear.1 - 7e-13).abs() < 1e-20);
+        let saturation = model.capacitances(1.0, 1.0, 0.0);
+        assert!((saturation.0 - (1e-13 + 2.0 / 3.0 * 1e-12)).abs() < 1e-20);
+        assert!((saturation.1 - 2e-13).abs() < 1e-20);
     }
 }

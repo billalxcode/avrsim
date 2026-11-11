@@ -183,6 +183,26 @@ pub(crate) fn stamp_conductance(
     Ok(())
 }
 
+pub(crate) fn stamp_capacitor(
+    ctx: &mut MnaContext,
+    first: NodeId,
+    second: NodeId,
+    capacitance: f64,
+    voltage_prev: f64,
+    dt: f64,
+) -> Result<(), SimError> {
+    if capacitance <= 0.0 {
+        return Ok(());
+    }
+    let conductance = capacitance / dt;
+    stamp_conductance(ctx, first, second, conductance)?;
+    let a = ctx.node_index(first);
+    let b = ctx.node_index(second);
+    let current = conductance * voltage_prev;
+    ctx.add_rhs_opt(a, current)?;
+    ctx.add_rhs_opt(b, -current)
+}
+
 pub(crate) fn stamp_current_source(
     ctx: &mut MnaContext,
     from: NodeId,

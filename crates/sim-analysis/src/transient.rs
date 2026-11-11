@@ -140,7 +140,7 @@ fn validate_config(config: &TransientConfig) -> Result<(), SimError> {
 mod tests {
     use super::{TransientConfig, transient, transient_with_method};
     use crate::test_support::{
-        matched_line, pulse_divider, rc_circuit, rc_circuit_no_source, rl_circuit,
+        matched_line, mos_capacitor, pulse_divider, rc_circuit, rc_circuit_no_source, rl_circuit,
     };
     use sim_device::IntegrationMethod;
 
@@ -392,5 +392,21 @@ mod tests {
         assert!((high - 2.5).abs() < 1e-6, "high={high}");
         assert!(low.abs() < 1e-6, "low={low}");
         assert!((again - 2.5).abs() < 1e-6, "again={again}");
+    }
+
+    #[test]
+    fn mosfet_gate_capacitance_charges() {
+        let (circuit, output) = mos_capacitor();
+        let config = TransientConfig {
+            dt: 1e-7,
+            steps: 10,
+            gmin: 1e-12,
+            use_dc_op: false,
+            initial_voltages: Vec::new(),
+        };
+        let samples = transient(&circuit, &config).expect("transient");
+        let gate = samples.last().expect("last");
+        let gate = gate.solution.voltage(output).expect("gate");
+        assert!(gate > 2.8 && gate < 3.3, "gate={gate}");
     }
 }
