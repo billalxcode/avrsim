@@ -181,6 +181,16 @@ Instruksi yang sudah berjalan end-to-end:
 Test program mencakup arithmetic, carry, logic, compare, branch, jump, MOVW,
 shift, rotate, multiply, trace, dan halt.
 
+## 12. Interrupt
+
+- `VECTORS` memuat 26 alamat word vektor ATmega328P.
+- `request_interrupt` menandai pending interrupt berdasarkan index vektor.
+- Interrupt dilayani sebelum fetch jika flag I aktif dan pending tidak nol.
+- Interrupt entry mendorong PC ke stack, menghapus pending, clear I, dan memuat PC vektor.
+- RETI mengembalikan PC dan men-set I.
+- SEI menunda enable interrupt selama satu instruksi berikutnya.
+- SLEEP menghentikan eksekusi sampai interrupt pending dan I aktif.
+
 ## 12. Test
 
 Test decoder mencakup:
@@ -203,7 +213,7 @@ Test decoder mencakup:
 - IR load, hold, reset, dan validasi lebar data.
 - Register bank write/read, dua read port, pasangan little-endian, hold, dan reset.
 
-Total test `sim-avr`: 79.
+Total test `sim-avr`: 84.
 
 ---
 
