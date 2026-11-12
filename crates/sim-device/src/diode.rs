@@ -37,6 +37,19 @@ fn junction_capacitance(params: &BTreeMap<String, f64>) -> Result<JunctionCapaci
     })
 }
 
+/// Returns the small-signal junction capacitance at a bias voltage.
+pub fn diode_capacitance(params: &BTreeMap<String, f64>, voltage: f64) -> Result<f64, SimError> {
+    Ok(capacitance_at(&junction_capacitance(params)?, voltage))
+}
+
+fn capacitance_at(cap: &JunctionCapacitance, voltage: f64) -> f64 {
+    if cap.zero <= 0.0 {
+        return 0.0;
+    }
+    let ratio = (1.0 - voltage / cap.potential).max(0.1);
+    cap.zero / ratio.powf(cap.grading)
+}
+
 impl DiodeModel {
     pub(crate) fn from_instance(instance: &DeviceInstance) -> Result<Self, SimError> {
         let pins = pins_exact(instance, 2)?;
@@ -60,11 +73,7 @@ impl DiodeModel {
     }
 
     fn capacitance(&self, voltage: f64) -> f64 {
-        if self.junction_cap.zero <= 0.0 {
-            return 0.0;
-        }
-        let ratio = (1.0 - voltage / self.junction_cap.potential).max(0.1);
-        self.junction_cap.zero / ratio.powf(self.junction_cap.grading)
+        capacitance_at(&self.junction_cap, voltage)
     }
 
     fn stamp_capacitance(
@@ -181,8 +190,9 @@ impl DeviceModel for DiodeModel {
 
 #[cfg(test)]
 mod tests {
-    use super::{DiodeModel, JunctionCapacitance, MAX_FORWARD_VOLTAGE};
+    use super::{DiodeModel, JunctionCapacitance, MAX_FORWARD_VOLTAGE, diode_capacitance};
     use sim_core::NodeId;
+    use std::collections::BTreeMap;
 
     fn model() -> DiodeModel {
         DiodeModel {
@@ -251,6 +261,18 @@ mod tests {
         model.series_resistance = 10.0;
         let junction = model.solve_junction(5.0);
         assert!(junction > 0.6 && junction < 0.9, "junction={junction}");
+    }
+
+    #[test]
+    fn public_capacitance_matches_bias() {
+        let mut params = BTreeMap::new();
+        params.insert("cj0".to_string(), 1e-12);
+        params.insert("vj".to_string(), 0.7);
+        params.insert("m".to_string(), 0.5);
+        let zero = diode_capacitance(&params, 0.0).expect("zero bias");
+        let reverse = diode_capacitance(&params, -0.7).expect("reverse bias");
+        assert!((zero - 1e-12).abs() < 1e-20);
+        assert!((reverse - 0.70710678e-12).abs() < 1e-18);
     }
 
     #[test]

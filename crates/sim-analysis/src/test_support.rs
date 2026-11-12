@@ -620,6 +620,21 @@ pub(crate) fn reverse_diode_rc(cj0: f64) -> (Circuit, NodeId) {
     (circuit.build(), output)
 }
 
+pub(crate) fn diode_varactor() -> (Circuit, NodeId) {
+    let mut circuit = TestCircuit::new();
+    let input = circuit.node("in");
+    let output = circuit.node("out");
+    let cathode = circuit.node("cathode");
+    let ground = circuit.ground();
+    circuit.voltage("v1", input, ground, 0.0);
+    circuit.voltage("vc", cathode, ground, 5.0);
+    circuit.resistor("r1", input, output, 1000.0);
+    let mut parameters = BTreeMap::new();
+    parameters.insert("cj0".to_string(), 10e-12);
+    circuit.two_pin("d1", DeviceKind::Diode, output, cathode, parameters);
+    (circuit.build(), output)
+}
+
 pub(crate) fn diode_clamp() -> (Circuit, NodeId) {
     let mut circuit = TestCircuit::new();
     let input = circuit.node("in");

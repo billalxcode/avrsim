@@ -2,7 +2,8 @@
 
 use crate::dc::{DcConfig, dc_operating_point};
 use crate::system::SimulationSystem;
-use sim_core::{Circuit, Complex64, ComplexMatrix, Device, DeviceKind, NodeId, SimError};
+use sim_core::{Circuit, Complex64, ComplexMatrix, Device, DeviceKind, NodeId, SimError, Solution};
+use sim_device::{diode_capacitance, mosfet_capacitances};
 
 /// AC solution at one frequency.
 #[derive(Clone, Debug)]
@@ -58,7 +59,8 @@ pub fn ac_analysis(circuit: &Circuit, frequency: f64) -> Result<AcSolution, SimE
     let (branch_map, branch_count) = build_branch_map(circuit, node_count);
     let size = node_count + branch_count;
     let mut matrix = bias_matrix(circuit, &bias, size)?;
-    add_reactive(circuit, frequency, &node_map, &branch_map, &mut matrix)?;
+    let reactive = ReactiveContext::new(&bias, frequency, &node_map, &branch_map);
+    add_reactive(circuit, &reactive, &mut matrix)?;
     let mut rhs = vec![Complex64::default(); size];
     stamp_sources(circuit, &node_map, &branch_map, &mut rhs)?;
     let values = matrix.solve(&rhs)?;
@@ -125,21 +127,117 @@ fn copy_matrix(source: &sim_core::DenseMatrix, size: usize) -> Result<ComplexMat
     Ok(matrix)
 }
 
+struct ReactiveContext<'a> {
+    bias: &'a Solution,
+    frequency: f64,
+    nodes: &'a [Option<usize>],
+    branches: &'a [Option<usize>],
+}
+
+impl<'a> ReactiveContext<'a> {
+    fn new(
+        bias: &'a Solution,
+        frequency: f64,
+        nodes: &'a [Option<usize>],
+        branches: &'a [Option<usize>],
+    ) -> Self {
+        Self {
+            bias,
+            frequency,
+            nodes,
+            branches,
+        }
+    }
+}
+
+impl ReactiveContext<'_> {
+    fn node_voltage(&self, node: NodeId) -> f64 {
+        self.bias.voltage(node).unwrap_or(0.0)
+    }
+
+    fn stamp(
+        &self,
+        matrix: &mut ComplexMatrix,
+        first: NodeId,
+        second: NodeId,
+        capacitance: f64,
+    ) -> Result<(), SimError> {
+        let pair = [
+            self.nodes[first.raw() as usize],
+            self.nodes[second.raw() as usize],
+        ];
+        stamp_pair(matrix, pair, reactance(capacitance, self.frequency))
+    }
+}
+
 fn add_reactive(
     circuit: &Circuit,
-    frequency: f64,
-    nodes: &[Option<usize>],
-    branches: &[Option<usize>],
+    context: &ReactiveContext<'_>,
     matrix: &mut ComplexMatrix,
 ) -> Result<(), SimError> {
     for (index, device) in circuit.devices().iter().enumerate() {
-        match device.kind() {
-            DeviceKind::Capacitor => stamp_capacitor(device, nodes, matrix, frequency)?,
-            DeviceKind::Inductor => stamp_inductor(device, index, branches, matrix, frequency)?,
-            _ => {}
-        }
+        add_device_reactance(device, index, context, matrix)?;
     }
     Ok(())
+}
+
+fn add_device_reactance(
+    device: &impl Device,
+    index: usize,
+    context: &ReactiveContext<'_>,
+    matrix: &mut ComplexMatrix,
+) -> Result<(), SimError> {
+    match device.kind() {
+        DeviceKind::Capacitor => stamp_capacitor(device, context.nodes, matrix, context.frequency),
+        DeviceKind::Inductor => {
+            stamp_inductor(device, index, context.branches, matrix, context.frequency)
+        }
+        DeviceKind::Diode => add_diode_capacitance(device, context, matrix),
+        DeviceKind::Nmos | DeviceKind::Pmos => add_mosfet_capacitances(device, context, matrix),
+        _ => Ok(()),
+    }
+}
+
+fn add_diode_capacitance(
+    device: &impl Device,
+    context: &ReactiveContext<'_>,
+    matrix: &mut ComplexMatrix,
+) -> Result<(), SimError> {
+    let pins = device.pins();
+    let voltage = context.node_voltage(pins[0]) - context.node_voltage(pins[1]);
+    let capacitance = diode_capacitance(device.parameters(), voltage)?;
+    context.stamp(matrix, pins[0], pins[1], capacitance)
+}
+
+fn add_mosfet_capacitances(
+    device: &impl Device,
+    context: &ReactiveContext<'_>,
+    matrix: &mut ComplexMatrix,
+) -> Result<(), SimError> {
+    let pins = device.pins();
+    let body = body_pin(pins);
+    let (cgs, cgd, cgb) = mosfet_capacitances(
+        device.kind(),
+        device.parameters(),
+        context.node_voltage(pins[0]),
+        context.node_voltage(pins[1]),
+        context.node_voltage(pins[2]),
+        context.node_voltage(body),
+    )?;
+    context.stamp(matrix, pins[0], pins[2], cgs)?;
+    context.stamp(matrix, pins[0], pins[1], cgd)?;
+    context.stamp(matrix, pins[0], body, cgb)
+}
+
+fn body_pin(pins: &[NodeId]) -> NodeId {
+    if pins.len() == 4 {
+        return pins[3];
+    }
+    pins[2]
+}
+
+fn reactance(capacitance: f64, frequency: f64) -> Complex64 {
+    Complex64::new(0.0, 2.0 * std::f64::consts::PI * frequency * capacitance)
 }
 
 fn stamp_capacitor(
@@ -388,8 +486,9 @@ fn source_value(device: &impl Device) -> Result<Complex64, SimError> {
 mod tests {
     use super::{ac_analysis, ac_sweep};
     use crate::test_support::{
-        common_emitter, common_source_n_biased, current_source_circuit, diode_clamp, inverter,
-        matched_line, pulse_divider, rc_circuit, rl_circuit, switch_circuit,
+        common_emitter, common_source_n_biased, current_source_circuit, diode_clamp,
+        diode_varactor, inverter, matched_line, pulse_divider, rc_circuit, rl_circuit,
+        switch_circuit,
     };
 
     #[test]
@@ -490,6 +589,41 @@ mod tests {
         let magnitude = result.magnitude(output).expect("magnitude");
         assert!(magnitude > 1.0, "magnitude={magnitude}");
         assert!(result.magnitude(input).is_some());
+    }
+
+    #[test]
+    fn diode_capacitance_reduces_response_at_high_frequency() {
+        let (mut circuit, output) = diode_varactor();
+        circuit.set_device_parameter("v1", "ac", 1.0).expect("ac");
+        circuit
+            .set_device_parameter("vc", "ac", 0.0)
+            .expect("cathode ac");
+        let low = ac_analysis(&circuit, 1e3).expect("low");
+        let high = ac_analysis(&circuit, 1e8).expect("high");
+        let low = low.magnitude(output).expect("low magnitude");
+        let high = high.magnitude(output).expect("high magnitude");
+        assert!(low > 0.99, "low={low}");
+        assert!(high < 0.5, "high={high}");
+    }
+
+    #[test]
+    fn mosfet_capacitance_reduces_gain_at_high_frequency() {
+        let (mut circuit, _, output) = inverter();
+        circuit
+            .set_device_parameter("vin", "voltage", 2.5)
+            .expect("bias");
+        circuit.set_device_parameter("vin", "ac", 1.0).expect("ac");
+        circuit
+            .set_device_parameter("mp", "cox", 1e-12)
+            .expect("mp");
+        circuit
+            .set_device_parameter("mn", "cox", 1e-12)
+            .expect("mn");
+        let low = ac_analysis(&circuit, 1e3).expect("low");
+        let high = ac_analysis(&circuit, 1e9).expect("high");
+        let low_gain = low.magnitude(output).expect("low gain");
+        let high_gain = high.magnitude(output).expect("high gain");
+        assert!(high_gain < low_gain, "low={low_gain} high={high_gain}");
     }
 
     #[test]

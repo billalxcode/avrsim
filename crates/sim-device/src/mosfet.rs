@@ -203,22 +203,7 @@ impl MosfetModel {
     }
 
     fn capacitances(&self, vgs: f64, vds: f64, vbs: f64) -> (f64, f64, f64) {
-        let overdrive = vgs - threshold(self.params, vbs);
-        if overdrive <= 0.0 {
-            return (self.params.cgso, self.params.cgdo, self.params.cox);
-        }
-        if vds < overdrive {
-            return (
-                self.params.cgso + 0.5 * self.params.cox,
-                self.params.cgdo + 0.5 * self.params.cox,
-                0.0,
-            );
-        }
-        (
-            self.params.cgso + 2.0 / 3.0 * self.params.cox,
-            self.params.cgdo,
-            0.0,
-        )
+        capacitance_region(&self.params, vgs, vds, vbs)
     }
 
     fn stamp_caps(
@@ -277,6 +262,47 @@ fn nmos_current_body(vgs: f64, vds: f64, vbs: f64, params: MosfetParams) -> f64 
     }
 }
 
+fn capacitance_region(params: &MosfetParams, vgs: f64, vds: f64, vbs: f64) -> (f64, f64, f64) {
+    let overdrive = vgs - threshold(*params, vbs);
+    if overdrive <= 0.0 {
+        return (params.cgso, params.cgdo, params.cox);
+    }
+    if vds < overdrive {
+        return (
+            params.cgso + 0.5 * params.cox,
+            params.cgdo + 0.5 * params.cox,
+            0.0,
+        );
+    }
+    (params.cgso + 2.0 / 3.0 * params.cox, params.cgdo, 0.0)
+}
+
+/// Returns small-signal MOSFET capacitances at the given bias.
+pub fn mosfet_capacitances(
+    kind: &DeviceKind,
+    params: &BTreeMap<String, f64>,
+    vg: f64,
+    vd: f64,
+    vs: f64,
+    vb: f64,
+) -> Result<(f64, f64, f64), SimError> {
+    let params = MosfetParams::from_map(params)?;
+    let sign = device_sign(kind);
+    Ok(capacitance_region(
+        &params,
+        sign * (vg - vs),
+        sign * (vd - vs),
+        sign * (vb - vs),
+    ))
+}
+
+fn device_sign(kind: &DeviceKind) -> f64 {
+    if matches!(kind, DeviceKind::Pmos) {
+        return -1.0;
+    }
+    1.0
+}
+
 fn threshold(params: MosfetParams, vbs: f64) -> f64 {
     let bias = (params.phi - vbs).max(0.0);
     params.vto + params.gamma * (bias.sqrt() - params.phi.sqrt())
@@ -284,8 +310,9 @@ fn threshold(params: MosfetParams, vbs: f64) -> f64 {
 
 #[cfg(test)]
 mod tests {
-    use super::{MosfetModel, MosfetParams, nmos_current_body, threshold};
+    use super::{MosfetModel, MosfetParams, mosfet_capacitances, nmos_current_body, threshold};
     use sim_core::{DeviceKind, NodeId};
+    use std::collections::BTreeMap;
 
     const VTO: f64 = 0.5;
 
@@ -398,6 +425,19 @@ mod tests {
         let model = model(DeviceKind::Nmos, body_params());
         let gmb = model.linearization(1.2, 1.0, 0.0, -1.0).gmb;
         assert!(gmb > 0.0, "gmb={gmb}");
+    }
+
+    #[test]
+    fn public_capacitances_follow_bias_and_kind() {
+        let mut map = BTreeMap::new();
+        map.insert("vto".to_string(), VTO);
+        map.insert("cox".to_string(), 1e-12);
+        map.insert("cgso".to_string(), 1e-13);
+        map.insert("cgdo".to_string(), 2e-13);
+        let nmos = mosfet_capacitances(&DeviceKind::Nmos, &map, 1.0, 1.0, 0.0, 0.0).expect("nmos");
+        let pmos = mosfet_capacitances(&DeviceKind::Pmos, &map, 0.0, 0.0, 1.0, 1.0).expect("pmos");
+        assert!((nmos.0 - (1e-13 + 2.0 / 3.0 * 1e-12)).abs() < 1e-20);
+        assert_eq!(nmos, pmos);
     }
 
     #[test]
