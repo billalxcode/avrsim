@@ -278,15 +278,32 @@ impl Cpu {
         let total = u64::from(cycles) + if interrupt { 4 } else { 0 };
         self.cycles += total;
         self.advance_timer0(total as u32)?;
-        self.advance_serial(total as u32);
+        self.advance_serial(total as u32)?;
         Ok(Some(self.trace(fetched.instruction, cycles)))
     }
 
-    fn advance_serial(&mut self, cycles: u32) {
+    fn advance_serial(&mut self, cycles: u32) -> Result<(), SimError> {
         self.datapath.uart.tick(cycles);
         self.datapath.serial.spi.tick(cycles);
         self.datapath.serial.twi.tick(cycles);
         self.datapath.serial.adc.tick(cycles);
+        let mask = self.uart_interrupt_mask();
+        self.poll_uart(mask)
+    }
+
+    fn uart_interrupt_mask(&self) -> u8 {
+        let enable = self.io[0xC1];
+        let mut mask = 0;
+        if enable & 0x80 != 0 {
+            mask |= 0x01;
+        }
+        if enable & 0x40 != 0 {
+            mask |= 0x02;
+        }
+        if enable & 0x20 != 0 {
+            mask |= 0x04;
+        }
+        mask
     }
 
     /// Executes until halt or the step limit.
@@ -2972,6 +2989,25 @@ mod tests {
         });
         cpu.uart().receive(0x41);
         cpu.poll_uart(0x01).expect("poll");
+        let trace = cpu.step().expect("step").expect("trace");
+        assert_eq!(trace.pc, 37);
+        assert_eq!(cpu.register(17), 7);
+    }
+
+    #[test]
+    fn uart_rx_interrupt_is_automatic() {
+        let mut program = vec![0u16; 40];
+        program[0] = 0xCFFF;
+        program[36] = ldi(17, 7);
+        program[37] = 0x9518;
+        let mut cpu = Cpu::new(program).expect("cpu");
+        cpu.set_sreg(super::Sreg {
+            interrupt: true,
+            ..super::Sreg::default()
+        });
+        cpu.io_write(0xC1, 0x90).expect("uart control");
+        cpu.uart().receive(0x41);
+        cpu.step().expect("step");
         let trace = cpu.step().expect("step").expect("trace");
         assert_eq!(trace.pc, 37);
         assert_eq!(cpu.register(17), 7);
