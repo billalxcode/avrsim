@@ -67,6 +67,15 @@ avr-objcopy -O ihex -R .eeprom blink.elf blink.hex
 ELF juga dapat dimuat melalui API `sim_board::ElfImage`, lalu dikonversi
 ke Intel HEX dengan `to_hex()`.
 
+Setelah firmware dikompilasi, upload dapat dilakukan melalui virtual serial
+port:
+
+```bash
+./target/release/embed-emu serial
+```
+
+Lihat `docs/43-user-guide.md` untuk alur Arduino IDE dan batasannya.
+
 ---
 
 ## Batas

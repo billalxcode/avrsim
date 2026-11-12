@@ -61,13 +61,14 @@ Mask adalah penyederhanaan dari bit enable UCSR0B.
 - Frame TX didekode kembali dari TX line memakai cycle CPU.
 - RX interrupt masuk ke vektor 18.
 
-Total test `sim-avr`: 199.
+Total test `sim-avr`: 202.
 
 ---
 
 ## 6. Batas
 
 - UART belum dipetakan ke register I/O CPU.
+- Virtual serial upload memakai STK500, bukan UART0; serial monitor belum tersedia.
 - RX timing belum mengikuti baud divider.
 - Parity, stop bit ganda, dan mode sinkron belum didukung.
 - TX dan UDRE interrupt sudah meminta vektor tetapi belum diuji end-to-end.

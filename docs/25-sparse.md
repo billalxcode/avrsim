@@ -55,7 +55,7 @@ sebagai heuristic statis. Ini belum melakukan update degree selama eliminasi.
 - Degree ordering.
 - Konversi dense.
 
-Total test `sim-core`: 59.
+Total test `sim-core`: 62.
 
 ---
 

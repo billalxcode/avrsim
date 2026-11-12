@@ -2,7 +2,7 @@
 
 Daftar tugas lengkap dari hal terkecil sampai rilis. Setiap item harus kecil, dapat diuji, dan tidak menambah dependensi eksternal.
 
-> **Status:** P0 fondasi selesai. P8 selesai penuh. P9 sebagian besar selesai; ELF loader, simbol, ELF ke HEX, dan UART end-to-end selesai. P10 sparse, adaptive step, trapezoidal/Gear, AC linear, noise termal, distorsi kuasi-statis, sensitivitas numerik, suhu device, process corner, BJT, JFET, transmission line, determinisme Linux, fidelity matrix, batasan model, profiling, dan optimasi selesai. Golden suite dan determinisme macOS/Windows belum. P4 harness ngspice dan golden data belum karena ngspice tidak tersedia. P5 characterization, switching, input capacitance, drive strength, dan osilasi ring oscillator selesai; perbandingan ngspice belum. P11 user guide, contoh runnable, workflow CI, dan notices selesai; eksekusi GitHub Actions, tag, dan publikasi belum; packaging dan release notes siap. X-03 panic audit selesai; builder sel mencatat error dan melaporkannya di build. P3 body effect, gmb, Meyer capacitance, overlap, diode nonideal, BJT, JFET, transmission line, VCVS, VCCS, CCVS, CCCS, dan switch selesai; breakdown dan model termal lanjutan belum. P12 selesai: adaptive initial state, Newton transient, dan AC nonlinier. P13 selesai: kapasitansi diode dan MOSFET pada AC; kapasitansi BJT dan JFET belum. P14 selesai: AC controlled sources dan switch. P15 selesai: kapasitansi BJT dan JFET pada AC/transient.
+> **Status:** P0 fondasi selesai. P8 selesai penuh. P9 sebagian besar selesai; ELF loader, simbol, ELF ke HEX, dan UART end-to-end selesai. P10 sparse, adaptive step, trapezoidal/Gear, AC linear, noise termal, distorsi kuasi-statis, sensitivitas numerik, suhu device, process corner, BJT, JFET, transmission line, determinisme Linux, fidelity matrix, batasan model, profiling, dan optimasi selesai. Golden suite dan determinisme macOS/Windows belum. P4 harness ngspice dan golden data belum karena ngspice tidak tersedia. P5 characterization, switching, input capacitance, drive strength, dan osilasi ring oscillator selesai; perbandingan ngspice belum. P11 user guide, contoh runnable, workflow CI, dan notices selesai; eksekusi GitHub Actions, tag, dan publikasi belum; packaging dan release notes siap. X-03 panic audit selesai; builder sel mencatat error dan melaporkannya di build. P3 body effect, gmb, Meyer capacitance, overlap, diode nonideal, BJT, JFET, transmission line, VCVS, VCCS, CCVS, CCCS, dan switch selesai; breakdown dan model termal lanjutan belum. P12 selesai: adaptive initial state, Newton transient, dan AC nonlinier. P13 selesai: kapasitansi diode dan MOSFET pada AC; kapasitansi BJT dan JFET belum. P14 selesai: AC controlled sources dan switch. P15 selesai: kapasitansi BJT dan JFET pada AC/transient. P16 selesai: virtual serial upload STK500 via socat.
 > **Aturan:** satu item selesai = kode + test + dokumentasi singkat.
 
 ---
@@ -709,6 +709,33 @@ device nonlinier pada titik operasi.
 - [x] P15-13 Perbarui total test.
 
 **Exit P15:** BJT dan JFET memiliki kapasitansi small-signal pada AC dan transient.
+
+---
+
+## P16 - Virtual Serial Upload
+
+### 16.1 Protokol dan Flash
+
+- [x] P16-01 Tambah API `Cpu::load_program`.
+- [x] P16-02 Implementasikan parser frame STK500.
+- [x] P16-03 Implementasikan handler flash, signature, dan chip erase.
+- [x] P16-04 Tulis test parser dan page programming.
+
+### 16.2 Virtual Port
+
+- [x] P16-05 Buat PTY melalui `socat`.
+- [x] P16-06 Bridge PTY ke Unix socket.
+- [x] P16-07 Jalankan firmware setelah upload.
+- [x] P16-08 Bersihkan PTY dan socket saat Ctrl-C.
+- [x] P16-09 Tulis smoke test upload.
+
+### 16.3 Dokumentasi
+
+- [x] P16-10 Dokumentasikan perintah `embed-emu serial`.
+- [x] P16-11 Catat batas Arduino IDE dan serial monitor.
+
+**Exit P16:** firmware dapat diunggah melalui virtual serial port dan port
+ditutup otomatis saat proses berhenti.
 
 ---
 

@@ -59,6 +59,8 @@ Tag `v0.1` tersedia; publikasi biner dan GitHub release belum.
 - Board LED, resistor, button, UART host.
 - Intel HEX loader/writer.
 - ELF32 loader, simbol, dan konversi flash ke Intel HEX.
+- Virtual serial STK500/Optiboot melalui `socat`; firmware berjalan setelah upload.
+- Cleanup PTY dan socket saat CLI menerima Ctrl-C.
 
 ---
 
@@ -71,6 +73,7 @@ CLI:
 ./target/release/embed-emu bench 1000 10
 ./target/release/embed-emu monitor <hex words...>
 ./target/release/embed-emu disasm <hex words...>
+./target/release/embed-emu serial
 ```
 
 Contoh:
@@ -123,7 +126,7 @@ Perintah:
 ./scripts/package.sh
 ```
 
-Total test workspace: 521.
+Total test workspace: 533.
 
 ---
 

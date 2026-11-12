@@ -305,7 +305,7 @@ Test netlist mencakup:
 - Snapshot.
 - Ground node 0.
 
-Total test `sim-core`: 45.
+Total test `sim-core`: 62.
 
 ---
 

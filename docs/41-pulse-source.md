@@ -83,6 +83,6 @@ dalam satu langkah.
   saat low.
 - AC menolak sumber pulsa.
 
-Total test `sim-device`: 36.
-Total test `sim-analysis`: 72.
-Total workspace: 463.
+Total test `sim-device`: 48.
+Total test `sim-analysis`: 108.
+Total workspace: 533.

@@ -4,7 +4,7 @@
 yang memodelkan transistor, gerbang CMOS, CPU AVR, peripheral, dan board,
 serta mampu menjalankan firmware AVR.
 
-> **Status v0.1:** 521 test lulus, 7 crate, nol dependensi eksternal Rust.
+> **Status v0.1:** 533 test lulus, 7 crate, nol dependensi eksternal Rust.
 > Tag `v0.1` tersedia. Archive Linux ada di
 > `dist/embed-emu-x86_64-unknown-linux-gnu.tar.gz`.
 
@@ -42,7 +42,7 @@ profile tertentu, bukan replika silikon identik.
 | AVR | ISA, decoder, ALU, register, SRAM, flash, GPIO, timer, UART, SPI, TWI, ADC |
 | Board | LED, resistor, button, UART host, pin electrical, CSV, VCD |
 | Format | Intel HEX, ELF32, CSV, VCD digital, VCD analog |
-| CLI | `run`, `monitor`, `disasm`, `bench` |
+| CLI | `run`, `monitor`, `disasm`, `bench`, `serial` |
 
 ---
 
@@ -74,10 +74,14 @@ cargo run -p sim-avr --example timer_interrupt
 ./target/debug/embed-emu disasm E005 E013 0F01 9598
 ./target/debug/embed-emu bench 1000 10
 ./target/debug/embed-emu run firmware/blink.hex 100000
+./target/release/embed-emu serial
+./target/release/embed-emu
 ```
 
 Perintah `run` memerlukan file Intel HEX. Contoh firmware assembly ada di
-[`firmware/`](firmware/README.md).
+[`firmware/`](firmware/README.md). Menjalankan binary tanpa argumen, atau
+menggunakan subcommand `serial`, membuka virtual serial port STK500 melalui
+`socat` dan menutupnya otomatis saat Ctrl-C.
 
 ### 3.4 Pemeriksaan lengkap
 
@@ -134,7 +138,7 @@ Dokumen yang sering dipakai:
 
 Sudah:
 
-- 521 test workspace.
+- 533 test workspace.
 - fmt, clippy, test, dan build release lulus.
 - Paket Linux dapat dibuat.
 - Determinisme Linux diuji.

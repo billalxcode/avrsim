@@ -172,6 +172,84 @@ Alamat dan angka menerima desimal atau heksadesimal `0x`.
 Argumen pertama adalah jumlah iterasi. Argumen kedua adalah jumlah node
 ladder, antara 2 dan 1000.
 
+### 5.5 Virtual serial port dan upload Arduino
+
+Mode ini membuat PTY, membuka virtual serial port, dan menerima upload
+STK500/Optiboot. Setelah upload selesai, firmware langsung dijalankan.
+
+Prasyarat:
+
+- Linux atau macOS.
+- `socat` terpasang.
+- Binary hasil build release.
+
+Jalankan binary tanpa argumen, atau gunakan subcommand `serial`:
+
+```bash
+./target/release/embed-emu
+./target/release/embed-emu serial
+```
+
+Output:
+
+```text
+virtual serial port: /tmp/embed-emu-tty
+press Ctrl-C to close
+```
+
+Path dapat diubah:
+
+```bash
+./target/release/embed-emu serial \
+  --link /tmp/embed-emu-tty \
+  --socket /tmp/embed-emu-sock
+```
+
+Alur di Arduino IDE:
+
+1. Jalankan `embed-emu serial`.
+2. Pilih board Arduino Uno atau ATmega328P.
+3. Pilih port virtual.
+4. Upload sketch.
+5. CLI menulis flash, mereset CPU, dan menjalankan firmware.
+6. Tekan Ctrl-C untuk menutup port.
+
+Jika Arduino IDE tidak menampilkan port di `/tmp`, buat symlink di lokasi
+yang dipindai IDE:
+
+```bash
+sudo ln -sf /tmp/embed-emu-tty /dev/ttyEMU0
+```
+
+Lalu pilih `/dev/ttyEMU0` di Arduino IDE.
+
+Alternatif tanpa IDE:
+
+```bash
+arduino-cli upload -p /tmp/embed-emu-tty --fqbn arduino:avr:uno <sketch>
+```
+
+Catatan:
+
+- Protokol yang didukung: STK500/Optiboot.
+- Signature: `1E 95 0F` untuk ATmega328P.
+- Ukuran flash: 32 KB.
+- `socat` dibuat sebagai proses anak dan dihentikan saat CLI keluar.
+- Link `/tmp` dan Unix socket dihapus otomatis saat Ctrl-C.
+- Symlink `/dev` yang dibuat manual harus dihapus sendiri.
+- Serial monitor belum dijembatani karena UART0 belum dipetakan ke
+  register I/O CPU.
+
+Smoke test upload:
+
+```bash
+cargo build --release -p sim-cli
+python3 scripts/test-serial-upload.py
+```
+
+Script tersebut membuat port virtual, mengunggah program blink, memastikan
+LED berubah, lalu memeriksa cleanup.
+
 ---
 
 ## 6. Library API
@@ -544,6 +622,9 @@ cargo test -p sim-analysis determinism
 - AC belum mendukung transmission line dan pulse source.
 - Switch AC memakai conductance dari bias; kontrol AC tidak dimodulasi.
 - Belum ada periodic steady state atau harmonic balance.
+- Virtual serial upload mendukung STK500, tetapi serial monitor belum
+  dijembatani karena UART0 belum dipetakan ke register I/O CPU.
+- Arduino IDE mungkin memerlukan symlink `/dev` agar port `/tmp` terdeteksi.
 
 Batas model yang lebih rinci ada di [24-fidelity.md](24-fidelity.md).
 

@@ -73,8 +73,8 @@ Syarat:
 - Setelah delay, output menjadi `2.5 V`.
 - AC menolak transmission line.
 
-Total test `sim-analysis`: 66.
-Total workspace: 429.
+Total test `sim-analysis`: 108.
+Total workspace: 533.
 
 ---
 

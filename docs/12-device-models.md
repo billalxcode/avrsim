@@ -267,7 +267,7 @@ Test device mencakup:
 - Controlled source dan switch.
 - Transmission line.
 
-Total test `sim-device`: 43 unit + 5 integration = 48.
+Total test `sim-device`: 48 unit + 5 integration = 48.
 
 ---
 

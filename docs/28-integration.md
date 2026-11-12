@@ -58,8 +58,8 @@ pub fn transient_with_method(
 
 Semua hasil mendekati solusi analitik.
 
-Total test `sim-analysis`: 32.
-Total workspace: 385.
+Total test `sim-analysis`: 108.
+Total workspace: 533.
 
 ---
 

@@ -94,9 +94,9 @@ Analisis:
 - Common source NMOS 4-pin dengan body `-2 V` menghasilkan tegangan drain
   lebih tinggi daripada body `0 V`.
 
-Total test `sim-device`: 38.
-Total test `sim-analysis`: 76.
-Total workspace: 469.
+Total test `sim-device`: 48.
+Total test `sim-analysis`: 108.
+Total workspace: 533.
 
 ---
 

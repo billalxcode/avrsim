@@ -82,9 +82,9 @@ Analisis:
 - MOS capacitor dengan `cox = 1 pF` dan resistor gate `1 MOhm` mengisi
   gate mendekati `3.1 V` setelah `1 us`.
 
-Total test `sim-device`: 39.
-Total test `sim-analysis`: 77.
-Total workspace: 471.
+Total test `sim-device`: 48.
+Total test `sim-analysis`: 108.
+Total workspace: 533.
 
 ---
 

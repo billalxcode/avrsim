@@ -86,8 +86,8 @@ Analisis:
   tegangan output.
 
 Total test `sim-device`: 48.
-Total test `sim-analysis`: 82.
-Total workspace: 478.
+Total test `sim-analysis`: 108.
+Total workspace: 533.
 
 ---
 

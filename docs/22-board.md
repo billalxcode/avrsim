@@ -58,6 +58,8 @@ pub fn host_receive(&mut self) -> Option<u8>;
 - `embed-emu monitor <hex words...>` menjalankan monitor interaktif.
 - `embed-emu disasm <hex words...>` menampilkan disassembly.
 - `embed-emu bench [iterations] [nodes]` menjalankan benchmark.
+- `embed-emu serial [--link path] [--socket path]` membuka virtual serial
+  port STK500 melalui `socat`.
 - `csv_header` dan `csv_line` menghasilkan trace CSV board.
 - `CsvWriter` menulis CSV generik dengan kolom tetap.
 - `VcdWriter` menghasilkan trace VCD digital untuk PB5 dan LED.
@@ -78,8 +80,8 @@ pub fn host_receive(&mut self) -> Option<u8>;
 - CSV board, CSV generik, dan VCD digital/analog.
 
 Total test `sim-board`: 23.
-Total test `sim-cli`: 11.
-Total workspace: 521.
+Total test `sim-cli`: 20.
+Total workspace: 533.
 
 ---
 
