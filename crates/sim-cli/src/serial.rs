@@ -190,7 +190,11 @@ impl Session {
     }
 
     fn handle_running_input(&mut self) -> Result<(), String> {
-        let Some(index) = self.buffer.iter().position(|byte| *byte == 0x1B) else {
+        let Some(index) = self
+            .buffer
+            .iter()
+            .position(|byte| *byte == 0x1B || *byte == 0x30)
+        else {
             self.feed_uart();
             return Ok(());
         };

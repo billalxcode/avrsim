@@ -12,6 +12,7 @@ const CMD_LEAVE_PROGMODE: u8 = 0x51;
 const CMD_CHIP_ERASE: u8 = 0x52;
 const CMD_CHECK_AUTOINC: u8 = 0x53;
 const CMD_LOAD_ADDRESS: u8 = 0x55;
+const CMD_UNIVERSAL: u8 = 0x56;
 const CMD_PROG_PAGE: u8 = 0x64;
 const CMD_READ_OSCCAL: u8 = 0x66;
 const CMD_READ_PAGE: u8 = 0x74;
@@ -20,6 +21,7 @@ const CMD_READ_SIGN: u8 = 0x75;
 const RESP_INSYNC: u8 = 0x14;
 const RESP_OK: u8 = 0x10;
 const RESP_NOSYNC: u8 = 0x00;
+const STK500_EOP: u8 = 0x20;
 
 /// One STK500 frame.
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -42,13 +44,23 @@ struct Header {
 /// Frame parsing error.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum FrameError {
-    /// Checksum or sequence complement is invalid.
+    /// Checksum, sequence complement, or STK500 end-of-packet is invalid.
     InvalidChecksum,
 }
 
 /// Parses one frame from a byte buffer.
 pub fn parse_frame(buffer: &mut Vec<u8>) -> Result<Option<Frame>, FrameError> {
-    resync(buffer);
+    if buffer.is_empty() {
+        return Ok(None);
+    }
+    if buffer[0] == 0x1B {
+        return parse_avr109(buffer);
+    }
+    parse_stk500(buffer)
+}
+
+fn parse_avr109(buffer: &mut Vec<u8>) -> Result<Option<Frame>, FrameError> {
+    resync_avr109(buffer);
     if buffer.len() < 4 {
         return Ok(None);
     }
@@ -60,6 +72,28 @@ pub fn parse_frame(buffer: &mut Vec<u8>) -> Result<Option<Frame>, FrameError> {
         return Ok(None);
     }
     finish_frame(buffer, header, total)
+}
+
+fn parse_stk500(buffer: &mut Vec<u8>) -> Result<Option<Frame>, FrameError> {
+    let command = buffer[0];
+    let Some(payload) = payload_length(command, &buffer[1..]) else {
+        return Ok(None);
+    };
+    let total = 1 + payload + 1;
+    if buffer.len() < total {
+        return Ok(None);
+    }
+    if buffer[total - 1] != STK500_EOP {
+        buffer.remove(0);
+        return Err(FrameError::InvalidChecksum);
+    }
+    let data = buffer[1..1 + payload].to_vec();
+    buffer.drain(..total);
+    Ok(Some(Frame {
+        command,
+        sequence: 0,
+        data,
+    }))
 }
 
 fn parse_header(buffer: &mut Vec<u8>) -> Result<Header, FrameError> {
@@ -98,7 +132,7 @@ fn finish_frame(
     }))
 }
 
-fn resync(buffer: &mut Vec<u8>) {
+fn resync_avr109(buffer: &mut Vec<u8>) {
     match buffer.iter().position(|byte| *byte == 0x1B) {
         Some(0) => {}
         Some(index) => {
@@ -114,6 +148,7 @@ fn payload_length(command: u8, available: &[u8]) -> Option<usize> {
         CMD_SET_DEVICE => Some(20),
         CMD_SET_DEVICE_EXT => Some(5),
         CMD_LOAD_ADDRESS => Some(2),
+        CMD_UNIVERSAL => Some(4),
         CMD_PROG_PAGE => variable_length(available),
         CMD_READ_PAGE => Some(3),
         _ => Some(0),
@@ -192,7 +227,7 @@ impl Bootloader {
             .map(|pair| u16::from_le_bytes([pair[0], pair[1]]))
             .collect();
         if words.is_empty() {
-            words.push(0x0000);
+            words.push(0xCFFF);
         }
         words
     }
@@ -273,6 +308,7 @@ fn fixed_response(frame: &Frame) -> Option<Vec<u8>> {
         CMD_SET_DEVICE | CMD_SET_DEVICE_EXT | CMD_ENTER_PROGMODE | CMD_CHECK_AUTOINC => {
             Some(ok(&[]))
         }
+        CMD_UNIVERSAL => Some(ok(&[0x00])),
         CMD_READ_SIGN => Some(ok(&SIGNATURE)),
         CMD_READ_OSCCAL => Some(ok(&[0x00])),
         _ => None,
@@ -338,6 +374,53 @@ mod tests {
     }
 
     #[test]
+    fn parses_stk500_get_sync() {
+        let mut buffer = vec![0x30, 0x20];
+        let frame = parse_frame(&mut buffer).expect("parse").expect("frame");
+        assert_eq!(frame.command, 0x30);
+        assert_eq!(frame.sequence, 0);
+        assert!(frame.data.is_empty());
+    }
+
+    #[test]
+    fn parses_stk500_load_address() {
+        let mut buffer = vec![0x55, 0x34, 0x12, 0x20];
+        let frame = parse_frame(&mut buffer).expect("parse").expect("frame");
+        assert_eq!(frame.command, 0x55);
+        assert_eq!(frame.data, vec![0x34, 0x12]);
+    }
+
+    #[test]
+    fn parses_stk500_prog_page() {
+        let mut buffer = vec![0x64, 0x00, 0x02, b'F', 0x34, 0x12, 0x20];
+        let frame = parse_frame(&mut buffer).expect("parse").expect("frame");
+        assert_eq!(frame.command, 0x64);
+        assert_eq!(frame.data, vec![0x00, 0x02, b'F', 0x34, 0x12]);
+    }
+
+    #[test]
+    fn rejects_stk500_bad_eop() {
+        let mut buffer = vec![0x30, 0x21];
+        assert_eq!(parse_frame(&mut buffer), Err(FrameError::InvalidChecksum));
+    }
+
+    #[test]
+    fn parses_stk500_universal() {
+        let mut buffer = vec![0x56, 0xAC, 0x80, 0x00, 0x00, 0x20];
+        let frame = parse_frame(&mut buffer).expect("parse").expect("frame");
+        assert_eq!(frame.command, 0x56);
+        assert_eq!(frame.data, vec![0xAC, 0x80, 0x00, 0x00]);
+    }
+
+    #[test]
+    fn handles_stk500_universal() {
+        let mut buffer = vec![0x56, 0xAC, 0x80, 0x00, 0x00, 0x20];
+        let frame = parse_frame(&mut buffer).expect("parse").expect("frame");
+        let mut bootloader = Bootloader::new();
+        assert_eq!(bootloader.handle(&frame), vec![0x14, 0x00, 0x10]);
+    }
+
+    #[test]
     fn handles_read_signature() {
         let mut bootloader = Bootloader::new();
         let response = bootloader.handle(&parse(&frame(0x75, 1, &[])));
@@ -374,7 +457,7 @@ mod tests {
         bootloader.handle(&parse(&frame(0x55, 1, &[0x00, 0x00])));
         bootloader.handle(&parse(&frame(0x64, 2, &[0x00, 0x02, b'F', 0x34, 0x12])));
         bootloader.handle(&parse(&frame(0x52, 3, &[])));
-        assert_eq!(bootloader.program_words(), vec![0x0000]);
+        assert_eq!(bootloader.program_words(), vec![0xCFFF]);
     }
 
     #[test]
