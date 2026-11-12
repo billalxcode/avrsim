@@ -1,6 +1,8 @@
 # embed-emu virtual USB serial
 # Grants the active local user access through systemd-logind uaccess.
-SUBSYSTEM=="tty", ATTRS{idVendor}=="1209", ATTRS{idProduct}=="0001", TAG+="uaccess", MODE="0660"
+# dummy_hcd has no ID_SEAT, so uaccess may not add an ACL. The setup
+# script also chowns the tty to SUDO_USER as a fallback.
+SUBSYSTEM=="tty", ATTRS{idVendor}=="1209", ATTRS{idProduct}=="0001", TAG+="uaccess", GROUP="dialout", MODE="0660"
 
 # Alternative for systems without uaccess:
 # SUBSYSTEM=="tty", ATTRS{idVendor}=="1209", ATTRS{idProduct}=="0001", GROUP="dialout", MODE="0660"

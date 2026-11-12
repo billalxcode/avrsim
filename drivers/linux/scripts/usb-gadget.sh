@@ -100,6 +100,7 @@ fix_device() {
 fix_permissions() {
     wait_for_device /dev/ttyGS0 || echo "warning: /dev/ttyGS0 not found" >&2
     wait_for_device /dev/ttyACM0 || echo "warning: /dev/ttyACM0 not found" >&2
+    udevadm settle --timeout=5 >/dev/null 2>&1 || true
     [[ -e /dev/ttyGS0 ]] && fix_device /dev/ttyGS0
     [[ -e /dev/ttyACM0 ]] && fix_device /dev/ttyACM0
 }

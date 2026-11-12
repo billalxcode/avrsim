@@ -193,8 +193,19 @@ ls -l /dev/ttyACM0
 id
 ```
 
-Script `usb-gadget.sh start` sudah melakukan `chown` ke `SUDO_USER` dan
-`chmod 0660` untuk `/dev/ttyACM0` dan `/dev/ttyGS0`.
+Script `usb-gadget.sh start` sudah melakukan `udevadm settle`, lalu
+`chown` ke `SUDO_USER` dan `chmod 0660` untuk `/dev/ttyACM0` dan
+`/dev/ttyGS0`.
+
+`uaccess` tidak selalu memberi ACL pada `dummy_hcd` karena device virtual
+itu tidak punya `ID_SEAT`. Jika device kembali menjadi `root:dialout`,
+tambahkan user ke group `dialout`:
+
+```bash
+sudo usermod -aG dialout "$USER"
+```
+
+Logout dan login kembali setelah menambah group.
 
 Untuk aturan permanen, pasang udev rule:
 

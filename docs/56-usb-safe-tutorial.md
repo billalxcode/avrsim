@@ -219,8 +219,37 @@ Penyebab umum:
 | `stop` menolak | `ttyGS0` masih dibuka | Hentikan bridge lebih dulu |
 | UDC busy | Gadget sudah terikat | Jalankan script baru; bind idempoten |
 | Upload busy | Serial Monitor atau avrdude lain membuka port | Tutup program tersebut |
+| Permission denied | Device dimiliki `root:dialout` dan user bukan anggota `dialout` | Chown device atau tambahkan user ke `dialout` |
 | Port tidak ada | Gadget setengah terhapus | `stop`, lalu `run-usb.sh` |
 | Dua client menunggu | Lebih dari satu `embed-emu usb` | Hentikan semuanya, jalankan satu |
+
+### 8.1 Permission denied
+
+Cek:
+
+```bash
+ls -l /dev/ttyACM0
+id
+```
+
+Jika hasilnya `root dialout` dan user tidak ada di group `dialout`, lakukan
+perbaikan sementara:
+
+```bash
+sudo chown "$USER" /dev/ttyACM0 /dev/ttyGS0
+```
+
+Lalu ulangi upload. Untuk perbaikan permanen, tambahkan user ke group
+`dialout`:
+
+```bash
+sudo usermod -aG dialout "$USER"
+```
+
+Logout dan login kembali agar group baru berlaku. Script `run-usb.sh`
+juga melakukan chown ke `SUDO_USER` setelah `udevadm settle`, tetapi
+`uaccess` tidak selalu memberi ACL pada `dummy_hcd` karena device virtual
+tersebut tidak punya `ID_SEAT`.
 
 Urutan pemulihan:
 
