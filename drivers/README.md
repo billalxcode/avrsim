@@ -2,7 +2,7 @@
 
 Direktori ini disiapkan untuk driver virtual USB di luar workspace Rust.
 
-**Status:** rencana. Belum ada kode driver.
+**Status:** scaffold Linux selesai. Logika USB belum ada.
 
 Dokumen riset: [`docs/55-usb-virtual-serial.md`](../docs/55-usb-virtual-serial.md).
 Todolist: [`TODO.md`](../TODO.md), bagian P18 dan P19.
@@ -36,14 +36,19 @@ drivers/
   README.md
   linux/
     CMakeLists.txt
+    README.md
+    include/embed_emu_usb/
     src/
-    include/
+    tests/
   windows/
+    README.md
   macos/
+    README.md
 ```
 
-Folder `windows/` dan `macos/` belum diisi sampai keputusan platform
-diambil.
+Scaffold Linux ada di [`linux/README.md`](linux/README.md).
+Rencana Windows ada di [`windows/README.md`](windows/README.md).
+Rencana macOS ada di [`macos/README.md`](macos/README.md).
 
 ---
 

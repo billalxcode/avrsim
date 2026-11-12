@@ -105,6 +105,7 @@ bash .opencode/skills/clean-code/scripts/check.sh
 | `sim-avr` | CPU AVR, decoder, ALU, register, peripheral |
 | `sim-board` | Board, LED, button, UART host, Intel HEX, ELF, CSV/VCD |
 | `sim-cli` | Binary `embed-emu`, monitor, disassembler, benchmark |
+| `drivers/` | Scaffold driver virtual USB C++ (opsional, di luar crate) |
 
 Aturan utama:
 

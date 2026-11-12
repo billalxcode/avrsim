@@ -2,7 +2,7 @@
 
 Daftar tugas lengkap dari hal terkecil sampai rilis. Setiap item harus kecil, dapat diuji, dan tidak menambah dependensi eksternal.
 
-> **Status:** P0 fondasi selesai. P8 selesai penuh. P9 sebagian besar selesai; ELF loader, simbol, ELF ke HEX, dan UART end-to-end selesai. P10 sparse, adaptive step, trapezoidal/Gear, AC linear, noise termal, distorsi kuasi-statis, sensitivitas numerik, suhu device, process corner, BJT, JFET, transmission line, determinisme Linux, fidelity matrix, batasan model, profiling, dan optimasi selesai. Golden suite dan determinisme macOS/Windows belum. P4 harness ngspice dan golden data belum karena ngspice tidak tersedia. P5 characterization, switching, input capacitance, drive strength, dan osilasi ring oscillator selesai; perbandingan ngspice belum. P11 user guide, contoh runnable, workflow CI, dan notices selesai; eksekusi GitHub Actions, tag, dan publikasi belum; packaging dan release notes siap. X-03 panic audit selesai; builder sel mencatat error dan melaporkannya di build. P3 body effect, gmb, Meyer capacitance, overlap, diode nonideal, BJT, JFET, transmission line, VCVS, VCCS, CCVS, CCCS, dan switch selesai; breakdown dan model termal lanjutan belum. P12 selesai: adaptive initial state, Newton transient, dan AC nonlinier. P13 selesai: kapasitansi diode dan MOSFET pada AC; kapasitansi BJT dan JFET belum. P14 selesai: AC controlled sources dan switch. P15 selesai: kapasitansi BJT dan JFET pada AC/transient. P16 selesai: virtual serial upload STK500 via socat. P17 selesai: UART0 register map, TX/RX, dan interrupt otomatis ke serial monitor. P18 riset selesai: virtual USB serial. P19 driver C++ direncanakan di drivers/[os]; keputusan jenis driver belum.
+> **Status:** P0 fondasi selesai. P8 selesai penuh. P9 sebagian besar selesai; ELF loader, simbol, ELF ke HEX, dan UART end-to-end selesai. P10 sparse, adaptive step, trapezoidal/Gear, AC linear, noise termal, distorsi kuasi-statis, sensitivitas numerik, suhu device, process corner, BJT, JFET, transmission line, determinisme Linux, fidelity matrix, batasan model, profiling, dan optimasi selesai. Golden suite dan determinisme macOS/Windows belum. P4 harness ngspice dan golden data belum karena ngspice tidak tersedia. P5 characterization, switching, input capacitance, drive strength, dan osilasi ring oscillator selesai; perbandingan ngspice belum. P11 user guide, contoh runnable, workflow CI, dan notices selesai; eksekusi GitHub Actions, tag, dan publikasi belum; packaging dan release notes siap. X-03 panic audit selesai; builder sel mencatat error dan melaporkannya di build. P3 body effect, gmb, Meyer capacitance, overlap, diode nonideal, BJT, JFET, transmission line, VCVS, VCCS, CCVS, CCCS, dan switch selesai; breakdown dan model termal lanjutan belum. P12 selesai: adaptive initial state, Newton transient, dan AC nonlinier. P13 selesai: kapasitansi diode dan MOSFET pada AC; kapasitansi BJT dan JFET belum. P14 selesai: AC controlled sources dan switch. P15 selesai: kapasitansi BJT dan JFET pada AC/transient. P16 selesai: virtual serial upload STK500 via socat. P17 selesai: UART0 register map, TX/RX, dan interrupt otomatis ke serial monitor. P18 riset selesai: virtual USB serial. P19 scaffold proyek C++ selesai di drivers/linux; driver FunctionFS belum.
 > **Aturan:** satu item selesai = kode + test + dokumentasi singkat.
 
 ---
@@ -785,11 +785,11 @@ ditutup otomatis saat proses berhenti.
 
 ### 19.1 Fondasi
 
-- [ ] P19-01 Buat struktur `drivers/linux`, `drivers/windows`, dan `drivers/macos`.
-- [ ] P19-02 Tulis `drivers/README.md` dengan arsitektur dan aturan.
-- [ ] P19-03 Buat build C++ (CMake) dan script build.
+- [x] P19-01 Buat struktur `drivers/linux`, `drivers/windows`, dan `drivers/macos`.
+- [x] P19-02 Tulis `drivers/README.md` dengan arsitektur dan aturan.
+- [x] P19-03 Buat build C++ (CMake) dan script build.
 - [ ] P19-04 Buat transport IPC Rust ke driver.
-- [ ] P19-05 Buat unit test C++ untuk parser dan descriptor.
+- [x] P19-05 Buat unit test C++ untuk parser opsi.
 - [ ] P19-06 Tambahkan build driver ke CI Linux.
 
 ### 19.2 Linux FunctionFS CDC ACM
