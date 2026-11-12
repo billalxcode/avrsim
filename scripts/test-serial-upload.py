@@ -17,6 +17,11 @@ UART = [
     0xE008, 0x9300, 0x00C1, 0xE000, 0x9300, 0x00C4,
     0x9300, 0x00C5, 0xE401, 0x9300, 0x00C6, 0xCFFF,
 ]
+ECHO = [
+    0xE108, 0x9300, 0x00C1, 0xE000, 0x9300, 0x00C4,
+    0x9300, 0x00C5, 0x9110, 0x00C0, 0xFF17, 0xCFFC,
+    0x9100, 0x00C6, 0x9300, 0x00C6, 0xCFF7,
+]
 
 
 def frame(command: int, sequence: int, data: bytes = b"") -> bytes:
@@ -79,7 +84,7 @@ def wait_for_led(process: subprocess.Popen, timeout: float = 5.0) -> bool:
     return False
 
 
-def read_uart(fd: int, timeout: float = 2.0) -> bool:
+def read_uart(fd: int, expected: bytes = b"A", timeout: float = 2.0) -> bool:
     deadline = time.time() + timeout
     data = b""
     while time.time() < deadline:
@@ -87,7 +92,7 @@ def read_uart(fd: int, timeout: float = 2.0) -> bool:
         if not ready:
             continue
         data += os.read(fd, 1024)
-        if b"A" in data:
+        if expected in data:
             return True
     return False
 
@@ -134,6 +139,13 @@ def main() -> int:
             upload(fd, UART)
             if not read_uart(fd):
                 print("error: UART output was not forwarded")
+                return 1
+            os.close(fd)
+            fd = os.open(link, os.O_RDWR | os.O_NOCTTY)
+            upload(fd, ECHO)
+            os.write(fd, b"Z")
+            if not read_uart(fd, b"Z"):
+                print("error: UART input was not echoed")
                 return 1
             os.close(fd)
         finally:

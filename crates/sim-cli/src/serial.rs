@@ -3,6 +3,7 @@
 use crate::bootloader::{Bootloader, Frame, parse_frame};
 use sim_avr::{Cpu, ExternalPin, PinElectricalConfig};
 use sim_board::Board;
+use std::collections::VecDeque;
 use std::io::{ErrorKind, Read, Write};
 use std::os::unix::net::UnixStream;
 use std::path::{Path, PathBuf};
@@ -113,6 +114,7 @@ struct Session {
     led_on: bool,
     toggles: usize,
     tx_reported: bool,
+    rx_queue: VecDeque<u8>,
 }
 
 enum ReadStatus {
@@ -134,6 +136,7 @@ impl Session {
             led_on: false,
             toggles: 0,
             tx_reported: false,
+            rx_queue: VecDeque::new(),
         })
     }
 
@@ -146,7 +149,7 @@ impl Session {
                 }
                 ReadStatus::Empty | ReadStatus::Data => {}
             }
-            self.handle_frames()?;
+            self.handle_input()?;
             if self.bootloader.running() {
                 self.step_cpu()?;
             }
@@ -167,6 +170,51 @@ impl Session {
                 Ok(ReadStatus::Empty)
             }
             Err(error) => Err(error.to_string()),
+        }
+    }
+
+    fn handle_input(&mut self) -> Result<(), String> {
+        if self.bootloader.running() {
+            return self.handle_running_input();
+        }
+        self.handle_frames()
+    }
+
+    fn handle_running_input(&mut self) -> Result<(), String> {
+        let Some(index) = self.buffer.iter().position(|byte| *byte == 0x1B) else {
+            self.feed_uart();
+            return Ok(());
+        };
+        if index > 0 {
+            let prefix: Vec<u8> = self.buffer.drain(..index).collect();
+            self.feed_bytes(&prefix);
+            return Ok(());
+        }
+        match parse_frame(&mut self.buffer) {
+            Ok(Some(frame)) => self.handle_frame(&frame),
+            Ok(None) => Ok(()),
+            Err(_) => {
+                self.feed_uart();
+                Ok(())
+            }
+        }
+    }
+
+    fn feed_uart(&mut self) {
+        let bytes = std::mem::take(&mut self.buffer);
+        self.feed_bytes(&bytes);
+    }
+
+    fn feed_bytes(&mut self, bytes: &[u8]) {
+        self.rx_queue.extend(bytes.iter().copied());
+    }
+
+    fn pump_uart(&mut self) {
+        if self.cpu.uart().rx_ready() {
+            return;
+        }
+        if let Some(byte) = self.rx_queue.pop_front() {
+            self.cpu.uart().receive(byte);
         }
     }
 
@@ -203,10 +251,12 @@ impl Session {
             .map_err(|error| error.to_string())?;
         self.led_on = false;
         self.toggles = 0;
+        self.rx_queue.clear();
         Ok(())
     }
 
     fn step_cpu(&mut self) -> Result<(), String> {
+        self.pump_uart();
         for _ in 0..32 {
             if self
                 .cpu
