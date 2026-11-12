@@ -127,6 +127,14 @@ pub(crate) fn thermal_voltage(params: &BTreeMap<String, f64>) -> Result<f64, Sim
     positive_parameter(params, "vt", Some(default))
 }
 
+pub(crate) fn depletion_capacitance(zero: f64, potential: f64, grading: f64, voltage: f64) -> f64 {
+    if zero <= 0.0 {
+        return 0.0;
+    }
+    let ratio = (1.0 - voltage / potential).max(0.1);
+    zero / ratio.powf(grading)
+}
+
 /// Returns the critical junction voltage used by limiting.
 pub(crate) fn junction_critical_voltage(saturation: f64, thermal_voltage: f64) -> f64 {
     thermal_voltage * (thermal_voltage / (std::f64::consts::SQRT_2 * saturation)).ln()

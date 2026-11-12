@@ -1,9 +1,9 @@
 //! Shockley diode model.
 
 use crate::model::{
-    DeviceModel, MAX_EXPONENT, MAX_FORWARD_VOLTAGE, junction_critical_voltage,
-    non_negative_parameter, pins_exact, pnjlim, positive_parameter, stamp_capacitor,
-    stamp_conductance, terminal_conductance, thermal_voltage,
+    DeviceModel, MAX_EXPONENT, MAX_FORWARD_VOLTAGE, depletion_capacitance,
+    junction_critical_voltage, non_negative_parameter, pins_exact, pnjlim, positive_parameter,
+    stamp_capacitor, stamp_conductance, terminal_conductance, thermal_voltage,
 };
 use sim_core::{Device, DeviceInstance, MnaContext, NodeId, SimError, Solution};
 use std::collections::BTreeMap;
@@ -43,11 +43,7 @@ pub fn diode_capacitance(params: &BTreeMap<String, f64>, voltage: f64) -> Result
 }
 
 fn capacitance_at(cap: &JunctionCapacitance, voltage: f64) -> f64 {
-    if cap.zero <= 0.0 {
-        return 0.0;
-    }
-    let ratio = (1.0 - voltage / cap.potential).max(0.1);
-    cap.zero / ratio.powf(cap.grading)
+    depletion_capacitance(cap.zero, cap.potential, cap.grading, voltage)
 }
 
 impl DiodeModel {
