@@ -11,6 +11,10 @@ mod serial {
     pub fn run(_args: &[String]) -> Result<(), String> {
         Err("serial mode is only supported on Unix".to_string())
     }
+
+    pub fn run_usb(_args: &[String]) -> Result<(), String> {
+        Err("USB mode is only supported on Unix".to_string())
+    }
 }
 
 use monitor::{Monitor, parse_number, parse_word};
@@ -42,6 +46,7 @@ fn dispatch(command: &str, words: &[String]) -> Result<(), String> {
         }
         "bench" => bench::run(words),
         "serial" => serial::run(words),
+        "usb" => serial::run_usb(words),
         _ => Err(usage()),
     }
 }
@@ -134,5 +139,5 @@ fn number(args: &[&str], index: usize, default: usize) -> Result<usize, String> 
 }
 
 fn usage() -> String {
-    "usage: embed-emu [--link path] [--socket path] | embed-emu monitor <hex words...> | embed-emu disasm <hex words...> | embed-emu run <file.hex> [steps] | embed-emu bench [iterations] [nodes] | embed-emu serial [--link path] [--socket path]".to_string()
+    "usage: embed-emu [--link path] [--socket path] | embed-emu monitor <hex words...> | embed-emu disasm <hex words...> | embed-emu run <file.hex> [steps] | embed-emu bench [iterations] [nodes] | embed-emu serial [--link path] [--socket path] | embed-emu usb [--socket path]".to_string()
 }

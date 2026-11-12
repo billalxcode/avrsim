@@ -12,6 +12,7 @@ use std::time::{Duration, Instant};
 
 const DEFAULT_LINK: &str = "/tmp/embed-emu-tty";
 const DEFAULT_SOCKET: &str = "/tmp/embed-emu-sock";
+const DEFAULT_USB_SOCKET: &str = "/tmp/embed-emu-usb.sock";
 
 /// Runs the virtual serial port until the client closes it.
 pub fn run(args: &[String]) -> Result<(), String> {
@@ -24,6 +25,14 @@ pub fn run(args: &[String]) -> Result<(), String> {
     serve(stream)?;
     drop(port);
     Ok(())
+}
+
+/// Connects to the C++ USB driver and serves STK500 over its socket.
+pub fn run_usb(args: &[String]) -> Result<(), String> {
+    let socket = path_arg(args, "--socket", DEFAULT_USB_SOCKET);
+    println!("USB driver socket: {}", socket.display());
+    let stream = connect(&socket)?;
+    serve(stream)
 }
 
 fn path_arg(args: &[String], flag: &str, default: &str) -> PathBuf {
