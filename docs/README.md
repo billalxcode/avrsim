@@ -59,6 +59,7 @@ Setiap dokumen muncul satu kali pada peta ini.
 | No | Dokumen | Fokus |
 |---|---|---|
 | 43 | [Panduan pengguna](43-user-guide.md) | Build, CLI, library, analisis, firmware, troubleshooting |
+| 55 | [Virtual USB serial](55-usb-virtual-serial.md) | Riset CDC ACM, dummy_hcd, USB/IP, Windows/macOS |
 
 ### 3.2 Fondasi
 
@@ -190,6 +191,7 @@ Setiap dokumen muncul satu kali pada peta ini.
 | Board | LED, resistor, button, UART host, pin electrical | Belum netlist analog penuh |
 | Format | Intel HEX, ELF32, CSV, VCD digital, VCD analog | Belum ada GUI |
 | Virtual serial | Upload STK500/Optiboot via `socat`, jalankan firmware, TX/RX UART, cleanup | RX timing sederhana; IDE discovery terbatas |
+| Virtual USB | Riset selesai: CDC ACM, dummy_hcd, USB/IP, Windows/macOS | Implementasi belum |
 | CLI | `run`, `monitor`, `disasm`, `bench`, `serial` | Belum ada parser netlist SPICE |
 
 ---

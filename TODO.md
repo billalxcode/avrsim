@@ -2,7 +2,7 @@
 
 Daftar tugas lengkap dari hal terkecil sampai rilis. Setiap item harus kecil, dapat diuji, dan tidak menambah dependensi eksternal.
 
-> **Status:** P0 fondasi selesai. P8 selesai penuh. P9 sebagian besar selesai; ELF loader, simbol, ELF ke HEX, dan UART end-to-end selesai. P10 sparse, adaptive step, trapezoidal/Gear, AC linear, noise termal, distorsi kuasi-statis, sensitivitas numerik, suhu device, process corner, BJT, JFET, transmission line, determinisme Linux, fidelity matrix, batasan model, profiling, dan optimasi selesai. Golden suite dan determinisme macOS/Windows belum. P4 harness ngspice dan golden data belum karena ngspice tidak tersedia. P5 characterization, switching, input capacitance, drive strength, dan osilasi ring oscillator selesai; perbandingan ngspice belum. P11 user guide, contoh runnable, workflow CI, dan notices selesai; eksekusi GitHub Actions, tag, dan publikasi belum; packaging dan release notes siap. X-03 panic audit selesai; builder sel mencatat error dan melaporkannya di build. P3 body effect, gmb, Meyer capacitance, overlap, diode nonideal, BJT, JFET, transmission line, VCVS, VCCS, CCVS, CCCS, dan switch selesai; breakdown dan model termal lanjutan belum. P12 selesai: adaptive initial state, Newton transient, dan AC nonlinier. P13 selesai: kapasitansi diode dan MOSFET pada AC; kapasitansi BJT dan JFET belum. P14 selesai: AC controlled sources dan switch. P15 selesai: kapasitansi BJT dan JFET pada AC/transient. P16 selesai: virtual serial upload STK500 via socat. P17 selesai: UART0 register map, TX/RX, dan interrupt otomatis ke serial monitor.
+> **Status:** P0 fondasi selesai. P8 selesai penuh. P9 sebagian besar selesai; ELF loader, simbol, ELF ke HEX, dan UART end-to-end selesai. P10 sparse, adaptive step, trapezoidal/Gear, AC linear, noise termal, distorsi kuasi-statis, sensitivitas numerik, suhu device, process corner, BJT, JFET, transmission line, determinisme Linux, fidelity matrix, batasan model, profiling, dan optimasi selesai. Golden suite dan determinisme macOS/Windows belum. P4 harness ngspice dan golden data belum karena ngspice tidak tersedia. P5 characterization, switching, input capacitance, drive strength, dan osilasi ring oscillator selesai; perbandingan ngspice belum. P11 user guide, contoh runnable, workflow CI, dan notices selesai; eksekusi GitHub Actions, tag, dan publikasi belum; packaging dan release notes siap. X-03 panic audit selesai; builder sel mencatat error dan melaporkannya di build. P3 body effect, gmb, Meyer capacitance, overlap, diode nonideal, BJT, JFET, transmission line, VCVS, VCCS, CCVS, CCCS, dan switch selesai; breakdown dan model termal lanjutan belum. P12 selesai: adaptive initial state, Newton transient, dan AC nonlinier. P13 selesai: kapasitansi diode dan MOSFET pada AC; kapasitansi BJT dan JFET belum. P14 selesai: AC controlled sources dan switch. P15 selesai: kapasitansi BJT dan JFET pada AC/transient. P16 selesai: virtual serial upload STK500 via socat. P17 selesai: UART0 register map, TX/RX, dan interrupt otomatis ke serial monitor. P18 riset selesai: virtual USB serial; implementasi Linux belum.
 > **Aturan:** satu item selesai = kode + test + dokumentasi singkat.
 
 ---
@@ -753,6 +753,38 @@ ditutup otomatis saat proses berhenti.
 - [x] P17-10 Dokumentasikan dukungan TX, RX, dan batas.
 
 **Exit P17:** firmware dapat mengirim dan menerima data melalui serial monitor.
+
+---
+
+## P18 - Virtual USB Serial Port
+
+### 18.1 Riset
+
+- [x] P18-01 Riset protokol USB CDC ACM dan descriptor.
+- [x] P18-02 Riset `dummy_hcd` dan ConfigFS ACM.
+- [x] P18-03 Riset `usbip-vudc`, VHCI, dan USB/IP.
+- [x] P18-04 Riset FunctionFS dan Raw Gadget.
+- [x] P18-05 Riset Windows `usbser.sys` dan `usbip-win2`.
+- [x] P18-06 Riset macOS DriverKit dan fallback PTY.
+- [x] P18-07 Tulis `docs/55-usb-virtual-serial.md`.
+
+### 18.2 Implementasi Linux
+
+- [ ] P18-08 Buat setup helper `dummy_hcd` + ConfigFS ACM.
+- [ ] P18-09 Abstrak transport serial dari protokol STK500.
+- [ ] P18-10 Implementasikan backend `/dev/ttyGS0`.
+- [ ] P18-11 Uji upload dan Serial Monitor dari Arduino IDE.
+- [ ] P18-12 Dokumentasikan setup root dan cleanup.
+
+### 18.3 Lintas Platform
+
+- [ ] P18-13 Implementasikan server USB/IP di Rust.
+- [ ] P18-14 Uji `vhci-hcd` di Linux.
+- [ ] P18-15 Uji `usbip-win2` di Windows.
+- [ ] P18-16 Evaluasi custom discovery plugin untuk macOS.
+
+**Exit P18:** USB serial virtual muncul sebagai `/dev/ttyACM0` dan dapat
+dipakai Arduino IDE di Linux.
 
 ---
 
