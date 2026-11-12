@@ -2,7 +2,7 @@
 
 Direktori ini disiapkan untuk driver virtual USB di luar workspace Rust.
 
-**Status:** bridge C++ dan setup ConfigFS ACM selesai. Verifikasi `/dev/ttyACM0` menunggu root dan `dummy_hcd`.
+**Status:** bridge C++, ConfigFS ACM, `/dev/ttyACM0`, dan upload avrdude berhasil. GUI Arduino IDE dan cleanup gadget belum diverifikasi.
 
 Dokumen riset: [`docs/55-usb-virtual-serial.md`](../docs/55-usb-virtual-serial.md).
 Todolist: [`TODO.md`](../TODO.md), bagian P18 dan P19.

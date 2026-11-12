@@ -305,6 +305,13 @@ Terminal 2:
 
 Host melihat `/dev/ttyACM0`. Arduino IDE dapat memilih port tersebut.
 
+Jalankan hanya satu instance `embed-emu usb`. Jika ada beberapa instance,
+hanya client pertama yang terhubung ke bridge; sisanya menunggu dan dapat
+membuat upload tampak gagal.
+
+Terverifikasi dengan `avrdude 8.0`: sync, signature, upload, verify, dan
+firmware blink berjalan.
+
 Test bridge tanpa gadget kernel:
 
 ```bash

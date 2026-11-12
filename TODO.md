@@ -2,7 +2,7 @@
 
 Daftar tugas lengkap dari hal terkecil sampai rilis. Setiap item harus kecil, dapat diuji, dan tidak menambah dependensi eksternal.
 
-> **Status:** P0 fondasi selesai. P8 selesai penuh. P9 sebagian besar selesai; ELF loader, simbol, ELF ke HEX, dan UART end-to-end selesai. P10 sparse, adaptive step, trapezoidal/Gear, AC linear, noise termal, distorsi kuasi-statis, sensitivitas numerik, suhu device, process corner, BJT, JFET, transmission line, determinisme Linux, fidelity matrix, batasan model, profiling, dan optimasi selesai. Golden suite dan determinisme macOS/Windows belum. P4 harness ngspice dan golden data belum karena ngspice tidak tersedia. P5 characterization, switching, input capacitance, drive strength, dan osilasi ring oscillator selesai; perbandingan ngspice belum. P11 user guide, contoh runnable, workflow CI, dan notices selesai; eksekusi GitHub Actions, tag, dan publikasi belum; packaging dan release notes siap. X-03 panic audit selesai; builder sel mencatat error dan melaporkannya di build. P3 body effect, gmb, Meyer capacitance, overlap, diode nonideal, BJT, JFET, transmission line, VCVS, VCCS, CCVS, CCCS, dan switch selesai; breakdown dan model termal lanjutan belum. P12 selesai: adaptive initial state, Newton transient, dan AC nonlinier. P13 selesai: kapasitansi diode dan MOSFET pada AC; kapasitansi BJT dan JFET belum. P14 selesai: AC controlled sources dan switch. P15 selesai: kapasitansi BJT dan JFET pada AC/transient. P16 selesai: virtual serial upload STK500 via socat. P17 selesai: UART0 register map, TX/RX, dan interrupt otomatis ke serial monitor. P18 riset selesai: virtual USB serial. P19 bridge C++ dan setup ConfigFS ACM selesai; verifikasi /dev/ttyACM0 dan Arduino IDE menunggu root.
+> **Status:** P0 fondasi selesai. P8 selesai penuh. P9 sebagian besar selesai; ELF loader, simbol, ELF ke HEX, dan UART end-to-end selesai. P10 sparse, adaptive step, trapezoidal/Gear, AC linear, noise termal, distorsi kuasi-statis, sensitivitas numerik, suhu device, process corner, BJT, JFET, transmission line, determinisme Linux, fidelity matrix, batasan model, profiling, dan optimasi selesai. Golden suite dan determinisme macOS/Windows belum. P4 harness ngspice dan golden data belum karena ngspice tidak tersedia. P5 characterization, switching, input capacitance, drive strength, dan osilasi ring oscillator selesai; perbandingan ngspice belum. P11 user guide, contoh runnable, workflow CI, dan notices selesai; eksekusi GitHub Actions, tag, dan publikasi belum; packaging dan release notes siap. X-03 panic audit selesai; builder sel mencatat error dan melaporkannya di build. P3 body effect, gmb, Meyer capacitance, overlap, diode nonideal, BJT, JFET, transmission line, VCVS, VCCS, CCVS, CCCS, dan switch selesai; breakdown dan model termal lanjutan belum. P12 selesai: adaptive initial state, Newton transient, dan AC nonlinier. P13 selesai: kapasitansi diode dan MOSFET pada AC; kapasitansi BJT dan JFET belum. P14 selesai: AC controlled sources dan switch. P15 selesai: kapasitansi BJT dan JFET pada AC/transient. P16 selesai: virtual serial upload STK500 via socat. P17 selesai: UART0 register map, TX/RX, dan interrupt otomatis ke serial monitor. P18 riset selesai: virtual USB serial. P19 virtual USB berjalan: bridge C++, ConfigFS ACM, /dev/ttyACM0, STK500v1, dan upload avrdude berhasil; verifikasi GUI Arduino IDE dan cleanup gadget belum.
 > **Aturan:** satu item selesai = kode + test + dokumentasi singkat.
 
 ---
@@ -806,9 +806,9 @@ ditutup otomatis saat proses berhenti.
 - [x] P19-13 Buat script setup `dummy_hcd` dan ConfigFS ACM.
 - [x] P19-14 Buat teardown gadget.
 - [x] P19-15 Atur permission `/dev/ttyGS0` dan `/dev/ttyACM0`.
-- [ ] P19-16 Verifikasi `/dev/ttyACM0` dengan root.
-- [ ] P19-17 Uji upload dari Arduino IDE.
-- [ ] P19-18 Uji reset DTR.
+- [x] P19-16 Verifikasi `/dev/ttyACM0` dengan root.
+- [ ] P19-17 Uji upload dari Arduino IDE GUI.
+- [x] P19-18 Uji reset DTR melalui avrdude.
 - [ ] P19-19 Uji cleanup gadget saat Ctrl-C.
 
 ### 19.4 FunctionFS Alternatif
@@ -841,7 +841,9 @@ ditutup otomatis saat proses berhenti.
 - [x] P19-36 Dokumentasikan setup root.
 - [x] P19-37 Dokumentasikan batas driver C++.
 - [x] P19-39 Sediakan udev rule dan installer permission.
-- [ ] P19-40 Verifikasi akses `/dev/ttyACM0` tanpa sudo.
+- [x] P19-40 Verifikasi akses `/dev/ttyACM0` tanpa sudo.
+- [x] P19-41 Implementasikan parser STK500v1 untuk avrdude.
+- [x] P19-42 Verifikasi upload dan verify dengan avrdude 8.0.
 - [ ] P19-38 Perbarui `docs/55` dan `docs/README.md` setelah verifikasi.
 
 **Exit P19:** driver C++ menghasilkan USB serial virtual yang terdeteksi

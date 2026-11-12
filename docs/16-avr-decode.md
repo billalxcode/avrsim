@@ -217,7 +217,7 @@ Test decoder mencakup:
 - Blink assembly dijalankan dan PORTB bit 5 terbukti toggle.
 
 Total test `sim-avr`: 206.
-Total test `sim-cli`: 20.
+Total test `sim-cli`: 26.
 
 ---
 

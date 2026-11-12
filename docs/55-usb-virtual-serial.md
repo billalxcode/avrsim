@@ -2,7 +2,7 @@
 
 Dokumen ini merangkum riset untuk membuat virtual USB serial port.
 
-**Status:** riset dan scaffold bridge C++ selesai; verifikasi `/dev/ttyACM0` menunggu root.
+**Status:** riset, bridge C++, ConfigFS ACM, dan upload STK500v1 berhasil; verifikasi GUI Arduino IDE dan cleanup gadget belum.
 
 **Kesimpulan awal:**
 
@@ -451,13 +451,20 @@ Sudah ada:
 - Bridge C++ `drivers/linux` antara `/dev/ttyGS0` dan Unix socket.
 - Script setup dan teardown ConfigFS ACM.
 - Perintah Rust `embed-emu usb --socket PATH`.
+- Parser STK500v1 untuk avrdude dan AVR109 untuk kompatibilitas.
 - Test integrasi bridge memakai PTY.
+
+Sudah diverifikasi:
+
+- `/dev/ttyACM0` muncul dari `dummy_hcd` dan ConfigFS ACM.
+- Akses `/dev/ttyACM0` tanpa sudo.
+- `avrdude 8.0` sync, signature, upload, dan verify.
+- Firmware blink berjalan dan LED berubah.
+- DTR dari avrdude tidak memutus bridge.
 
 Belum diverifikasi:
 
-- `/dev/ttyACM0` dari `dummy_hcd` dan ConfigFS ACM.
-- Upload Arduino IDE.
-- Perilaku DTR dan reset.
+- Upload dari GUI Arduino IDE.
 - Cleanup gadget setelah Ctrl-C.
 
 Perintah:

@@ -96,7 +96,7 @@ Analisis:
 
 Total test `sim-device`: 48.
 Total test `sim-analysis`: 108.
-Total workspace: 537.
+Total workspace: 543.
 
 ---
 

@@ -2,8 +2,8 @@
 
 Driver user-space C++ untuk menghubungkan virtual USB serial ke simulator.
 
-**Status:** bridge tty ke Unix socket berjalan. Setup ConfigFS ACM tersedia
-dan menunggu verifikasi dengan root dan `dummy_hcd`.
+**Status:** bridge C++, ConfigFS ACM, `/dev/ttyACM0`, STK500v1, dan upload
+avrdude 8.0 berhasil. GUI Arduino IDE dan cleanup gadget belum diverifikasi.
 
 Riset: [`docs/55-usb-virtual-serial.md`](../../docs/55-usb-virtual-serial.md).
 Todolist: [`TODO.md`](../../TODO.md), bagian P19.

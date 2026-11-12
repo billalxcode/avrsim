@@ -80,8 +80,8 @@ pub fn host_receive(&mut self) -> Option<u8>;
 - CSV board, CSV generik, dan VCD digital/analog.
 
 Total test `sim-board`: 23.
-Total test `sim-cli`: 20.
-Total workspace: 537.
+Total test `sim-cli`: 26.
+Total workspace: 543.
 
 ---
 
