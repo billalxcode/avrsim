@@ -52,10 +52,14 @@ bind_udc() {
         echo "check: ls /sys/class/udc" >&2
         exit 1
     fi
-    if [[ "$(cat "$GADGET/UDC")" == "$UDC_NAME" ]]; then
+    if udc_is_bound; then
         return 0
     fi
     echo "$UDC_NAME" > "$GADGET/UDC"
+}
+
+udc_is_bound() {
+    [[ "$(cat "$GADGET/UDC")" == "$UDC_NAME" ]]
 }
 
 gadget_complete() {
@@ -131,7 +135,7 @@ stop() {
         echo "gadget not found: $GADGET"
         return 0
     fi
-    if [[ -e "$GADGET/UDC" ]]; then
+    if udc_is_bound; then
         echo "" > "$GADGET/UDC"
     fi
     remove_gadget_dirs
