@@ -67,7 +67,7 @@ impl Timer0 {
 - PWM inverting adalah kebalikan non-inverting.
 - CPU menghasilkan sinyal PWM dari TCCR0A, OCR0A, dan TCCR0B.
 
-Total test `sim-avr`: 202.
+Total test `sim-avr`: 205.
 
 ---
 

@@ -2,7 +2,7 @@
 
 Pintu masuk dokumentasi `embed-emulation` versi 0.1.0.
 
-**Status saat ini:** 533 test lulus, 7 crate, nol dependensi eksternal Rust,
+**Status saat ini:** 536 test lulus, 7 crate, nol dependensi eksternal Rust,
 tag `v0.1` tersedia.
 
 ---
@@ -153,7 +153,7 @@ Setiap dokumen muncul satu kali pada peta ini.
 |---|---|
 | Versi workspace | `0.1.0` |
 | Tag | `v0.1` |
-| Test | 533 lulus |
+| Test | 536 lulus |
 | Crate | 7 |
 | Dependensi eksternal | 0 |
 | `unsafe` | Dilarang di seluruh workspace |
@@ -172,10 +172,10 @@ Setiap dokumen muncul satu kali pada peta ini.
 | `sim-device` | 48 |
 | `sim-analysis` | 108 |
 | `sim-cells` | 70 |
-| `sim-avr` | 202 |
+| `sim-avr` | 205 |
 | `sim-board` | 23 |
 | `sim-cli` | 20 |
-| **Total** | **533** |
+| **Total** | **536** |
 
 ---
 
@@ -189,7 +189,7 @@ Setiap dokumen muncul satu kali pada peta ini.
 | AVR | ISA, ALU, register, SRAM, flash, GPIO, timer, UART, SPI, TWI, ADC | Timing mendekati, bukan silikon |
 | Board | LED, resistor, button, UART host, pin electrical | Belum netlist analog penuh |
 | Format | Intel HEX, ELF32, CSV, VCD digital, VCD analog | Belum ada GUI |
-| Virtual serial | Upload STK500/Optiboot via `socat`, jalankan firmware, cleanup | Serial monitor belum |
+| Virtual serial | Upload STK500/Optiboot via `socat`, jalankan firmware, TX UART, cleanup | RX UART belum |
 | CLI | `run`, `monitor`, `disasm`, `bench`, `serial` | Belum ada parser netlist SPICE |
 
 ---

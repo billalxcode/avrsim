@@ -42,8 +42,12 @@ Mask adalah penyederhanaan dari bit enable UCSR0B.
 ## 4. Integrasi CPU
 
 - UART dimiliki oleh CPU dan maju setiap instruksi.
-- Akses konfigurasi melalui `Cpu::uart()`.
-- Belum ada pemetaan UDR0 dan UCSR0 ke instruksi IN/OUT atau LDS/STS.
+- UDR0, UCSR0A, UCSR0B, UCSR0C, UBRR0L, dan UBRR0H dipetakan ke I/O
+  dan data space.
+- TX byte diteruskan ke virtual serial port.
+- RX dari virtual serial belum diteruskan ke UART.
+- Interrupt UART masih manual melalui `poll_uart`; belum otomatis dari
+  status UART.
 
 ---
 
@@ -60,15 +64,19 @@ Mask adalah penyederhanaan dari bit enable UCSR0B.
 - UART transmit dari cycle CPU.
 - Frame TX didekode kembali dari TX line memakai cycle CPU.
 - RX interrupt masuk ke vektor 18.
+- Register UART menggerakkan transmitter melalui STS.
+- LDS dari UDR0 membaca byte dan membersihkan RXC.
+- Write ke UCSR0A membersihkan TXC.
+- Smoke test virtual serial menerima byte UART.
 
-Total test `sim-avr`: 202.
+Total test `sim-avr`: 205.
 
 ---
 
 ## 6. Batas
 
-- UART belum dipetakan ke register I/O CPU.
-- Virtual serial upload memakai STK500, bukan UART0; serial monitor belum tersedia.
+- RX dari virtual serial belum dijembatani ke UART.
+- Interrupt UART belum dipicu otomatis dari flag UART.
 - RX timing belum mengikuti baud divider.
 - Parity, stop bit ganda, dan mode sinkron belum didukung.
 - TX dan UDRE interrupt sudah meminta vektor tetapi belum diuji end-to-end.

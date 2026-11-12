@@ -60,6 +60,7 @@ Tag `v0.1` tersedia; publikasi biner dan GitHub release belum.
 - Intel HEX loader/writer.
 - ELF32 loader, simbol, dan konversi flash ke Intel HEX.
 - Virtual serial STK500/Optiboot melalui `socat`; firmware berjalan setelah upload.
+- UART0 dipetakan ke register I/O dan TX diteruskan ke virtual serial.
 - Cleanup PTY dan socket saat CLI menerima Ctrl-C.
 
 ---
@@ -126,7 +127,7 @@ Perintah:
 ./scripts/package.sh
 ```
 
-Total test workspace: 533.
+Total test workspace: 536.
 
 ---
 
