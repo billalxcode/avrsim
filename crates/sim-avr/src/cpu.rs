@@ -890,10 +890,32 @@ impl Cpu {
         instruction: &Instruction,
         next_pc: u16,
     ) -> Result<(), SimError> {
+        if matches!(instruction.mnemonic, Mnemonic::Adiw | Mnemonic::Sbiw) {
+            return self.execute_word_immediate(instruction, next_pc);
+        }
         if let Some((destination, value)) = update_operand(instruction)? {
             return self.execute_update(instruction.mnemonic, destination, value, next_pc);
         }
         self.execute_binary_arithmetic(instruction, next_pc)
+    }
+
+    fn execute_word_immediate(
+        &mut self,
+        instruction: &Instruction,
+        next_pc: u16,
+    ) -> Result<(), SimError> {
+        let destination = register(instruction.first)?;
+        let immediate_value = u16::from(immediate(instruction.second)?);
+        let value = self.read_pointer(destination);
+        let (result, carry, overflow) =
+            word_arithmetic(instruction.mnemonic, value, immediate_value);
+        self.write_pointer(destination, result)?;
+        self.sreg.carry = carry;
+        self.sreg.zero = result == 0;
+        self.sreg.negative = result & 0x8000 != 0;
+        self.sreg.overflow = overflow;
+        self.sreg.sign = self.sreg.negative ^ self.sreg.overflow;
+        self.advance(next_pc)
     }
 
     fn execute_binary_arithmetic(
@@ -1726,6 +1748,19 @@ fn is_move(mnemonic: Mnemonic) -> bool {
     matches!(mnemonic, Mnemonic::Ldi | Mnemonic::Mov | Mnemonic::Movw)
 }
 
+fn word_arithmetic(mnemonic: Mnemonic, value: u16, immediate: u16) -> (u16, bool, bool) {
+    if mnemonic == Mnemonic::Adiw {
+        let result = value.wrapping_add(immediate);
+        let carry = value & 0x8000 != 0 && result & 0x8000 == 0;
+        let overflow = value & 0x8000 == 0 && result & 0x8000 != 0;
+        return (result, carry, overflow);
+    }
+    let result = value.wrapping_sub(immediate);
+    let carry = value & 0x8000 == 0 && result & 0x8000 != 0;
+    let overflow = value & 0x8000 != 0 && result & 0x8000 == 0;
+    (result, carry, overflow)
+}
+
 fn is_arithmetic(mnemonic: Mnemonic) -> bool {
     matches!(
         mnemonic,
@@ -1741,6 +1776,8 @@ fn is_arithmetic(mnemonic: Mnemonic) -> bool {
             | Mnemonic::Neg
             | Mnemonic::Inc
             | Mnemonic::Dec
+            | Mnemonic::Adiw
+            | Mnemonic::Sbiw
     )
 }
 
@@ -2149,6 +2186,56 @@ mod tests {
         let cpu = run(vec![ldi(16, 5), ldi(17, 3), reg_op(0x0C00, 16, 17), 0x9598]);
         assert_eq!(cpu.register(16), 8);
         assert!(cpu.is_halted());
+    }
+
+    #[test]
+    fn adiw_sets_positive_overflow() {
+        let cpu = run(vec![ldi(24, 0xFF), ldi(25, 0x7F), 0x9601, 0x9598]);
+        assert_eq!(cpu.register(24), 0x00);
+        assert_eq!(cpu.register(25), 0x80);
+        let flags = cpu.sreg();
+        assert!(flags.negative);
+        assert!(flags.overflow);
+        assert!(!flags.carry);
+        assert!(!flags.zero);
+        assert!(!flags.sign);
+    }
+
+    #[test]
+    fn adiw_wraps_and_sets_carry() {
+        let cpu = run(vec![ldi(24, 0xFF), ldi(25, 0xFF), 0x9601, 0x9598]);
+        assert_eq!(cpu.register(24), 0x00);
+        assert_eq!(cpu.register(25), 0x00);
+        let flags = cpu.sreg();
+        assert!(flags.carry);
+        assert!(flags.zero);
+        assert!(!flags.negative);
+        assert!(!flags.overflow);
+    }
+
+    #[test]
+    fn sbiw_sets_borrow() {
+        let cpu = run(vec![ldi(24, 0x00), ldi(25, 0x00), 0x9701, 0x9598]);
+        assert_eq!(cpu.register(24), 0xFF);
+        assert_eq!(cpu.register(25), 0xFF);
+        let flags = cpu.sreg();
+        assert!(flags.carry);
+        assert!(flags.negative);
+        assert!(!flags.zero);
+        assert!(!flags.overflow);
+        assert!(flags.sign);
+    }
+
+    #[test]
+    fn sbiw_sets_negative_overflow() {
+        let cpu = run(vec![ldi(24, 0x00), ldi(25, 0x80), 0x9701, 0x9598]);
+        assert_eq!(cpu.register(24), 0xFF);
+        assert_eq!(cpu.register(25), 0x7F);
+        let flags = cpu.sreg();
+        assert!(!flags.carry);
+        assert!(!flags.negative);
+        assert!(flags.overflow);
+        assert!(flags.sign);
     }
 
     #[test]
