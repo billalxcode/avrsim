@@ -2,7 +2,7 @@
 
 Direktori ini disiapkan untuk driver virtual USB di luar workspace Rust.
 
-**Status:** scaffold Linux selesai. Logika USB belum ada.
+**Status:** bridge C++ dan setup ConfigFS ACM selesai. Verifikasi `/dev/ttyACM0` menunggu root dan `dummy_hcd`.
 
 Dokumen riset: [`docs/55-usb-virtual-serial.md`](../docs/55-usb-virtual-serial.md).
 Todolist: [`TODO.md`](../TODO.md), bagian P18 dan P19.
@@ -16,9 +16,9 @@ port serial nyata, tanpa menulis kernel module C++.
 
 Target awal:
 
-- Linux: USB CDC ACM melalui FunctionFS.
+- Linux: USB CDC ACM melalui ConfigFS ACM dan `dummy_hcd`.
 - Host melihat `/dev/ttyACM0`.
-- Driver C++ berjalan di user space.
+- Driver C++ melakukan bridge `/dev/ttyGS0` ke Unix socket.
 - Protokol STK500 tetap di Rust.
 - Komunikasi Rust dan driver melalui Unix domain socket.
 
@@ -89,21 +89,25 @@ Semua logika simulasi tetap di crate Rust.
 
 ---
 
-## 5. Rencana build
+## 5. Build dan jalankan
 
 ```bash
-cmake -S drivers/linux -B build/drivers-linux
-cmake --build build/drivers-linux
+./scripts/build-drivers.sh
+python3 scripts/test-usb-bridge.py
+drivers/linux/scripts/run-usb.sh
 ```
 
-Output awal:
+Output:
 
 ```text
 build/drivers-linux/embed-emu-usb
 ```
 
-Binary driver dijalankan oleh script setup atau oleh `embed-emu` sebagai
-proses anak.
+Terminal lain:
+
+```bash
+./target/release/embed-emu usb --socket /tmp/embed-emu-usb.sock
+```
 
 ---
 
@@ -112,18 +116,25 @@ proses anak.
 | Komponen | Bahasa | Tanggung jawab |
 |---|---|---|
 | `sim-cli` | Rust | CLI, CPU, flash, STK500 |
-| `embed-emu-usb` | C++ | USB CDC ACM, endpoint, IPC |
+| `embed-emu-usb` | C++ | Bridge tty gadget ke Unix socket |
 | `dummy_hcd` | C kernel | Host controller dan UDC virtual |
 | `usb_f_acm` | C kernel | Gadget function ACM |
 | `cdc_acm` | C kernel | Driver host Linux |
 
 ---
 
-## 7. Keputusan yang belum diambil
+## 7. Keputusan
 
-- FunctionFS, USB/IP, atau PTY untuk Linux.
-- Build system: CMake atau Make.
-- IPC: Unix socket, pipe, atau shared memory.
+Sudah dipilih:
+
+- Linux: ConfigFS ACM dan `dummy_hcd`.
+- Build: CMake.
+- IPC: Unix socket.
+- Bridge C++ di user space.
+
+Belum diputuskan:
+
+- Apakah FunctionFS diperlukan untuk kontrol descriptor penuh.
 - Apakah driver C++ menjadi komponen resmi rilis.
 - Cara distribusi untuk Windows dan macOS.
 

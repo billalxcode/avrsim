@@ -280,6 +280,40 @@ python3 scripts/test-serial-upload.py
 Script tersebut membuat port virtual, mengunggah program blink, memastikan
 LED berubah, lalu memeriksa cleanup.
 
+### 5.6 USB gadget mode
+
+Jalur USB asli untuk Linux memakai `dummy_hcd`, ConfigFS ACM, dan driver
+C++ di `drivers/linux`.
+
+Build driver:
+
+```bash
+./scripts/build-drivers.sh
+```
+
+Terminal 1:
+
+```bash
+drivers/linux/scripts/run-usb.sh
+```
+
+Terminal 2:
+
+```bash
+./target/release/embed-emu usb --socket /tmp/embed-emu-usb.sock
+```
+
+Host melihat `/dev/ttyACM0`. Arduino IDE dapat memilih port tersebut.
+
+Test bridge tanpa gadget kernel:
+
+```bash
+python3 scripts/test-usb-bridge.py
+```
+
+Setup membutuhkan root. Detail ada di
+[`drivers/linux/README.md`](../drivers/linux/README.md).
+
 ---
 
 ## 6. Library API

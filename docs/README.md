@@ -192,7 +192,7 @@ Setiap dokumen muncul satu kali pada peta ini.
 | Board | LED, resistor, button, UART host, pin electrical | Belum netlist analog penuh |
 | Format | Intel HEX, ELF32, CSV, VCD digital, VCD analog | Belum ada GUI |
 | Virtual serial | Upload STK500/Optiboot via `socat`, jalankan firmware, TX/RX UART, cleanup | RX timing sederhana; IDE discovery terbatas |
-| Virtual USB | Riset selesai: CDC ACM, dummy_hcd, USB/IP, Windows/macOS | Implementasi belum |
+| Virtual USB | Riset, bridge C++, script ConfigFS ACM, dan perintah `usb` | Verifikasi `/dev/ttyACM0` dan Arduino IDE belum |
 | CLI | `run`, `monitor`, `disasm`, `bench`, `serial` | Belum ada parser netlist SPICE |
 
 ---

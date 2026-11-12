@@ -43,7 +43,8 @@ profile tertentu, bukan replika silikon identik.
 | Board | LED, resistor, button, UART host, pin electrical, CSV, VCD |
 | Format | Intel HEX, ELF32, CSV, VCD digital, VCD analog |
 | Virtual serial | STK500 upload, firmware run, TX/RX UART, cleanup otomatis |
-| CLI | `run`, `monitor`, `disasm`, `bench`, `serial` |
+| Virtual USB | C++ bridge dan script ConfigFS ACM; `/dev/ttyACM0` belum diverifikasi |
+| CLI | `run`, `monitor`, `disasm`, `bench`, `serial`, `usb` |
 
 ---
 
@@ -77,6 +78,7 @@ cargo run -p sim-avr --example timer_interrupt
 ./target/debug/embed-emu run firmware/blink.hex 100000
 ./target/release/embed-emu serial
 ./target/release/embed-emu
+./target/release/embed-emu usb --socket /tmp/embed-emu-usb.sock
 ```
 
 Perintah `run` memerlukan file Intel HEX. Contoh firmware assembly ada di

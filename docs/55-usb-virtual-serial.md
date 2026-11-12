@@ -2,7 +2,7 @@
 
 Dokumen ini merangkum riset untuk membuat virtual USB serial port.
 
-**Status:** riset, belum implementasi.
+**Status:** riset dan scaffold bridge C++ selesai; verifikasi `/dev/ttyACM0` menunggu root.
 
 **Kesimpulan awal:**
 
@@ -444,7 +444,36 @@ Rencana struktur dan batas komponen ada di
 
 ---
 
-## 11. Sumber
+## 11. Status implementasi
+
+Sudah ada:
+
+- Bridge C++ `drivers/linux` antara `/dev/ttyGS0` dan Unix socket.
+- Script setup dan teardown ConfigFS ACM.
+- Perintah Rust `embed-emu usb --socket PATH`.
+- Test integrasi bridge memakai PTY.
+
+Belum diverifikasi:
+
+- `/dev/ttyACM0` dari `dummy_hcd` dan ConfigFS ACM.
+- Upload Arduino IDE.
+- Perilaku DTR dan reset.
+- Cleanup gadget setelah Ctrl-C.
+
+Perintah:
+
+```bash
+./scripts/build-drivers.sh
+python3 scripts/test-usb-bridge.py
+drivers/linux/scripts/run-usb.sh
+./target/release/embed-emu usb --socket /tmp/embed-emu-usb.sock
+```
+
+Detail ada di [`drivers/linux/README.md`](../drivers/linux/README.md).
+
+---
+
+## 12. Sumber
 
 - Linux USB gadget ConfigFS:
   https://docs.kernel.org/usb/gadget_configfs.html
