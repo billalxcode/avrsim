@@ -56,7 +56,7 @@ Dokumen ini mencatat tingkat fidelity aktual proyek.
 - AC memakai linearisasi DC; kapasitansi diode, MOSFET, BJT, dan JFET distamp dari bias.
 - Kapasitansi BJT memakai model depletion sederhana dan `tf`/`tr`; JFET memakai `cgs`/`cgd` konstan.
 - Switch AC memakai conductance dari bias kontrol; kontrol AC tidak dimodulasi.
-- Virtual serial upload memakai `socat`; Arduino IDE mungkin perlu symlink `/dev`. TX dan RX UART diteruskan.
+- Virtual serial upload memakai `socat`; Arduino IDE GUI mungkin tidak mendeteksi PTY. Gunakan `arduino-cli`/avrdude dengan path eksplisit atau custom discovery. TX dan RX UART diteruskan.
 - Noise hanya noise termal resistor.
 - Distortion hanya rangkaian memoryless tanpa intermodulasi.
 - Sensitivitas memakai finite difference pada satu parameter dan satu node.

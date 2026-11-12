@@ -82,7 +82,8 @@ cargo run -p sim-avr --example timer_interrupt
 Perintah `run` memerlukan file Intel HEX. Contoh firmware assembly ada di
 [`firmware/`](firmware/README.md). Menjalankan binary tanpa argumen, atau
 menggunakan subcommand `serial`, membuka virtual serial port STK500 melalui
-`socat` dan menutupnya otomatis saat Ctrl-C.
+`socat` dan menutupnya otomatis saat Ctrl-C. Arduino IDE GUI mungkin tidak
+mendeteksi PTY; gunakan `arduino-cli` atau custom discovery.
 
 ### 3.4 Pemeriksaan lengkap
 

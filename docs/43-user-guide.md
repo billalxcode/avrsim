@@ -205,29 +205,59 @@ Path dapat diubah:
   --socket /tmp/embed-emu-sock
 ```
 
-Alur di Arduino IDE:
+### Port yang dibuat
 
-1. Jalankan `embed-emu serial`.
+CLI membuat dua alamat:
+
+```text
+/tmp/embed-emu-tty  -> /dev/pts/N
+/tmp/embed-emu-sock -> Unix socket internal
+```
+
+`/tmp/embed-emu-tty` adalah symlink ke pseudo-terminal slave. PTY bukan
+device USB, sehingga tidak memiliki VID/PID dan tidak muncul sebagai
+`/dev/ttyACM*` atau `/dev/ttyUSB*`.
+
+### Deteksi Arduino IDE
+
+Arduino IDE 2.x hanya menampilkan port yang ditemukan oleh
+`serial-discovery`. PTY di `/tmp` atau `/dev/pts` sering tidak terdeteksi
+walaupun port dapat dibuka oleh program lain.
+
+Yang dapat dicoba:
+
+1. Buat symlink dengan nama device yang dipindai IDE:
+
+   ```bash
+   sudo ln -sf /tmp/embed-emu-tty /dev/ttyUSB9
+   ```
+
+   Jika muncul, pilih `/dev/ttyUSB9` di Arduino IDE. Symlink biasa tidak
+   menjamin terdeteksi karena discovery dapat memakai sysfs atau udev.
+
+2. Gunakan path eksplisit tanpa GUI:
+
+   ```bash
+   arduino-cli upload -p /tmp/embed-emu-tty --fqbn arduino:avr:uno <sketch>
+   ```
+
+   atau langsung dengan avrdude:
+
+   ```bash
+   avrdude -P /tmp/embed-emu-tty ...
+   ```
+
+3. Untuk GUI Arduino IDE, diperlukan custom discovery plugin atau virtual
+   serial device yang terdaftar di sistem. Fitur itu belum disediakan.
+
+Alur upload setelah port dapat dibuka:
+
+1. Jalankan `embed-emu`.
 2. Pilih board Arduino Uno atau ATmega328P.
 3. Pilih port virtual.
 4. Upload sketch.
 5. CLI menulis flash, mereset CPU, dan menjalankan firmware.
 6. Tekan Ctrl-C untuk menutup port.
-
-Jika Arduino IDE tidak menampilkan port di `/tmp`, buat symlink di lokasi
-yang dipindai IDE:
-
-```bash
-sudo ln -sf /tmp/embed-emu-tty /dev/ttyEMU0
-```
-
-Lalu pilih `/dev/ttyEMU0` di Arduino IDE.
-
-Alternatif tanpa IDE:
-
-```bash
-arduino-cli upload -p /tmp/embed-emu-tty --fqbn arduino:avr:uno <sketch>
-```
 
 Catatan:
 

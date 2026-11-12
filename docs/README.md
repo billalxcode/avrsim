@@ -189,7 +189,7 @@ Setiap dokumen muncul satu kali pada peta ini.
 | AVR | ISA, ALU, register, SRAM, flash, GPIO, timer, UART, SPI, TWI, ADC | Timing mendekati, bukan silikon |
 | Board | LED, resistor, button, UART host, pin electrical | Belum netlist analog penuh |
 | Format | Intel HEX, ELF32, CSV, VCD digital, VCD analog | Belum ada GUI |
-| Virtual serial | Upload STK500/Optiboot via `socat`, jalankan firmware, TX/RX UART, cleanup | RX timing sederhana |
+| Virtual serial | Upload STK500/Optiboot via `socat`, jalankan firmware, TX/RX UART, cleanup | RX timing sederhana; IDE discovery terbatas |
 | CLI | `run`, `monitor`, `disasm`, `bench`, `serial` | Belum ada parser netlist SPICE |
 
 ---
