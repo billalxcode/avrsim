@@ -1,4 +1,4 @@
-# 07 — Verifikasi dan Fidelity
+# 07 - Verifikasi dan Fidelity
 
 Dokumen ini menjelaskan bagaimana kebenaran diukur, dibuktikan, dan dilaporkan.
 
@@ -6,17 +6,17 @@ Dokumen ini menjelaskan bagaimana kebenaran diukur, dibuktikan, dan dilaporkan.
 
 ## 1. Filosofi
 
-Proyek ini tidak mengklaim “100% identik dengan silikon”. Yang diklaim adalah:
+Proyek ini tidak mengklaim "100% identik dengan silikon". Yang diklaim adalah:
 
 > **Firmware-observable equivalence untuk board profile yang didukung, dalam toleransi yang dinyatakan.**
 
 Setiap klaim harus punya:
 
-1. **Profile** — board, clock, VDD, firmware.
-2. **Fitur** — instruksi/peripheral/analisis yang dicakup.
-3. **Toleransi** — angka yang disepakati.
-4. **Test** — bukti yang dapat dijalankan ulang.
-5. **Batasan** — apa yang tidak dimodelkan.
+1. **Profile** - board, clock, VDD, firmware.
+2. **Fitur** - instruksi/peripheral/analisis yang dicakup.
+3. **Toleransi** - angka yang disepakati.
+4. **Test** - bukti yang dapat dijalankan ulang.
+5. **Batasan** - apa yang tidak dimodelkan.
 
 ---
 
@@ -24,14 +24,14 @@ Setiap klaim harus punya:
 
 | Bagian | Level | Bukti | Batasan |
 |---|---|---|---|
-| MOSFET | Device model (SH L1) | I-V vs analitik/ngspice | Tidak akurat short-channel |
-| Kapasitansi MOS | Meyer | Transient vs ngspice | Tidak charge-conserving |
+| MOSFET | Device model (SH L1) | Analitik dan transient | Tidak akurat short-channel |
+| Kapasitansi MOS | Meyer | Analitik dan transient charge | Tidak charge-conserving |
 | Resistor | Device model | Analitik | Ideal |
 | Kapasitor | Device model | RC transient | Ideal |
 | Induktor | Device model | RL transient | Ideal |
-| Dioda | Device model | IV + clamp | Model sederhana |
-| BJT | Device model | IV vs ngspice | Ebers-Moll |
-| JFET | Device model | IV vs ngspice | Model sederhana |
+| Dioda | Device model | Analitik, clamp, dan transient | Model sederhana |
+| BJT | Device model | DC bias dan AC gain | Ebers-Moll |
+| JFET | Device model | DC bias dan AC gain | Model sederhana |
 | Register file | Struktural | Test logika | DFF ideal |
 | ALU/control | Struktural | ISA test vector | Delay dari sel |
 | SRAM | Behavioral | Firmware test | Timing kontrak |
@@ -49,29 +49,20 @@ Setiap klaim harus punya:
 | Host UART | Behavioral | Output byte | Bukan USB |
 | Reset/POR | Struktural (akhir) | Startup test | Power ramp disederhanakan |
 | Power tree | Struktural (akhir) | Node voltage | Tanpa thermal |
-| PCB parasitics | Tidak dimodelkan | — | Di luar scope |
+| PCB parasitics | Tidak dimodelkan | - | Di luar scope |
 
 ---
+
+Golden ngspice belum dijalankan. Kolom bukti menyebut test yang ada saat ini.
 
 ## 3. Test Pyramid
 
 ```
-                 ┌─────────────────────┐
-                 │  Board / firmware   │
-                 │  end-to-end demos   │
-                 ├─────────────────────┤
-                 │  Peripheral tests   │
-                 │  timer/UART/ADC     │
-                 ├─────────────────────┤
-                 │  ISA / CPU tests    │
-                 │  instruction vectors│
-                 ├─────────────────────┤
-                 │  Cell / block tests │
-                 │  gates, ALU, DFF    │
-                 ├─────────────────────┤
-                 │  Device / solver    │
-                 │  unit + analytic    │
-                 └─────────────────────┘
+Board / firmware    end-to-end demos
+Peripheral tests    timer/UART/ADC
+ISA / CPU tests     instruction vectors
+Cell / block tests  gates, ALU, DFF
+Device / solver     unit + analytic
 ```
 
 Semakin ke bawah, semakin banyak test dan semakin cepat eksekusinya.
@@ -97,10 +88,12 @@ Semakin ke bawah, semakin banyak test dan semakin cepat eksekusinya.
 
 ### 4.3 Golden SPICE
 
-- ngspice sebagai referensi (dev-only).
-- Data disimpan sebagai CSV kecil.
-- Perbandingan dengan toleransi.
-- Regresi dicek setiap perubahan solver.
+Direncanakan, belum dijalankan.
+
+- ngspice sebagai referensi dev-only.
+- Data akan disimpan sebagai CSV kecil.
+- Perbandingan memakai toleransi.
+- Regresi akan dicek setiap perubahan solver.
 
 ### 4.4 Cell
 
@@ -165,13 +158,13 @@ Nilai awal yang diusulkan (semua `TBD` sampai divalidasi):
 |---|---|
 | DC operating point | 1e-6 V absolut / 1e-3 relatif |
 | DC sweep | 1% relatif |
-| Transient | 1–5% relatif |
+| Transient | 1-5% relatif |
 | VTC | 2% dari VDD |
 | Propagation delay | 5% |
 | UART byte | exact |
 | Register/flag | exact |
 | Cycle count | exact untuk instruksi yang diuji |
-| Node analog vs ngspice | 2% relatif |
+| Node analog vs referensi eksternal | 2% relatif (TBD) |
 
 Toleransi harus cukup ketat untuk menangkap bug, tetapi cukup longgar untuk mengakomodasi Level 1 dan floating-point.
 
@@ -189,10 +182,10 @@ Toleransi harus cukup ketat untuk menangkap bug, tetapi cukup longgar untuk meng
 
 Test determinisme:
 
-1. Jalankan simulasi dua kali → hasil identik.
-2. Jalankan di Linux/macOS/Windows → hasil dalam toleransi.
-3. Ubah urutan build crate → hasil sama.
-4. Simpan snapshot, restore, lanjutkan → hasil sama dengan run penuh.
+1. Jalankan simulasi dua kali -> hasil identik.
+2. Jalankan di Linux/macOS/Windows -> hasil dalam toleransi.
+3. Ubah urutan build crate -> hasil sama.
+4. Simpan snapshot, restore, lanjutkan -> hasil sama dengan run penuh.
 
 ---
 

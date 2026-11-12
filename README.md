@@ -2,8 +2,9 @@
 
 **Native Transistor-Level Emulator** - simulator elektronika native Rust yang memodelkan transistor, gerbang CMOS, CPU AVR, peripheral, dan board, serta mampu menjalankan firmware AVR/Arduino.
 
-> **Status:** desain / brainstorming. Belum ada kode implementasi.
-> Dokumen ini adalah spesifikasi proyek, bukan klaim bahwa seluruh fitur sudah selesai.
+> **Status:** implementasi aktif. 502 test lulus, 7 crate, nol dependensi eksternal.
+> Fidelity dan batasan model ada di [`docs/24-fidelity.md`](docs/24-fidelity.md).
+> Catatan rilis ada di [`docs/53-release-notes.md`](docs/53-release-notes.md).
 
 ---
 

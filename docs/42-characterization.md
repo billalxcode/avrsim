@@ -119,7 +119,7 @@ voltage `5 V` menghasilkan lebih dari empat crossing pada node output.
 
 Total test `sim-analysis`: 89.
 Total test `sim-cells`: 70.
-Total workspace: 501.
+Total workspace: 502.
 
 ---
 

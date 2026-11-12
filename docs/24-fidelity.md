@@ -36,8 +36,9 @@ Dokumen ini mencatat tingkat fidelity aktual proyek.
 | Board LED/resistor/button | Behavioral dan pin voltage | Ada |
 | Intel HEX | Parser | Ada |
 | ELF32 dan simbol | Parser | Ada |
-| AC analysis | Complex MNA linear | Ada |
+| AC analysis | Complex MNA dengan linearisasi DC | Ada, kapasitansi nonlinier belum |
 | Noise analysis | Thermal resistor | Ada |
+| Transient analysis | Newton per langkah | Ada |
 | Distortion analysis | Quasi-static memoryless | Ada |
 | Sensitivity analysis | Numerik DC | Ada |
 | Temperature dan process corner | Parameter device | Ada |
@@ -51,7 +52,7 @@ Dokumen ini mencatat tingkat fidelity aktual proyek.
 
 ## 2. Batasan Analisis
 
-- AC hanya untuk device linear; device nonlinier ditolak.
+- AC memakai linearisasi DC; kapasitansi device nonlinier belum distamp.
 - Noise hanya noise termal resistor.
 - Distortion hanya rangkaian memoryless tanpa intermodulasi.
 - Sensitivitas memakai finite difference pada satu parameter dan satu node.

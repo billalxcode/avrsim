@@ -2,7 +2,7 @@
 
 Daftar tugas lengkap dari hal terkecil sampai rilis. Setiap item harus kecil, dapat diuji, dan tidak menambah dependensi eksternal.
 
-> **Status:** P0 fondasi selesai. P8 selesai penuh. P9 sebagian besar selesai; ELF loader, simbol, ELF ke HEX, dan UART end-to-end selesai. P10 sparse, adaptive step, trapezoidal/Gear, AC linear, noise termal, distorsi kuasi-statis, sensitivitas numerik, suhu device, process corner, BJT, JFET, transmission line, determinisme Linux, fidelity matrix, batasan model, profiling, dan optimasi selesai. Golden suite dan determinisme macOS/Windows belum. P4 harness ngspice dan golden data belum karena ngspice tidak tersedia. P5 characterization, switching, input capacitance, drive strength, dan osilasi ring oscillator selesai; perbandingan ngspice belum. P11 user guide, contoh runnable, workflow CI, dan notices selesai; eksekusi GitHub Actions, tag, dan publikasi belum; packaging dan release notes siap. X-03 panic audit selesai; builder sel mencatat error dan melaporkannya di build. P3 body effect, gmb, Meyer capacitance, overlap, diode nonideal, BJT, JFET, transmission line, VCVS, VCCS, CCVS, CCCS, dan switch selesai; breakdown dan model termal lanjutan belum. P12 adaptive initial state dan Newton transient selesai; AC nonlinier belum.
+> **Status:** P0 fondasi selesai. P8 selesai penuh. P9 sebagian besar selesai; ELF loader, simbol, ELF ke HEX, dan UART end-to-end selesai. P10 sparse, adaptive step, trapezoidal/Gear, AC linear, noise termal, distorsi kuasi-statis, sensitivitas numerik, suhu device, process corner, BJT, JFET, transmission line, determinisme Linux, fidelity matrix, batasan model, profiling, dan optimasi selesai. Golden suite dan determinisme macOS/Windows belum. P4 harness ngspice dan golden data belum karena ngspice tidak tersedia. P5 characterization, switching, input capacitance, drive strength, dan osilasi ring oscillator selesai; perbandingan ngspice belum. P11 user guide, contoh runnable, workflow CI, dan notices selesai; eksekusi GitHub Actions, tag, dan publikasi belum; packaging dan release notes siap. X-03 panic audit selesai; builder sel mencatat error dan melaporkannya di build. P3 body effect, gmb, Meyer capacitance, overlap, diode nonideal, BJT, JFET, transmission line, VCVS, VCCS, CCVS, CCCS, dan switch selesai; breakdown dan model termal lanjutan belum. P12 selesai: adaptive initial state, Newton transient, dan AC nonlinier.
 > **Aturan:** satu item selesai = kode + test + dokumentasi singkat.
 
 ---
@@ -610,21 +610,21 @@ Daftar tugas lengkap dari hal terkecil sampai rilis. Setiap item harus kecil, da
 
 ### 12.3 Dokumentasi
 
-- [ ] P12-15 Perbarui status README.
-- [ ] P12-16 Perbaiki klaim ngspice di docs/07.
-- [ ] P12-17 Perbarui fidelity matrix setelah transient.
+- [x] P12-15 Perbarui status README.
+- [x] P12-16 Perbaiki klaim ngspice di docs/07.
+- [x] P12-17 Perbarui fidelity matrix setelah transient.
 
 ### 12.4 AC Nonlinier
 
-- [ ] P12-18 Definisikan API linearisasi small-signal.
-- [ ] P12-19 Implementasikan AC diode.
-- [ ] P12-20 Implementasikan AC MOSFET.
-- [ ] P12-21 Implementasikan AC BJT.
-- [ ] P12-22 Implementasikan AC JFET.
-- [ ] P12-23 Tulis test AC diode resistance.
-- [ ] P12-24 Tulis test AC common source gain.
-- [ ] P12-25 Tulis test AC common emitter gain.
-- [ ] P12-26 Dokumentasikan AC nonlinier.
+- [x] P12-18 Definisikan API linearisasi small-signal.
+- [x] P12-19 Implementasikan AC diode.
+- [x] P12-20 Implementasikan AC MOSFET.
+- [x] P12-21 Implementasikan AC BJT.
+- [x] P12-22 Implementasikan AC JFET.
+- [x] P12-23 Tulis test AC diode resistance.
+- [x] P12-24 Tulis test AC common source gain.
+- [x] P12-25 Tulis test AC common emitter gain.
+- [x] P12-26 Dokumentasikan AC nonlinier.
 
 **Exit P12:** transient nonlinier konvergen per langkah dan AC mendukung
 device nonlinier pada titik operasi.

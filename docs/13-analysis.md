@@ -15,7 +15,7 @@ P4 diimplementasikan sebagian:
 - Kriteria konvergensi.
 - DC sweep.
 - Transient Backward Euler.
-- AC small-signal linear.
+- AC small-signal dengan linearisasi DC.
 - Noise termal resistor.
 - Distorsi harmonik kuasi-statis.
 - Sensitivitas DC numerik.
@@ -235,11 +235,11 @@ Total test workspace saat ini:
 
 - `sim-core`: 62.
 - `sim-device`: 41 (36 unit + 5 integration).
-- `sim-analysis`: 95.
+- `sim-analysis`: 96.
 - `sim-cells`: 70.
 - `sim-avr`: 199.
 - `sim-board`: 23.
 - `sim-cli`: 11.
-- Total: 501.
+- Total: 502.
 
 Semua fungsi maksimal 20 baris dan semua file baru ASCII-only.
