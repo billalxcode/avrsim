@@ -557,6 +557,8 @@ Daftar tugas lengkap dari hal terkecil sampai rilis. Setiap item harus kecil, da
 - [ ] P10-26 Uji determinisme Windows.
 - [x] P10-27 Finalisasi fidelity matrix.
 - [x] P10-28 Dokumentasikan batasan model.
+- [x] P10-29 Optimasi settle sirkuit digital per komponen.
+- [ ] P10-30 Optimasi atau fast path register bank struktural.
 
 **Exit P10:** seluruh analisis/device yang dideklarasikan lulus golden suite.
 

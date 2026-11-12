@@ -78,6 +78,31 @@ setelah clone.
 `MnaContext` dan `SimulationSystem` berbagi `Arc<Vec<Option<usize>>>` untuk
 node dan branch. Sebelumnya kedua mapping di-clone pada setiap solve.
 
+### 3.4 Settle per Komponen Digital
+
+Sirkuit digital CPU dipecah menjadi komponen terhubung saat build.
+Perubahan input hanya menandai komponen yang terpengaruh. `settle` kemudian
+mengevaluasi gate pada komponen kotor saja, bukan seluruh sirkuit.
+
+DFF juga menandai komponennya saat nilai output berubah. Perubahan pada
+register bank tidak lagi memaksa ALU, timer, atau GPIO ikut disettle.
+
+Hasil release build, 300 ribu langkah:
+
+| Jalur | Sebelum | Sesudah |
+|---|---|---|
+| LDI | 4.93 s | 1.85 s |
+| ADD | 7.94 s | 2.19 s |
+| OUT | 1.84 s | 0.33 s |
+| Sketsa Arduino 1 juta langkah | 22.5 s | 14.7 s |
+
+Angka bergantung mesin. Optimasi ini mempertahankan model register bank
+dan unit datapath struktural.
+
+Bottleneck yang tersisa adalah komponen register bank struktural.
+Penulisan register masih harus men-settle komponen tersebut, sehingga
+simulasi belum mendekati real-time.
+
 ---
 
 ## 4. Hasil
@@ -100,11 +125,14 @@ Angka ini bukan jaminan untuk mesin lain.
 - `DenseMatrix::solve_owned` menghasilkan solusi yang sama.
 - CLI memvalidasi jumlah iterasi.
 - Format laporan benchmark diuji.
+- Komponen digital independen tetap settle setelah input berubah.
+- Sketsa Arduino `Serial.println("Hello World")` diverifikasi lewat
+  bridge PTY setelah optimasi.
 - Seluruh test workspace lulus.
 
 Total test `sim-core`: 62.
 Total test `sim-cli`: 26.
-Total workspace: 552.
+Total workspace: 553.
 
 ---
 

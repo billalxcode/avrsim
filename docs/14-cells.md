@@ -271,7 +271,7 @@ Test `sim-cells` mencakup:
 - Buffer follow input.
 - Powered cell memiliki supply.
 
-Total test `sim-cells`: 70.
+Total test `sim-cells`: 71.
 
 ---
 

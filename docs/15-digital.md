@@ -166,4 +166,4 @@ Instruksi:
 - `CpuTrace` mencatat PC, IR, halt, dan snapshot 32 register.
 - Test mencakup arithmetic, branch, loop, JMP, reset, halt, dan trace.
 
-Total test `sim-cells` saat ini: 70.
+Total test `sim-cells` saat ini: 71.

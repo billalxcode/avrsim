@@ -167,12 +167,18 @@ impl DigitalBuilder {
     /// Builds the digital circuit.
     #[must_use]
     pub fn build(self) -> DigitalCircuit {
+        let components = build_components(self.values.len(), &self.gates, &self.dffs);
+        let dirty = vec![true; components.gates.len()];
         DigitalCircuit {
             values: self.values,
             gates: self.gates,
             dffs: self.dffs,
             inputs: self.inputs,
             outputs: self.outputs,
+            component_gates: components.gates,
+            net_component: components.nets,
+            dff_component: components.dffs,
+            dirty,
         }
     }
 
@@ -196,6 +202,10 @@ pub struct DigitalCircuit {
     dffs: Vec<Dff>,
     inputs: BTreeMap<String, NetId>,
     outputs: BTreeMap<String, NetId>,
+    component_gates: Vec<Vec<usize>>,
+    net_component: Vec<Option<usize>>,
+    dff_component: Vec<Option<usize>>,
+    dirty: Vec<bool>,
 }
 
 impl DigitalCircuit {
@@ -205,7 +215,13 @@ impl DigitalCircuit {
             .inputs
             .get(name)
             .ok_or_else(|| SimError::InvalidNetlist(format!("unknown input: {name}")))?;
+        if self.values[net.raw()] == value {
+            return Ok(());
+        }
         self.values[net.raw()] = value;
+        if let Some(component) = self.net_component[net.raw()] {
+            self.dirty[component] = true;
+        }
         Ok(())
     }
 
@@ -223,8 +239,24 @@ impl DigitalCircuit {
 
     /// Settles combinational logic.
     pub fn settle(&mut self) -> Result<(), SimError> {
+        for component in 0..self.component_gates.len() {
+            if !self.dirty[component] {
+                continue;
+            }
+            self.settle_component(component)?;
+            self.dirty[component] = false;
+        }
+        Ok(())
+    }
+
+    fn settle_component(&mut self, component: usize) -> Result<(), SimError> {
         for iteration in 0..MAX_SETTLE_ITERATIONS {
-            if !self.evaluate_once() {
+            let mut changed = false;
+            for index in 0..self.component_gates[component].len() {
+                let gate = self.component_gates[component][index];
+                changed |= evaluate(self.gates[gate], &mut self.values);
+            }
+            if !changed {
                 return Ok(());
             }
             if iteration + 1 == MAX_SETTLE_ITERATIONS {
@@ -247,15 +279,8 @@ impl DigitalCircuit {
         for dff in &self.dffs {
             self.values[dff.output.raw()] = false;
         }
+        self.dirty.fill(true);
         self.settle()
-    }
-
-    fn evaluate_once(&mut self) -> bool {
-        let mut changed = false;
-        for gate in &self.gates {
-            changed |= evaluate(*gate, &mut self.values);
-        }
-        changed
     }
 
     fn dff_inputs(&self) -> Vec<bool> {
@@ -266,9 +291,134 @@ impl DigitalCircuit {
     }
 
     fn update_dffs(&mut self, next: &[bool]) {
-        for (dff, value) in self.dffs.iter().zip(next) {
+        for (index, (dff, value)) in self.dffs.iter().zip(next).enumerate() {
+            if self.values[dff.output.raw()] == *value {
+                continue;
+            }
             self.values[dff.output.raw()] = *value;
+            if let Some(component) = self.dff_component[index] {
+                self.dirty[component] = true;
+            }
         }
+    }
+}
+
+struct CircuitComponents {
+    gates: Vec<Vec<usize>>,
+    nets: Vec<Option<usize>>,
+    dffs: Vec<Option<usize>>,
+}
+
+struct UnionFind {
+    parent: Vec<usize>,
+}
+
+impl UnionFind {
+    fn new(size: usize) -> Self {
+        Self {
+            parent: (0..size).collect(),
+        }
+    }
+
+    fn find(&mut self, mut index: usize) -> usize {
+        while self.parent[index] != index {
+            self.parent[index] = self.parent[self.parent[index]];
+            index = self.parent[index];
+        }
+        index
+    }
+
+    fn union(&mut self, first: usize, second: usize) {
+        let first = self.find(first);
+        let second = self.find(second);
+        if first != second {
+            self.parent[second] = first;
+        }
+    }
+}
+
+fn build_components(values: usize, gates: &[Gate], dffs: &[Dff]) -> CircuitComponents {
+    let mut union = UnionFind::new(values);
+    for &gate in gates {
+        union_gate(&mut union, gate);
+    }
+    for dff in dffs {
+        union.union(dff.data.raw(), dff.output.raw());
+    }
+    let (component_gates, roots) = assign_gate_components(&mut union, gates);
+    let nets = assign_net_components(&mut union, &roots);
+    let dffs = dffs.iter().map(|dff| nets[dff.output.raw()]).collect();
+    CircuitComponents {
+        gates: component_gates,
+        nets,
+        dffs,
+    }
+}
+
+fn assign_gate_components(
+    union: &mut UnionFind,
+    gates: &[Gate],
+) -> (Vec<Vec<usize>>, BTreeMap<usize, usize>) {
+    let mut roots = BTreeMap::new();
+    let mut components: Vec<Vec<usize>> = Vec::new();
+    for (index, &gate) in gates.iter().enumerate() {
+        let root = union.find(gate_output(gate).raw());
+        let component = *roots.entry(root).or_insert_with(|| {
+            components.push(Vec::new());
+            components.len() - 1
+        });
+        components[component].push(index);
+    }
+    (components, roots)
+}
+
+fn assign_net_components(
+    union: &mut UnionFind,
+    roots: &BTreeMap<usize, usize>,
+) -> Vec<Option<usize>> {
+    (0..union.parent.len())
+        .map(|net| roots.get(&union.find(net)).copied())
+        .collect()
+}
+
+fn union_gate(union: &mut UnionFind, gate: Gate) {
+    match gate {
+        Gate::Const(_, _) => {}
+        Gate::Buf(first, output) | Gate::Not(first, output) => {
+            union.union(first.raw(), output.raw());
+        }
+        Gate::And(first, second, output)
+        | Gate::Or(first, second, output)
+        | Gate::Xor(first, second, output)
+        | Gate::Nand(first, second, output)
+        | Gate::Nor(first, second, output) => {
+            union.union(first.raw(), second.raw());
+            union.union(second.raw(), output.raw());
+        }
+        Gate::Mux {
+            first,
+            second,
+            select,
+            output,
+        } => {
+            union.union(first.raw(), second.raw());
+            union.union(first.raw(), select.raw());
+            union.union(select.raw(), output.raw());
+        }
+    }
+}
+
+fn gate_output(gate: Gate) -> NetId {
+    match gate {
+        Gate::Const(_, output)
+        | Gate::Buf(_, output)
+        | Gate::Not(_, output)
+        | Gate::And(_, _, output)
+        | Gate::Or(_, _, output)
+        | Gate::Xor(_, _, output)
+        | Gate::Nand(_, _, output)
+        | Gate::Nor(_, _, output) => output,
+        Gate::Mux { output, .. } => output,
     }
 }
 
@@ -468,6 +618,28 @@ mod tests {
         circuit.tick().expect("tick");
         circuit.reset().expect("reset");
         assert!(!circuit.output("q").expect("q"));
+    }
+
+    #[test]
+    fn independent_components_settle_after_each_change() {
+        let mut builder = DigitalBuilder::new();
+        let a = builder.input("a");
+        let b = builder.input("b");
+        let first = builder.not(a);
+        let second = builder.not(b);
+        builder.output("first", first);
+        builder.output("second", second);
+        let mut circuit = builder.build();
+        circuit.set_input("a", true).expect("a");
+        circuit.settle().expect("settle");
+        assert!(!circuit.output("first").expect("first"));
+        assert!(circuit.output("second").expect("second"));
+        circuit.set_input("b", true).expect("b");
+        circuit.settle().expect("settle");
+        assert!(!circuit.output("second").expect("second"));
+        circuit.set_input("a", false).expect("a");
+        circuit.settle().expect("settle");
+        assert!(circuit.output("first").expect("first"));
     }
 
     #[test]
