@@ -844,6 +844,8 @@ ditutup otomatis saat proses berhenti.
 - [x] P19-40 Verifikasi akses `/dev/ttyACM0` tanpa sudo.
 - [x] P19-41 Implementasikan parser STK500v1 untuk avrdude.
 - [x] P19-42 Verifikasi upload dan verify dengan avrdude 8.0.
+- [x] P19-43 Implementasikan instruksi `ADIW` dan `SBIW`.
+- [x] P19-44 Verifikasi firmware hasil `avr-gcc` berjalan.
 - [ ] P19-38 Perbarui `docs/55` dan `docs/README.md` setelah verifikasi.
 
 **Exit P19:** driver C++ menghasilkan USB serial virtual yang terdeteksi

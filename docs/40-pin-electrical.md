@@ -170,9 +170,9 @@ I = max(V - Vf, 0) / R
 - Kontensi terdeteksi pada pin output.
 - LED board mengikuti tegangan pin.
 
-Total test `sim-avr`: 206.
+Total test `sim-avr`: 210.
 Total test `sim-board`: 23.
-Total workspace: 543.
+Total workspace: 547.
 
 ---
 

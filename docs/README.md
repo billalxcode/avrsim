@@ -2,7 +2,7 @@
 
 Pintu masuk dokumentasi `embed-emulation` versi 0.1.0.
 
-**Status saat ini:** 543 test lulus, 7 crate, nol dependensi eksternal Rust,
+**Status saat ini:** 547 test lulus, 7 crate, nol dependensi eksternal Rust,
 tag `v0.1` tersedia.
 
 ---
@@ -155,7 +155,7 @@ Setiap dokumen muncul satu kali pada peta ini.
 |---|---|
 | Versi workspace | `0.1.0` |
 | Tag | `v0.1` |
-| Test | 543 lulus |
+| Test | 547 lulus |
 | Crate | 7 |
 | Dependensi eksternal | 0 |
 | `unsafe` | Dilarang di seluruh workspace |
@@ -174,10 +174,10 @@ Setiap dokumen muncul satu kali pada peta ini.
 | `sim-device` | 48 |
 | `sim-analysis` | 108 |
 | `sim-cells` | 70 |
-| `sim-avr` | 206 |
+| `sim-avr` | 210 |
 | `sim-board` | 23 |
 | `sim-cli` | 26 |
-| **Total** | **543** |
+| **Total** | **547** |
 
 ---
 

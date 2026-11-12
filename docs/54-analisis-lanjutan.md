@@ -14,7 +14,7 @@ Proyek sudah berada pada tahap implementasi matang:
 - 24.473 baris Rust.
 - 55 dokumen Markdown.
 - 168 commit.
-- 543 test.
+- 547 test.
 - Nol dependensi Rust eksternal.
 - Release archive 400 KB.
 
@@ -174,7 +174,7 @@ Urutan pekerjaan:
 
 ## 6. Kriteria Keberhasilan
 
-- 543 test lama tetap lulus.
+- 547 test lama tetap lulus.
 - Test baru untuk setiap perilaku.
 - Tidak ada dependensi eksternal.
 - Tidak ada `unsafe`.

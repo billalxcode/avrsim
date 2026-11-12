@@ -70,7 +70,7 @@ Mask adalah penyederhanaan dari bit enable UCSR0B.
 - Smoke test virtual serial menerima byte UART.
 - Smoke test echo mengirim dan menerima byte RX.
 
-Total test `sim-avr`: 206.
+Total test `sim-avr`: 210.
 
 ---
 

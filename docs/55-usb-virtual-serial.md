@@ -460,6 +460,7 @@ Sudah diverifikasi:
 - Akses `/dev/ttyACM0` tanpa sudo.
 - `avrdude 8.0` sync, signature, upload, dan verify.
 - Firmware blink berjalan dan LED berubah.
+- Firmware hasil `avr-gcc` berjalan, termasuk `ADIW` dan `SBIW`.
 - DTR dari avrdude tidak memutus bridge.
 
 Belum diverifikasi:

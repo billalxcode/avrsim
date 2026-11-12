@@ -4,7 +4,7 @@
 yang memodelkan transistor, gerbang CMOS, CPU AVR, peripheral, dan board,
 serta mampu menjalankan firmware AVR.
 
-> **Status v0.1:** 543 test lulus, 7 crate, nol dependensi eksternal Rust.
+> **Status v0.1:** 547 test lulus, 7 crate, nol dependensi eksternal Rust.
 > Tag `v0.1` tersedia. Archive Linux ada di
 > `dist/embed-emu-x86_64-unknown-linux-gnu.tar.gz`.
 
@@ -143,7 +143,7 @@ Dokumen yang sering dipakai:
 
 Sudah:
 
-- 543 test workspace.
+- 547 test workspace.
 - fmt, clippy, test, dan build release lulus.
 - Paket Linux dapat dibuat.
 - Determinisme Linux diuji.

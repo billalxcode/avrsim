@@ -216,7 +216,7 @@ Test decoder mencakup:
 - Test vector logic, shift, multiply, load/store, branch, call/stack, dan interrupt.
 - Blink assembly dijalankan dan PORTB bit 5 terbukti toggle.
 
-Total test `sim-avr`: 206.
+Total test `sim-avr`: 210.
 Total test `sim-cli`: 26.
 
 ---

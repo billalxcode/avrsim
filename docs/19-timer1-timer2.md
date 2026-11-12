@@ -67,7 +67,7 @@ impl Timer2 {
 - Timer2 async flag tersimpan.
 - Timer2 PWM mengikuti compare.
 
-Total test `sim-avr`: 206.
+Total test `sim-avr`: 210.
 
 ---
 

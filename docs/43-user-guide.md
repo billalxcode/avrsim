@@ -310,7 +310,8 @@ hanya client pertama yang terhubung ke bridge; sisanya menunggu dan dapat
 membuat upload tampak gagal.
 
 Terverifikasi dengan `avrdude 8.0`: sync, signature, upload, verify, dan
-firmware blink berjalan.
+firmware blink berjalan. Firmware hasil `avr-gcc` juga berjalan, termasuk
+instruksi `ADIW` dan `SBIW`.
 
 Test bridge tanpa gadget kernel:
 
