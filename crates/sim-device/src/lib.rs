@@ -13,10 +13,10 @@ mod source;
 mod switch;
 mod transmission;
 
-pub use bjt::BjtModel;
+pub use bjt::{BjtModel, bjt_capacitances};
 pub use controlled::{CccsModel, CcvsModel, VccsModel, VcvsModel};
 pub use diode::{DiodeModel, diode_capacitance};
-pub use jfet::JfetModel;
+pub use jfet::{JfetModel, jfet_capacitances};
 pub use model::{DeviceModel, IntegrationMethod, model_from_instance};
 pub use mosfet::{MosfetModel, MosfetParams, mosfet_capacitances};
 pub use passive::{CapacitorModel, InductorModel, ResistorModel};

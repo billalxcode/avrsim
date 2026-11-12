@@ -249,8 +249,9 @@ mod tests {
     };
     use crate::newton::NewtonConfig;
     use crate::test_support::{
-        common_emitter, diode_rectifier, matched_line, mos_capacitor, pulse_divider, rc_circuit,
-        rc_circuit_no_source, reverse_diode_rc, rl_circuit, switching_inverter,
+        common_emitter, common_source_n_biased, diode_rectifier, matched_line, mos_capacitor,
+        pulse_divider, rc_circuit, rc_circuit_no_source, reverse_diode_rc, rl_circuit,
+        switching_inverter,
     };
     use sim_core::NodeId;
     use sim_device::IntegrationMethod;
@@ -597,6 +598,40 @@ mod tests {
     }
 
     #[test]
+    fn bjt_capacitance_slows_base_charge() {
+        let (without, without_output) = common_emitter();
+        let (mut with, with_output) = common_emitter();
+        with.set_device_parameter("q1", "cje", 1e-8).expect("cje");
+        let config = TransientConfig {
+            dt: 1e-5,
+            steps: 20,
+            gmin: 1e-12,
+            use_dc_op: false,
+            initial_voltages: Vec::new(),
+        };
+        let without = final_voltage(&without, &config, without_output);
+        let with = final_voltage(&with, &config, with_output);
+        assert!(with > without + 0.1, "without={without} with={with}");
+    }
+
+    #[test]
+    fn jfet_capacitance_slows_drain_rise() {
+        let (without, without_output) = common_source_n_biased();
+        let (mut with, with_output) = common_source_n_biased();
+        with.set_device_parameter("j1", "cgd", 1e-8).expect("cgd");
+        let config = TransientConfig {
+            dt: 1e-6,
+            steps: 10,
+            gmin: 1e-12,
+            use_dc_op: false,
+            initial_voltages: Vec::new(),
+        };
+        let without = final_voltage(&without, &config, without_output);
+        let with = final_voltage(&with, &config, with_output);
+        assert!(with < without, "without={without} with={with}");
+    }
+
+    #[test]
     fn transient_rejects_invalid_newton_config() {
         let (circuit, _) = rc_circuit();
         let newton = NewtonConfig {
@@ -606,6 +641,16 @@ mod tests {
         let method = IntegrationMethod::BackwardEuler;
         let config = TransientConfig::default();
         assert!(transient_with_solver(&circuit, &config, method, &newton).is_err());
+    }
+
+    fn final_voltage(circuit: &sim_core::Circuit, config: &TransientConfig, node: NodeId) -> f64 {
+        let samples = transient(circuit, config).expect("transient");
+        samples
+            .last()
+            .expect("last")
+            .solution
+            .voltage(node)
+            .expect("voltage")
     }
 
     fn count_crossings(samples: &[TransientSample], node: NodeId) -> usize {

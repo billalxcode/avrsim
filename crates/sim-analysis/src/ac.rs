@@ -3,7 +3,7 @@
 use crate::dc::{DcConfig, dc_operating_point};
 use crate::system::{SimulationSystem, build_branch_map, build_node_map, count_nodes};
 use sim_core::{Circuit, Complex64, ComplexMatrix, Device, DeviceKind, NodeId, SimError, Solution};
-use sim_device::{diode_capacitance, mosfet_capacitances};
+use sim_device::{bjt_capacitances, diode_capacitance, jfet_capacitances, mosfet_capacitances};
 
 /// AC solution at one frequency.
 #[derive(Clone, Debug)]
@@ -216,6 +216,8 @@ fn add_device_reactance(
         }
         DeviceKind::Diode => add_diode_capacitance(device, context, matrix),
         DeviceKind::Nmos | DeviceKind::Pmos => add_mosfet_capacitances(device, context, matrix),
+        DeviceKind::Npn | DeviceKind::Pnp => add_bjt_capacitances(device, context, matrix),
+        DeviceKind::JfetN | DeviceKind::JfetP => add_jfet_capacitances(device, context, matrix),
         _ => Ok(()),
     }
 }
@@ -249,6 +251,34 @@ fn add_mosfet_capacitances(
     context.stamp(matrix, pins[0], pins[2], cgs)?;
     context.stamp(matrix, pins[0], pins[1], cgd)?;
     context.stamp(matrix, pins[0], body, cgb)
+}
+
+fn add_bjt_capacitances(
+    device: &impl Device,
+    context: &ReactiveContext<'_>,
+    matrix: &mut ComplexMatrix,
+) -> Result<(), SimError> {
+    let pins = device.pins();
+    let (cbe, cbc) = bjt_capacitances(
+        device.kind(),
+        device.parameters(),
+        context.node_voltage(pins[1]),
+        context.node_voltage(pins[0]),
+        context.node_voltage(pins[2]),
+    )?;
+    context.stamp(matrix, pins[1], pins[2], cbe)?;
+    context.stamp(matrix, pins[1], pins[0], cbc)
+}
+
+fn add_jfet_capacitances(
+    device: &impl Device,
+    context: &ReactiveContext<'_>,
+    matrix: &mut ComplexMatrix,
+) -> Result<(), SimError> {
+    let pins = device.pins();
+    let (cgs, cgd) = jfet_capacitances(device.parameters())?;
+    context.stamp(matrix, pins[1], pins[2], cgs)?;
+    context.stamp(matrix, pins[1], pins[0], cgd)
 }
 
 fn body_pin(pins: &[NodeId]) -> NodeId {
@@ -716,5 +746,39 @@ mod tests {
         let result = ac_analysis(&circuit, 1000.0).expect("ac");
         let magnitude = result.magnitude(output).expect("magnitude");
         assert!(magnitude > 1.0, "magnitude={magnitude}");
+    }
+
+    #[test]
+    fn bjt_capacitance_reduces_gain_at_high_frequency() {
+        let (mut circuit, output) = common_emitter();
+        circuit.set_device_parameter("vb", "ac", 1.0).expect("ac");
+        circuit
+            .set_device_parameter("q1", "cje", 1e-9)
+            .expect("cje");
+        circuit
+            .set_device_parameter("q1", "cjc", 1e-9)
+            .expect("cjc");
+        let low = ac_analysis(&circuit, 1e3).expect("low");
+        let high = ac_analysis(&circuit, 1e9).expect("high");
+        let low_gain = low.magnitude(output).expect("low gain");
+        let high_gain = high.magnitude(output).expect("high gain");
+        assert!(high_gain < low_gain, "low={low_gain} high={high_gain}");
+    }
+
+    #[test]
+    fn jfet_capacitance_reduces_gain_at_high_frequency() {
+        let (mut circuit, output) = common_source_n_biased();
+        circuit.set_device_parameter("vg", "ac", 1.0).expect("ac");
+        circuit
+            .set_device_parameter("j1", "cgs", 1e-9)
+            .expect("cgs");
+        circuit
+            .set_device_parameter("j1", "cgd", 1e-9)
+            .expect("cgd");
+        let low = ac_analysis(&circuit, 1e3).expect("low");
+        let high = ac_analysis(&circuit, 1e9).expect("high");
+        let low_gain = low.magnitude(output).expect("low gain");
+        let high_gain = high.magnitude(output).expect("high gain");
+        assert!(high_gain < low_gain, "low={low_gain} high={high_gain}");
     }
 }
