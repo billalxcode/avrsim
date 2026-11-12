@@ -243,6 +243,23 @@ impl Cpu {
         })
     }
 
+    /// Replaces program memory and resets the core.
+    pub fn load_program(&mut self, program: Vec<u16>) -> Result<(), SimError> {
+        if program.is_empty() {
+            return Err(SimError::InvalidNetlist(
+                "AVR program must not be empty".to_string(),
+            ));
+        }
+        self.program = ProgramMemory::new(program);
+        self.reset()
+    }
+
+    /// Returns the current program words.
+    #[must_use]
+    pub fn program(&self) -> &[u16] {
+        self.program.words()
+    }
+
     /// Executes one instruction and returns its trace.
     pub fn step(&mut self) -> Result<Option<AvrTrace>, SimError> {
         if self.halted {
@@ -2029,6 +2046,42 @@ mod tests {
         let cpu = run(vec![ldi(16, 5), ldi(17, 3), reg_op(0x0C00, 16, 17), 0x9598]);
         assert_eq!(cpu.register(16), 8);
         assert!(cpu.is_halted());
+    }
+
+    #[test]
+    fn load_program_replaces_flash_and_resets() {
+        let mut cpu = Cpu::new(vec![ldi(16, 1), 0x9598]).expect("cpu");
+        cpu.run(10).expect("run");
+        cpu.load_program(vec![ldi(16, 7), 0x9598]).expect("load");
+        assert_eq!(cpu.program()[0], ldi(16, 7));
+        cpu.run(10).expect("run");
+        assert_eq!(cpu.register(16), 7);
+        assert!(cpu.is_halted());
+    }
+
+    #[test]
+    fn load_program_rejects_empty() {
+        let mut cpu = Cpu::new(vec![0x9598]).expect("cpu");
+        assert!(cpu.load_program(Vec::new()).is_err());
+    }
+
+    #[test]
+    fn load_program_runs_blink_pin() {
+        let program = vec![
+            0xE200, 0xB904, 0xB905, 0xEF1F, 0x951A, 0xF7F1, 0xE220, 0x2702, 0xCFF9,
+        ];
+        let mut cpu = Cpu::new(vec![0x0000]).expect("cpu");
+        cpu.load_program(program).expect("load");
+        let config = PinElectricalConfig::default();
+        let mut high = false;
+        for _ in 0..2000 {
+            cpu.step().expect("step");
+            let state = cpu
+                .pin_electrical(0, 5, ExternalPin::HighZ, &config)
+                .expect("pin");
+            high |= state.voltage > 2.5;
+        }
+        assert!(high);
     }
 
     #[test]
