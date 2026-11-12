@@ -41,7 +41,7 @@ Belum ada tag, publikasi biner, atau GitHub release.
 - Transient Backward Euler, trapezoidal, dan Gear2.
 - Newton iteration per langkah transient.
 - Adaptive transient dan LTE.
-- AC small-signal dengan linearisasi DC.
+- AC small-signal dengan linearisasi DC dan kapasitansi diode/MOSFET.
 - Noise termal resistor.
 - Distorsi harmonik kuasi-statis.
 - Sensitivitas DC numerik.
@@ -122,7 +122,7 @@ Perintah:
 ./scripts/package.sh
 ```
 
-Total test workspace: 502.
+Total test workspace: 506.
 
 ---
 
