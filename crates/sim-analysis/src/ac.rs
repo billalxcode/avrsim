@@ -84,6 +84,10 @@ fn ensure_supported(circuit: &Circuit) -> Result<(), SimError> {
 }
 
 fn supported(kind: &DeviceKind) -> bool {
+    supported_element(kind) || supported_semiconductor(kind) || supported_controlled(kind)
+}
+
+fn supported_element(kind: &DeviceKind) -> bool {
     matches!(
         kind,
         DeviceKind::Resistor
@@ -91,13 +95,30 @@ fn supported(kind: &DeviceKind) -> bool {
             | DeviceKind::Inductor
             | DeviceKind::VoltageSource
             | DeviceKind::CurrentSource
-            | DeviceKind::Diode
+    )
+}
+
+fn supported_semiconductor(kind: &DeviceKind) -> bool {
+    matches!(
+        kind,
+        DeviceKind::Diode
             | DeviceKind::Nmos
             | DeviceKind::Pmos
             | DeviceKind::Npn
             | DeviceKind::Pnp
             | DeviceKind::JfetN
             | DeviceKind::JfetP
+    )
+}
+
+fn supported_controlled(kind: &DeviceKind) -> bool {
+    matches!(
+        kind,
+        DeviceKind::Vcvs
+            | DeviceKind::Vccs
+            | DeviceKind::Cccs
+            | DeviceKind::Ccvs
+            | DeviceKind::Switch
     )
 }
 
@@ -460,9 +481,9 @@ fn source_value(device: &impl Device) -> Result<Complex64, SimError> {
 mod tests {
     use super::{ac_analysis, ac_sweep};
     use crate::test_support::{
-        common_emitter, common_source_n_biased, current_source_circuit, diode_clamp,
-        diode_varactor, inverter, matched_line, pulse_divider, rc_circuit, rl_circuit,
-        switch_circuit,
+        cccs_circuit, ccvs_circuit, common_emitter, common_source_n_biased, current_source_circuit,
+        diode_clamp, diode_varactor, inverter, matched_line, pulse_divider, rc_circuit, rl_circuit,
+        switch_circuit, vccs_circuit, vcvs_circuit,
     };
 
     #[test]
@@ -515,9 +536,63 @@ mod tests {
     }
 
     #[test]
-    fn ac_rejects_switch() {
-        let (circuit, _) = switch_circuit(true);
-        assert!(ac_analysis(&circuit, 1000.0).is_err());
+    fn switch_state_controls_ac_response() {
+        let (mut on, on_output) = switch_circuit(true);
+        let (mut off, off_output) = switch_circuit(false);
+        set_source_ac(&mut on, "vcc", 1.0);
+        set_source_ac(&mut off, "vcc", 1.0);
+        set_source_ac(&mut on, "vc", 0.0);
+        set_source_ac(&mut off, "vc", 0.0);
+        let on = ac_analysis(&on, 1000.0).expect("on");
+        let off = ac_analysis(&off, 1000.0).expect("off");
+        let on = on.magnitude(on_output).expect("on output");
+        let off = off.magnitude(off_output).expect("off output");
+        assert!(on < 0.01, "on={on}");
+        assert!(off > 0.9, "off={off}");
+    }
+
+    #[test]
+    fn vcvs_output_tracks_ac_gain() {
+        let (mut circuit, output) = vcvs_circuit();
+        set_source_ac(&mut circuit, "vin", 1.0);
+        let result = ac_analysis(&circuit, 1000.0).expect("ac");
+        let magnitude = result.magnitude(output).expect("output");
+        assert!((magnitude - 2.0).abs() < 1e-9, "magnitude={magnitude}");
+    }
+
+    #[test]
+    fn vccs_output_tracks_ac_transconductance() {
+        let (mut circuit, output) = vccs_circuit();
+        set_source_ac(&mut circuit, "vin", 1.0);
+        let result = ac_analysis(&circuit, 1000.0).expect("ac");
+        let magnitude = result.magnitude(output).expect("output");
+        assert!((magnitude - 1.0).abs() < 1e-9, "magnitude={magnitude}");
+    }
+
+    #[test]
+    fn cccs_output_tracks_ac_gain() {
+        let (mut circuit, output) = cccs_circuit();
+        set_source_ac(&mut circuit, "vin", 1.0);
+        let result = ac_analysis(&circuit, 1000.0).expect("ac");
+        let magnitude = result.magnitude(output).expect("output");
+        assert!((magnitude - 2.0).abs() < 1e-6, "magnitude={magnitude}");
+    }
+
+    #[test]
+    fn ccvs_output_tracks_ac_transresistance() {
+        let (mut circuit, output) = ccvs_circuit();
+        set_source_ac(&mut circuit, "vin", 1.0);
+        let result = ac_analysis(&circuit, 1000.0).expect("ac");
+        let magnitude = result.magnitude(output).expect("output");
+        assert!((magnitude - 1.0).abs() < 1e-6, "magnitude={magnitude}");
+        let sense = result.branch_current(2).expect("sense current");
+        assert!((sense.magnitude() - 1e-3).abs() < 1e-6, "sense={sense:?}");
+    }
+
+    fn set_source_ac(circuit: &mut sim_core::Circuit, name: &str, value: f64) {
+        circuit
+            .set_device_parameter(name, "ac", value)
+            .expect("source ac");
     }
 
     #[test]
