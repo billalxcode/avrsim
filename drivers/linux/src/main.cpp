@@ -1,3 +1,4 @@
+#include "embed_emu_usb/bridge.hpp"
 #include "embed_emu_usb/options.hpp"
 
 #include <iostream>
@@ -16,9 +17,6 @@ int main(int argc, char** argv) {
         std::cerr << parsed.error << "\n";
         return 2;
     }
-    std::cout << "embed-emu-usb scaffold\n";
-    std::cout << "socket=" << parsed.options.socket_path << "\n";
-    std::cout << "device=" << parsed.options.device_path << "\n";
-    std::cout << "USB transport not implemented yet\n";
-    return 0;
+    embed_emu_usb::Bridge bridge(parsed.options);
+    return bridge.run();
 }
