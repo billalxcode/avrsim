@@ -144,6 +144,7 @@ Setiap dokumen muncul satu kali pada peta ini.
 | [README.md](../README.md) | Ringkasan proyek dan quick start |
 | [Examples](../examples/README.md) | Contoh runnable per crate |
 | [Firmware](../firmware/README.md) | Firmware contoh dan batas toolchain |
+| [Drivers](../drivers/README.md) | Rencana driver virtual USB C++ |
 | [LICENSE](../LICENSE) | Lisensi MIT |
 
 ---

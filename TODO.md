@@ -2,7 +2,7 @@
 
 Daftar tugas lengkap dari hal terkecil sampai rilis. Setiap item harus kecil, dapat diuji, dan tidak menambah dependensi eksternal.
 
-> **Status:** P0 fondasi selesai. P8 selesai penuh. P9 sebagian besar selesai; ELF loader, simbol, ELF ke HEX, dan UART end-to-end selesai. P10 sparse, adaptive step, trapezoidal/Gear, AC linear, noise termal, distorsi kuasi-statis, sensitivitas numerik, suhu device, process corner, BJT, JFET, transmission line, determinisme Linux, fidelity matrix, batasan model, profiling, dan optimasi selesai. Golden suite dan determinisme macOS/Windows belum. P4 harness ngspice dan golden data belum karena ngspice tidak tersedia. P5 characterization, switching, input capacitance, drive strength, dan osilasi ring oscillator selesai; perbandingan ngspice belum. P11 user guide, contoh runnable, workflow CI, dan notices selesai; eksekusi GitHub Actions, tag, dan publikasi belum; packaging dan release notes siap. X-03 panic audit selesai; builder sel mencatat error dan melaporkannya di build. P3 body effect, gmb, Meyer capacitance, overlap, diode nonideal, BJT, JFET, transmission line, VCVS, VCCS, CCVS, CCCS, dan switch selesai; breakdown dan model termal lanjutan belum. P12 selesai: adaptive initial state, Newton transient, dan AC nonlinier. P13 selesai: kapasitansi diode dan MOSFET pada AC; kapasitansi BJT dan JFET belum. P14 selesai: AC controlled sources dan switch. P15 selesai: kapasitansi BJT dan JFET pada AC/transient. P16 selesai: virtual serial upload STK500 via socat. P17 selesai: UART0 register map, TX/RX, dan interrupt otomatis ke serial monitor. P18 riset selesai: virtual USB serial; implementasi Linux belum.
+> **Status:** P0 fondasi selesai. P8 selesai penuh. P9 sebagian besar selesai; ELF loader, simbol, ELF ke HEX, dan UART end-to-end selesai. P10 sparse, adaptive step, trapezoidal/Gear, AC linear, noise termal, distorsi kuasi-statis, sensitivitas numerik, suhu device, process corner, BJT, JFET, transmission line, determinisme Linux, fidelity matrix, batasan model, profiling, dan optimasi selesai. Golden suite dan determinisme macOS/Windows belum. P4 harness ngspice dan golden data belum karena ngspice tidak tersedia. P5 characterization, switching, input capacitance, drive strength, dan osilasi ring oscillator selesai; perbandingan ngspice belum. P11 user guide, contoh runnable, workflow CI, dan notices selesai; eksekusi GitHub Actions, tag, dan publikasi belum; packaging dan release notes siap. X-03 panic audit selesai; builder sel mencatat error dan melaporkannya di build. P3 body effect, gmb, Meyer capacitance, overlap, diode nonideal, BJT, JFET, transmission line, VCVS, VCCS, CCVS, CCCS, dan switch selesai; breakdown dan model termal lanjutan belum. P12 selesai: adaptive initial state, Newton transient, dan AC nonlinier. P13 selesai: kapasitansi diode dan MOSFET pada AC; kapasitansi BJT dan JFET belum. P14 selesai: AC controlled sources dan switch. P15 selesai: kapasitansi BJT dan JFET pada AC/transient. P16 selesai: virtual serial upload STK500 via socat. P17 selesai: UART0 register map, TX/RX, dan interrupt otomatis ke serial monitor. P18 riset selesai: virtual USB serial. P19 driver C++ direncanakan di drivers/[os]; keputusan jenis driver belum.
 > **Aturan:** satu item selesai = kode + test + dokumentasi singkat.
 
 ---
@@ -756,7 +756,7 @@ ditutup otomatis saat proses berhenti.
 
 ---
 
-## P18 - Virtual USB Serial Port
+## P18 - Keputusan Virtual USB Serial
 
 ### 18.1 Riset
 
@@ -768,23 +768,82 @@ ditutup otomatis saat proses berhenti.
 - [x] P18-06 Riset macOS DriverKit dan fallback PTY.
 - [x] P18-07 Tulis `docs/55-usb-virtual-serial.md`.
 
-### 18.2 Implementasi Linux
+### 18.2 Keputusan
 
-- [ ] P18-08 Buat setup helper `dummy_hcd` + ConfigFS ACM.
-- [ ] P18-09 Abstrak transport serial dari protokol STK500.
-- [ ] P18-10 Implementasikan backend `/dev/ttyGS0`.
-- [ ] P18-11 Uji upload dan Serial Monitor dari Arduino IDE.
-- [ ] P18-12 Dokumentasikan setup root dan cleanup.
+- [ ] P18-08 Putuskan jenis driver Linux: FunctionFS, USB/IP, atau PTY.
+- [ ] P18-09 Putuskan apakah driver C++ menjadi komponen resmi proyek.
+- [ ] P18-10 Putuskan build system C++ dan versi standar.
+- [ ] P18-11 Putuskan protokol IPC antara Rust dan driver.
+- [ ] P18-12 Putuskan target Windows dan macOS.
+- [ ] P18-13 Putuskan lisensi dan aturan kontribusi driver.
 
-### 18.3 Lintas Platform
+**Exit P18:** keputusan driver dan batas komponen C++ tercatat.
 
-- [ ] P18-13 Implementasikan server USB/IP di Rust.
-- [ ] P18-14 Uji `vhci-hcd` di Linux.
-- [ ] P18-15 Uji `usbip-win2` di Windows.
-- [ ] P18-16 Evaluasi custom discovery plugin untuk macOS.
+---
 
-**Exit P18:** USB serial virtual muncul sebagai `/dev/ttyACM0` dan dapat
-dipakai Arduino IDE di Linux.
+## P19 - Driver Virtual USB C++
+
+### 19.1 Fondasi
+
+- [ ] P19-01 Buat struktur `drivers/linux`, `drivers/windows`, dan `drivers/macos`.
+- [ ] P19-02 Tulis `drivers/README.md` dengan arsitektur dan aturan.
+- [ ] P19-03 Buat build C++ (CMake) dan script build.
+- [ ] P19-04 Buat transport IPC Rust ke driver.
+- [ ] P19-05 Buat unit test C++ untuk parser dan descriptor.
+- [ ] P19-06 Tambahkan build driver ke CI Linux.
+
+### 19.2 Linux FunctionFS CDC ACM
+
+- [ ] P19-07 Spike FunctionFS dengan `dummy_hcd`.
+- [ ] P19-08 Tulis device descriptor dan configuration descriptor.
+- [ ] P19-09 Handle enumerasi dan setup request di `ep0`.
+- [ ] P19-10 Implementasikan `SET_LINE_CODING` dan `GET_LINE_CODING`.
+- [ ] P19-11 Implementasikan `SET_CONTROL_LINE_STATE` untuk DTR/RTS.
+- [ ] P19-12 Implementasikan bulk IN dan bulk OUT.
+- [ ] P19-13 Implementasikan interrupt IN `SERIAL_STATE`.
+- [ ] P19-14 Implementasikan server IPC untuk `sim-cli`.
+- [ ] P19-15 Implementasikan cleanup endpoint dan gadget.
+
+### 19.3 Integrasi Rust
+
+- [ ] P19-16 Abstrak `SerialTransport` dari protokol STK500.
+- [ ] P19-17 Implementasikan backend IPC.
+- [ ] P19-18 Reuse parser dan handler STK500 yang sudah ada.
+- [ ] P19-19 Uji upload dan echo melalui driver.
+
+### 19.4 Verifikasi Linux
+
+- [ ] P19-20 Verifikasi descriptor dengan `lsusb`.
+- [ ] P19-21 Verifikasi `/dev/ttyACM0`.
+- [ ] P19-22 Uji upload dari Arduino IDE.
+- [ ] P19-23 Uji reset DTR.
+- [ ] P19-24 Uji Serial Monitor TX dan RX.
+- [ ] P19-25 Uji cleanup saat Ctrl-C.
+
+### 19.5 Windows
+
+- [ ] P19-26 Evaluasi server USB/IP C++ untuk `usbip-win2`.
+- [ ] P19-27 Implementasikan `OP_REQ_DEVLIST` dan `OP_REQ_IMPORT`.
+- [ ] P19-28 Implementasikan `USBIP_CMD_SUBMIT` dan `USBIP_RET_SUBMIT`.
+- [ ] P19-29 Uji attach dengan `usbip-win2`.
+- [ ] P19-30 Verifikasi COM port dari `usbser.sys`.
+
+### 19.6 macOS
+
+- [ ] P19-31 Evaluasi PTY dan custom discovery plugin.
+- [ ] P19-32 Evaluasi DriverKit untuk USB virtual native.
+- [ ] P19-33 Uji port `/dev/cu.*` dan upload.
+
+### 19.7 Dokumentasi
+
+- [ ] P19-34 Dokumentasikan setup root dan udev rule.
+- [ ] P19-35 Dokumentasikan keamanan dan binding localhost.
+- [ ] P19-36 Dokumentasikan batas driver C++.
+- [ ] P19-37 Perbarui `docs/55` dan `docs/README.md`.
+
+**Exit P19:** driver C++ menghasilkan USB serial virtual yang terdeteksi
+Arduino IDE di Linux, terintegrasi dengan protokol STK500 Rust, dan siap
+dikembangkan ke Windows/macOS.
 
 ---
 

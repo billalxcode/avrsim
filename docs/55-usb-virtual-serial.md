@@ -436,6 +436,12 @@ Jangan mulai dari FunctionFS atau Raw Gadget kecuali kita membutuhkan
 kontrol descriptor dan DTR penuh. Untuk kebutuhan Arduino IDE, ConfigFS
 ACM sudah cukup.
 
+Todolist implementasi driver C++ ada di [`TODO.md`](../TODO.md), bagian
+P18 dan P19.
+
+Rencana struktur dan batas komponen ada di
+[`drivers/README.md`](../drivers/README.md).
+
 ---
 
 ## 11. Sumber
