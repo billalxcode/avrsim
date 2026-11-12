@@ -1,5 +1,6 @@
 //! Transient analysis using backward Euler.
 
+use crate::newton::{NewtonConfig, damp_solution, max_node_delta, solution_close};
 use crate::system::SimulationSystem;
 use sim_core::{Circuit, NodeId, SimError, Solution, Time};
 use sim_device::IntegrationMethod;
@@ -38,6 +39,10 @@ pub struct TransientSample {
     pub time: Time,
     /// Solution at this time.
     pub solution: Solution,
+    /// Maximum node-voltage change at convergence.
+    pub residual: f64,
+    /// Newton iterations used for this step.
+    pub iterations: usize,
 }
 
 /// Runs a zero-initial-state transient simulation.
@@ -54,19 +59,22 @@ pub fn transient_with_method(
     config: &TransientConfig,
     method: IntegrationMethod,
 ) -> Result<Vec<TransientSample>, SimError> {
+    transient_with_solver(circuit, config, method, &NewtonConfig::default())
+}
+
+/// Runs a transient simulation with an explicit integration method and Newton settings.
+pub fn transient_with_solver(
+    circuit: &Circuit,
+    config: &TransientConfig,
+    method: IntegrationMethod,
+    newton: &NewtonConfig,
+) -> Result<Vec<TransientSample>, SimError> {
     validate_config(config)?;
+    validate_newton(newton)?;
     let mut system = SimulationSystem::new(circuit)?;
-    let mut solution = initial_solution(&mut system, config)?;
+    let solution = initial_solution(&mut system, config)?;
     system.update(&solution)?;
-    let step = step_time(config.dt)?;
-    let mut time = Time::ZERO;
-    let mut samples = Vec::with_capacity(config.steps);
-    for _ in 0..config.steps {
-        solution = advance(&mut system, &solution, config, method)?;
-        time = next_time(time, step)?;
-        samples.push(sample(time, &solution));
-    }
-    Ok(samples)
+    run_steps(&mut system, solution, config, method, newton)
 }
 
 pub(crate) fn initial_solution(
@@ -94,15 +102,111 @@ fn apply_initial_voltages(mut solution: Solution, overrides: &[(NodeId, f64)]) -
     solution
 }
 
-fn advance(
+fn run_steps(
     system: &mut SimulationSystem,
-    solution: &Solution,
+    solution: Solution,
     config: &TransientConfig,
     method: IntegrationMethod,
-) -> Result<Solution, SimError> {
-    let next = system.solve_with_method(solution, Some(config.dt), config.gmin, method)?;
+    newton: &NewtonConfig,
+) -> Result<Vec<TransientSample>, SimError> {
+    let step = step_time(config.dt)?;
+    let mut time = Time::ZERO;
+    let mut samples = Vec::with_capacity(config.steps);
+    let mut current = solution;
+    for _ in 0..config.steps {
+        let (next, residual, iterations) = step_sample(system, &current, config, method, newton)?;
+        time = next_time(time, step)?;
+        samples.push(sample(time, &next, residual, iterations));
+        current = next;
+    }
+    Ok(samples)
+}
+
+fn step_sample(
+    system: &mut SimulationSystem,
+    current: &Solution,
+    config: &TransientConfig,
+    method: IntegrationMethod,
+    newton: &NewtonConfig,
+) -> Result<(Solution, f64, usize), SimError> {
+    let (next, residual, iterations) =
+        solve_step(system, current, config.dt, config.gmin, method, newton)?;
     system.update(&next)?;
-    Ok(next)
+    Ok((next, residual, iterations))
+}
+
+pub(crate) fn solve_step(
+    system: &mut SimulationSystem,
+    solution: &Solution,
+    dt: f64,
+    gmin: f64,
+    method: IntegrationMethod,
+    newton: &NewtonConfig,
+) -> Result<(Solution, f64, usize), SimError> {
+    let mut current = solution.clone();
+    for iteration in 0..newton.max_iterations {
+        let (next, residual, converged) =
+            newton_iteration(system, &current, dt, gmin, method, newton)?;
+        current = next;
+        if converged {
+            return Ok((current, residual, iteration + 1));
+        }
+    }
+    Err(convergence_failure(newton))
+}
+
+fn convergence_failure(newton: &NewtonConfig) -> SimError {
+    SimError::ConvergenceFailure {
+        iteration: newton.max_iterations,
+    }
+}
+
+fn newton_iteration(
+    system: &mut SimulationSystem,
+    current: &Solution,
+    dt: f64,
+    gmin: f64,
+    method: IntegrationMethod,
+    newton: &NewtonConfig,
+) -> Result<(Solution, f64, bool), SimError> {
+    let raw = system.solve_with_method(current, Some(dt), gmin, method)?;
+    let next = damp_solution(current, &raw, newton.max_step);
+    let residual = max_node_delta(current, &next);
+    let converged = solution_close(current, &next, newton.rel_tol, newton.abs_tol);
+    Ok((next, residual, converged))
+}
+
+pub(crate) fn validate_newton(config: &NewtonConfig) -> Result<(), SimError> {
+    if config.max_iterations == 0 {
+        return Err(SimError::InvalidNetlist(
+            "transient max iterations must be positive".to_string(),
+        ));
+    }
+    validate_tolerances(config)?;
+    validate_step(config)
+}
+
+fn validate_tolerances(config: &NewtonConfig) -> Result<(), SimError> {
+    if !config.rel_tol.is_finite() || config.rel_tol <= 0.0 {
+        return Err(SimError::InvalidNetlist(
+            "transient rel_tol must be positive".to_string(),
+        ));
+    }
+    if !config.abs_tol.is_finite() || config.abs_tol <= 0.0 {
+        return Err(SimError::InvalidNetlist(
+            "transient abs_tol must be positive".to_string(),
+        ));
+    }
+    Ok(())
+}
+
+fn validate_step(config: &NewtonConfig) -> Result<(), SimError> {
+    if !config.max_step.is_finite() || config.max_step < 0.0 {
+        return Err(SimError::InvalidNetlist(
+            "transient max_step must be non-negative".to_string(),
+        ));
+    }
+    Ok(())
 }
 
 fn next_time(time: Time, step: Time) -> Result<Time, SimError> {
@@ -110,10 +214,12 @@ fn next_time(time: Time, step: Time) -> Result<Time, SimError> {
         .ok_or_else(|| SimError::Internal("transient time overflow".to_string()))
 }
 
-fn sample(time: Time, solution: &Solution) -> TransientSample {
+fn sample(time: Time, solution: &Solution, residual: f64, iterations: usize) -> TransientSample {
     TransientSample {
         time,
         solution: solution.clone(),
+        residual,
+        iterations,
     }
 }
 
@@ -138,11 +244,15 @@ fn validate_config(config: &TransientConfig) -> Result<(), SimError> {
 
 #[cfg(test)]
 mod tests {
-    use super::{TransientConfig, transient, transient_with_method};
-    use crate::test_support::{
-        matched_line, mos_capacitor, pulse_divider, rc_circuit, rc_circuit_no_source,
-        reverse_diode_rc, rl_circuit,
+    use super::{
+        TransientConfig, TransientSample, transient, transient_with_method, transient_with_solver,
     };
+    use crate::newton::NewtonConfig;
+    use crate::test_support::{
+        common_emitter, diode_rectifier, matched_line, mos_capacitor, pulse_divider, rc_circuit,
+        rc_circuit_no_source, reverse_diode_rc, rl_circuit, switching_inverter,
+    };
+    use sim_core::NodeId;
     use sim_device::IntegrationMethod;
 
     #[test]
@@ -430,5 +540,84 @@ mod tests {
         let with = with.solution.voltage(with_output).expect("v1");
         assert!(without < -1.9, "without={without}");
         assert!(with > -1.5, "with={with}");
+    }
+
+    #[test]
+    fn diode_rectifier_transient_reaches_forward_drop() {
+        let (circuit, output) = diode_rectifier();
+        let config = TransientConfig {
+            dt: 1e-7,
+            steps: 50,
+            gmin: 1e-12,
+            use_dc_op: false,
+            initial_voltages: Vec::new(),
+        };
+        let samples = transient(&circuit, &config).expect("transient");
+        let voltage = samples
+            .last()
+            .expect("last")
+            .solution
+            .voltage(output)
+            .expect("v");
+        assert!(voltage > 0.4 && voltage < 0.9, "voltage={voltage}");
+    }
+
+    #[test]
+    fn switching_inverter_transient_crosses_output() {
+        let (circuit, output) = switching_inverter();
+        let config = TransientConfig {
+            dt: 1e-9,
+            steps: 4000,
+            gmin: 1e-12,
+            use_dc_op: false,
+            initial_voltages: Vec::new(),
+        };
+        let samples = transient(&circuit, &config).expect("transient");
+        assert!(count_crossings(&samples, output) >= 2);
+    }
+
+    #[test]
+    fn bjt_common_emitter_transient_reaches_bias() {
+        let (circuit, output) = common_emitter();
+        let config = TransientConfig {
+            dt: 1e-7,
+            steps: 20,
+            gmin: 1e-12,
+            use_dc_op: false,
+            initial_voltages: Vec::new(),
+        };
+        let samples = transient(&circuit, &config).expect("transient");
+        let voltage = samples
+            .last()
+            .expect("last")
+            .solution
+            .voltage(output)
+            .expect("v");
+        assert!(voltage > 3.0 && voltage < 4.5, "voltage={voltage}");
+    }
+
+    #[test]
+    fn transient_rejects_invalid_newton_config() {
+        let (circuit, _) = rc_circuit();
+        let newton = NewtonConfig {
+            max_iterations: 0,
+            ..NewtonConfig::default()
+        };
+        let method = IntegrationMethod::BackwardEuler;
+        let config = TransientConfig::default();
+        assert!(transient_with_solver(&circuit, &config, method, &newton).is_err());
+    }
+
+    fn count_crossings(samples: &[TransientSample], node: NodeId) -> usize {
+        let mut previous = samples[0].solution.voltage(node).expect("first") > 2.5;
+        let mut crossings = 0;
+        for sample in samples.iter().skip(1) {
+            let high = sample.solution.voltage(node).expect("voltage") > 2.5;
+            if high != previous {
+                crossings += 1;
+                previous = high;
+            }
+        }
+        crossings
     }
 }

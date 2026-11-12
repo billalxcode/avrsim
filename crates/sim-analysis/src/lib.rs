@@ -10,6 +10,7 @@ mod dc;
 #[cfg(test)]
 mod determinism;
 mod distortion;
+mod newton;
 mod noise;
 mod sensitivity;
 mod system;
@@ -19,7 +20,7 @@ mod transient;
 mod test_support;
 
 pub use ac::{AcSolution, ac_analysis, ac_sweep};
-pub use adaptive::{AdaptiveConfig, transient_adaptive};
+pub use adaptive::{AdaptiveConfig, transient_adaptive, transient_adaptive_with_solver};
 pub use characterization::{
     DriveStrength, SwitchingTiming, measure_drive_strength, measure_input_capacitance,
     measure_switching,
@@ -27,10 +28,13 @@ pub use characterization::{
 pub use corners::{ProcessCorner, with_process_corner, with_temperature};
 pub use dc::{DcConfig, DcPoint, DcResult, dc_operating_point, dc_sweep};
 pub use distortion::{DistortionConfig, DistortionResult, distortion_analysis};
+pub use newton::NewtonConfig;
 pub use noise::{
     BOLTZMANN, DEFAULT_TEMPERATURE, NoiseConfig, NoisePoint, NoiseResult, noise_analysis,
 };
 pub use sensitivity::{DEFAULT_RELATIVE_STEP, DcSensitivity, dc_sensitivity};
 pub use sim_device::IntegrationMethod;
 pub use system::SimulationSystem;
-pub use transient::{TransientConfig, TransientSample, transient, transient_with_method};
+pub use transient::{
+    TransientConfig, TransientSample, transient, transient_with_method, transient_with_solver,
+};

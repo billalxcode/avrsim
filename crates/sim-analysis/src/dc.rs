@@ -1,7 +1,7 @@
 //! DC operating point and sweep analysis.
 
+use crate::newton::{damp_solution, max_node_delta, solution_close};
 use crate::system::SimulationSystem;
-use sim_core::tolerance::approx_eq;
 use sim_core::{Circuit, Device, DeviceKind, SimError, Solution};
 
 /// DC solver configuration.
@@ -241,35 +241,8 @@ fn solve_iteration(
     let raw = system.solve(solution, None, gmin)?;
     let next = damp_solution(solution, &raw, config.max_step);
     let residual = max_node_delta(solution, &next);
-    let converged = solution_close(solution, &next, config);
+    let converged = solution_close(solution, &next, config.rel_tol, config.abs_tol);
     Ok((next, residual, converged))
-}
-
-fn damp_solution(old: &Solution, new: &Solution, max_step: f64) -> Solution {
-    let max_delta = max_node_delta(old, new);
-    if max_delta <= max_step || max_step <= 0.0 {
-        return new.clone();
-    }
-    let alpha = max_step / max_delta;
-    Solution {
-        node_voltages: interpolate(&old.node_voltages, &new.node_voltages, alpha),
-        branch_currents: interpolate(&old.branch_currents, &new.branch_currents, alpha),
-    }
-}
-
-fn max_node_delta(old: &Solution, new: &Solution) -> f64 {
-    old.node_voltages
-        .iter()
-        .zip(&new.node_voltages)
-        .map(|(first, second)| (second - first).abs())
-        .fold(0.0, f64::max)
-}
-
-fn interpolate(old: &[f64], new: &[f64], alpha: f64) -> Vec<f64> {
-    old.iter()
-        .zip(new)
-        .map(|(first, second)| first + alpha * (second - first))
-        .collect()
 }
 
 fn finish_dc(
@@ -284,20 +257,6 @@ fn finish_dc(
         iterations,
         residual,
     })
-}
-
-fn solution_close(first: &Solution, second: &Solution, config: &DcConfig) -> bool {
-    let voltages = first
-        .node_voltages
-        .iter()
-        .zip(&second.node_voltages)
-        .all(|(left, right)| approx_eq(*left, *right, config.rel_tol, config.abs_tol));
-    let currents = first
-        .branch_currents
-        .iter()
-        .zip(&second.branch_currents)
-        .all(|(left, right)| approx_eq(*left, *right, config.rel_tol, config.abs_tol));
-    voltages && currents
 }
 
 fn validate_sweep(start: f64, stop: f64, step: f64) -> Result<(), SimError> {

@@ -1,8 +1,12 @@
 //! Adaptive transient stepping with step-doubling error estimation.
 
+use crate::newton::NewtonConfig;
 use crate::system::SimulationSystem;
-use crate::transient::{TransientConfig, TransientSample, initial_solution};
+use crate::transient::{
+    TransientConfig, TransientSample, initial_solution, solve_step, validate_newton,
+};
 use sim_core::{Circuit, SimError, Solution, Time};
+use sim_device::IntegrationMethod;
 
 /// Adaptive transient configuration.
 #[derive(Clone, Debug)]
@@ -35,6 +39,8 @@ struct Trial {
     accepted: bool,
     solution: Solution,
     next_dt: f64,
+    residual: f64,
+    iterations: usize,
 }
 
 /// Runs a transient simulation with adaptive time steps.
@@ -43,19 +49,50 @@ pub fn transient_adaptive(
     base: &TransientConfig,
     config: &AdaptiveConfig,
 ) -> Result<Vec<TransientSample>, SimError> {
+    transient_adaptive_with_solver(circuit, base, config, &NewtonConfig::default())
+}
+
+/// Runs adaptive transient with explicit Newton settings.
+pub fn transient_adaptive_with_solver(
+    circuit: &Circuit,
+    base: &TransientConfig,
+    config: &AdaptiveConfig,
+    newton: &NewtonConfig,
+) -> Result<Vec<TransientSample>, SimError> {
     validate(base, config)?;
+    validate_newton(newton)?;
     let mut system = SimulationSystem::new(circuit)?;
-    let mut state = AdaptiveState {
-        solution: initial_solution(&mut system, base)?,
+    let mut state = initial_state(&mut system, base, config)?;
+    run_adaptive(&mut system, &mut state, base, config, newton)?;
+    Ok(state.samples)
+}
+
+fn initial_state(
+    system: &mut SimulationSystem,
+    base: &TransientConfig,
+    config: &AdaptiveConfig,
+) -> Result<AdaptiveState, SimError> {
+    let solution = initial_solution(system, base)?;
+    system.update(&solution)?;
+    Ok(AdaptiveState {
+        solution,
         dt: config.initial_dt,
         time: Time::ZERO,
         samples: Vec::with_capacity(config.steps),
-    };
-    system.update(&state.solution)?;
+    })
+}
+
+fn run_adaptive(
+    system: &mut SimulationSystem,
+    state: &mut AdaptiveState,
+    base: &TransientConfig,
+    config: &AdaptiveConfig,
+    newton: &NewtonConfig,
+) -> Result<(), SimError> {
     while state.samples.len() < config.steps {
-        step_adaptive(&mut system, &mut state, base, config)?;
+        step_adaptive(system, state, base, config, newton)?;
     }
-    Ok(state.samples)
+    Ok(())
 }
 
 struct AdaptiveState {
@@ -70,8 +107,9 @@ fn step_adaptive(
     state: &mut AdaptiveState,
     base: &TransientConfig,
     config: &AdaptiveConfig,
+    newton: &NewtonConfig,
 ) -> Result<(), SimError> {
-    let trial = try_step(system, &state.solution, state.dt, base, config)?;
+    let trial = try_step(system, &state.solution, state.dt, base, config, newton)?;
     if !trial.accepted {
         system.update(&state.solution)?;
         state.dt = trial.next_dt;
@@ -91,6 +129,8 @@ fn accept_adaptive(
     state.samples.push(TransientSample {
         time: state.time,
         solution: state.solution.clone(),
+        residual: trial.residual,
+        iterations: trial.iterations,
     });
     state.dt = trial.next_dt;
     Ok(())
@@ -102,11 +142,13 @@ fn try_step(
     dt: f64,
     base: &TransientConfig,
     config: &AdaptiveConfig,
+    newton: &NewtonConfig,
 ) -> Result<Trial, SimError> {
-    let full = system.solve(solution, Some(dt), base.gmin)?;
-    let second = refine(system, solution, dt, base)?;
-    let error = error_estimate(&full, &second);
-    decide(dt, error, second, config)
+    let method = IntegrationMethod::BackwardEuler;
+    let full = solve_step(system, solution, dt, base.gmin, method, newton)?;
+    let refined = refine(system, solution, dt, base, newton)?;
+    let error = error_estimate(&full.0, &refined.0);
+    decide(dt, error, refined, config)
 }
 
 fn refine(
@@ -114,34 +156,54 @@ fn refine(
     solution: &Solution,
     dt: f64,
     base: &TransientConfig,
-) -> Result<Solution, SimError> {
+    newton: &NewtonConfig,
+) -> Result<(Solution, f64, usize), SimError> {
+    let method = IntegrationMethod::BackwardEuler;
     let half = dt / 2.0;
-    let first = system.solve(solution, Some(half), base.gmin)?;
-    system.update(&first)?;
-    system.solve(&first, Some(half), base.gmin)
+    let first = solve_step(system, solution, half, base.gmin, method, newton)?;
+    system.update(&first.0)?;
+    solve_step(system, &first.0, half, base.gmin, method, newton)
 }
 
 fn decide(
     dt: f64,
     error: f64,
-    solution: Solution,
+    refined: (Solution, f64, usize),
     config: &AdaptiveConfig,
 ) -> Result<Trial, SimError> {
+    let (solution, residual, iterations) = refined;
     if error <= config.tolerance {
-        return Ok(accepted_trial(dt, error, solution, config));
+        return Ok(accepted_trial(
+            dt, error, solution, residual, iterations, config,
+        ));
     }
-    reject_trial(dt, solution, config)
+    reject_trial(dt, solution, residual, iterations, config)
 }
 
-fn accepted_trial(dt: f64, error: f64, solution: Solution, config: &AdaptiveConfig) -> Trial {
+fn accepted_trial(
+    dt: f64,
+    error: f64,
+    solution: Solution,
+    residual: f64,
+    iterations: usize,
+    config: &AdaptiveConfig,
+) -> Trial {
     Trial {
         accepted: true,
         solution,
         next_dt: grow_dt(dt, error, config),
+        residual,
+        iterations,
     }
 }
 
-fn reject_trial(dt: f64, solution: Solution, config: &AdaptiveConfig) -> Result<Trial, SimError> {
+fn reject_trial(
+    dt: f64,
+    solution: Solution,
+    residual: f64,
+    iterations: usize,
+    config: &AdaptiveConfig,
+) -> Result<Trial, SimError> {
     if dt <= config.min_dt {
         return Err(SimError::ConvergenceFailure { iteration: 0 });
     }
@@ -149,6 +211,8 @@ fn reject_trial(dt: f64, solution: Solution, config: &AdaptiveConfig) -> Result<
         accepted: false,
         solution,
         next_dt: (dt / 2.0).max(config.min_dt),
+        residual,
+        iterations,
     })
 }
 
