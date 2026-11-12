@@ -1062,7 +1062,8 @@ impl Cpu {
     fn execute_in(&mut self, instruction: &Instruction) -> Result<(), SimError> {
         let destination = register(instruction.first)?;
         let address = io_address(instruction.second)?;
-        self.write_register(destination, self.io(address))
+        let value = self.io_read_mut(address);
+        self.write_register(destination, value)
     }
 
     fn execute_out(&mut self, instruction: &Instruction) -> Result<(), SimError> {
@@ -1246,11 +1247,17 @@ impl Cpu {
         self.write_register(low + 1, (value >> 8) as u8)
     }
 
-    fn read_data(&self, address: u16) -> u8 {
+    fn read_data(&mut self, address: u16) -> u8 {
+        if (0x20..0x100).contains(&address) {
+            return self.io_read_mut(address as u8);
+        }
         self.data[usize::from(address) & 0x0FFF]
     }
 
     fn io_read(&self, address: u8) -> u8 {
+        if let Some(value) = self.uart_read_register(address) {
+            return value;
+        }
         if let Some(value) = self.timer0_read(address) {
             return value;
         }
@@ -1263,7 +1270,48 @@ impl Cpu {
         self.io.get(usize::from(address)).copied().unwrap_or(0)
     }
 
+    fn io_read_mut(&mut self, address: u8) -> u8 {
+        if let Some(value) = self.uart_read_register_mut(address) {
+            return value;
+        }
+        self.io_read(address)
+    }
+
+    fn uart_read_register(&self, address: u8) -> Option<u8> {
+        match address {
+            0xC0 => Some(self.uart_status()),
+            0xC1 | 0xC2 | 0xC4 | 0xC5 => Some(self.io[usize::from(address)]),
+            0xC6 => Some(self.datapath.uart.rx_byte()),
+            _ => None,
+        }
+    }
+
+    fn uart_read_register_mut(&mut self, address: u8) -> Option<u8> {
+        if address == 0xC6 {
+            return Some(self.datapath.uart.read_rx());
+        }
+        self.uart_read_register(address)
+    }
+
+    fn uart_status(&self) -> u8 {
+        let uart = &self.datapath.uart;
+        let mut value = self.io[0xC0] & 0x03;
+        if uart.rx_ready() {
+            value |= 0x80;
+        }
+        if uart.tx_complete() {
+            value |= 0x40;
+        }
+        if uart.tx_ready() {
+            value |= 0x20;
+        }
+        value
+    }
+
     fn io_write(&mut self, address: u8, value: u8) -> Result<(), SimError> {
+        if self.uart_write_register(address, value) {
+            return Ok(());
+        }
         if self.timer0_write(address, value)? {
             return Ok(());
         }
@@ -1276,6 +1324,40 @@ impl Cpu {
             *slot = value;
         }
         Ok(())
+    }
+
+    fn uart_write_register(&mut self, address: u8, value: u8) -> bool {
+        match address {
+            0xC0 => self.write_uart_status(value),
+            0xC1 | 0xC2 => self.write_uart_control(address, value),
+            0xC4 | 0xC5 => self.write_uart_baud(address, value),
+            0xC6 => self.datapath.uart.write_tx(value),
+            _ => return false,
+        }
+        true
+    }
+
+    fn write_uart_control(&mut self, address: u8, value: u8) {
+        self.io[usize::from(address)] = value;
+        self.datapath.uart.write_control(address - 0xC0, value);
+    }
+
+    fn write_uart_baud(&mut self, address: u8, value: u8) {
+        self.io[usize::from(address)] = value;
+        self.sync_uart_baud();
+    }
+
+    fn write_uart_status(&mut self, value: u8) {
+        if value & 0x40 != 0 {
+            self.datapath.uart.take_tx_complete();
+        }
+        self.io[0xC0] = value & 0x03;
+    }
+
+    fn sync_uart_baud(&mut self) {
+        let low = self.io[0xC4];
+        let high = self.io[0xC5];
+        self.datapath.uart.write_baud(low, high);
     }
 
     fn timer0_read(&self, address: u8) -> Option<u8> {
@@ -1391,6 +1473,10 @@ impl Cpu {
     }
 
     fn write_data(&mut self, address: u16, value: u8) {
+        if (0x20..0x100).contains(&address) {
+            let _ = self.io_write(address as u8, value);
+            return;
+        }
         self.data[usize::from(address) & 0x0FFF] = value;
     }
 
@@ -2782,6 +2868,55 @@ mod tests {
         assert!(cpu.pwm_a());
         cpu.step().expect("nop");
         assert!(!cpu.pwm_a());
+    }
+
+    #[test]
+    fn uart_registers_drive_transmitter() {
+        let mut cpu = run(uart_control_program());
+        assert!(!cpu.uart().tx_ready());
+        cpu.uart().tick(200);
+        assert!(cpu.uart().tx_complete());
+        assert_eq!(cpu.uart().tx_byte(), 0x41);
+        assert_eq!(cpu.io(0xC0) & 0x60, 0x60);
+    }
+
+    fn uart_control_program() -> Vec<u16> {
+        vec![
+            ldi(16, 0x08),
+            0x9300,
+            0x00C1,
+            ldi(16, 0x00),
+            0x9300,
+            0x00C4,
+            0x9300,
+            0x00C5,
+            ldi(16, 0x41),
+            0x9300,
+            0x00C6,
+            0x9598,
+        ]
+    }
+
+    #[test]
+    fn uart_data_read_clears_rxc() {
+        let mut cpu = Cpu::new(vec![0x9100, 0x00C6, 0x9598]).expect("cpu");
+        cpu.uart().receive(0x5A);
+        assert_eq!(cpu.io(0xC0) & 0x80, 0x80);
+        assert_eq!(cpu.io(0xC6), 0x5A);
+        cpu.run(10).expect("run");
+        assert_eq!(cpu.register(16), 0x5A);
+        assert_eq!(cpu.io(0xC0) & 0x80, 0);
+    }
+
+    #[test]
+    fn uart_status_write_clears_txc() {
+        let mut cpu = Cpu::new(vec![ldi(16, 0x40), 0x9300, 0x00C0, 0x9598]).expect("cpu");
+        cpu.uart().write_control(1, 0x08);
+        cpu.uart().write_tx(0x41);
+        cpu.uart().tick(200);
+        assert!(cpu.uart().tx_complete());
+        cpu.run(10).expect("run");
+        assert!(!cpu.uart().tx_complete());
     }
 
     #[test]

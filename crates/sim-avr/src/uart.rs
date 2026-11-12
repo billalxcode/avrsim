@@ -77,6 +77,12 @@ impl Uart {
         self.tx_active = true;
     }
 
+    /// Returns the last received byte without clearing RXC.
+    #[must_use]
+    pub const fn rx_byte(&self) -> u8 {
+        self.rx_data
+    }
+
     /// Returns the received byte and clears RXC.
     pub fn read_rx(&mut self) -> u8 {
         let value = self.rx_data;
@@ -135,6 +141,12 @@ impl Uart {
     #[must_use]
     pub fn tx_ready(&self) -> bool {
         self.udre
+    }
+
+    /// Returns the last byte loaded into the transmitter.
+    #[must_use]
+    pub const fn tx_byte(&self) -> u8 {
+        self.tx_data
     }
 
     /// Returns true when the transmitter is complete (TXC).
@@ -271,6 +283,7 @@ mod tests {
         assert!(!uart.tx_activity());
         assert!(uart.tx_complete());
         assert!(uart.tx_ready());
+        assert_eq!(uart.tx_byte(), 0xA5);
     }
 
     #[test]
