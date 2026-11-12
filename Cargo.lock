@@ -4,7 +4,7 @@ version = 4
 
 [[package]]
 name = "sim-analysis"
-version = "0.0.1"
+version = "0.1.0"
 dependencies = [
  "sim-core",
  "sim-device",
@@ -12,7 +12,7 @@ dependencies = [
 
 [[package]]
 name = "sim-avr"
-version = "0.0.1"
+version = "0.1.0"
 dependencies = [
  "sim-cells",
  "sim-core",
@@ -21,7 +21,7 @@ dependencies = [
 
 [[package]]
 name = "sim-board"
-version = "0.0.1"
+version = "0.1.0"
 dependencies = [
  "sim-avr",
  "sim-core",
@@ -30,7 +30,7 @@ dependencies = [
 
 [[package]]
 name = "sim-cells"
-version = "0.0.1"
+version = "0.1.0"
 dependencies = [
  "sim-analysis",
  "sim-core",
@@ -39,7 +39,7 @@ dependencies = [
 
 [[package]]
 name = "sim-cli"
-version = "0.0.1"
+version = "0.1.0"
 dependencies = [
  "sim-analysis",
  "sim-avr",
@@ -51,11 +51,11 @@ dependencies = [
 
 [[package]]
 name = "sim-core"
-version = "0.0.1"
+version = "0.1.0"
 
 [[package]]
 name = "sim-device"
-version = "0.0.1"
+version = "0.1.0"
 dependencies = [
  "sim-core",
 ]

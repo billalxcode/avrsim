@@ -1,12 +1,12 @@
 # 53 - Release Notes
 
-Catatan rilis untuk versi 0.0.1.
+Catatan rilis untuk versi 0.1.0.
 
 ---
 
 ## 1. Ringkasan
 
-Versi 0.0.1 adalah fondasi simulator AVR dan SPICE yang dapat dijalankan.
+Versi 0.1.0 adalah fondasi simulator AVR dan SPICE yang dapat dijalankan.
 
 Cakupan utama:
 
@@ -17,7 +17,7 @@ Cakupan utama:
 - Board, pin elektrik, Intel HEX, dan ELF32.
 - CLI dan contoh runnable.
 
-Belum ada tag, publikasi biner, atau GitHub release.
+Tag `v0.1` tersedia; publikasi biner dan GitHub release belum.
 
 ---
 
@@ -128,7 +128,7 @@ Total test workspace: 521.
 
 ## 8. Batas Rilis
 
-- Belum ada tag `v0.0.1`.
+- Tag `v0.1` dibuat dari commit rilis.
 - Belum ada publikasi biner.
 - Belum ada golden ngspice.
 - Firmware hasil `avr-gcc` belum dijalankan.
