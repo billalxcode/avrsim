@@ -75,6 +75,8 @@ start() {
     mount_configfs
     if [[ -d "$GADGET" ]]; then
         echo "gadget already exists: $GADGET"
+        bind_udc
+        fix_permissions
         return 0
     fi
     create_gadget
