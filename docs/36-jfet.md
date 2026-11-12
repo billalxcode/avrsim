@@ -7,16 +7,17 @@ Shichman-Hodges.
 
 ## 1. Status
 
-P10-10 diimplementasikan untuk N-JFET dan P-JFET pada analisis DC dan
-transient.
+P10-10 diimplementasikan untuk N-JFET dan P-JFET pada analisis DC,
+transient, dan AC.
 
 Model mencakup:
 
 - Cutoff, linear, dan saturation.
 - Channel-length modulation.
 - Transformasi tanda untuk P-JFET.
+- Kapasitansi gate-source dan gate-drain.
 
-Belum ada gate current, kapasitansi, atau breakdown.
+Belum ada gate current atau breakdown.
 
 ---
 
@@ -35,6 +36,8 @@ Parameter:
 | `vto` | `-2 V` untuk N, `+2 V` untuk P | threshold |
 | `beta` | `1e-3 A/V^2` | transconductance |
 | `lambda` | `0` | channel-length modulation |
+| `cgs` | `0 F` | gate-source capacitance |
+| `cgd` | `0 F` | gate-drain capacitance |
 
 Gate dianggap ideal tanpa arus.
 
@@ -73,7 +76,19 @@ dan `gms`. Helper linearisasi tiga terminal dipakai bersama dengan MOSFET.
 
 ---
 
-## 5. Test
+## 5. Kapasitansi
+
+JFET memakai kapasitansi small-signal konstan:
+
+- `cgs` antara gate dan source.
+- `cgd` antara gate dan drain.
+
+Pada transient, keduanya distamp sebagai kapasitor linear. Pada AC,
+keduanya menjadi admitansi `j * 2 * pi * f * C`.
+
+---
+
+## 6. Test
 
 Device:
 
@@ -81,24 +96,26 @@ Device:
 - N-JFET cutoff di bawah threshold.
 - P-JFET menghasilkan arus negatif.
 - Bias gate negatif menurunkan arus N-JFET.
+- `cgs` dan `cgd` dibaca dari parameter dan default nol.
 
 Analisis:
 
 - Common source N-JFET konvergen.
 - Bias gate negatif menaikkan tegangan drain.
 - Common source P-JFET konvergen.
-- AC menolak JFET sebagai device nonlinier.
+- AC common source memiliki gain dan rolloff saat `cgd` aktif.
+- Kapasitansi JFET memperlambat kenaikan drain pada transient.
 
-Total test `sim-analysis`: 64.
-Total test `sim-device`: 31.
-Total workspace: 427.
+Total test `sim-analysis`: 108.
+Total test `sim-device`: 48.
+Total workspace: 521.
 
 ---
 
-## 6. Batas
+## 7. Batas
 
 - Tidak ada arus gate.
-- Tidak ada kapasitansi gate-source atau gate-drain.
+- Kapasitansi `cgs` dan `cgd` konstan, belum bergantung bias.
 - Tidak ada temperature dependence.
 - Tidak ada breakdown.
 - Linearisasi numerik, bukan analitik.

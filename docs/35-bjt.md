@@ -6,13 +6,14 @@ Dokumen ini menjelaskan model bipolar junction transistor Ebers-Moll.
 
 ## 1. Status
 
-P10-09 diimplementasikan untuk NPN dan PNP pada analisis DC dan transient:
+P10-09 diimplementasikan untuk NPN dan PNP pada analisis DC, transient, dan AC:
 
 - Ebers-Moll DC.
 - Linearisasi analitik.
 - Dukungan suhu melalui thermal voltage.
+- Kapasitansi junction dan diffusion.
 
-Belum ada model charge storage, Early effect, atau breakdown.
+Belum ada Early effect atau breakdown.
 
 ---
 
@@ -33,6 +34,14 @@ Parameter:
 | `br` | `1` | reverse beta |
 | `vt` | `k*T/q` | thermal voltage |
 | `temp` | `300.15 K` | suhu device |
+| `cje` | `0 F` | base-emitter zero-bias capacitance |
+| `vje` | `0.75 V` | base-emitter potential |
+| `mje` | `0.33` | base-emitter grading |
+| `cjc` | `0 F` | base-collector zero-bias capacitance |
+| `vjc` | `0.75 V` | base-collector potential |
+| `mjc` | `0.33` | base-collector grading |
+| `tf` | `0 s` | forward transit time |
+| `tr` | `0 s` | reverse transit time |
 
 `vt` eksplisit menang atas `temp`.
 
@@ -80,7 +89,24 @@ Dengan cara ini Newton tidak memakai finite difference untuk BJT.
 
 ---
 
-## 5. Test
+## 5. Kapasitansi
+
+Kapasitansi small-signal:
+
+```
+Cbe = CJE / (1 - vbe / VJE)^MJE + TF * gbe
+Cbc = CJC / (1 - vbc / VJC)^MJC + TR * gbc
+```
+
+`gbe` dan `gbc` adalah conductance junction forward dan reverse.
+Untuk PNP, `vbe` dan `vbc` memakai transformasi tanda.
+
+Pada transient, `Cbe` distamp antara base-emitter dan `Cbc` antara
+base-collector. Pada AC, keduanya menjadi admitansi `j * 2 * pi * f * C`.
+
+---
+
+## 6. Test
 
 Device:
 
@@ -89,24 +115,27 @@ Device:
 - PNP menghasilkan arus collector negatif.
 - Suhu lebih tinggi menurunkan arus pada `vbe` tetap karena `is` belum
   bergantung suhu.
+- Kapasitansi depletion cocok dengan bias dan transformasi tanda PNP.
+- `tf` menambah diffusion capacitance pada forward bias.
 
 Analisis:
 
 - Common emitter NPN konvergen.
 - `bf` lebih tinggi menurunkan tegangan collector.
 - Common emitter PNP konvergen.
-- AC menolak BJT sebagai device nonlinier.
+- AC common emitter memiliki gain dan rolloff saat `cje`/`cjc` aktif.
+- Kapasitansi BJT memperlambat charge base pada transient.
 
-Total test `sim-analysis`: 64.
-Total test `sim-device`: 31.
-Total workspace: 427.
+Total test `sim-analysis`: 108.
+Total test `sim-device`: 48.
+Total workspace: 521.
 
 ---
 
-## 6. Batas
+## 7. Batas
 
 - Tidak ada Early effect.
-- Tidak ada kapasitansi junction atau diffusion.
+- Kapasitansi memakai model sederhana, bukan charge-conserving penuh.
 - Tidak ada breakdown.
 - Tidak ada temperature-dependent `is`.
 - Beta dianggap konstan.

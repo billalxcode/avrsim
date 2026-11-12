@@ -2,7 +2,7 @@
 
 Daftar tugas lengkap dari hal terkecil sampai rilis. Setiap item harus kecil, dapat diuji, dan tidak menambah dependensi eksternal.
 
-> **Status:** P0 fondasi selesai. P8 selesai penuh. P9 sebagian besar selesai; ELF loader, simbol, ELF ke HEX, dan UART end-to-end selesai. P10 sparse, adaptive step, trapezoidal/Gear, AC linear, noise termal, distorsi kuasi-statis, sensitivitas numerik, suhu device, process corner, BJT, JFET, transmission line, determinisme Linux, fidelity matrix, batasan model, profiling, dan optimasi selesai. Golden suite dan determinisme macOS/Windows belum. P4 harness ngspice dan golden data belum karena ngspice tidak tersedia. P5 characterization, switching, input capacitance, drive strength, dan osilasi ring oscillator selesai; perbandingan ngspice belum. P11 user guide, contoh runnable, workflow CI, dan notices selesai; eksekusi GitHub Actions, tag, dan publikasi belum; packaging dan release notes siap. X-03 panic audit selesai; builder sel mencatat error dan melaporkannya di build. P3 body effect, gmb, Meyer capacitance, overlap, diode nonideal, BJT, JFET, transmission line, VCVS, VCCS, CCVS, CCCS, dan switch selesai; breakdown dan model termal lanjutan belum. P12 selesai: adaptive initial state, Newton transient, dan AC nonlinier. P13 selesai: kapasitansi diode dan MOSFET pada AC; kapasitansi BJT dan JFET belum. P14 selesai: AC controlled sources dan switch.
+> **Status:** P0 fondasi selesai. P8 selesai penuh. P9 sebagian besar selesai; ELF loader, simbol, ELF ke HEX, dan UART end-to-end selesai. P10 sparse, adaptive step, trapezoidal/Gear, AC linear, noise termal, distorsi kuasi-statis, sensitivitas numerik, suhu device, process corner, BJT, JFET, transmission line, determinisme Linux, fidelity matrix, batasan model, profiling, dan optimasi selesai. Golden suite dan determinisme macOS/Windows belum. P4 harness ngspice dan golden data belum karena ngspice tidak tersedia. P5 characterization, switching, input capacitance, drive strength, dan osilasi ring oscillator selesai; perbandingan ngspice belum. P11 user guide, contoh runnable, workflow CI, dan notices selesai; eksekusi GitHub Actions, tag, dan publikasi belum; packaging dan release notes siap. X-03 panic audit selesai; builder sel mencatat error dan melaporkannya di build. P3 body effect, gmb, Meyer capacitance, overlap, diode nonideal, BJT, JFET, transmission line, VCVS, VCCS, CCVS, CCCS, dan switch selesai; breakdown dan model termal lanjutan belum. P12 selesai: adaptive initial state, Newton transient, dan AC nonlinier. P13 selesai: kapasitansi diode dan MOSFET pada AC; kapasitansi BJT dan JFET belum. P14 selesai: AC controlled sources dan switch. P15 selesai: kapasitansi BJT dan JFET pada AC/transient.
 > **Aturan:** satu item selesai = kode + test + dokumentasi singkat.
 
 ---
@@ -681,6 +681,34 @@ device nonlinier pada titik operasi.
 - [x] P14-10 Dokumentasikan AC controlled sources dan switch.
 
 **Exit P14:** AC mendukung controlled sources dan switch dengan linearisasi bias.
+
+---
+
+## P15 - Kapasitansi BJT dan JFET
+
+### 15.1 BJT
+
+- [x] P15-01 Definisikan parameter `cje`, `vje`, `mje`, `cjc`, `vjc`, `mjc`, `tf`, dan `tr`.
+- [x] P15-02 Implementasikan helper `bjt_capacitances`.
+- [x] P15-03 Stamp kapasitansi BJT pada transient.
+- [x] P15-04 Stamp kapasitansi BJT pada AC.
+- [x] P15-05 Tulis test helper dan rolloff BJT.
+
+### 15.2 JFET
+
+- [x] P15-06 Definisikan parameter `cgs` dan `cgd`.
+- [x] P15-07 Implementasikan helper `jfet_capacitances`.
+- [x] P15-08 Stamp kapasitansi JFET pada transient.
+- [x] P15-09 Stamp kapasitansi JFET pada AC.
+- [x] P15-10 Tulis test helper dan rolloff JFET.
+
+### 15.3 Dokumentasi
+
+- [x] P15-11 Perbarui docs/35 dan docs/36.
+- [x] P15-12 Perbarui docs/29 dan docs/24.
+- [x] P15-13 Perbarui total test.
+
+**Exit P15:** BJT dan JFET memiliki kapasitansi small-signal pada AC dan transient.
 
 ---
 

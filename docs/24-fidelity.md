@@ -36,7 +36,7 @@ Dokumen ini mencatat tingkat fidelity aktual proyek.
 | Board LED/resistor/button | Behavioral dan pin voltage | Ada |
 | Intel HEX | Parser | Ada |
 | ELF32 dan simbol | Parser | Ada |
-| AC analysis | Complex MNA dengan linearisasi DC, kapasitansi diode/MOSFET, controlled sources, dan switch | Ada, kapasitansi BJT/JFET belum |
+| AC analysis | Complex MNA dengan linearisasi DC, kapasitansi diode/MOSFET/BJT/JFET, controlled sources, dan switch | Ada, model kapasitansi sederhana |
 | Noise analysis | Thermal resistor | Ada |
 | Transient analysis | Newton per langkah | Ada |
 | Distortion analysis | Quasi-static memoryless | Ada |
@@ -52,7 +52,8 @@ Dokumen ini mencatat tingkat fidelity aktual proyek.
 
 ## 2. Batasan Analisis
 
-- AC memakai linearisasi DC; kapasitansi diode dan MOSFET distamp dari bias. Kapasitansi BJT dan JFET belum ada.
+- AC memakai linearisasi DC; kapasitansi diode, MOSFET, BJT, dan JFET distamp dari bias.
+- Kapasitansi BJT memakai model depletion sederhana dan `tf`/`tr`; JFET memakai `cgs`/`cgd` konstan.
 - Switch AC memakai conductance dari bias kontrol; kontrol AC tidak dimodulasi.
 - Noise hanya noise termal resistor.
 - Distortion hanya rangkaian memoryless tanpa intermodulasi.
@@ -71,9 +72,8 @@ Dokumen ini mencatat tingkat fidelity aktual proyek.
 - Meyer capacitance bukan model charge-conserving.
 - Dioda belum memiliki breakdown dan diffusion capacitance.
 - Kapasitansi dioda dengan `rs > 0` memakai pendekatan terminal.
-- BJT belum memiliki Early effect, charge storage, breakdown, dan
-  temperature-dependent saturation current.
-- JFET belum memiliki gate current, kapasitansi, dan temperature dependence.
+- BJT belum memiliki Early effect, breakdown, dan temperature-dependent saturation current; charge storage memakai `tf`/`tr` sederhana.
+- JFET belum memiliki gate current dan temperature dependence; kapasitansi `cgs`/`cgd` konstan.
 - Transmission line hanya lossless, constant step, dan transient.
 - Controlled sources dan switch sudah didukung AC dengan linearisasi bias.
 - Switch belum memiliki hysteresis atau delay.

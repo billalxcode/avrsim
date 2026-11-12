@@ -85,7 +85,7 @@ Analisis:
 - Transient reverse bias dengan `cj0 = 5 nF` memperlambat perubahan
   tegangan output.
 
-Total test `sim-device`: 43.
+Total test `sim-device`: 48.
 Total test `sim-analysis`: 82.
 Total workspace: 478.
 
