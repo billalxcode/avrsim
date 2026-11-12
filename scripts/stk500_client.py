@@ -17,12 +17,8 @@ ECHO = [
 ]
 
 
-def frame(command: int, sequence: int, data: bytes = b"") -> bytes:
-    complement = (~sequence) & 0xFF
-    checksum = command ^ sequence ^ complement
-    for byte in data:
-        checksum ^= byte
-    return bytes([0x1B, command, sequence, complement]) + data + bytes([checksum])
+def frame(command: int, data: bytes = b"") -> bytes:
+    return bytes([command]) + data + bytes([0x20])
 
 
 def wait_for(path: Path, timeout: float = 2.0) -> bool:
@@ -59,21 +55,21 @@ def read_response(fd: int, timeout: float = 2.0) -> bytes:
     return b""
 
 
-def send(fd: int, sequence: int, command: int, data: bytes = b"") -> bytes:
-    os.write(fd, frame(command, sequence, data))
+def send(fd: int, command: int, data: bytes = b"") -> bytes:
+    os.write(fd, frame(command, data))
     return read_response(fd)
 
 
 def upload(fd: int, program: list[int]) -> None:
-    if send(fd, 1, 0x30) != b"\x14\x10":
+    if send(fd, 0x30) != b"\x14\x10":
         raise RuntimeError("sync failed")
-    if send(fd, 2, 0x55, bytes([0x00, 0x00])) != b"\x14\x10":
+    if send(fd, 0x55, bytes([0x00, 0x00])) != b"\x14\x10":
         raise RuntimeError("load address failed")
     payload = bytes([0x00, len(program) * 2, ord("F")])
     payload += b"".join(word.to_bytes(2, "little") for word in program)
-    if send(fd, 3, 0x64, payload) != b"\x14\x10":
+    if send(fd, 0x64, payload) != b"\x14\x10":
         raise RuntimeError("program page failed")
-    if send(fd, 4, 0x51) != b"\x14\x10":
+    if send(fd, 0x51) != b"\x14\x10":
         raise RuntimeError("leave programming mode failed")
 
 
