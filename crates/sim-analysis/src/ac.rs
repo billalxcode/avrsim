@@ -1,7 +1,7 @@
 //! AC small-signal analysis with DC bias linearization.
 
 use crate::dc::{DcConfig, dc_operating_point};
-use crate::system::SimulationSystem;
+use crate::system::{SimulationSystem, build_branch_map, build_node_map, count_nodes};
 use sim_core::{Circuit, Complex64, ComplexMatrix, Device, DeviceKind, NodeId, SimError, Solution};
 use sim_device::{diode_capacitance, mosfet_capacitances};
 
@@ -55,8 +55,9 @@ pub fn ac_analysis(circuit: &Circuit, frequency: f64) -> Result<AcSolution, SimE
     validate_frequency(frequency)?;
     ensure_supported(circuit)?;
     let bias = dc_operating_point(circuit, &DcConfig::default())?.solution;
-    let (node_map, node_count) = build_node_map(circuit);
-    let (branch_map, branch_count) = build_branch_map(circuit, node_count);
+    let node_map = build_node_map(circuit);
+    let node_count = count_nodes(&node_map);
+    let (branch_map, branch_count) = build_branch_map(circuit);
     let size = node_count + branch_count;
     let mut matrix = bias_matrix(circuit, &bias, size)?;
     let reactive = ReactiveContext::new(&bias, frequency, &node_map, &branch_map);
@@ -374,37 +375,6 @@ fn validate_sweep(start: f64, stop: f64, points: usize) -> Result<(), SimError> 
         ));
     }
     Ok(())
-}
-
-fn build_node_map(circuit: &Circuit) -> (Vec<Option<usize>>, usize) {
-    let mut map = Vec::with_capacity(circuit.nodes().len());
-    let mut index = 0;
-    for node in circuit.nodes() {
-        if node.kind().is_ground() {
-            map.push(None);
-        } else {
-            map.push(Some(index));
-            index += 1;
-        }
-    }
-    (map, index)
-}
-
-fn build_branch_map(circuit: &Circuit, node_count: usize) -> (Vec<Option<usize>>, usize) {
-    let mut map = Vec::with_capacity(circuit.devices().len());
-    let mut index = node_count;
-    let mut count = 0;
-    for device in circuit.devices() {
-        match device.kind() {
-            DeviceKind::VoltageSource | DeviceKind::Inductor => {
-                map.push(Some(index));
-                index += 1;
-                count += 1;
-            }
-            _ => map.push(None),
-        }
-    }
-    (map, count)
 }
 
 fn branch_index(branches: &[Option<usize>], device: usize) -> Result<usize, SimError> {

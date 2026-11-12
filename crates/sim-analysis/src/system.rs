@@ -19,7 +19,7 @@ impl SimulationSystem {
     /// Builds mappings and device models from a circuit.
     pub fn new(circuit: &Circuit) -> Result<Self, SimError> {
         let node_map = build_node_map(circuit);
-        let node_count = node_map.iter().filter(|slot| slot.is_some()).count();
+        let node_count = count_nodes(&node_map);
         let (branch_map, branch_count) = build_branch_map(circuit);
         let models = build_models(circuit)?;
         let linear = is_linear(circuit);
@@ -128,7 +128,7 @@ fn is_nonlinear(kind: &DeviceKind) -> bool {
     )
 }
 
-fn build_node_map(circuit: &Circuit) -> Vec<Option<usize>> {
+pub(crate) fn build_node_map(circuit: &Circuit) -> Vec<Option<usize>> {
     let mut map = Vec::with_capacity(circuit.nodes().len());
     let mut index = 0;
     for node in circuit.nodes() {
@@ -142,7 +142,11 @@ fn build_node_map(circuit: &Circuit) -> Vec<Option<usize>> {
     map
 }
 
-fn build_branch_map(circuit: &Circuit) -> (Vec<Option<usize>>, usize) {
+pub(crate) fn count_nodes(map: &[Option<usize>]) -> usize {
+    map.iter().filter(|slot| slot.is_some()).count()
+}
+
+pub(crate) fn build_branch_map(circuit: &Circuit) -> (Vec<Option<usize>>, usize) {
     let mut map = Vec::with_capacity(circuit.devices().len());
     let mut index = non_ground_node_count(circuit);
     let mut branches = 0;
