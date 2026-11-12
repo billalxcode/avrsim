@@ -204,28 +204,25 @@ Test yang sudah lulus:
 
 ## 7. Keterbatasan
 
-- Belum ada source stepping.
-- Voltage limiting eksplisit `pnjlim` belum ada; yang ada adalah damping dan clamp diode.
-- Convergence failure belum punya diagnostik node/device.
-- Belum ada CSV/VCD.
-- Belum ada perbandingan ngspice.
-- Belum ada benchmark formal.
+- Convergence failure belum memiliki diagnostik node atau device.
+- Golden comparison dengan ngspice belum dijalankan.
+- Writer CSV/VCD tersedia di adapter, belum terintegrasi ke CLI.
+- Periodic steady state dan harmonic balance belum ada.
 - Diode memakai forward voltage clamp sederhana.
-- Transient default memakai DC op; zero state harus diminta eksplisit.
+- Transient default memakai DC operating point; zero state harus diminta eksplisit.
+- Adaptive transient masih memakai Backward Euler.
 
 ---
 
-## 8. Berikutnya
+## 8. Pekerjaan berikutnya
 
-P4 lanjutan:
+- Golden data dan harness ngspice.
+- Diagnostik konvergensi yang menyebut node dan device.
+- Integrasi waveform writer ke CLI.
+- Verifikasi determinisme macOS dan Windows.
+- Eksekusi workflow CI.
 
-- Voltage limiting dan damping.
-- gmin stepping dan source stepping.
-- Diagnostik konvergensi.
-- Initial condition dari DC op.
-- CSV/VCD writer.
-- Golden data ngspice.
-- Benchmark.
+Daftar lengkap ada di [TODO.md](../TODO.md).
 
 ---
 

@@ -76,6 +76,7 @@ CLI:
 Contoh:
 
 ```bash
+cargo run -p sim-analysis --example rc_analysis
 cargo run -p sim-analysis --example inverter_vtc
 cargo run -p sim-cells --example ring_oscillator
 cargo run -p sim-avr --example cpu_program

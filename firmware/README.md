@@ -13,14 +13,14 @@ Direktori ini memuat firmware contoh untuk board AVR.
 
 Konfigurasi:
 
-```
+```asm
 ldi r16, (1 << PB5)
 out DDRB, r16
 ```
 
 Loop:
 
-```
+```asm
 out PORTB, r16
 ldi r17, 0xFF
 delay:
@@ -31,6 +31,9 @@ eor r16, r18
 rjmp loop
 ```
 
+Encoding manual blink diuji di `crates/sim-avr/tests/blink.rs`.
+Test membuktikan PORTB bit 5 toggle dan LED board menyala.
+
 ---
 
 ## timer_interrupt.S
@@ -39,21 +42,38 @@ rjmp loop
 - Timer0 overflow interrupt.
 - ISR menulis `r17 = 7`.
 - Loop utama menunggu interrupt.
-- Encoding manual dijalankan oleh `cargo run -p sim-avr --example timer_interrupt`.
+
+Jalankan demo:
+
+```bash
+cargo run -p sim-avr --example timer_interrupt
+```
 
 ---
 
-## Encoding manual
+## Kompilasi dengan avr-gcc
 
-Encoding manual blink sudah diuji di `crates/sim-avr/tests/blink.rs`.
-Test membuktikan PORTB bit 5 toggle dan LED board menyala.
+`avr-gcc` tidak tersedia di environment ini, sehingga file HEX hasil
+kompilasi belum disertakan.
+
+Alur yang didukung secara konsep:
+
+```bash
+avr-gcc -mmcu=atmega328p -DF_CPU=16000000UL -Os -o blink.elf blink.S
+avr-objcopy -O ihex -R .eeprom blink.elf blink.hex
+./target/debug/embed-emu run blink.hex 100000
+```
+
+ELF juga dapat dimuat melalui API `sim_board::ElfImage`, lalu dikonversi
+ke Intel HEX dengan `to_hex()`.
 
 ---
 
 ## Batas
 
-- `avr-gcc` belum tersedia di lingkungan ini.
-- Belum ada konversi ELF ke HEX otomatis.
-- Belum ada firmware UART hello.
-- Belum ada timer interrupt demo.
-- Belum ada contoh firmware yang dikompilasi di CI.
+- `avr-gcc` belum tersedia di environment ini.
+- Belum ada firmware yang dikompilasi di CI.
+- Contoh yang berjalan saat ini memakai program AVR yang dienkode manual.
+- Belum ada firmware UART hello yang dikompilasi.
+
+Panduan lengkap ada di `docs/43-user-guide.md`.

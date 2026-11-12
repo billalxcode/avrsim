@@ -1,206 +1,559 @@
-# 43 - User Guide
+# 43 - Panduan Pengguna
 
-Dokumen ini menjelaskan cara membangun, menjalankan, dan memakai simulator.
+Panduan ini menjelaskan cara membangun, menjalankan, dan memakai
+`embed-emulation` dari CLI maupun library Rust.
+
+**Kesimpulan:** simulator sudah dapat dipakai untuk rangkaian analog kecil,
+sel CMOS, program AVR, dan board sederhana. Batas utama ada pada verifikasi
+eksternal dan model device yang disederhanakan.
 
 ---
 
-## 1. Prasyarat
+## 1. Ringkasan cepat
+
+Perintah minimum:
+
+```bash
+cargo build --workspace
+cargo test --workspace
+cargo run -p sim-analysis --example rc_analysis
+cargo run -p sim-analysis --example inverter_vtc
+cargo run -p sim-avr --example cpu_program
+```
+
+Contoh `rc_analysis` menjalankan DC, transient, dan AC pada satu rangkaian RC.
+
+---
+
+## 2. Prasyarat
 
 - Rust stable sesuai `rust-toolchain.toml`.
+- Linux, macOS, atau Windows dengan toolchain Rust.
 - Tidak ada dependensi Rust eksternal.
-- Tidak ada `unsafe`.
+- Tidak ada `unsafe` di workspace.
+- `avr-gcc` hanya diperlukan untuk mengompilasi firmware AVR baru.
 
-Verifikasi:
+Verifikasi toolchain:
 
 ```bash
 cargo --version
-cargo test --workspace
+rustc --version
+```
+
+Jika `cargo` tidak ditemukan pada shell non-interaktif:
+
+```bash
+source "$HOME/.cargo/env"
 ```
 
 ---
 
-## 2. Quick Start CLI
+## 3. Build dan verifikasi
 
-Build:
+### 3.1 Build debug
 
 ```bash
 cargo build --workspace
 ```
 
-Menjalankan program AVR dari Intel HEX:
+### 3.2 Build release
 
 ```bash
-./target/debug/embed-emu run firmware/blink.hex 1000
+cargo build --workspace --release
 ```
 
-Monitor interaktif:
+### 3.3 Test
 
 ```bash
-./target/debug/embed-emu monitor <hex words...>
+cargo test --workspace
 ```
 
-Disassembly:
+Untuk satu crate:
 
 ```bash
-./target/debug/embed-emu disasm <hex words...>
+cargo test -p sim-analysis
+cargo test -p sim-device
+cargo test -p sim-avr
 ```
 
-Benchmark:
+### 3.4 Pemeriksaan lengkap
+
+```bash
+bash .opencode/skills/clean-code/scripts/check.sh
+```
+
+Perintah tersebut menjalankan `fmt`, `clippy`, dan seluruh test workspace.
+
+### 3.5 Packaging
+
+```bash
+./scripts/package.sh
+```
+
+Hasil berada di:
+
+```text
+dist/embed-emu-<target>.tar.gz
+```
+
+---
+
+## 4. Struktur workspace
+
+| Crate | Peran |
+|---|---|
+| `sim-core` | Waktu, satuan, node, device, matrix, error, netlist |
+| `sim-device` | Model device dan stamping MNA |
+| `sim-analysis` | DC, transient, AC, noise, distorsi, sensitivitas |
+| `sim-cells` | Sel CMOS struktural dan pustaka digital |
+| `sim-avr` | CPU AVR, decoder, ALU, register, peripheral |
+| `sim-board` | Board, LED, button, UART host, Intel HEX, ELF, CSV/VCD |
+| `sim-cli` | Binary `embed-emu`, monitor, disassembler, benchmark |
+
+Aturan dependensi:
+
+```text
+sim-cli -> sim-board -> sim-avr -> sim-cells -> sim-device -> sim-core
+sim-cli -> sim-analysis -> sim-device -> sim-core
+```
+
+`sim-core` tidak bergantung pada crate lain. `sim-cli` adalah adapter dan
+komposisi, bukan tempat logika simulasi.
+
+---
+
+## 5. CLI
+
+Binary hasil build berada di `target/debug/embed-emu` atau
+`target/release/embed-emu`.
+
+### 5.1 Menjalankan Intel HEX
+
+```bash
+./target/debug/embed-emu run firmware/blink.hex 100000
+```
+
+Argumen kedua adalah batas instruksi. Default 100000.
+
+### 5.2 Monitor interaktif
+
+```bash
+./target/debug/embed-emu monitor E005 E013 0F01 9598
+```
+
+Perintah di dalam monitor:
+
+| Perintah | Arti |
+|---|---|
+| `step` | Jalankan satu instruksi |
+| `run N` | Jalankan sampai N instruksi |
+| `regs` | Tampilkan register r0-r31 |
+| `sreg` | Tampilkan flag SREG |
+| `pc` | Tampilkan PC dan jumlah cycle |
+| `disasm [alamat] [jumlah]` | Disassembly |
+| `mem [alamat] [panjang]` | Dump data memory |
+| `io [alamat]` | Baca I/O register |
+| `quit` atau `q` | Keluar |
+
+Alamat dan angka menerima desimal atau heksadesimal `0x`.
+
+### 5.3 Disassembly
+
+```bash
+./target/debug/embed-emu disasm E005 E013 0F01 9598
+```
+
+### 5.4 Benchmark
 
 ```bash
 ./target/debug/embed-emu bench 1000 10
 ```
 
+Argumen pertama adalah jumlah iterasi. Argumen kedua adalah jumlah node
+ladder, antara 2 dan 1000.
+
 ---
 
-## 3. Library Workflow
+## 6. Library API
 
-Contoh membangun rangkaian dan menjalankan DC operating point:
+### 6.1 DC operating point
 
 ```rust
 use sim_analysis::{DcConfig, dc_operating_point};
 use sim_core::{CircuitBuilder, DeviceKind};
 use std::collections::BTreeMap;
 
-let mut builder = CircuitBuilder::new();
-let input = builder.node("in")?;
-let output = builder.node("out")?;
-let ground = builder.ground();
+fn main() -> Result<(), Box<dyn std::error::Error>> {
+    let mut builder = CircuitBuilder::new();
+    let input = builder.node("in")?;
+    let output = builder.node("out")?;
+    let ground = builder.ground();
 
-let mut source = BTreeMap::new();
-source.insert("voltage".to_string(), 5.0);
-builder.device("v1", DeviceKind::VoltageSource, vec![input, ground], source)?;
+    add(&mut builder, "v1", DeviceKind::VoltageSource, input, ground, "voltage", 5.0)?;
+    add(&mut builder, "r1", DeviceKind::Resistor, input, output, "resistance", 1000.0)?;
+    add(&mut builder, "r2", DeviceKind::Resistor, output, ground, "resistance", 1000.0)?;
 
-let mut resistor = BTreeMap::new();
-resistor.insert("resistance".to_string(), 1000.0);
-builder.device("r1", DeviceKind::Resistor, vec![input, output], resistor)?;
-builder.device("r2", DeviceKind::Resistor, vec![output, ground], resistor)?;
+    let circuit = builder.build()?;
+    let result = dc_operating_point(&circuit, &DcConfig::default())?;
+    println!("vout={:.4}", result.solution.voltage(output).unwrap_or(0.0));
+    Ok(())
+}
 
-let circuit = builder.build()?;
-let result = dc_operating_point(&circuit, &DcConfig::default())?;
-println!("vout={}", result.solution.voltage(output).unwrap_or(0.0));
+fn add(
+    builder: &mut CircuitBuilder,
+    name: &str,
+    kind: DeviceKind,
+    first: sim_core::NodeId,
+    second: sim_core::NodeId,
+    parameter: &str,
+    value: f64,
+) -> Result<(), Box<dyn std::error::Error>> {
+    let mut parameters = BTreeMap::new();
+    parameters.insert(parameter.to_string(), value);
+    builder.device(name, kind, vec![first, second], parameters)?;
+    Ok(())
+}
 ```
 
----
+Contoh lengkap ada di `crates/sim-analysis/examples/inverter_vtc.rs`.
 
-## 4. Analisis yang Tersedia
-
-| Analisis | Fungsi |
-|---|---|
-| DC operating point | `dc_operating_point` |
-| DC sweep | `dc_sweep` |
-| Transient | `transient`, `transient_with_method` |
-| Adaptive transient | `transient_adaptive` |
-| AC small-signal | `ac_analysis`, `ac_sweep` |
-| Noise | `noise_analysis` |
-| Distortion | `distortion_analysis` |
-| Sensitivity | `dc_sensitivity` |
-| Switching timing | `measure_switching` |
-
----
-
-## 5. Device yang Tersedia
-
-- Resistor, capacitor, inductor.
-- Voltage source, current source, pulse voltage source.
-- Diode.
-- MOSFET N dan P.
-- BJT NPN dan PNP.
-- JFET N dan P.
-- Transmission line lossless.
-
-Device nonlinier ditolak oleh AC analysis.
-
----
-
-## 6. Suhu dan Process Corner
+### 6.2 DC sweep
 
 ```rust
-use sim_analysis::{ProcessCorner, with_process_corner, with_temperature};
+use sim_analysis::{DcConfig, dc_sweep};
 
-let hot = with_temperature(&circuit, 400.15)?;
-let corner = ProcessCorner {
-    resistor: 1.10,
-    capacitor: 0.95,
-    vto: 0.90,
-    kp: 1.05,
-};
-let adjusted = with_process_corner(&circuit, &corner)?;
-```
-
-Nilai corner diberikan pengguna. Tidak ada nilai corner bawaan.
-
----
-
-## 7. Pin Elektrik
-
-```rust
-use sim_avr::{ExternalPin, PinElectricalConfig};
-
-let config = PinElectricalConfig::default();
-let state = cpu.pin_electrical(
-    0,
-    5,
-    ExternalPin::Thevenin {
-        voltage: 0.0,
-        resistance: 1000.0,
-    },
-    &config,
+let points = dc_sweep(
+    &circuit,
+    "vin",
+    "voltage",
+    0.0,
+    5.0,
+    0.25,
+    &DcConfig::default(),
 )?;
-println!("v={} contention={}", state.voltage, state.contention);
 ```
 
----
+Setiap titik berisi `sweep` dan `solution`.
 
-## 8. Output CSV dan VCD
+### 6.3 Transient
 
-- `sim_board::CsvWriter` untuk CSV generik.
-- `sim_board::VcdWriter` untuk VCD digital.
-- `sim_board::AnalogVcdWriter` untuk VCD `real`.
-- `sim_board::csv_header` dan `csv_line` untuk trace board.
+```rust
+use sim_analysis::{TransientConfig, transient};
 
-Format berada di adapter, bukan di `sim-core`.
+let config = TransientConfig {
+    dt: 1e-6,
+    steps: 100,
+    gmin: 1e-12,
+    use_dc_op: false,
+    initial_voltages: Vec::new(),
+};
+let samples = transient(&circuit, &config)?;
+for sample in samples {
+    println!(
+        "t={} ps vout={:.4}",
+        sample.time.as_ps(),
+        sample.solution.voltage(output).unwrap_or(0.0)
+    );
+}
+```
 
----
+Setiap `TransientSample` menyimpan `time`, `solution`, `residual`, dan
+`iterations`.
 
-## 9. Contoh Runnable
+Metode integrasi:
+
+```rust
+use sim_analysis::transient_with_method;
+use sim_device::IntegrationMethod;
+
+let samples = transient_with_method(
+    &circuit,
+    &config,
+    IntegrationMethod::Trapezoidal,
+)?;
+```
+
+Adaptive transient:
+
+```rust
+use sim_analysis::{AdaptiveConfig, transient_adaptive};
+
+let adaptive = AdaptiveConfig {
+    initial_dt: 1e-7,
+    min_dt: 1e-12,
+    max_dt: 1e-3,
+    tolerance: 1e-3,
+    steps: 1000,
+};
+let samples = transient_adaptive(&circuit, &config, &adaptive)?;
+```
+
+### 6.4 AC small-signal
+
+```rust
+use sim_analysis::ac_analysis;
+
+circuit.set_device_parameter("v1", "ac", 1.0)?;
+let result = ac_analysis(&circuit, 1000.0)?;
+println!(
+    "magnitude={:.4} phase={:.1} deg",
+    result.magnitude(output).unwrap_or(0.0),
+    result.phase_degrees(output).unwrap_or(0.0)
+);
+```
+
+AC menghitung DC operating point terlebih dahulu, lalu memakai Jacobian DC
+sebagai matriks small-signal. Kapasitansi diode, MOSFET, BJT, dan JFET ikut
+distamp dari bias.
+
+Sweep:
+
+```rust
+use sim_analysis::ac_sweep;
+
+let points = ac_sweep(&circuit, 10.0, 1e6, 50)?;
+```
+
+Contoh lengkap DC, transient, dan AC ada di
+`crates/sim-analysis/examples/rc_analysis.rs`:
 
 ```bash
-cargo run -p sim-analysis --example inverter_vtc
-cargo run -p sim-cells --example ring_oscillator
-cargo run -p sim-avr --example cpu_program
-cargo run -p sim-board --example blink
+cargo run -p sim-analysis --example rc_analysis
+```
+
+### 6.5 AVR
+
+```rust
+use sim_avr::Cpu;
+
+let program = vec![0xE005, 0xE013, 0x0F01, 0x9598];
+let mut cpu = Cpu::new(program)?;
+cpu.run(10)?;
+println!(
+    "r16={} cycles={} halted={}",
+    cpu.register(16),
+    cpu.cycles(),
+    cpu.is_halted()
+);
+```
+
+Contoh lain:
+
+```bash
 cargo run -p sim-avr --example uart_hello
 cargo run -p sim-avr --example timer_interrupt
 ```
 
-Contoh firmware ada di `firmware/`.
+### 6.6 Board
+
+```rust
+use sim_avr::{Cpu, ExternalPin, PinElectricalConfig};
+use sim_board::Board;
+
+let mut cpu = Cpu::new(program)?;
+let mut board = Board::new();
+let config = PinElectricalConfig::default();
+cpu.step()?;
+let state = cpu.pin_electrical(0, 5, ExternalPin::HighZ, &config)?;
+board.set_pb5_voltage(state.voltage);
+println!("led_on={}", board.led().is_on());
+```
+
+Contoh lengkap ada di `crates/sim-board/examples/blink.rs`.
 
 ---
 
-## 10. Verifikasi
+## 7. Referensi device
 
-```bash
-./scripts/fmt.sh
-./scripts/lint.sh
-./scripts/test.sh
-./scripts/build.sh
-```
+Urutan pin mengikuti definisi device. Semua parameter berada di
+`BTreeMap<String, f64>` saat device dibuat.
 
-Alternatif lengkap:
+| Device | Pin | Parameter utama | Dokumen |
+|---|---|---|---|
+| Resistor | 2 | `resistance`, `temp`, `tc1`, `tc2` | [12](12-device-models.md) |
+| Capacitor | 2 | `capacitance` | [12](12-device-models.md) |
+| Inductor | 2 | `inductance` | [12](12-device-models.md) |
+| Voltage source | 2 | `voltage`, `ac`, `ac_phase` | [12](12-device-models.md) |
+| Current source | 2 | `current`, `ac`, `ac_phase` | [12](12-device-models.md) |
+| Pulse source | 2 | `v1`, `v2`, `delay`, `rise`, `fall`, `width`, `period` | [41](41-pulse-source.md) |
+| Diode | 2 | `is`, `n`, `vt`, `rs`, `cj0`, `vj`, `m` | [46](46-diode-nonideal.md) |
+| MOSFET | 3 atau 4 | `vto`, `kp`, `lambda`, `w`, `l`, `gamma`, `phi`, `cox`, `cgso`, `cgdo` | [45](45-mosfet-capacitance.md) |
+| BJT | 3 | `is`, `bf`, `br`, `vt`, `cje`, `vje`, `mje`, `cjc`, `vjc`, `mjc`, `tf`, `tr` | [35](35-bjt.md) |
+| JFET | 3 | `vto`, `beta`, `lambda`, `cgs`, `cgd` | [36](36-jfet.md) |
+| Transmission line | 4 | `z0`, `delay` | [37](37-transmission-line.md) |
+| VCVS | 4 | `gain` | [47](47-controlled-sources.md) |
+| VCCS | 4 | `gm` | [47](47-controlled-sources.md) |
+| CCCS | 4 | `gain` | [48](48-cccs-switch.md) |
+| CCVS | 4 | `rm` | [49](49-ccvs.md) |
+| Switch | 4 | `ron`, `roff`, `vth`, `width` | [48](48-cccs-switch.md) |
 
-```bash
-bash .opencode/skills/clean-code/scripts/check.sh
-```
+Urutan pin:
 
-Perintah tersebut menjalankan fmt, clippy, dan seluruh test workspace.
+| Device | Urutan pin |
+|---|---|
+| Diode | anoda, katoda |
+| MOSFET | gate, drain, source, body (opsional) |
+| BJT | collector, base, emitter |
+| JFET | drain, gate, source |
+| Transmission line | input+, input-, output+, output- |
+| Controlled source | output+, output-, control+, control- |
+| Switch | output+, output-, control+, control- |
+
+Parameter wajib yang hilang menghasilkan `InvalidNetlist`. Nilai negatif
+atau NaN untuk parameter yang divalidasi juga menghasilkan error.
 
 ---
 
-## 11. Batas
+## 8. Referensi analisis
 
-- Belum ada parser netlist SPICE.
-- Belum ada `avr-gcc`, sehingga firmware penuh belum dikompilasi di CI.
-- Belum ada golden comparison dengan ngspice.
-- Model device masih memiliki batas yang didokumentasikan per device.
+| Analisis | Fungsi utama | Keluaran |
+|---|---|---|
+| DC operating point | `dc_operating_point` | `DcResult` |
+| DC sweep | `dc_sweep` | `Vec<DcPoint>` |
+| Transient | `transient`, `transient_with_method` | `Vec<TransientSample>` |
+| Adaptive transient | `transient_adaptive` | `Vec<TransientSample>` |
+| AC | `ac_analysis`, `ac_sweep` | `AcSolution` |
+| Noise | `noise_analysis` | `NoiseResult` |
+| Distorsi | `distortion_analysis` | `DistortionResult` |
+| Sensitivitas | `dc_sensitivity` | `DcSensitivity` |
+| Switching | `measure_switching` | `SwitchingTiming` |
+| Input capacitance | `measure_input_capacitance` | `f64` |
+| Drive strength | `measure_drive_strength` | `DriveStrength` |
+
+Semua fungsi menerima `&Circuit` dan konfigurasi eksplisit. Tidak ada state
+global.
+
+---
+
+## 9. Firmware AVR
+
+### 9.1 Alur kerja
+
+1. Tulis firmware C atau assembly.
+2. Kompilasi dengan `avr-gcc` di luar simulator.
+3. Hasilkan Intel HEX dengan `avr-objcopy`.
+4. Jalankan dengan `embed-emu run`.
+5. Atau muat ELF melalui API `ElfImage` di `sim_board`.
+
+Contoh perintah toolchain eksternal:
+
+```bash
+avr-gcc -mmcu=atmega328p -DF_CPU=16000000UL -Os -o blink.elf blink.c
+avr-objcopy -O ihex -R .eeprom blink.elf blink.hex
+./target/debug/embed-emu run blink.hex 100000
+```
+
+Perintah di atas belum diverifikasi di environment ini karena `avr-gcc`
+tidak tersedia.
+
+### 9.2 ELF ke HEX melalui library
+
+```rust
+use sim_board::ElfImage;
+
+let data = std::fs::read("blink.elf")?;
+let image = ElfImage::parse(&data)?;
+let hex = image.to_hex()?;
+std::fs::write("blink.hex", hex)?;
+```
+
+### 9.3 Firmware contoh
+
+- `firmware/blink.S`: toggle PORTB bit 5.
+- `firmware/timer_interrupt.S`: Timer0 overflow interrupt.
+- `crates/sim-avr/tests/blink.rs`: encoding manual blink.
+- `cargo run -p sim-avr --example timer_interrupt`: demo interrupt.
+
+---
+
+## 10. Output dan format
+
+| Format | Lokasi | Kegunaan |
+|---|---|---|
+| CSV | `sim_board::CsvWriter`, `csv_header`, `csv_line` | Trace board dan sinyal |
+| VCD digital | `sim_board::VcdWriter` | PB5 dan LED |
+| VCD analog | `sim_board::AnalogVcdWriter` | Node analog `real` |
+| Intel HEX | `sim_board::HexImage` | Program AVR |
+| ELF32 | `sim_board::ElfImage` | Program dan simbol AVR |
+
+Timebase VCD memakai 1 ns. Format berada di adapter, bukan di `sim-core`.
+
+---
+
+## 11. Test, benchmark, dan determinisme
+
+### 11.1 Test per crate
+
+```bash
+cargo test -p sim-core
+cargo test -p sim-device
+cargo test -p sim-analysis
+cargo test -p sim-cells
+cargo test -p sim-avr
+cargo test -p sim-board
+cargo test -p sim-cli
+```
+
+### 11.2 Benchmark
+
+```bash
+cargo run -p sim-cli -- bench 1000 10
+```
+
+Atau setelah build:
+
+```bash
+./target/debug/embed-emu bench 1000 10
+```
+
+### 11.3 Determinisme
+
+Test determinisme membandingkan hasil dua run dan hasil setelah snapshot.
+Jalankan:
+
+```bash
+cargo test -p sim-analysis determinism
+```
+
+---
+
+## 12. Troubleshooting
+
+| Gejala | Penyebab umum | Tindakan |
+|---|---|---|
+| `cargo: command not found` | Shell tidak memuat Cargo | `source "$HOME/.cargo/env"` |
+| `ConvergenceFailure` | Rangkaian sulit atau parameter ekstrem | Periksa bias, gmin, dan `max_iterations` |
+| `InvalidNetlist` | Parameter wajib hilang atau tidak valid | Periksa nama dan nilai parameter |
+| `UnsupportedDevice` | Device tidak didukung analisis tersebut | Lihat daftar device di [29](29-ac.md) |
+| Hasil AC nol | Sumber tidak memiliki parameter `ac` | Set `ac` pada sumber |
+| Transient tidak berubah | `use_dc_op = true` dan rangkaian tunak | Set `use_dc_op = false` |
+| Test lambat | Seluruh workspace diuji | Jalankan `cargo test -p <crate>` |
+| ASCII check gagal | Karakter non-ASCII | Ganti dengan padanan ASCII |
+
+---
+
+## 13. Batas saat ini
+
+- Belum ada parser netlist SPICE. Rangkaian dibangun melalui API Rust.
 - Belum ada GUI atau waveform viewer.
+- Belum ada golden comparison dengan ngspice.
+- `avr-gcc` belum tersedia di environment ini.
+- Determinisme macOS dan Windows belum dijalankan.
+- GitHub Actions sudah disiapkan, tetapi belum dieksekusi.
+- Model device memakai Level 1 atau model sederhana.
+- AC belum mendukung transmission line dan pulse source.
+- Switch AC memakai conductance dari bias; kontrol AC tidak dimodulasi.
+- Belum ada periodic steady state atau harmonic balance.
+
+Batas model yang lebih rinci ada di [24-fidelity.md](24-fidelity.md).
+
+---
+
+## 14. Dokumen berikutnya
+
+- [12-device-models.md](12-device-models.md): katalog device dan parameter.
+- [13-analysis.md](13-analysis.md): detail solver dan analisis.
+- [24-fidelity.md](24-fidelity.md): akurasi dan batasan.
+- [29-ac.md](29-ac.md): AC small-signal.
+- [35-bjt.md](35-bjt.md) dan [36-jfet.md](36-jfet.md): model transistor.
+- [53-release-notes.md](53-release-notes.md): isi rilis v0.1.

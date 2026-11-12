@@ -1,35 +1,13 @@
 # 12 - Device Models
 
-Dokumentasi model device yang sudah diimplementasikan di `sim-device`.
+Katalog device yang tersedia di `sim-device` dan parameter utamanya.
+
+**Status:** seluruh device inti, device nonlinier, controlled source, switch,
+dan transmission line sudah diimplementasikan. Total test `sim-device`: 48.
 
 ---
 
-## 1. Status
-
-P3 diimplementasikan sebagian:
-
-- Resistor.
-- Capacitor.
-- Inductor.
-- Voltage source.
-- Current source.
-- MOSFET Level 1 NMOS/PMOS.
-- Diode Shockley.
-
-Belum diimplementasikan:
-
-- Body effect.
-- Meyer capacitance.
-- BJT.
-- JFET.
-- Controlled source.
-- Switch.
-- Transmission line.
-- Diode series resistance dan junction capacitance.
-
----
-
-## 2. API
+## 1. API model
 
 ```rust
 pub trait DeviceModel {
@@ -44,7 +22,9 @@ pub trait DeviceModel {
 }
 ```
 
-`dt` adalah `None` untuk DC dan `Some(dt)` untuk transient.
+- `dt = None` untuk DC dan AC bias.
+- `dt = Some(value)` untuk transient.
+- `update` menyimpan state device setelah solusi konvergen.
 
 Factory:
 
@@ -56,224 +36,249 @@ pub fn model_from_instance(
 
 ---
 
-## 3. Parameter
+## 2. Katalog device
 
-| Device | Parameter | Default |
-|---|---|---|
-| Resistor | `resistance` | wajib |
-| Capacitor | `capacitance` | wajib |
-| Inductor | `inductance` | wajib |
-| Voltage source | `voltage` | 0.0 |
-| Current source | `current` | 0.0 |
-| MOSFET | `vto` | 0.7 |
-| MOSFET | `kp` | 1e-3 |
-| MOSFET | `lambda` | 0.0 |
-| MOSFET | `w` | 1e-6 |
-| MOSFET | `l` | 1e-6 |
-| Diode | `is` | 1e-12 |
-| Diode | `n` | 1.0 |
-| Diode | `vt` | 0.02585 |
-
-Parameter positif divalidasi. Nilai nol, negatif, NaN, atau hilang untuk parameter wajib menghasilkan error.
-
----
-
-## 4. Resistor
-
-Stamp konduktansi:
-
-```text
-g = 1 / R
-```
-
-Konduktansi ditambahkan ke empat entri matriks antara dua node.
+| Device | Pin | Model | Dokumen |
+|---|---|---|---|
+| Resistor | 2 | Ohm, koefisien suhu | [33](33-temperature.md) |
+| Capacitor | 2 | Linear | - |
+| Inductor | 2 | Linear, branch current | [28](28-integration.md) |
+| Voltage source | 2 | DC dan AC | - |
+| Current source | 2 | DC dan AC | - |
+| Pulse source | 2 | Rise, fall, width, period | [41](41-pulse-source.md) |
+| Diode | 2 | Shockley, series resistance, junction capacitance | [46](46-diode-nonideal.md) |
+| MOSFET | 3 atau 4 | Shichman-Hodges Level 1, body effect, Meyer | [44](44-body-effect.md), [45](45-mosfet-capacitance.md) |
+| BJT | 3 | Ebers-Moll, junction dan diffusion capacitance | [35](35-bjt.md) |
+| JFET | 3 | Shichman-Hodges, kapasitansi konstan | [36](36-jfet.md) |
+| Transmission line | 4 | Lossless, constant step | [37](37-transmission-line.md) |
+| VCVS | 4 | Linear gain | [47](47-controlled-sources.md) |
+| VCCS | 4 | Linear transconductance | [47](47-controlled-sources.md) |
+| CCCS | 4 | Linear current gain | [48](48-cccs-switch.md) |
+| CCVS | 4 | Linear transresistance | [49](49-ccvs.md) |
+| Switch | 4 | Smooth on/off conductance | [48](48-cccs-switch.md) |
 
 ---
 
-## 5. Capacitor
+## 3. Parameter passif dan sumber
 
-DC:
+| Device | Parameter | Default | Wajib |
+|---|---|---|---|
+| Resistor | `resistance` | - | ya |
+| Resistor | `temp` | 300.15 K | tidak |
+| Resistor | `tc1` | 0 | tidak |
+| Resistor | `tc2` | 0 | tidak |
+| Capacitor | `capacitance` | - | ya |
+| Inductor | `inductance` | - | ya |
+| Voltage source | `voltage` | 0.0 | tidak |
+| Voltage source | `ac` | `voltage` | tidak |
+| Voltage source | `ac_phase` | 0 deg | tidak |
+| Current source | `current` | 0.0 | tidak |
+| Current source | `ac` | `current` | tidak |
+| Current source | `ac_phase` | 0 deg | tidak |
 
-- Capacitor open.
-- Tidak ada stamp.
+Sumber pulsa:
 
-Transient Backward Euler:
-
-```text
-I = C * (V - Vprev) / dt
-g = C / dt
-Ieq = g * Vprev
-```
-
-State `voltage_prev` diperbarui setelah solusi konvergen.
-
----
-
-## 6. Inductor
-
-DC:
-
-- Inductor short.
-- Branch dengan tegangan 0.
-
-Transient Backward Euler:
-
-```text
-V = L * (I - Iprev) / dt
-R = L / dt
-Veq = -R * Iprev
-```
-
-State `current_prev` diperbarui setelah solusi konvergen.
+| Parameter | Default |
+|---|---|
+| `v1` | 0.0 V |
+| `v2` | 5.0 V |
+| `delay` | 0 s |
+| `rise` | 1 ns |
+| `fall` | 1 ns |
+| `width` | 1 us |
+| `period` | 2 us |
 
 ---
 
-## 7. Voltage Source
-
-Branch equation:
-
-```text
-Va - Vb = V
-```
-
-Branch current menjadi unknown tambahan.
-
----
-
-## 8. Current Source
-
-Current source mengalir dari pin pertama ke pin kedua.
-
-```text
-RHS[a] -= I
-RHS[b] += I
-```
-
----
-
-## 9. MOSFET Level 1
+## 4. Diode
 
 Parameter:
 
-- `vto`: threshold voltage magnitude.
-- `kp`: transconductance parameter.
-- `lambda`: channel-length modulation.
-- `w`, `l`: width dan length.
+| Parameter | Default | Arti |
+|---|---|---|
+| `is` | 1e-12 A | saturation current |
+| `n` | 1.0 | emission coefficient |
+| `vt` | k*T/q | thermal voltage |
+| `rs` | 0 ohm | series resistance |
+| `cj0` | 0 F | zero-bias junction capacitance |
+| `vj` | 0.7 V | junction potential |
+| `m` | 0.5 | grading coefficient |
 
-Region NMOS:
-
-```text
-Vov = Vgs - Vto
-cutoff:     Vov <= 0
-linear:     Vds < Vov
-saturation: Vds >= Vov
-```
-
-Linear:
+Arus:
 
 ```text
-Ids = kp * (W/L) * (Vov * Vds - 0.5 * Vds^2) * (1 + lambda * Vds)
+I = is * (exp(V / (n * vt)) - 1)
 ```
 
-Saturation:
+Junction capacitance:
 
 ```text
-Ids = 0.5 * kp * (W/L) * Vov^2 * (1 + lambda * Vds)
+C = cj0 / (1 - V / vj)^m
 ```
 
-PMOS memakai polaritas terbalik:
-
-```text
-Ids = -nmos_current(Vsg, Vsd)
-```
-
-### Jacobian
-
-Jacobian dihitung secara numerik dengan beda hingga kecil.
-
-- `gm = dIds/dVg`
-- `gds = dIds/dVd`
-- `gms = dIds/dVs`
-
-Keuntungan:
-
-- Satu implementasi untuk NMOS dan PMOS.
-- Mudah diperluas.
-
-Batasan:
-
-- Sedikit lebih lambat daripada Jacobian analitik.
-- Perlu step yang sesuai.
-
-### Yang Belum Ada
-
-- Body effect.
-- `gmb`.
-- Meyer capacitance.
-- Subthreshold.
-- Mobility degradation.
+Dengan `rs > 0`, tegangan junction diselesaikan secara iteratif.
 
 ---
 
-## 10. Diode
+## 5. MOSFET
 
-Persamaan Shockley:
+Parameter:
 
-```text
-I = Is * (exp(V / (n * Vt)) - 1)
-```
+| Parameter | Default | Arti |
+|---|---|---|
+| `vto` | 0.7 V | threshold |
+| `kp` | 1e-3 A/V^2 | transconductance |
+| `lambda` | 0.0 | channel-length modulation |
+| `w` | 1e-6 m | width |
+| `l` | 1e-6 m | length |
+| `gamma` | 0.0 | body effect |
+| `phi` | 0.7 V | surface potential |
+| `cox` | 0 F | oxide capacitance |
+| `cgso` | 0 F | gate-source overlap |
+| `cgdo` | 0 F | gate-drain overlap |
 
-Implementasi:
+Region:
 
-- Forward voltage dibatasi 0.9 V untuk stabilitas Newton.
-- Eksponen dibatasi 40.
-- Tidak ada series resistance.
-- Tidak ada junction capacitance.
-- Tidak ada breakdown.
+- Cutoff: `vgs <= vto`.
+- Linear: `vds < vgs - vto`.
+- Saturation: `vds >= vgs - vto`.
 
-Test:
-
-- Arus nol pada 0 V.
-- Arus maju naik.
-- Arus reverse kecil.
-- Konduktansi positif.
-- Forward voltage terbatas.
+Kapasitansi memakai pembagian Meyer sederhana berdasarkan region.
+MOSFET tiga terminal memakai source sebagai body.
 
 ---
 
-## 11. Test
+## 6. BJT
+
+Parameter:
+
+| Parameter | Default | Arti |
+|---|---|---|
+| `is` | 1e-15 A | saturation current |
+| `bf` | 100 | forward beta |
+| `br` | 1 | reverse beta |
+| `vt` | k*T/q | thermal voltage |
+| `temp` | 300.15 K | suhu |
+| `cje` | 0 F | base-emitter capacitance |
+| `vje` | 0.75 V | base-emitter potential |
+| `mje` | 0.33 | base-emitter grading |
+| `cjc` | 0 F | base-collector capacitance |
+| `vjc` | 0.75 V | base-collector potential |
+| `mjc` | 0.33 | base-collector grading |
+| `tf` | 0 s | forward transit time |
+| `tr` | 0 s | reverse transit time |
+
+Arus Ebers-Moll:
+
+```text
+IF = is * (exp(vbe / vt) - 1)
+IR = is * (exp(vbc / vt) - 1)
+Ic = alpha_f * IF - IR
+Ib = (1 - alpha_f) * IF + (1 - alpha_r) * IR
+Ie = -IF + alpha_r * IR
+```
+
+Kapasitansi:
+
+```text
+Cbe = depletion(cje, vje, mje, vbe) + tf * gbe
+Cbc = depletion(cjc, vjc, mjc, vbc) + tr * gbc
+```
+
+PNP memakai transformasi tanda pada `vbe`, `vbc`, dan arus.
+
+---
+
+## 7. JFET
+
+Parameter:
+
+| Parameter | Default | Arti |
+|---|---|---|
+| `vto` | -2 V untuk N, +2 V untuk P | threshold |
+| `beta` | 1e-3 A/V^2 | transconductance |
+| `lambda` | 0.0 | channel-length modulation |
+| `cgs` | 0 F | gate-source capacitance |
+| `cgd` | 0 F | gate-drain capacitance |
+
+Arus channel:
+
+```text
+overdrive = vgs - vto
+overdrive <= 0: Id = 0
+vds < overdrive: Id = beta * (2 * overdrive * vds - vds^2) * (1 + lambda * vds)
+vds >= overdrive: Id = beta * overdrive^2 * (1 + lambda * vds)
+```
+
+P-JFET memakai transformasi tanda. Kapasitansi `cgs` dan `cgd` konstan.
+
+---
+
+## 8. Controlled source dan switch
+
+| Device | Parameter | Default |
+|---|---|---|
+| VCVS | `gain` | 1.0 |
+| VCCS | `gm` | 1e-3 S |
+| CCCS | `gain` | 1.0 |
+| CCVS | `rm` | 1000 ohm |
+| Switch | `ron` | 1 ohm |
+| Switch | `roff` | 1e9 ohm |
+| Switch | `vth` | 2.5 V |
+| Switch | `width` | 0.1 V |
+
+CCVS memakai dua branch: sense branch dan output branch.
+
+Switch memakai conductance halus:
+
+```text
+g = 1/roff + (1/ron - 1/roff) * sigmoid((vctrl - vth) / width)
+```
+
+---
+
+## 9. Transmission line
+
+Parameter:
+
+| Parameter | Default | Arti |
+|---|---|---|
+| `z0` | 50 ohm | characteristic impedance |
+| `delay` | 1 ns | one-way delay |
+
+Transmission line hanya mendukung transient dengan time step konstan.
+Device ini belum didukung AC.
+
+---
+
+## 10. Test
 
 Test device mencakup:
 
-- Parameter helper.
-- MOSFET cutoff.
-- MOSFET linear.
-- MOSFET saturation.
-- Lambda.
-- Width/length scaling.
-- Numeric derivative.
-- Resistor stamping.
-- Voltage source branch.
-- Current source injection.
-- Custom device unsupported.
-- MOSFET factory.
-- Diode current.
+- Validasi parameter.
+- Stamping resistor, capacitor, dan inductor.
+- Sumber tegangan dan arus.
+- MOSFET cutoff, linear, saturation, lambda, width/length.
+- Body effect dan `gmb`.
+- Kapasitansi MOSFET.
+- Diode IV, series resistance, dan junction capacitance.
+- BJT arus, gain, suhu, dan kapasitansi.
+- JFET arus, tanda P, dan kapasitansi.
+- Controlled source dan switch.
+- Transmission line.
 
-Total test `sim-device`: 18 unit + 5 integration = 23.
+Total test `sim-device`: 43 unit + 5 integration = 48.
 
 ---
 
-## 12. Berikutnya
+## 11. Batas
 
-P3 lanjutan:
+- MOSFET Level 1 tidak akurat untuk short-channel.
+- Meyer capacitance bukan charge-conserving.
+- BJT dan JFET memakai model kapasitansi sederhana.
+- Diode belum memiliki breakdown dan diffusion capacitance.
+- Switch belum memiliki hysteresis atau delay.
+- Transmission line hanya lossless dan constant step.
+- Parameter belum dikalibrasi ke silikon.
 
-- Body effect dan `gmb`.
-- Meyer capacitance.
-- Diode series resistance dan capacitance.
-- BJT Ebers-Moll.
-- JFET.
-- Controlled source.
-- Switch.
-- Transmission line.
-
-Lihat `TODO.md` untuk daftar lengkap.
+Matriks fidelity lengkap ada di [24-fidelity.md](24-fidelity.md).
