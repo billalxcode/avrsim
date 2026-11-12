@@ -1,5 +1,7 @@
 //! Behavioral AVR USART transmitter and receiver model.
 
+use std::collections::VecDeque;
+
 const TX_ENABLE: u8 = 1 << 3;
 const FRAME_BITS: u32 = 10;
 const NORMAL_MODE_FACTOR: u32 = 16;
@@ -14,6 +16,7 @@ pub struct Uart {
     tx_bit_cycles: u32,
     tx_elapsed: u32,
     tx_active: bool,
+    tx_queue: VecDeque<u8>,
     udre: bool,
     txc: bool,
     rx_data: u8,
@@ -36,6 +39,7 @@ impl Uart {
             tx_bit_cycles: 0,
             tx_elapsed: 0,
             tx_active: false,
+            tx_queue: VecDeque::new(),
             udre: true,
             txc: false,
             rx_data: 0,
@@ -149,6 +153,11 @@ impl Uart {
         self.tx_data
     }
 
+    /// Takes the next fully transmitted byte.
+    pub fn take_tx_byte(&mut self) -> Option<u8> {
+        self.tx_queue.pop_front()
+    }
+
     /// Returns true when the transmitter is complete (TXC).
     #[must_use]
     pub fn tx_complete(&self) -> bool {
@@ -208,6 +217,7 @@ impl Uart {
         self.tx_active = false;
         self.tx_elapsed = 0;
         self.tx_bit_cycles = 0;
+        self.tx_queue.push_back(self.tx_data);
         self.udre = true;
         self.txc = true;
     }
@@ -294,6 +304,18 @@ mod tests {
         assert!(uart.take_tx_complete());
         assert!(!uart.tx_complete());
         assert!(!uart.take_tx_complete());
+    }
+
+    #[test]
+    fn completed_bytes_are_queued_in_order() {
+        let mut uart = enabled_uart();
+        uart.write_tx(b'H');
+        uart.tick(NORMAL_MODE_FACTOR * FRAME_BITS);
+        uart.write_tx(b'i');
+        uart.tick(NORMAL_MODE_FACTOR * FRAME_BITS);
+        assert_eq!(uart.take_tx_byte(), Some(b'H'));
+        assert_eq!(uart.take_tx_byte(), Some(b'i'));
+        assert_eq!(uart.take_tx_byte(), None);
     }
 
     #[test]

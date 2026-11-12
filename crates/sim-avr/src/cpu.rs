@@ -545,15 +545,21 @@ impl Cpu {
         let rx = uart.rx_ready();
         let tx = uart.tx_complete();
         let udre = uart.tx_ready();
-        if rx && mask & 0x01 != 0 {
-            self.request_interrupt(18)?;
+        self.update_uart_interrupt(18, rx, mask & 0x01 != 0)?;
+        self.update_uart_interrupt(20, tx, mask & 0x02 != 0)?;
+        self.update_uart_interrupt(19, udre, mask & 0x04 != 0)
+    }
+
+    fn update_uart_interrupt(
+        &mut self,
+        index: u8,
+        flag: bool,
+        enabled: bool,
+    ) -> Result<(), SimError> {
+        if flag && enabled {
+            return self.request_interrupt(index);
         }
-        if tx && mask & 0x02 != 0 {
-            self.request_interrupt(20)?;
-        }
-        if udre && mask & 0x04 != 0 {
-            self.request_interrupt(19)?;
-        }
+        self.pending &= !(1u32 << index);
         Ok(())
     }
 
@@ -621,6 +627,7 @@ impl Cpu {
         }
         let index = self.pending.trailing_zeros() as u8;
         self.pending &= !(1u32 << index);
+        self.clear_interrupt_flag(index);
         if (3..=5).contains(&index) {
             self.pin_change.pcifr &= !(1 << (index - 3));
         }
@@ -628,6 +635,24 @@ impl Cpu {
         self.sreg.interrupt = false;
         self.pc = vector_address(index);
         Ok(true)
+    }
+
+    fn clear_interrupt_flag(&mut self, index: u8) {
+        match index {
+            14 => self.clear_timer0_compare_flag(),
+            16 => self.clear_timer0_overflow_flag(),
+            _ => {}
+        }
+    }
+
+    fn clear_timer0_overflow_flag(&mut self) {
+        self.datapath.timers.timer0.take_overflow();
+        self.io[0x35] &= !0x01;
+    }
+
+    fn clear_timer0_compare_flag(&mut self) {
+        self.datapath.timers.timer0.take_compare();
+        self.io[0x35] &= !0x02;
     }
 
     fn finish_sei(&mut self) {
@@ -931,11 +956,19 @@ impl Cpu {
         self.set_bool("cin", carry && self.sreg.carry)?;
         self.circuit.settle()?;
         let result = read_bits(&self.circuit, &self.datapath.arithmetic.result) as u8;
-        self.update_full_flags();
+        self.update_binary_flags(instruction.mnemonic);
         if write {
             self.write_register(destination, result)?;
         }
         self.advance(next_pc)
+    }
+
+    fn update_binary_flags(&mut self, mnemonic: Mnemonic) {
+        let previous_zero = self.sreg.zero;
+        self.update_full_flags();
+        if has_cumulative_zero(mnemonic) {
+            self.sreg.zero &= previous_zero;
+        }
     }
 
     fn execute_update(
@@ -1992,6 +2025,10 @@ fn store_mode(mnemonic: Mnemonic) -> Option<MemoryMode> {
     })
 }
 
+fn has_cumulative_zero(mnemonic: Mnemonic) -> bool {
+    matches!(mnemonic, Mnemonic::Sbc | Mnemonic::Sbci | Mnemonic::Cpc)
+}
+
 fn arithmetic_control(mnemonic: Mnemonic) -> Result<(bool, bool, bool, bool), SimError> {
     match mnemonic {
         Mnemonic::Add => Ok((false, false, false, true)),
@@ -2300,6 +2337,34 @@ mod tests {
         ]);
         assert_eq!(cpu.register(17), 0);
         assert_eq!(cpu.register(18), 7);
+    }
+
+    #[test]
+    fn cpc_keeps_zero_clear_for_nonzero_low_byte() {
+        let cpu = run(vec![
+            ldi(24, 1),
+            ldi(25, 0),
+            ldi(22, 0),
+            ldi(23, 0),
+            reg_op(0x1400, 24, 22),
+            reg_op(0x0400, 25, 23),
+            0x9598,
+        ]);
+        assert!(!cpu.sreg().zero);
+    }
+
+    #[test]
+    fn sbc_keeps_zero_clear_for_nonzero_low_byte() {
+        let cpu = run(vec![
+            ldi(24, 1),
+            ldi(25, 0),
+            ldi(22, 0),
+            ldi(23, 0),
+            reg_op(0x0800, 24, 22),
+            reg_op(0x0800, 25, 23),
+            0x9598,
+        ]);
+        assert!(!cpu.sreg().zero);
     }
 
     #[test]
@@ -2953,6 +3018,23 @@ mod tests {
         }
         assert_eq!(cpu.register(17), 7);
     }
+
+    #[test]
+    fn timer0_overflow_vector_clears_flag() {
+        let mut cpu = Cpu::new(timer0_overflow_program()).expect("cpu");
+        cpu.set_sreg(super::Sreg {
+            interrupt: true,
+            ..super::Sreg::default()
+        });
+        for _ in 0..2000 {
+            cpu.step().expect("step");
+            if cpu.register(17) == 7 {
+                break;
+            }
+        }
+        assert_eq!(cpu.register(17), 7);
+        assert_eq!(cpu.io(0x35) & 0x01, 0);
+    }
     #[test]
     fn timer0_pwm_output_from_cpu() {
         let mut cpu = Cpu::new(vec![
@@ -3021,6 +3103,17 @@ mod tests {
         assert!(cpu.uart().tx_complete());
         cpu.run(10).expect("run");
         assert!(!cpu.uart().tx_complete());
+    }
+
+    #[test]
+    fn uart_udre_pending_clears_after_write() {
+        let mut cpu = Cpu::new(vec![0x9598]).expect("cpu");
+        cpu.io_write(0xC1, 0x28).expect("control");
+        cpu.poll_uart(0x04).expect("poll");
+        assert_ne!(cpu.pending & (1 << 19), 0);
+        cpu.io_write(0xC6, 0x41).expect("tx");
+        cpu.poll_uart(0x04).expect("poll");
+        assert_eq!(cpu.pending & (1 << 19), 0);
     }
 
     #[test]
