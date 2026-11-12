@@ -60,6 +60,7 @@ Setiap dokumen muncul satu kali pada peta ini.
 |---|---|---|
 | 43 | [Panduan pengguna](43-user-guide.md) | Build, CLI, library, analisis, firmware, troubleshooting |
 | 55 | [Virtual USB serial](55-usb-virtual-serial.md) | Riset CDC ACM, dummy_hcd, USB/IP, Windows/macOS |
+| 56 | [Tutorial USB aman](56-usb-safe-tutorial.md) | Urutan start, upload, stop, dan pemulihan device busy |
 
 ### 3.2 Fondasi
 

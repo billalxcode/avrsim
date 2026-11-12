@@ -850,6 +850,11 @@ ditutup otomatis saat proses berhenti.
 - [x] P19-46 Implementasikan flag Z kumulatif untuk `SBC`, `SBCI`, dan `CPC`.
 - [x] P19-47 Antrekan byte TX dan bersihkan pending UDRE secara level-triggered.
 - [x] P19-48 Verifikasi sketsa Arduino core `Serial.println("Hello World")`.
+- [x] P19-49 Tunggu bridge keluar sebelum `usb-gadget.sh stop`.
+- [x] P19-50 Buat bind UDC idempoten dan pulihkan gadget setengah terhapus.
+- [x] P19-51 Tambah test urutan cleanup `run-usb.sh`.
+- [x] P19-52 Tulis tutorial aman start, upload, dan stop.
+- [ ] P19-53 Verifikasi cleanup gadget kernel nyata setelah perubahan script.
 - [x] P19-38 Perbarui `docs/55` dan `docs/README.md` setelah verifikasi.
 
 **Exit P19:** driver C++ menghasilkan USB serial virtual yang terdeteksi

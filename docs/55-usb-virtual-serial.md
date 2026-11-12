@@ -2,7 +2,9 @@
 
 Dokumen ini merangkum riset untuk membuat virtual USB serial port.
 
-**Status:** riset, bridge C++, ConfigFS ACM, upload STK500v1, dan sketsa Arduino core berhasil; verifikasi GUI Arduino IDE dan cleanup gadget belum.
+**Status:** riset, bridge C++, ConfigFS ACM, upload STK500v1, dan sketsa Arduino core berhasil. Cleanup memakai urutan aman dan guard `ttyGS0`; verifikasi GUI Arduino IDE dan cleanup gadget nyata belum.
+
+Tutorial operasional: [`56-usb-safe-tutorial.md`](56-usb-safe-tutorial.md).
 
 **Kesimpulan awal:**
 
@@ -468,18 +470,21 @@ Sudah diverifikasi:
 Belum diverifikasi:
 
 - Upload dari GUI Arduino IDE.
-- Cleanup gadget setelah Ctrl-C.
+- Cleanup gadget kernel nyata setelah Ctrl-C; urutan cleanup sudah diuji
+  dengan driver palsu.
 
 Perintah:
 
 ```bash
 ./scripts/build-drivers.sh
 python3 scripts/test-usb-bridge.py
+python3 scripts/test-run-usb-cleanup.py
 drivers/linux/scripts/run-usb.sh
 ./target/release/embed-emu usb --socket /tmp/embed-emu-usb.sock
 ```
 
-Detail ada di [`drivers/linux/README.md`](../drivers/linux/README.md).
+Detail ada di [`drivers/linux/README.md`](../drivers/linux/README.md) dan
+[`56-usb-safe-tutorial.md`](56-usb-safe-tutorial.md).
 
 ---
 

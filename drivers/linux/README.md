@@ -2,10 +2,13 @@
 
 Driver user-space C++ untuk menghubungkan virtual USB serial ke simulator.
 
-**Status:** bridge C++, ConfigFS ACM, `/dev/ttyACM0`, STK500v1, dan upload
-avrdude 8.0 berhasil. GUI Arduino IDE dan cleanup gadget belum diverifikasi.
+**Status:** bridge C++, ConfigFS ACM, `/dev/ttyACM0`, STK500v1, upload
+avrdude 8.0, dan sketsa Arduino core berhasil. Cleanup gadget memakai
+urutan aman dan guard `ttyGS0`; verifikasi GUI Arduino IDE dan cleanup
+gadget nyata masih terbatas.
 
 Riset: [`docs/55-usb-virtual-serial.md`](../../docs/55-usb-virtual-serial.md).
+Tutorial aman: [`docs/56-usb-safe-tutorial.md`](../../docs/56-usb-safe-tutorial.md).
 Todolist: [`TODO.md`](../../TODO.md), bagian P19.
 
 ---
@@ -76,17 +79,21 @@ ls /sys/class/udc
 ```bash
 ctest --test-dir build/drivers-linux --output-on-failure
 python3 scripts/test-usb-bridge.py
+python3 scripts/test-run-usb-cleanup.py
 ```
 
 Test C++ memeriksa parser opsi.
 
-Test Python memakai PTY sebagai pengganti `/dev/ttyGS0` dan menguji:
+Test Python bridge memakai PTY sebagai pengganti `/dev/ttyGS0` dan menguji:
 
 - Koneksi Rust ke socket driver.
 - Upload blink.
 - Output UART.
 - Echo RX.
 - Cleanup socket.
+
+Test cleanup memakai driver dan gadget palsu untuk memastikan bridge
+berhenti sebelum `usb-gadget.sh stop` dijalankan.
 
 ---
 
@@ -101,9 +108,10 @@ drivers/linux/scripts/run-usb.sh
 Script akan:
 
 - Menjalankan `usb-gadget.sh start` dengan sudo.
-- Membuat gadget ConfigFS ACM.
-- Mengikat ke `dummy_udc.0`.
+- Membuat atau memperbaiki gadget ConfigFS ACM.
+- Mengikat ke `dummy_udc.0` hanya jika belum terikat.
 - Menjalankan `embed-emu-usb`.
+- Menunggu bridge keluar sebelum menjalankan cleanup gadget.
 
 Terminal 2:
 
@@ -113,9 +121,13 @@ Terminal 2:
 
 Terminal 3:
 
-Buka Arduino IDE, pilih `/dev/ttyACM0`, lalu upload sketch.
+Buka Arduino IDE, tutup Serial Monitor sebelum upload, pilih
+`/dev/ttyACM0`, lalu upload sketch.
 
-Tekan Ctrl-C di terminal 1 untuk menghentikan bridge dan menghapus gadget.
+Tekan Ctrl-C di terminal 2 lebih dulu, lalu Ctrl-C di terminal 1. Script
+terminal 1 akan menghentikan bridge, menunggu prosesnya keluar, lalu
+menghapus gadget. Urutan lengkap ada di
+[`docs/56-usb-safe-tutorial.md`](../../docs/56-usb-safe-tutorial.md).
 
 ---
 
@@ -138,6 +150,10 @@ Hentikan gadget:
 ```bash
 sudo drivers/linux/scripts/usb-gadget.sh stop
 ```
+
+`stop` akan menolak berjalan selama `/dev/ttyGS0` masih dibuka bridge.
+Hentikan bridge lebih dulu. Jangan memaksa unbind atau menghapus direktori
+ConfigFS secara manual.
 
 Driver:
 
@@ -209,4 +225,6 @@ serial juga diberikan oleh sandbox-nya.
 - DTR/RTS belum diuji.
 - FunctionFS dan descriptor C++ belum diimplementasikan.
 - Windows dan macOS belum diimplementasikan.
-- Uji `/dev/ttyACM0` dan Arduino IDE menunggu environment dengan root.
+- Cleanup gadget dengan urutan aman sudah diuji memakai driver palsu;
+  verifikasi gadget kernel nyata setelah perubahan script belum dijalankan.
+- Uji upload dari GUI Arduino IDE menunggu verifikasi ulang.

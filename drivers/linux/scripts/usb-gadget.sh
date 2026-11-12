@@ -52,7 +52,28 @@ bind_udc() {
         echo "check: ls /sys/class/udc" >&2
         exit 1
     fi
+    if [[ "$(cat "$GADGET/UDC")" == "$UDC_NAME" ]]; then
+        return 0
+    fi
     echo "$UDC_NAME" > "$GADGET/UDC"
+}
+
+gadget_complete() {
+    [[ -e "$GADGET/configs/c.1/acm.usb0" ]]
+}
+
+tty_in_use() {
+    command -v fuser >/dev/null || return 1
+    [[ -e /dev/ttyGS0 ]] && fuser -s /dev/ttyGS0 2>/dev/null
+}
+
+remove_gadget_dirs() {
+    rm -f "$GADGET/configs/c.1/acm.usb0"
+    rmdir "$GADGET/configs/c.1/strings/0x409" 2>/dev/null || true
+    rmdir "$GADGET/configs/c.1" 2>/dev/null || true
+    rmdir "$GADGET/functions/acm.usb0" 2>/dev/null || true
+    rmdir "$GADGET/strings/0x409" 2>/dev/null || true
+    rmdir "$GADGET" 2>/dev/null || true
 }
 
 wait_for_device() {
@@ -84,10 +105,13 @@ start() {
     load_modules
     mount_configfs
     if [[ -d "$GADGET" ]]; then
-        echo "gadget already exists: $GADGET"
-        bind_udc
-        fix_permissions
-        return 0
+        if gadget_complete; then
+            echo "gadget already exists: $GADGET"
+            bind_udc
+            fix_permissions
+            return 0
+        fi
+        stop
     fi
     create_gadget
     create_config
@@ -99,6 +123,10 @@ start() {
 
 stop() {
     require_root
+    if tty_in_use; then
+        echo "error: /dev/ttyGS0 is still open; stop the bridge first" >&2
+        exit 1
+    fi
     if [[ ! -d "$GADGET" ]]; then
         echo "gadget not found: $GADGET"
         return 0
@@ -106,12 +134,7 @@ stop() {
     if [[ -e "$GADGET/UDC" ]]; then
         echo "" > "$GADGET/UDC"
     fi
-    rm -f "$GADGET/configs/c.1/acm.usb0"
-    rmdir "$GADGET/configs/c.1/strings/0x409" 2>/dev/null || true
-    rmdir "$GADGET/configs/c.1" 2>/dev/null || true
-    rmdir "$GADGET/functions/acm.usb0" 2>/dev/null || true
-    rmdir "$GADGET/strings/0x409" 2>/dev/null || true
-    rmdir "$GADGET" 2>/dev/null || true
+    remove_gadget_dirs
     echo "stopped $GADGET_NAME"
 }
 
