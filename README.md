@@ -4,7 +4,7 @@
 yang memodelkan transistor, gerbang CMOS, CPU AVR, peripheral, dan board,
 serta mampu menjalankan firmware AVR.
 
-> **Status v0.1:** 547 test lulus, 7 crate, nol dependensi eksternal Rust.
+> **Status v0.1:** 552 test lulus, 7 crate, nol dependensi eksternal Rust.
 > Tag `v0.1` tersedia. Archive Linux ada di
 > `dist/embed-emu-x86_64-unknown-linux-gnu.tar.gz`.
 
@@ -42,7 +42,7 @@ profile tertentu, bukan replika silikon identik.
 | AVR | ISA, decoder, ALU, register, SRAM, flash, GPIO, timer, UART, SPI, TWI, ADC |
 | Board | LED, resistor, button, UART host, pin electrical, CSV, VCD |
 | Format | Intel HEX, ELF32, CSV, VCD digital, VCD analog |
-| Virtual serial | STK500 upload, firmware run, TX/RX UART, cleanup otomatis |
+| Virtual serial | STK500 upload, firmware run, TX/RX UART, sketsa Arduino core, cleanup otomatis |
 | Virtual USB | C++ bridge, ConfigFS ACM, `/dev/ttyACM0`, STK500v1, upload avrdude |
 | CLI | `run`, `monitor`, `disasm`, `bench`, `serial`, `usb` |
 
@@ -143,15 +143,17 @@ Dokumen yang sering dipakai:
 
 Sudah:
 
-- 547 test workspace.
+- 552 test workspace.
 - fmt, clippy, test, dan build release lulus.
 - Paket Linux dapat dibuat.
 - Determinisme Linux diuji.
+- Firmware `avr-gcc` bare-metal dan sketsa Arduino core
+  `Serial.println("Hello World")` berjalan.
 
 Belum:
 
 - Golden comparison dengan ngspice.
-- Firmware hasil `avr-gcc` di environment ini.
+- Upload dan Serial Monitor dari GUI Arduino IDE.
 - Determinisme macOS dan Windows.
 - Eksekusi GitHub Actions.
 - GUI atau waveform viewer.

@@ -81,7 +81,7 @@ pub fn host_receive(&mut self) -> Option<u8>;
 
 Total test `sim-board`: 23.
 Total test `sim-cli`: 26.
-Total workspace: 547.
+Total workspace: 552.
 
 ---
 
@@ -90,7 +90,6 @@ Total workspace: 547.
 - Board belum memakai netlist analog penuh.
 - LED hanya memakai arus dan forward voltage.
 - Belum ada debounce tombol.
-- `avr-gcc` belum tersedia di environment ini.
 - Firmware hasil kompilasi nyata belum dijalankan di CI.
 - Belum ada GUI atau waveform viewer.
 - Belum ada writer biner atau kompresi.

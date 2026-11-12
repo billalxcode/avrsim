@@ -56,7 +56,7 @@ Dokumen ini mencatat tingkat fidelity aktual proyek.
 - AC memakai linearisasi DC; kapasitansi diode, MOSFET, BJT, dan JFET distamp dari bias.
 - Kapasitansi BJT memakai model depletion sederhana dan `tf`/`tr`; JFET memakai `cgs`/`cgd` konstan.
 - Switch AC memakai conductance dari bias kontrol; kontrol AC tidak dimodulasi.
-- Virtual serial upload memakai `socat`; Arduino IDE GUI mungkin tidak mendeteksi PTY. Gunakan `arduino-cli`/avrdude dengan path eksplisit atau custom discovery. TX dan RX UART diteruskan.
+- Mode `serial` memakai `socat` dan PTY; Arduino IDE GUI mungkin tidak mendeteksi PTY. Mode `usb` memakai `/dev/ttyACM0` sehingga port dapat dipilih langsung. TX dan RX UART diteruskan; upload dari GUI belum diuji ulang.
 - Noise hanya noise termal resistor.
 - Distortion hanya rangkaian memoryless tanpa intermodulasi.
 - Sensitivitas memakai finite difference pada satu parameter dan satu node.
@@ -102,9 +102,9 @@ Dokumen ini mencatat tingkat fidelity aktual proyek.
 - Pin elektrik bersifat aditif, bukan pengganti inti digital.
 - LED hanya model arus dan forward voltage.
 - Belum ada debounce tombol.
-- `avr-gcc` belum tersedia.
 - Blink dijalankan dari encoding manual.
-- Belum ada firmware UART hello hasil kompilasi.
+- Firmware UART hello hasil `avr-gcc` dan sketsa Arduino core sudah
+  dijalankan.
 - ELF loader sudah ada, tetapi firmware ELF nyata belum diuji.
 
 ---

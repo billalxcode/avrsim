@@ -2,7 +2,7 @@
 
 Dokumen ini merangkum riset untuk membuat virtual USB serial port.
 
-**Status:** riset, bridge C++, ConfigFS ACM, dan upload STK500v1 berhasil; verifikasi GUI Arduino IDE dan cleanup gadget belum.
+**Status:** riset, bridge C++, ConfigFS ACM, upload STK500v1, dan sketsa Arduino core berhasil; verifikasi GUI Arduino IDE dan cleanup gadget belum.
 
 **Kesimpulan awal:**
 
@@ -461,6 +461,8 @@ Sudah diverifikasi:
 - `avrdude 8.0` sync, signature, upload, dan verify.
 - Firmware blink berjalan dan LED berubah.
 - Firmware hasil `avr-gcc` berjalan, termasuk `ADIW` dan `SBIW`.
+- Sketsa Arduino core `Serial.println("Hello World")` mengeluarkan teks
+  yang benar lewat `/dev/ttyACM0`.
 - DTR dari avrdude tidak memutus bridge.
 
 Belum diverifikasi:

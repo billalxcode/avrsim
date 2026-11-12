@@ -11,6 +11,8 @@ Dokumen ini menjelaskan model USART behavioral dan integrasinya ke CPU.
 - `write_tx` hanya menerima data saat transmitter enable dan idle.
 - UDRE turun saat data dimuat dan naik lagi setelah frame selesai.
 - TXC di-set setelah frame selesai.
+- Byte yang selesai dikirim masuk FIFO agar tidak hilang saat host
+  terlambat mengambilnya.
 - `tx_line` mengikuti level start, data, dan stop.
 - UART maju mengikuti cycle instruksi CPU.
 
@@ -37,6 +39,10 @@ CPU menyediakan `poll_uart(mask)`:
 
 Mask adalah penyederhanaan dari bit enable UCSR0B.
 
+Flag UART bersifat level-triggered. Bit pending di-set selama flag aktif
+dan dihapus saat flag tidak lagi aktif, sehingga penulisan UDR tidak
+meninggalkan permintaan interrupt lama.
+
 ---
 
 ## 4. Integrasi CPU
@@ -44,7 +50,7 @@ Mask adalah penyederhanaan dari bit enable UCSR0B.
 - UART dimiliki oleh CPU dan maju setiap instruksi.
 - UDR0, UCSR0A, UCSR0B, UCSR0C, UBRR0L, dan UBRR0H dipetakan ke I/O
   dan data space.
-- TX byte diteruskan ke virtual serial port.
+- TX byte diteruskan ke virtual serial port melalui FIFO.
 - RX dari virtual serial masuk ke antrean dan diteruskan ke UART.
 - Interrupt UART dipicu otomatis berdasarkan bit enable UCSR0B.
 
@@ -66,11 +72,15 @@ Mask adalah penyederhanaan dari bit enable UCSR0B.
 - Register UART menggerakkan transmitter melalui STS.
 - LDS dari UDR0 membaca byte dan membersihkan RXC.
 - Write ke UCSR0A membersihkan TXC.
+- Byte TX yang selesai masuk FIFO dalam urutan yang benar.
+- Pending UDRE dibersihkan setelah UDR ditulis.
 - RX interrupt otomatis masuk ke vektor 18.
 - Smoke test virtual serial menerima byte UART.
 - Smoke test echo mengirim dan menerima byte RX.
+- Sketsa Arduino core `Serial.println("Hello World")` menghasilkan output
+  yang benar lewat `/dev/ttyACM0`.
 
-Total test `sim-avr`: 210.
+Total test `sim-avr`: 215.
 
 ---
 
@@ -78,5 +88,5 @@ Total test `sim-avr`: 210.
 
 - RX timing belum mengikuti baud divider; byte masuk langsung ke antrean.
 - Parity, stop bit ganda, dan mode sinkron belum didukung.
-- TX dan UDRE interrupt sudah meminta vektor tetapi belum diuji end-to-end.
+- TX memakai model satu frame aktif; FIFO host menampung byte selesai.
 - Belum ada loopback UART board dua arah.

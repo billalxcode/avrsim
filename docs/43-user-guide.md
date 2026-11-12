@@ -311,7 +311,9 @@ membuat upload tampak gagal.
 
 Terverifikasi dengan `avrdude 8.0`: sync, signature, upload, verify, dan
 firmware blink berjalan. Firmware hasil `avr-gcc` juga berjalan, termasuk
-instruksi `ADIW` dan `SBIW`.
+instruksi `ADIW` dan `SBIW`. Sketsa Arduino core
+`Serial.println("Hello World")` mengeluarkan teks yang benar lewat
+`/dev/ttyACM0`.
 
 Test bridge tanpa gadget kernel:
 
@@ -603,8 +605,8 @@ avr-objcopy -O ihex -R .eeprom blink.elf blink.hex
 ./target/debug/embed-emu run blink.hex 100000
 ```
 
-Perintah di atas belum diverifikasi di environment ini karena `avr-gcc`
-tidak tersedia.
+Perintah di atas sudah diverifikasi dengan toolchain `avr-gcc` 7.3.0 dari
+paket Arduino dan menghasilkan firmware yang berjalan di simulator.
 
 ### 9.2 ELF ke HEX melalui library
 
@@ -697,7 +699,7 @@ cargo test -p sim-analysis determinism
 - Belum ada parser netlist SPICE. Rangkaian dibangun melalui API Rust.
 - Belum ada GUI atau waveform viewer.
 - Belum ada golden comparison dengan ngspice.
-- `avr-gcc` belum tersedia di environment ini.
+- Upload dari GUI Arduino IDE belum diuji ulang.
 - Determinisme macOS dan Windows belum dijalankan.
 - GitHub Actions sudah disiapkan, tetapi belum dieksekusi.
 - Model device memakai Level 1 atau model sederhana.
@@ -705,7 +707,8 @@ cargo test -p sim-analysis determinism
 - Switch AC memakai conductance dari bias; kontrol AC tidak dimodulasi.
 - Belum ada periodic steady state atau harmonic balance.
 - Virtual serial upload mendukung STK500. TX dan RX UART diteruskan.
-- Arduino IDE mungkin memerlukan symlink `/dev` agar port `/tmp` terdeteksi.
+- Mode `serial` berbasis PTY mungkin memerlukan symlink `/dev`; mode `usb`
+  memakai `/dev/ttyACM0`.
 
 Batas model yang lebih rinci ada di [24-fidelity.md](24-fidelity.md).
 

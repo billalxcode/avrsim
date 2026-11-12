@@ -1,4 +1,4 @@
-# 01 — Decision Log
+# 01 - Decision Log
 
 Dokumen ini mencatat seluruh keputusan desain yang diambil selama brainstorming, beserta alasan dan implikasinya.
 
@@ -70,18 +70,18 @@ Dokumen ini mencatat seluruh keputusan desain yang diambil selama brainstorming,
 
 ## 2. Detail Keputusan
 
-### D01 — Fondasi transistor-level
+### D01 - Fondasi transistor-level
 
 **Keputusan:** fondasi simulator adalah transistor, bukan gerbang digital atau instruksi.
 
-**Alasan:** visi pengguna adalah emulasi “dari hal terkecil”.
+**Alasan:** visi pengguna adalah emulasi "dari hal terkecil".
 
 **Implikasi:**
 - Device model fisik harus dibangun lebih dulu.
 - Gerbang digital adalah komposisi transistor, bukan primitif bawaan.
 - Solver analog menjadi inti, bukan tambahan.
 
-### D02 — Seluruh MCU transistor-level
+### D02 - Seluruh MCU transistor-level
 
 **Keputusan:** ATmega328P dimodelkan secara struktural, bukan ISS.
 
@@ -92,7 +92,7 @@ Dokumen ini mencatat seluruh keputusan desain yang diambil selama brainstorming,
 - SRAM dan flash tetap behavioral (pengecualian D19).
 - Simulasi akan sangat lambat; target offline.
 
-### D03 — Target ATmega328P
+### D03 - Target ATmega328P
 
 **Keputusan:** chip target pertama adalah ATmega328P.
 
@@ -103,7 +103,7 @@ Dokumen ini mencatat seluruh keputusan desain yang diambil selama brainstorming,
 - Perlu timer, UART, GPIO, interrupt controller, ADC, dan lainnya.
 - Perlu profil fuse/clock Arduino Uno.
 
-### D04 — Clean-room fungsional
+### D04 - Clean-room fungsional
 
 **Keputusan:** netlist internal adalah rancangan sendiri yang meniru perilaku teramati, bukan hasil ekstraksi die.
 
@@ -114,7 +114,7 @@ Dokumen ini mencatat seluruh keputusan desain yang diambil selama brainstorming,
 - Fidelity diukur di level pin dan perilaku firmware.
 - Parameter internal memakai model generik.
 
-### D05 — Primitif CMOS pertama
+### D05 - Primitif CMOS pertama
 
 **Keputusan:** blok pertama adalah inverter, NAND/NOR, transmission gate, SRAM cell, dan flip-flop dari transistor.
 
@@ -125,7 +125,7 @@ Dokumen ini mencatat seluruh keputusan desain yang diambil selama brainstorming,
 - Perlu characterization harness.
 - Perlu model kapasitansi Meyer untuk timing.
 
-### D06 — Shichman-Hodges Level 1
+### D06 - Shichman-Hodges Level 1
 
 **Keputusan:** MOSFET dimodelkan dengan persamaan kuadratik Level 1.
 
@@ -136,7 +136,7 @@ Dokumen ini mencatat seluruh keputusan desain yang diambil selama brainstorming,
 - Body effect dan channel-length modulation harus ada.
 - Model kapasitansi Meyer ditambahkan untuk transient.
 
-### D07–D08 — Backward Euler + Newton-Raphson
+### D07-D08 - Backward Euler + Newton-Raphson
 
 **Keputusan:** integrasi waktu Backward Euler dan solver nonlinear Newton-Raphson.
 
@@ -147,18 +147,23 @@ Dokumen ini mencatat seluruh keputusan desain yang diambil selama brainstorming,
 - Perlu limiting, gmin, dan source stepping.
 - Trapezoidal/Gear dapat ditambahkan nanti.
 
-### D09 — Firmware pertama
+### D09 - Firmware pertama
 
-**Keputusan:** bare-metal blink + UART hello, bukan Arduino core penuh.
+**Keputusan:** bare-metal blink + UART hello sebagai milestone awal; sketsa
+Arduino core juga harus berjalan.
 
-**Alasan:** menguji CPU, clock, GPIO, timer, dan UART tanpa seluruh peripheral.
+**Alasan:** menguji CPU, clock, GPIO, timer, dan UART tanpa seluruh
+peripheral, lalu membuktikan kompatibilitas dengan core Arduino.
 
 **Implikasi:**
 - Perlu loader HEX.
 - Perlu reset vector dan fuse clock.
 - Perlu UART host endpoint.
+- Perlu dukungan instruksi dan flag yang dipakai core Arduino.
+- Sketsa `Serial.println("Hello World")` sudah terverifikasi lewat
+  `/dev/ttyACM0`.
 
-### D10 — Correctness dulu, offline
+### D10 - Correctness dulu, offline
 
 **Keputusan:** tidak mengejar real-time.
 
@@ -169,7 +174,7 @@ Dokumen ini mencatat seluruh keputusan desain yang diambil selama brainstorming,
 - Snapshot/replay menjadi penting.
 - Optimasi performa dilakukan setelah correctness.
 
-### D11 — Rust builder API
+### D11 - Rust builder API
 
 **Keputusan:** rangkaian didefinisikan dalam kode Rust, bukan SPICE netlist.
 
@@ -180,7 +185,7 @@ Dokumen ini mencatat seluruh keputusan desain yang diambil selama brainstorming,
 - Perlu macro deklaratif untuk rangkaian besar.
 - Impor SPICE tidak menjadi prioritas.
 
-### D12 — Verifikasi device vs ngspice
+### D12 - Verifikasi device vs ngspice
 
 **Keputusan:** device dan solver divalidasi terhadap ngspice sebagai golden reference.
 
@@ -191,7 +196,7 @@ Dokumen ini mencatat seluruh keputusan desain yang diambil selama brainstorming,
 - Perlu format pertukaran data (CSV).
 - Perlu toleransi per analisis.
 
-### D13 — Power/clock ideal awal
+### D13 - Power/clock ideal awal
 
 **Keputusan:** VDD/GND ideal dan clock ideal pada tahap primitif.
 
@@ -201,7 +206,7 @@ Dokumen ini mencatat seluruh keputusan desain yang diambil selama brainstorming,
 - IR drop dan supply noise tidak dimodelkan awal.
 - Power tree struktural menjadi tahap lanjut.
 
-### D14 — Hierarki + flatten
+### D14 - Hierarki + flatten
 
 **Keputusan:** desain modular, solver melihat netlist datar.
 
@@ -212,7 +217,7 @@ Dokumen ini mencatat seluruh keputusan desain yang diambil selama brainstorming,
 - Perlu algoritma flatten yang menjaga nama node.
 - Perlu validasi setelah flatten.
 
-### D15 — VCD + CSV
+### D15 - VCD + CSV
 
 **Keputusan:** CSV untuk DC, VCD untuk transient, GTKWave untuk melihat.
 
@@ -222,7 +227,7 @@ Dokumen ini mencatat seluruh keputusan desain yang diambil selama brainstorming,
 - Perlu penulis VCD dan CSV sendiri.
 - GTKWave adalah alat eksternal opsional, bukan dependensi.
 
-### D16 — avr-gcc eksternal
+### D16 - avr-gcc eksternal
 
 **Keputusan:** firmware dikompilasi di luar emulator.
 
@@ -233,18 +238,18 @@ Dokumen ini mencatat seluruh keputusan desain yang diambil selama brainstorming,
 - Perlu profil fuse/clock.
 - Runtime tetap native.
 
-### D17 — Seluruh ISA + peripheral dasar
+### D17 - Seluruh ISA + peripheral dasar
 
 **Keputusan:** milestone CPU mencakup seluruh ISA AVR dan peripheral dasar.
 
-**Alasan:** target “firmware berjalan” tanpa illegal instruction.
+**Alasan:** target "firmware berjalan" tanpa illegal instruction.
 
 **Implikasi:**
 - Pekerjaan besar; perlu test vector lengkap.
 - Peripheral dasar: GPIO, timer, UART, interrupt.
 - Peripheral lain menyusul.
 
-### D18 — Standard cell + generator
+### D18 - Standard cell + generator
 
 **Keputusan:** CPU disusun dari pustaka sel CMOS dan generator netlist.
 
@@ -255,7 +260,7 @@ Dokumen ini mencatat seluruh keputusan desain yang diambil selama brainstorming,
 - Perlu generator untuk ALU, register, control.
 - Netlist akhir tetap transistor-level setelah flatten.
 
-### D19 — Memori
+### D19 - Memori
 
 **Keputusan:** register file struktural; SRAM/flash behavioral.
 
@@ -266,7 +271,7 @@ Dokumen ini mencatat seluruh keputusan desain yang diambil selama brainstorming,
 - Akses memori harus mengikuti timing behavioral yang didefinisikan.
 - Pengecualian dicatat di fidelity matrix.
 
-### D20 — Semua peripheral struktural
+### D20 - Semua peripheral struktural
 
 **Keputusan:** target akhir seluruh peripheral struktural.
 
@@ -277,7 +282,7 @@ Dokumen ini mencatat seluruh keputusan desain yang diambil selama brainstorming,
 - Milestone pertama hanya GPIO/timer/UART.
 - Beban implementasi sangat besar.
 
-### D21 — Waktu fisik 16 MHz
+### D21 - Waktu fisik 16 MHz
 
 **Keputusan:** clock 16 MHz dan waktu fisik; delay gerbang menentukan perilaku.
 
@@ -288,7 +293,7 @@ Dokumen ini mencatat seluruh keputusan desain yang diambil selama brainstorming,
 - Time step harus cukup kecil.
 - Timing firmware bergantung pada model delay.
 
-### D22–D24 — Kalibrasi
+### D22-D24 - Kalibrasi
 
 **Keputusan:** kalibrasi ke ATmega328P, tanpa lab, menggunakan datasheet pada level pin.
 
@@ -299,7 +304,7 @@ Dokumen ini mencatat seluruh keputusan desain yang diambil selama brainstorming,
 - Parameter transistor internal memakai PTM generik.
 - Klaim akurasi harus konservatif.
 
-### D25 — Solo, jangka panjang
+### D25 - Solo, jangka panjang
 
 **Keputusan:** proyek dikerjakan sendiri tanpa deadline ketat.
 
@@ -310,7 +315,7 @@ Dokumen ini mencatat seluruh keputusan desain yang diambil selama brainstorming,
 - Dokumentasi dan reproducibility penting.
 - Scope guardrail diperlukan.
 
-### D26 — VTC inverter
+### D26 - VTC inverter
 
 **Keputusan:** hasil nyata pertama adalah kurva VTC inverter.
 
@@ -321,7 +326,7 @@ Dokumen ini mencatat seluruh keputusan desain yang diambil selama brainstorming,
 - Perlu MOSFET + R/C + sumber.
 - Perlu perbandingan ngspice.
 
-### D27–D28 — Full SPICE (target akhir)
+### D27-D28 - Full SPICE (target akhir)
 
 **Keputusan:** seluruh analisis dan pustaka device adalah target akhir.
 
@@ -332,7 +337,7 @@ Dokumen ini mencatat seluruh keputusan desain yang diambil selama brainstorming,
 - BJT, JFET, switch, controlled source, transmission line.
 - Tidak harus selesai di milestone pertama.
 
-### D29–D30 — Milestone 1
+### D29-D30 - Milestone 1
 
 **Keputusan:** MOSFET + R + C + sumber; DC + transient; VTC inverter.
 
@@ -343,7 +348,7 @@ Dokumen ini mencatat seluruh keputusan desain yang diambil selama brainstorming,
 - AC/noise menyusul.
 - Fokus pada kebenaran dasar.
 
-### D31–D32 — Solver linear dan konvergensi
+### D31-D32 - Solver linear dan konvergensi
 
 **Keputusan:** dense LU from scratch; semua metode konvergensi.
 
@@ -354,7 +359,7 @@ Dokumen ini mencatat seluruh keputusan desain yang diambil selama brainstorming,
 - Sparse menyusul.
 - Semua fallback harus diuji.
 
-### D33 — Meyer capacitance
+### D33 - Meyer capacitance
 
 **Keputusan:** kapasitansi MOSFET memakai model Meyer.
 
@@ -364,7 +369,7 @@ Dokumen ini mencatat seluruh keputusan desain yang diambil selama brainstorming,
 - Perlu implementasi kapasitansi per region.
 - Akurasi switching terbatas tetapi memadai.
 
-### D34 — Nominal PVT
+### D34 - Nominal PVT
 
 **Keputusan:** suhu ruang dan parameter typical dulu.
 
@@ -374,7 +379,7 @@ Dokumen ini mencatat seluruh keputusan desain yang diambil selama brainstorming,
 - Temperature/corner menyusul.
 - Fidelity matrix mencatat batasan.
 
-### D35 — Suite referensi lengkap
+### D35 - Suite referensi lengkap
 
 **Keputusan:** inverter DC, RC transient, ring oscillator, current mirror, differential pair.
 
@@ -384,7 +389,7 @@ Dokumen ini mencatat seluruh keputusan desain yang diambil selama brainstorming,
 - Perlu banyak golden data.
 - Perlu otomasi perbandingan.
 
-### D36–D37 — Workspace dan lisensi
+### D36-D37 - Workspace dan lisensi
 
 **Keputusan:** workspace library + CLI; MIT.
 
@@ -395,7 +400,7 @@ Dokumen ini mencatat seluruh keputusan desain yang diambil selama brainstorming,
 - Tidak ada crate eksternal.
 - Dokumentasi lisensi pada P0.
 
-### D38–D41 — CPU
+### D38-D41 - CPU
 
 **Keputusan:** hardwired/PLA, multi-cycle FSM, ripple-carry ALU, DFF register file.
 
@@ -406,7 +411,7 @@ Dokumen ini mencatat seluruh keputusan desain yang diambil selama brainstorming,
 - Timing per instruksi dapat diukur.
 - Register file besar tetapi jelas.
 
-### D42–D43 — Reset dan board
+### D42-D43 - Reset dan board
 
 **Keputusan:** reset struktural penuh (target akhir); board IC aktif struktural, pasif device, host UART behavioral.
 
@@ -417,7 +422,7 @@ Dokumen ini mencatat seluruh keputusan desain yang diambil selama brainstorming,
 - Host PC tidak disimulasikan.
 - PCB parasitics tidak dimodelkan awal.
 
-### D44–D53 — Prinsip lintas area
+### D44-D53 - Prinsip lintas area
 
 **Keputusan:** clean-room, kriteria sukses menyeluruh, zero dependency, oracle test-only, bahasa kode Inggris/docs Indonesia, CSV/VCD, cross-platform, determinisme toleran, builder+macro, CLI monitor.
 

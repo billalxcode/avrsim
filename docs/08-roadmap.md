@@ -31,10 +31,10 @@ Roadmap ini mengubah visi besar menjadi milestone kecil yang dapat diuji.
 | M1 | Sebagian besar | VTC, CSV/VCD, transient; golden ngspice belum |
 | M2 | Selesai | Sel CMOS dan digital; osilasi analog belum diverifikasi |
 | M3 | Selesai | ALU, register, control, CPU uji |
-| M4 | Selesai sebagian | CPU AVR subset, blink manual; firmware `avr-gcc` belum |
+| M4 | Selesai sebagian | CPU AVR subset, blink manual, firmware `avr-gcc` dan Arduino core berjalan |
 | M5 | Selesai | GPIO, timer, UART, UART end-to-end |
 | M6 | Selesai | SPI, TWI, ADC, EEPROM, watchdog |
-| M7 | Selesai sebagian | Board, pin elektrik, HEX, ELF; firmware kompilasi belum |
+| M7 | Selesai sebagian | Board, pin elektrik, HEX, ELF; firmware kompilasi sudah dijalankan |
 | M8 | Sebagian besar | AC, noise, corner, sparse, kalibrasi pin; golden dan OS lain belum |
 | M9 | Sebagian | Docs, CI workflow, packaging; tag dan publikasi belum |
 

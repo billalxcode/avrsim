@@ -63,11 +63,12 @@ impl Timer0 {
 - Timer0 maju dari cycle instruksi CPU.
 - Overflow flag dan compare flag terbaca lewat TIFR0.
 - Overflow interrupt masuk ke vektor 16.
+- Eksekusi vektor overflow membersihkan TOV0.
 - Fast PWM mengikuti compare value.
 - PWM inverting adalah kebalikan non-inverting.
 - CPU menghasilkan sinyal PWM dari TCCR0A, OCR0A, dan TCCR0B.
 
-Total test `sim-avr`: 210.
+Total test `sim-avr`: 215.
 
 ---
 

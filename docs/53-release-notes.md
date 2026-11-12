@@ -128,7 +128,7 @@ Perintah:
 ./scripts/package.sh
 ```
 
-Total test workspace: 547.
+Total test workspace: 552.
 
 ---
 
@@ -137,7 +137,8 @@ Total test workspace: 547.
 - Tag `v0.1` dibuat dari commit rilis.
 - Belum ada publikasi biner.
 - Belum ada golden ngspice.
-- Firmware hasil `avr-gcc` belum dijalankan.
+- Firmware `avr-gcc` dan sketsa Arduino core sudah dijalankan; upload
+  dari GUI Arduino IDE belum diuji ulang.
 - Determinisme macOS/Windows belum dijalankan.
 - CI GitHub Actions sudah disiapkan tetapi belum dieksekusi.
 - X-03 panic audit sebagian.

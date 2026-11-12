@@ -2,7 +2,7 @@
 
 Pintu masuk dokumentasi `embed-emulation` versi 0.1.0.
 
-**Status saat ini:** 547 test lulus, 7 crate, nol dependensi eksternal Rust,
+**Status saat ini:** 552 test lulus, 7 crate, nol dependensi eksternal Rust,
 tag `v0.1` tersedia.
 
 ---
@@ -155,14 +155,14 @@ Setiap dokumen muncul satu kali pada peta ini.
 |---|---|
 | Versi workspace | `0.1.0` |
 | Tag | `v0.1` |
-| Test | 547 lulus |
+| Test | 552 lulus |
 | Crate | 7 |
 | Dependensi eksternal | 0 |
 | `unsafe` | Dilarang di seluruh workspace |
 | Build release | Lulus |
 | Archive Linux | `dist/embed-emu-x86_64-unknown-linux-gnu.tar.gz` |
 | Golden ngspice | Belum dijalankan |
-| Firmware `avr-gcc` | Belum dikompilasi di environment ini |
+| Firmware `avr-gcc` | Bare-metal dan sketsa Arduino core terverifikasi |
 | Determinisme macOS/Windows | Belum dijalankan |
 | GitHub Actions | Workflow siap, belum dieksekusi |
 
@@ -174,10 +174,10 @@ Setiap dokumen muncul satu kali pada peta ini.
 | `sim-device` | 48 |
 | `sim-analysis` | 108 |
 | `sim-cells` | 70 |
-| `sim-avr` | 210 |
+| `sim-avr` | 215 |
 | `sim-board` | 23 |
 | `sim-cli` | 26 |
-| **Total** | **547** |
+| **Total** | **552** |
 
 ---
 
@@ -191,8 +191,8 @@ Setiap dokumen muncul satu kali pada peta ini.
 | AVR | ISA, ALU, register, SRAM, flash, GPIO, timer, UART, SPI, TWI, ADC | Timing mendekati, bukan silikon |
 | Board | LED, resistor, button, UART host, pin electrical | Belum netlist analog penuh |
 | Format | Intel HEX, ELF32, CSV, VCD digital, VCD analog | Belum ada GUI |
-| Virtual serial | Upload STK500/Optiboot via `socat`, jalankan firmware, TX/RX UART, cleanup | RX timing sederhana; IDE discovery terbatas |
-| Virtual USB | Riset, bridge C++, script ConfigFS ACM, dan perintah `usb` | Verifikasi `/dev/ttyACM0` dan Arduino IDE belum |
+| Virtual serial | Upload STK500/Optiboot via `socat`, jalankan firmware, TX/RX UART, sketsa Arduino core, cleanup | RX timing sederhana; IDE discovery terbatas |
+| Virtual USB | Bridge C++, ConfigFS ACM, dan perintah `usb` | Upload avrdude dan Serial Monitor via tty berhasil; GUI Arduino IDE belum diuji |
 | CLI | `run`, `monitor`, `disasm`, `bench`, `serial` | Belum ada parser netlist SPICE |
 
 ---

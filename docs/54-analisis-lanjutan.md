@@ -14,7 +14,7 @@ Proyek sudah berada pada tahap implementasi matang:
 - 24.473 baris Rust.
 - 55 dokumen Markdown.
 - 168 commit.
-- 547 test.
+- 552 test.
 - Nol dependensi Rust eksternal.
 - Release archive 400 KB.
 
@@ -78,10 +78,17 @@ Dampak:
 
 Prioritas: tinggi setelah transient Newton.
 
-### 3.4 Verifikasi eksternal belum ada
+### 3.4 Verifikasi eksternal
+
+Sudah:
+
+- Firmware `avr-gcc` dan sketsa Arduino core dijalankan lewat
+  `/dev/ttyACM0`.
+
+Belum:
 
 - Golden ngspice belum dijalankan.
-- Firmware `avr-gcc` belum dikompilasi.
+- Upload dari GUI Arduino IDE belum diuji ulang.
 - Differential test simavr belum ada.
 - Determinisme macOS/Windows belum dijalankan.
 
@@ -174,7 +181,7 @@ Urutan pekerjaan:
 
 ## 6. Kriteria Keberhasilan
 
-- 547 test lama tetap lulus.
+- 552 test lama tetap lulus.
 - Test baru untuk setiap perilaku.
 - Tidak ada dependensi eksternal.
 - Tidak ada `unsafe`.

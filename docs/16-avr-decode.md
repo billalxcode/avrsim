@@ -213,10 +213,12 @@ Test decoder mencakup:
 - IR load, hold, reset, dan validasi lebar data.
 - Register bank write/read, dua read port, pasangan little-endian, hold, dan reset.
 - Test vector arithmetic ADD, ADC, SUB, SBC, dan immediate.
+- Test `SBC`, `SBCI`, dan `CPC` mempertahankan flag Z kumulatif.
 - Test vector logic, shift, multiply, load/store, branch, call/stack, dan interrupt.
 - Blink assembly dijalankan dan PORTB bit 5 terbukti toggle.
+- Firmware hasil `avr-gcc` dijalankan di CPU.
 
-Total test `sim-avr`: 210.
+Total test `sim-avr`: 215.
 Total test `sim-cli`: 26.
 
 ---
@@ -282,13 +284,13 @@ Perintah:
 | Timing | Model cycle-level, bukan timing silikon penuh |
 
 Firmware `firmware/blink.S` sudah ditulis dan encoding manualnya diuji di CPU.
-Kompilasi dengan `avr-gcc` belum dilakukan karena toolchain tidak tersedia.
+Firmware hasil `avr-gcc` dan sketsa Arduino core juga sudah dijalankan.
 
 ## 18. Batas
 
 - Control CPU masih behavioral, bukan PLA gate-level.
 - Belum ada validasi disassembler terhadap `avr-objdump`.
-- Belum ada differential test terhadap simavr.
-- Blink assembly sudah ada, tetapi belum dikompilasi dengan `avr-gcc`.
+- Blink assembly sudah ada dan encoding manualnya diuji; firmware
+  `avr-gcc` dan sketsa Arduino core juga sudah dijalankan.
 - Belum ada differential test terhadap simavr.
 - Belum ada timer, UART, GPIO, dan peripheral struktural.
