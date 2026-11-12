@@ -89,6 +89,9 @@ Konfigurasi default:
 | `use_dc_op` | true |
 | `gmin_start` | 1e-3 |
 | `max_step` | 0.5 V |
+| `max_iterations` | 50 |
+| `rel_tol` | 1e-6 |
+| `abs_tol` | 1e-9 |
 
 `DcResult` menyimpan `iterations` dan `residual`, yaitu perubahan node
 voltage maksimum saat konvergen.
@@ -140,6 +143,8 @@ Metode:
 - Waktu virtual `Time` dalam pikodetik.
 - State capacitor dan inductor diperbarui setiap langkah.
 - `initial_voltages` memperbarui state device sebelum langkah pertama.
+- Setiap langkah memakai loop Newton sampai konvergen.
+- `transient_with_solver` menerima `NewtonConfig` eksplisit.
 
 Konfigurasi default:
 
@@ -151,6 +156,9 @@ Konfigurasi default:
 | `use_dc_op` | true |
 | `gmin_start` | 1e-3 |
 | `max_step` | 0.5 V |
+| `max_iterations` | 50 |
+| `rel_tol` | 1e-6 |
+| `abs_tol` | 1e-9 |
 
 Output:
 
@@ -158,6 +166,8 @@ Output:
 pub struct TransientSample {
     pub time: Time,
     pub solution: Solution,
+    pub residual: f64,
+    pub iterations: usize,
 }
 ```
 
@@ -166,6 +176,8 @@ Catatan:
 - `use_dc_op = true` memakai DC operating point sebagai initial state.
 - `use_dc_op = false` memakai zero state: capacitor 0 V, inductor 0 A.
 - Default adalah DC operating point.
+- Jika Newton tidak konvergen, langkah mengembalikan `ConvergenceFailure`.
+- `residual` adalah perubahan node voltage maksimum saat konvergen.
 
 ---
 
@@ -223,11 +235,11 @@ Total test workspace saat ini:
 
 - `sim-core`: 62.
 - `sim-device`: 41 (36 unit + 5 integration).
-- `sim-analysis`: 91.
+- `sim-analysis`: 95.
 - `sim-cells`: 70.
 - `sim-avr`: 199.
 - `sim-board`: 23.
 - `sim-cli`: 11.
-- Total: 497.
+- Total: 501.
 
 Semua fungsi maksimal 20 baris dan semua file baru ASCII-only.

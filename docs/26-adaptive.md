@@ -14,6 +14,7 @@ Dokumen ini menjelaskan adaptive time stepping dan estimasi error.
 - `dt` berikutnya memakai faktor 0.5 sampai 2.0.
 - State device dipulihkan saat langkah ditolak.
 - Initial solution memperbarui state device sebelum langkah pertama.
+- Setiap langkah penuh dan setiap setengah langkah memakai Newton loop.
 
 ---
 
@@ -33,6 +34,13 @@ pub fn transient_adaptive(
     base: &TransientConfig,
     config: &AdaptiveConfig,
 ) -> Result<Vec<TransientSample>, SimError>;
+
+pub fn transient_adaptive_with_solver(
+    circuit: &Circuit,
+    base: &TransientConfig,
+    config: &AdaptiveConfig,
+    newton: &NewtonConfig,
+) -> Result<Vec<TransientSample>, SimError>;
 ```
 
 ---
@@ -46,8 +54,8 @@ pub fn transient_adaptive(
 - Tolerance tidak valid ditolak.
 - Zero steps menghasilkan output kosong.
 
-Total test `sim-analysis`: 91.
-Total workspace: 497.
+Total test `sim-analysis`: 95.
+Total workspace: 501.
 
 ---
 
