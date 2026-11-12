@@ -1,7 +1,17 @@
 //! `embed-emu` command-line entry point.
 
 mod bench;
+#[cfg(unix)]
+mod bootloader;
 mod monitor;
+#[cfg(unix)]
+mod serial;
+#[cfg(not(unix))]
+mod serial {
+    pub fn run(_args: &[String]) -> Result<(), String> {
+        Err("serial mode is only supported on Unix".to_string())
+    }
+}
 
 use monitor::{Monitor, parse_number, parse_word};
 use std::io::{self, Write};
@@ -15,21 +25,25 @@ fn main() {
 }
 
 fn run(args: &[String]) -> Result<(), String> {
+    if args.is_empty() || args[0].starts_with("--") {
+        return serial::run(args);
+    }
     let (command, words) = args.split_first().ok_or_else(usage)?;
-    if command == "disasm" {
-        return show_disassembly(words);
+    dispatch(command, words)
+}
+
+fn dispatch(command: &str, words: &[String]) -> Result<(), String> {
+    match command {
+        "disasm" => show_disassembly(words),
+        "run" => run_hex(words),
+        "monitor" => {
+            let mut monitor = Monitor::new(parse_program(words)?)?;
+            repl(&mut monitor)
+        }
+        "bench" => bench::run(words),
+        "serial" => serial::run(words),
+        _ => Err(usage()),
     }
-    if command == "run" {
-        return run_hex(words);
-    }
-    if command == "monitor" {
-        let mut monitor = Monitor::new(parse_program(words)?)?;
-        return repl(&mut monitor);
-    }
-    if command == "bench" {
-        return bench::run(words);
-    }
-    Err(usage())
 }
 
 fn run_hex(args: &[String]) -> Result<(), String> {
@@ -120,5 +134,5 @@ fn number(args: &[&str], index: usize, default: usize) -> Result<usize, String> 
 }
 
 fn usage() -> String {
-    "usage: embed-emu monitor <hex words...> | embed-emu disasm <hex words...> | embed-emu run <file.hex> [steps] | embed-emu bench [iterations]".to_string()
+    "usage: embed-emu [--link path] [--socket path] | embed-emu monitor <hex words...> | embed-emu disasm <hex words...> | embed-emu run <file.hex> [steps] | embed-emu bench [iterations] [nodes] | embed-emu serial [--link path] [--socket path]".to_string()
 }
