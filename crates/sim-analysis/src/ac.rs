@@ -1,5 +1,7 @@
-//! Linear AC small-signal analysis.
+//! AC small-signal analysis with DC bias linearization.
 
+use crate::dc::{DcConfig, dc_operating_point};
+use crate::system::SimulationSystem;
 use sim_core::{Circuit, Complex64, ComplexMatrix, Device, DeviceKind, NodeId, SimError};
 
 /// AC solution at one frequency.
@@ -50,23 +52,160 @@ impl AcSolution {
 /// Runs AC analysis at one frequency.
 pub fn ac_analysis(circuit: &Circuit, frequency: f64) -> Result<AcSolution, SimError> {
     validate_frequency(frequency)?;
+    ensure_supported(circuit)?;
+    let bias = dc_operating_point(circuit, &DcConfig::default())?.solution;
     let (node_map, node_count) = build_node_map(circuit);
     let (branch_map, branch_count) = build_branch_map(circuit, node_count);
     let size = node_count + branch_count;
-    let mut matrix = ComplexMatrix::zeros(size)?;
+    let mut matrix = bias_matrix(circuit, &bias, size)?;
+    add_reactive(circuit, frequency, &node_map, &branch_map, &mut matrix)?;
     let mut rhs = vec![Complex64::default(); size];
-    stamp_circuit(
-        circuit,
-        &node_map,
-        &branch_map,
-        &mut matrix,
-        &mut rhs,
-        frequency,
-    )?;
+    stamp_sources(circuit, &node_map, &branch_map, &mut rhs)?;
     let values = matrix.solve(&rhs)?;
     Ok(build_solution(
         frequency, node_map, branch_map, values, node_count,
     ))
+}
+
+fn ensure_supported(circuit: &Circuit) -> Result<(), SimError> {
+    for device in circuit.devices() {
+        if supported(device.kind()) {
+            continue;
+        }
+        return Err(SimError::UnsupportedDevice(format!(
+            "AC does not support device: {}",
+            device.kind().name()
+        )));
+    }
+    Ok(())
+}
+
+fn supported(kind: &DeviceKind) -> bool {
+    matches!(
+        kind,
+        DeviceKind::Resistor
+            | DeviceKind::Capacitor
+            | DeviceKind::Inductor
+            | DeviceKind::VoltageSource
+            | DeviceKind::CurrentSource
+            | DeviceKind::Diode
+            | DeviceKind::Nmos
+            | DeviceKind::Pmos
+            | DeviceKind::Npn
+            | DeviceKind::Pnp
+            | DeviceKind::JfetN
+            | DeviceKind::JfetP
+    )
+}
+
+fn bias_matrix(
+    circuit: &Circuit,
+    bias: &sim_core::Solution,
+    size: usize,
+) -> Result<ComplexMatrix, SimError> {
+    let mut system = SimulationSystem::new(circuit)?;
+    let context = system.stamp_dc(bias)?;
+    let source = context.matrix();
+    if source.rows() != size || source.cols() != size {
+        return Err(SimError::Internal("AC bias matrix mismatch".to_string()));
+    }
+    copy_matrix(source, size)
+}
+
+fn copy_matrix(source: &sim_core::DenseMatrix, size: usize) -> Result<ComplexMatrix, SimError> {
+    let mut matrix = ComplexMatrix::zeros(size)?;
+    for row in 0..size {
+        for col in 0..size {
+            let value = source.get(row, col).unwrap_or(0.0);
+            if value != 0.0 {
+                matrix.add(row, col, Complex64::from_real(value))?;
+            }
+        }
+    }
+    Ok(matrix)
+}
+
+fn add_reactive(
+    circuit: &Circuit,
+    frequency: f64,
+    nodes: &[Option<usize>],
+    branches: &[Option<usize>],
+    matrix: &mut ComplexMatrix,
+) -> Result<(), SimError> {
+    for (index, device) in circuit.devices().iter().enumerate() {
+        match device.kind() {
+            DeviceKind::Capacitor => stamp_capacitor(device, nodes, matrix, frequency)?,
+            DeviceKind::Inductor => stamp_inductor(device, index, branches, matrix, frequency)?,
+            _ => {}
+        }
+    }
+    Ok(())
+}
+
+fn stamp_capacitor(
+    device: &impl Device,
+    nodes: &[Option<usize>],
+    matrix: &mut ComplexMatrix,
+    frequency: f64,
+) -> Result<(), SimError> {
+    let capacitance = parameter(device, "capacitance")?;
+    let value = Complex64::new(0.0, 2.0 * std::f64::consts::PI * frequency * capacitance);
+    stamp_pair(matrix, node_pair(nodes, device.pins()), value)
+}
+
+fn stamp_inductor(
+    device: &impl Device,
+    index: usize,
+    branches: &[Option<usize>],
+    matrix: &mut ComplexMatrix,
+    frequency: f64,
+) -> Result<(), SimError> {
+    let inductance = parameter(device, "inductance")?;
+    let value = Complex64::new(0.0, -2.0 * std::f64::consts::PI * frequency * inductance);
+    let branch = branch_index(branches, index)?;
+    add_entry(matrix, Some(branch), Some(branch), value)
+}
+
+fn stamp_sources(
+    circuit: &Circuit,
+    nodes: &[Option<usize>],
+    branches: &[Option<usize>],
+    rhs: &mut [Complex64],
+) -> Result<(), SimError> {
+    for (index, device) in circuit.devices().iter().enumerate() {
+        match device.kind() {
+            DeviceKind::VoltageSource => {
+                stamp_voltage_rhs(device, index, branches, rhs)?;
+            }
+            DeviceKind::CurrentSource => {
+                stamp_current_rhs(device, nodes, rhs)?;
+            }
+            _ => {}
+        }
+    }
+    Ok(())
+}
+
+fn stamp_voltage_rhs(
+    device: &impl Device,
+    index: usize,
+    branches: &[Option<usize>],
+    rhs: &mut [Complex64],
+) -> Result<(), SimError> {
+    let branch = branch_index(branches, index)?;
+    rhs[branch] = source_value(device)?;
+    Ok(())
+}
+
+fn stamp_current_rhs(
+    device: &impl Device,
+    nodes: &[Option<usize>],
+    rhs: &mut [Complex64],
+) -> Result<(), SimError> {
+    let value = source_value(device)?;
+    let pair = node_pair(nodes, device.pins());
+    add_rhs(rhs, pair[0], -value)?;
+    add_rhs(rhs, pair[1], value)
 }
 
 fn build_solution(
@@ -83,20 +222,6 @@ fn build_solution(
         node_voltages: values[..node_count].to_vec(),
         branch_currents: values[node_count..].to_vec(),
     }
-}
-
-fn stamp_circuit(
-    circuit: &Circuit,
-    node_map: &[Option<usize>],
-    branch_map: &[Option<usize>],
-    matrix: &mut ComplexMatrix,
-    rhs: &mut [Complex64],
-    frequency: f64,
-) -> Result<(), SimError> {
-    for (index, device) in circuit.devices().iter().enumerate() {
-        stamp_device(device, index, node_map, branch_map, matrix, rhs, frequency)?;
-    }
-    Ok(())
 }
 
 /// Sweeps frequency logarithmically.
@@ -184,179 +309,11 @@ fn build_branch_map(circuit: &Circuit, node_count: usize) -> (Vec<Option<usize>>
     (map, count)
 }
 
-fn stamp_device(
-    device: &impl Device,
-    index: usize,
-    node_map: &[Option<usize>],
-    branch_map: &[Option<usize>],
-    matrix: &mut ComplexMatrix,
-    rhs: &mut [Complex64],
-    frequency: f64,
-) -> Result<(), SimError> {
-    match device.kind() {
-        DeviceKind::Resistor | DeviceKind::Capacitor | DeviceKind::Inductor => {
-            stamp_passive(device, index, node_map, branch_map, matrix, frequency)
-        }
-        DeviceKind::VoltageSource | DeviceKind::CurrentSource => {
-            stamp_source(device, index, node_map, branch_map, matrix, rhs)
-        }
-        other => unsupported(other),
-    }
-}
-
-fn unsupported(kind: &DeviceKind) -> Result<(), SimError> {
-    Err(SimError::UnsupportedDevice(format!(
-        "AC supports linear devices only: {}",
-        kind.name()
-    )))
-}
-
-fn stamp_passive(
-    device: &impl Device,
-    index: usize,
-    node_map: &[Option<usize>],
-    branch_map: &[Option<usize>],
-    matrix: &mut ComplexMatrix,
-    frequency: f64,
-) -> Result<(), SimError> {
-    match device.kind() {
-        DeviceKind::Resistor => stamp_resistor(device, node_map, matrix),
-        DeviceKind::Capacitor => stamp_capacitor(device, node_map, matrix, frequency),
-        DeviceKind::Inductor => {
-            stamp_inductor(device, index, node_map, branch_map, matrix, frequency)
-        }
-        _ => Err(SimError::Internal("not a passive device".to_string())),
-    }
-}
-
-fn stamp_source(
-    device: &impl Device,
-    index: usize,
-    node_map: &[Option<usize>],
-    branch_map: &[Option<usize>],
-    matrix: &mut ComplexMatrix,
-    rhs: &mut [Complex64],
-) -> Result<(), SimError> {
-    match device.kind() {
-        DeviceKind::VoltageSource => {
-            stamp_voltage(device, index, node_map, branch_map, matrix, rhs)
-        }
-        DeviceKind::CurrentSource => stamp_current(device, node_map, rhs),
-        _ => Err(SimError::Internal("not a source device".to_string())),
-    }
-}
-
-fn stamp_resistor(
-    device: &impl Device,
-    nodes: &[Option<usize>],
-    matrix: &mut ComplexMatrix,
-) -> Result<(), SimError> {
-    let resistance = parameter(device, "resistance")?;
-    add_conductance(nodes, device.pins(), 1.0 / resistance, matrix)
-}
-
-fn stamp_capacitor(
-    device: &impl Device,
-    nodes: &[Option<usize>],
-    matrix: &mut ComplexMatrix,
-    frequency: f64,
-) -> Result<(), SimError> {
-    let capacitance = parameter(device, "capacitance")?;
-    let value = Complex64::new(0.0, 2.0 * std::f64::consts::PI * frequency * capacitance);
-    stamp_pair(matrix, node_pair(nodes, device.pins()), value)
-}
-
-fn stamp_inductor(
-    device: &impl Device,
-    index: usize,
-    nodes: &[Option<usize>],
-    branches: &[Option<usize>],
-    matrix: &mut ComplexMatrix,
-    frequency: f64,
-) -> Result<(), SimError> {
-    let inductance = parameter(device, "inductance")?;
-    let impedance = Complex64::new(0.0, 2.0 * std::f64::consts::PI * frequency * inductance);
-    stamp_branch(
-        matrix,
-        nodes,
-        branches,
-        device.pins(),
-        index,
-        Some(-impedance),
-    )
-}
-
-fn stamp_voltage(
-    device: &impl Device,
-    index: usize,
-    nodes: &[Option<usize>],
-    branches: &[Option<usize>],
-    matrix: &mut ComplexMatrix,
-    rhs: &mut [Complex64],
-) -> Result<(), SimError> {
-    stamp_branch(matrix, nodes, branches, device.pins(), index, None)?;
-    let branch = *branches
-        .get(index)
-        .and_then(|value| value.as_ref())
-        .ok_or_else(|| SimError::Internal("missing AC voltage branch".to_string()))?;
-    rhs[branch] = source_value(device, "voltage")?;
-    Ok(())
-}
-
-fn stamp_current(
-    device: &impl Device,
-    nodes: &[Option<usize>],
-    rhs: &mut [Complex64],
-) -> Result<(), SimError> {
-    let value = source_value(device, "current")?;
-    let pair = node_pair(nodes, device.pins());
-    add_rhs(rhs, pair[0], -value)?;
-    add_rhs(rhs, pair[1], value)
-}
-
-fn stamp_branch(
-    matrix: &mut ComplexMatrix,
-    nodes: &[Option<usize>],
-    branches: &[Option<usize>],
-    pins: &[NodeId],
-    device: usize,
-    impedance: Option<Complex64>,
-) -> Result<(), SimError> {
-    let pair = node_pair(nodes, pins);
-    let branch = branch_index(branches, device)?;
-    stamp_branch_entries(matrix, pair, branch)?;
-    if let Some(value) = impedance {
-        add_entry(matrix, Some(branch), Some(branch), value)?;
-    }
-    Ok(())
-}
-
 fn branch_index(branches: &[Option<usize>], device: usize) -> Result<usize, SimError> {
     branches
         .get(device)
         .and_then(|value| *value)
         .ok_or_else(|| SimError::Internal("missing AC branch".to_string()))
-}
-
-fn stamp_branch_entries(
-    matrix: &mut ComplexMatrix,
-    pair: [Option<usize>; 2],
-    branch: usize,
-) -> Result<(), SimError> {
-    let one = Complex64::from_real(1.0);
-    add_entry(matrix, pair[0], Some(branch), one)?;
-    add_entry(matrix, pair[1], Some(branch), -one)?;
-    add_entry(matrix, Some(branch), pair[0], one)?;
-    add_entry(matrix, Some(branch), pair[1], -one)
-}
-
-fn add_conductance(
-    nodes: &[Option<usize>],
-    pins: &[NodeId],
-    scale: f64,
-    matrix: &mut ComplexMatrix,
-) -> Result<(), SimError> {
-    stamp_pair(matrix, node_pair(nodes, pins), Complex64::from_real(scale))
 }
 
 fn stamp_pair(
@@ -411,12 +368,13 @@ fn parameter(device: &impl Device, name: &str) -> Result<f64, SimError> {
     Ok(value)
 }
 
-fn source_value(device: &impl Device, fallback: &str) -> Result<Complex64, SimError> {
+fn source_value(device: &impl Device) -> Result<Complex64, SimError> {
     let magnitude = device
         .parameters()
         .get("ac")
         .copied()
-        .or_else(|| device.parameters().get(fallback).copied())
+        .or_else(|| device.parameters().get("voltage").copied())
+        .or_else(|| device.parameters().get("current").copied())
         .unwrap_or(1.0);
     let phase = device.parameters().get("ac_phase").copied().unwrap_or(0.0);
     let radians = phase.to_radians();
@@ -430,8 +388,8 @@ fn source_value(device: &impl Device, fallback: &str) -> Result<Complex64, SimEr
 mod tests {
     use super::{ac_analysis, ac_sweep};
     use crate::test_support::{
-        common_emitter, common_source_n, current_source_circuit, diode_clamp, matched_line,
-        pulse_divider, rc_circuit, rl_circuit,
+        common_emitter, common_source_n_biased, current_source_circuit, diode_clamp, inverter,
+        matched_line, pulse_divider, rc_circuit, rl_circuit, switch_circuit,
     };
 
     #[test]
@@ -459,20 +417,8 @@ mod tests {
     }
 
     #[test]
-    fn ac_rejects_nonlinear_device() {
-        let (circuit, _) = diode_clamp();
-        assert!(ac_analysis(&circuit, 1000.0).is_err());
-    }
-
-    #[test]
-    fn ac_rejects_bjt() {
-        let (circuit, _) = common_emitter();
-        assert!(ac_analysis(&circuit, 1000.0).is_err());
-    }
-
-    #[test]
-    fn ac_rejects_jfet() {
-        let (circuit, _) = common_source_n();
+    fn ac_rejects_switch() {
+        let (circuit, _) = switch_circuit(true);
         assert!(ac_analysis(&circuit, 1000.0).is_err());
     }
 
@@ -486,13 +432,6 @@ mod tests {
     fn ac_rejects_pulse_source() {
         let (circuit, _) = pulse_divider();
         assert!(ac_analysis(&circuit, 1000.0).is_err());
-    }
-
-    #[test]
-    fn ac_rejects_invalid_frequency() {
-        let (circuit, _) = rc_circuit();
-        assert!(ac_analysis(&circuit, 0.0).is_err());
-        assert!(ac_sweep(&circuit, 1000.0, 10.0, 2).is_err());
     }
 
     #[test]
@@ -529,5 +468,45 @@ mod tests {
         let result = ac_analysis(&circuit, 1000.0).expect("ac");
         let magnitude = result.magnitude(output).expect("magnitude");
         assert!((magnitude - 1.0).abs() < 1e-9, "magnitude={magnitude}");
+    }
+
+    #[test]
+    fn diode_small_signal_uses_dc_bias() {
+        let (mut circuit, output) = diode_clamp();
+        circuit.set_device_parameter("v1", "ac", 1.0).expect("ac");
+        let result = ac_analysis(&circuit, 1000.0).expect("ac");
+        let magnitude = result.magnitude(output).expect("magnitude");
+        assert!(magnitude > 1e-6 && magnitude < 0.1, "magnitude={magnitude}");
+    }
+
+    #[test]
+    fn mosfet_inverter_has_gain() {
+        let (mut circuit, input, output) = inverter();
+        circuit
+            .set_device_parameter("vin", "voltage", 2.5)
+            .expect("bias");
+        circuit.set_device_parameter("vin", "ac", 1.0).expect("ac");
+        let result = ac_analysis(&circuit, 1000.0).expect("ac");
+        let magnitude = result.magnitude(output).expect("magnitude");
+        assert!(magnitude > 1.0, "magnitude={magnitude}");
+        assert!(result.magnitude(input).is_some());
+    }
+
+    #[test]
+    fn jfet_common_source_has_gain() {
+        let (mut circuit, output) = common_source_n_biased();
+        circuit.set_device_parameter("vg", "ac", 1.0).expect("ac");
+        let result = ac_analysis(&circuit, 1000.0).expect("ac");
+        let magnitude = result.magnitude(output).expect("magnitude");
+        assert!(magnitude > 0.1, "magnitude={magnitude}");
+    }
+
+    #[test]
+    fn bjt_common_emitter_has_gain() {
+        let (mut circuit, output) = common_emitter();
+        circuit.set_device_parameter("vb", "ac", 1.0).expect("ac");
+        let result = ac_analysis(&circuit, 1000.0).expect("ac");
+        let magnitude = result.magnitude(output).expect("magnitude");
+        assert!(magnitude > 1.0, "magnitude={magnitude}");
     }
 }

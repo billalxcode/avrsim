@@ -75,6 +75,19 @@ impl SimulationSystem {
         context.solve()
     }
 
+    pub(crate) fn stamp_dc(&mut self, solution: &Solution) -> Result<MnaContext, SimError> {
+        let mut context = MnaContext::from_shared(
+            self.node_count,
+            self.branch_count,
+            Arc::clone(&self.node_map),
+            Arc::clone(&self.branch_map),
+        )?;
+        for model in &mut self.models {
+            model.stamp(&mut context, solution, None)?;
+        }
+        Ok(context)
+    }
+
     /// Updates all model states after convergence.
     pub(crate) fn update(&mut self, solution: &Solution) -> Result<(), SimError> {
         for model in &mut self.models {
