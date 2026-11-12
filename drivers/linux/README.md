@@ -105,6 +105,11 @@ Terminal 1:
 drivers/linux/scripts/run-usb.sh
 ```
 
+Jalankan sebagai user biasa, bukan dengan `sudo`. Script memanggil
+`sudo` sendiri hanya untuk setup gadget. Menjalankan seluruh script
+dengan `sudo` membuat device dimiliki root dan Arduino IDE mendapat
+`Permission denied`.
+
 Script akan:
 
 - Menjalankan `usb-gadget.sh start` dengan sudo.
@@ -204,6 +209,9 @@ tambahkan user ke group `dialout`:
 ```bash
 sudo usermod -aG dialout "$USER"
 ```
+
+Jika owner device menjadi `root:root`, hentikan `run-usb.sh` yang
+dijalankan dengan `sudo`, lalu jalankan ulang sebagai user biasa.
 
 Logout dan login kembali setelah menambah group.
 

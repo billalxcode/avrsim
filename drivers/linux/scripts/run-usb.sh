@@ -7,6 +7,12 @@ gadget="${USB_GADGET_SCRIPT:-$root/drivers/linux/scripts/usb-gadget.sh}"
 sudo_cmd="${USB_SUDO:-sudo}"
 socket="${USB_SOCKET:-/tmp/embed-emu-usb.sock}"
 
+if [[ "$(id -u)" -eq 0 ]]; then
+    echo "error: run as a normal user, not with sudo" >&2
+    echo "the script invokes sudo only for gadget setup" >&2
+    exit 1
+fi
+
 if [[ ! -x "$driver" ]]; then
     echo "error: driver not built" >&2
     echo "run: $root/scripts/build-drivers.sh" >&2

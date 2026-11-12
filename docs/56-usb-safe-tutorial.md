@@ -81,6 +81,11 @@ Terminal 1:
 drivers/linux/scripts/run-usb.sh
 ```
 
+Jalankan sebagai user biasa, **bukan** dengan `sudo`. Script memanggil
+`sudo` sendiri hanya untuk setup gadget. Jika seluruh script dijalankan
+dengan `sudo`, chown device akan mengarah ke root dan Arduino IDE tetap
+mendapat `Permission denied`.
+
 Masukkan password sudo jika diminta. Tunggu sampai muncul:
 
 ```text
@@ -239,8 +244,11 @@ perbaikan sementara:
 sudo chown "$USER" /dev/ttyACM0 /dev/ttyGS0
 ```
 
-Lalu ulangi upload. Untuk perbaikan permanen, tambahkan user ke group
-`dialout`:
+Lalu ulangi upload. Jika owner-nya `root root`, kemungkinan
+`run-usb.sh` dijalankan dengan `sudo`. Hentikan sesi itu, lalu jalankan
+script sebagai user biasa.
+
+Untuk perbaikan permanen, tambahkan user ke group `dialout`:
 
 ```bash
 sudo usermod -aG dialout "$USER"
