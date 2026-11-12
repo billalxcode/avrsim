@@ -36,7 +36,7 @@ Dokumen ini mencatat tingkat fidelity aktual proyek.
 | Board LED/resistor/button | Behavioral dan pin voltage | Ada |
 | Intel HEX | Parser | Ada |
 | ELF32 dan simbol | Parser | Ada |
-| AC analysis | Complex MNA dengan linearisasi DC dan kapasitansi diode/MOSFET | Ada, kapasitansi BJT/JFET belum |
+| AC analysis | Complex MNA dengan linearisasi DC, kapasitansi diode/MOSFET, controlled sources, dan switch | Ada, kapasitansi BJT/JFET belum |
 | Noise analysis | Thermal resistor | Ada |
 | Transient analysis | Newton per langkah | Ada |
 | Distortion analysis | Quasi-static memoryless | Ada |
@@ -53,6 +53,7 @@ Dokumen ini mencatat tingkat fidelity aktual proyek.
 ## 2. Batasan Analisis
 
 - AC memakai linearisasi DC; kapasitansi diode dan MOSFET distamp dari bias. Kapasitansi BJT dan JFET belum ada.
+- Switch AC memakai conductance dari bias kontrol; kontrol AC tidak dimodulasi.
 - Noise hanya noise termal resistor.
 - Distortion hanya rangkaian memoryless tanpa intermodulasi.
 - Sensitivitas memakai finite difference pada satu parameter dan satu node.
@@ -74,7 +75,7 @@ Dokumen ini mencatat tingkat fidelity aktual proyek.
   temperature-dependent saturation current.
 - JFET belum memiliki gate current, kapasitansi, dan temperature dependence.
 - Transmission line hanya lossless, constant step, dan transient.
-- Controlled sources dan switch belum didukung AC.
+- Controlled sources dan switch sudah didukung AC dengan linearisasi bias.
 - Switch belum memiliki hysteresis atau delay.
 - Parameter device sebagian besar masih default, belum dikalibrasi silikon.
 
