@@ -314,6 +314,10 @@ fn build_solution(
     values: Vec<Complex64>,
     node_count: usize,
 ) -> AcSolution {
+    let branch_map = branch_map
+        .into_iter()
+        .map(|slot| slot.map(|index| index - node_count))
+        .collect();
     AcSolution {
         frequency,
         node_map,
@@ -474,6 +478,31 @@ mod tests {
             "magnitude={magnitude}"
         );
         assert!((phase + 45.0).abs() < 1.0, "phase={phase}");
+    }
+
+    #[test]
+    fn voltage_source_branch_current_is_observable() {
+        let (mut circuit, _) = rc_circuit();
+        circuit.set_device_parameter("v1", "ac", 1.0).expect("ac");
+        let result = ac_analysis(&circuit, 1000.0).expect("ac");
+        let current = result.branch_current(0).expect("current");
+        let magnitude = current.magnitude();
+        assert!(
+            magnitude > 9e-4 && magnitude < 1.1e-3,
+            "current={current:?}"
+        );
+    }
+
+    #[test]
+    fn inductor_branch_current_is_observable() {
+        let (mut circuit, _) = rl_circuit();
+        circuit.set_device_parameter("v1", "ac", 1.0).expect("ac");
+        let result = ac_analysis(&circuit, 1.0).expect("ac");
+        let current = result.branch_current(2).expect("current");
+        assert!(
+            (current.magnitude() - 1e-3).abs() < 1e-5,
+            "current={current:?}"
+        );
     }
 
     #[test]
