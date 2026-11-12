@@ -13,6 +13,10 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 BLINK = [0xE200, 0xB904, 0xB905, 0xEF1F, 0x951A, 0xF7F1, 0xE220, 0x2702, 0xCFF9]
+UART = [
+    0xE008, 0x9300, 0x00C1, 0xE000, 0x9300, 0x00C4,
+    0x9300, 0x00C5, 0xE401, 0x9300, 0x00C6, 0xCFFF,
+]
 
 
 def frame(command: int, sequence: int, data: bytes = b"") -> bytes:
@@ -50,13 +54,13 @@ def send(fd: int, sequence: int, command: int, data: bytes = b"") -> bytes:
     return read_response(fd)
 
 
-def upload(fd: int) -> None:
+def upload(fd: int, program: list[int]) -> None:
     if send(fd, 1, 0x30) != b"\x14\x10":
         raise RuntimeError("sync failed")
     if send(fd, 2, 0x55, bytes([0x00, 0x00])) != b"\x14\x10":
         raise RuntimeError("load address failed")
-    payload = bytes([0x00, len(BLINK) * 2, ord("F")])
-    payload += b"".join(word.to_bytes(2, "little") for word in BLINK)
+    payload = bytes([0x00, len(program) * 2, ord("F")])
+    payload += b"".join(word.to_bytes(2, "little") for word in program)
     if send(fd, 3, 0x64, payload) != b"\x14\x10":
         raise RuntimeError("program page failed")
     if send(fd, 4, 0x51) != b"\x14\x10":
@@ -71,6 +75,19 @@ def wait_for_led(process: subprocess.Popen, timeout: float = 5.0) -> bool:
             continue
         line = process.stdout.readline()
         if "led_on=true" in line:
+            return True
+    return False
+
+
+def read_uart(fd: int, timeout: float = 2.0) -> bool:
+    deadline = time.time() + timeout
+    data = b""
+    while time.time() < deadline:
+        ready, _, _ = select.select([fd], [], [], 0.05)
+        if not ready:
+            continue
+        data += os.read(fd, 1024)
+        if b"A" in data:
             return True
     return False
 
@@ -108,11 +125,17 @@ def main() -> int:
                 print("error: virtual port was not created")
                 return 1
             fd = os.open(link, os.O_RDWR | os.O_NOCTTY)
-            upload(fd)
+            upload(fd, BLINK)
             os.close(fd)
             if not wait_for_led(process):
                 print("error: firmware did not toggle the LED")
                 return 1
+            fd = os.open(link, os.O_RDWR | os.O_NOCTTY)
+            upload(fd, UART)
+            if not read_uart(fd):
+                print("error: UART output was not forwarded")
+                return 1
+            os.close(fd)
         finally:
             process.send_signal(signal.SIGINT)
             try:

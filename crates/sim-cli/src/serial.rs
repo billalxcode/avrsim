@@ -112,6 +112,7 @@ struct Session {
     buffer: Vec<u8>,
     led_on: bool,
     toggles: usize,
+    tx_reported: bool,
 }
 
 enum ReadStatus {
@@ -132,6 +133,7 @@ impl Session {
             buffer: Vec::new(),
             led_on: false,
             toggles: 0,
+            tx_reported: false,
         })
     }
 
@@ -215,7 +217,27 @@ impl Session {
                 break;
             }
             self.update_board()?;
+            self.forward_uart()?;
         }
+        Ok(())
+    }
+
+    fn forward_uart(&mut self) -> Result<(), String> {
+        let complete = self.cpu.uart().tx_complete();
+        if !complete {
+            self.tx_reported = false;
+            return Ok(());
+        }
+        if self.tx_reported {
+            return Ok(());
+        }
+        let byte = self.cpu.uart().tx_byte();
+        match self.stream.write(&[byte]) {
+            Ok(_) => {}
+            Err(error) if error.kind() == ErrorKind::WouldBlock => {}
+            Err(error) => return Err(error.to_string()),
+        }
+        self.tx_reported = true;
         Ok(())
     }
 
