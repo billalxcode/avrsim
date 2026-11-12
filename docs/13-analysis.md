@@ -32,7 +32,7 @@ P4 diimplementasikan sebagian:
 - Prosedur kalibrasi parameter device.
 - Model pin elektrik untuk GPIO.
 - Loader ELF32, simbol, workflow CI, dan audit lisensi.
-- Peta register UART0 dan forwarding TX ke virtual serial.
+- Peta register UART0 dan forwarding TX/RX ke virtual serial.
 - State update device.
 
 Belum diimplementasikan:
@@ -235,9 +235,9 @@ Total test workspace saat ini:
 - `sim-device`: 48 (43 unit + 5 integration).
 - `sim-analysis`: 108.
 - `sim-cells`: 70.
-- `sim-avr`: 205.
+- `sim-avr`: 206.
 - `sim-board`: 23.
 - `sim-cli`: 20.
-- Total: 536.
+- Total: 537.
 
 Semua fungsi maksimal 20 baris dan semua file baru ASCII-only.

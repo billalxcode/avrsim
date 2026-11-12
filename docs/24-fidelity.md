@@ -37,7 +37,7 @@ Dokumen ini mencatat tingkat fidelity aktual proyek.
 | Intel HEX | Parser | Ada |
 | ELF32 dan simbol | Parser | Ada |
 | AC analysis | Complex MNA dengan linearisasi DC, kapasitansi diode/MOSFET/BJT/JFET, controlled sources, dan switch | Ada, model kapasitansi sederhana |
-| Virtual serial upload | STK500/Optiboot melalui `socat`, flash 32 KB, TX UART diteruskan, cleanup otomatis | Ada, RX belum |
+| Virtual serial upload | STK500/Optiboot melalui `socat`, flash 32 KB, TX/RX UART, cleanup otomatis | Ada, RX timing sederhana |
 | Noise analysis | Thermal resistor | Ada |
 | Transient analysis | Newton per langkah | Ada |
 | Distortion analysis | Quasi-static memoryless | Ada |
@@ -56,7 +56,7 @@ Dokumen ini mencatat tingkat fidelity aktual proyek.
 - AC memakai linearisasi DC; kapasitansi diode, MOSFET, BJT, dan JFET distamp dari bias.
 - Kapasitansi BJT memakai model depletion sederhana dan `tf`/`tr`; JFET memakai `cgs`/`cgd` konstan.
 - Switch AC memakai conductance dari bias kontrol; kontrol AC tidak dimodulasi.
-- Virtual serial upload memakai `socat`; Arduino IDE mungkin perlu symlink `/dev`. TX UART diteruskan, RX belum.
+- Virtual serial upload memakai `socat`; Arduino IDE mungkin perlu symlink `/dev`. TX dan RX UART diteruskan.
 - Noise hanya noise termal resistor.
 - Distortion hanya rangkaian memoryless tanpa intermodulasi.
 - Sensitivitas memakai finite difference pada satu parameter dan satu node.

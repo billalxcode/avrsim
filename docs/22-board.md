@@ -81,7 +81,7 @@ pub fn host_receive(&mut self) -> Option<u8>;
 
 Total test `sim-board`: 23.
 Total test `sim-cli`: 20.
-Total workspace: 536.
+Total workspace: 537.
 
 ---
 

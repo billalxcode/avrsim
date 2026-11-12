@@ -4,7 +4,7 @@
 yang memodelkan transistor, gerbang CMOS, CPU AVR, peripheral, dan board,
 serta mampu menjalankan firmware AVR.
 
-> **Status v0.1:** 536 test lulus, 7 crate, nol dependensi eksternal Rust.
+> **Status v0.1:** 537 test lulus, 7 crate, nol dependensi eksternal Rust.
 > Tag `v0.1` tersedia. Archive Linux ada di
 > `dist/embed-emu-x86_64-unknown-linux-gnu.tar.gz`.
 
@@ -42,7 +42,7 @@ profile tertentu, bukan replika silikon identik.
 | AVR | ISA, decoder, ALU, register, SRAM, flash, GPIO, timer, UART, SPI, TWI, ADC |
 | Board | LED, resistor, button, UART host, pin electrical, CSV, VCD |
 | Format | Intel HEX, ELF32, CSV, VCD digital, VCD analog |
-| Virtual serial | STK500 upload, firmware run, TX UART, cleanup otomatis |
+| Virtual serial | STK500 upload, firmware run, TX/RX UART, cleanup otomatis |
 | CLI | `run`, `monitor`, `disasm`, `bench`, `serial` |
 
 ---
@@ -139,7 +139,7 @@ Dokumen yang sering dipakai:
 
 Sudah:
 
-- 536 test workspace.
+- 537 test workspace.
 - fmt, clippy, test, dan build release lulus.
 - Paket Linux dapat dibuat.
 - Determinisme Linux diuji.

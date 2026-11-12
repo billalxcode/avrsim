@@ -86,7 +86,7 @@ CPU menyediakan `set_pin_input(port, value)` dan `pull_up(port)`.
 - Mask dan enable diverifikasi.
 - Flag dapat dibersihkan manual.
 
-Total test `sim-avr`: 205.
+Total test `sim-avr`: 206.
 
 ---
 

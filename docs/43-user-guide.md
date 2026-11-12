@@ -238,7 +238,7 @@ Catatan:
 - Link `/tmp` dan Unix socket dihapus otomatis saat Ctrl-C.
 - Symlink `/dev` yang dibuat manual harus dihapus sendiri.
 - Output serial monitor dari firmware (TX) diteruskan ke virtual port.
-- Input serial monitor ke firmware (RX) belum dijembatani.
+- Input serial monitor (RX) diteruskan ke firmware melalui antrean UART.
 
 Smoke test upload:
 
@@ -622,7 +622,7 @@ cargo test -p sim-analysis determinism
 - AC belum mendukung transmission line dan pulse source.
 - Switch AC memakai conductance dari bias; kontrol AC tidak dimodulasi.
 - Belum ada periodic steady state atau harmonic balance.
-- Virtual serial upload mendukung STK500. TX UART diteruskan, RX belum.
+- Virtual serial upload mendukung STK500. TX dan RX UART diteruskan.
 - Arduino IDE mungkin memerlukan symlink `/dev` agar port `/tmp` terdeteksi.
 
 Batas model yang lebih rinci ada di [24-fidelity.md](24-fidelity.md).

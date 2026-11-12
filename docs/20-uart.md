@@ -45,9 +45,8 @@ Mask adalah penyederhanaan dari bit enable UCSR0B.
 - UDR0, UCSR0A, UCSR0B, UCSR0C, UBRR0L, dan UBRR0H dipetakan ke I/O
   dan data space.
 - TX byte diteruskan ke virtual serial port.
-- RX dari virtual serial belum diteruskan ke UART.
-- Interrupt UART masih manual melalui `poll_uart`; belum otomatis dari
-  status UART.
+- RX dari virtual serial masuk ke antrean dan diteruskan ke UART.
+- Interrupt UART dipicu otomatis berdasarkan bit enable UCSR0B.
 
 ---
 
@@ -67,17 +66,17 @@ Mask adalah penyederhanaan dari bit enable UCSR0B.
 - Register UART menggerakkan transmitter melalui STS.
 - LDS dari UDR0 membaca byte dan membersihkan RXC.
 - Write ke UCSR0A membersihkan TXC.
+- RX interrupt otomatis masuk ke vektor 18.
 - Smoke test virtual serial menerima byte UART.
+- Smoke test echo mengirim dan menerima byte RX.
 
-Total test `sim-avr`: 205.
+Total test `sim-avr`: 206.
 
 ---
 
 ## 6. Batas
 
-- RX dari virtual serial belum dijembatani ke UART.
-- Interrupt UART belum dipicu otomatis dari flag UART.
-- RX timing belum mengikuti baud divider.
+- RX timing belum mengikuti baud divider; byte masuk langsung ke antrean.
 - Parity, stop bit ganda, dan mode sinkron belum didukung.
 - TX dan UDRE interrupt sudah meminta vektor tetapi belum diuji end-to-end.
 - Belum ada loopback UART board dua arah.
