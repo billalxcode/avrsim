@@ -805,7 +805,7 @@ ditutup otomatis saat proses berhenti.
 
 - [x] P19-13 Buat script setup `dummy_hcd` dan ConfigFS ACM.
 - [x] P19-14 Buat teardown gadget.
-- [x] P19-15 Atur permission `/dev/ttyGS0`.
+- [x] P19-15 Atur permission `/dev/ttyGS0` dan `/dev/ttyACM0`.
 - [ ] P19-16 Verifikasi `/dev/ttyACM0` dengan root.
 - [ ] P19-17 Uji upload dari Arduino IDE.
 - [ ] P19-18 Uji reset DTR.
@@ -840,6 +840,8 @@ ditutup otomatis saat proses berhenti.
 - [x] P19-35 Dokumentasikan bridge C++.
 - [x] P19-36 Dokumentasikan setup root.
 - [x] P19-37 Dokumentasikan batas driver C++.
+- [x] P19-39 Sediakan udev rule dan installer permission.
+- [ ] P19-40 Verifikasi akses `/dev/ttyACM0` tanpa sudo.
 - [ ] P19-38 Perbarui `docs/55` dan `docs/README.md` setelah verifikasi.
 
 **Exit P19:** driver C++ menghasilkan USB serial virtual yang terdeteksi

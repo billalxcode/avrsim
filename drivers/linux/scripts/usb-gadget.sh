@@ -55,18 +55,28 @@ bind_udc() {
     echo "$UDC_NAME" > "$GADGET/UDC"
 }
 
-fix_permissions() {
+wait_for_device() {
     for _ in $(seq 1 50); do
-        if [[ -e /dev/ttyGS0 ]]; then
-            if [[ -n "${SUDO_USER:-}" ]]; then
-                chown "$SUDO_USER" /dev/ttyGS0
-            fi
-            chmod 0660 /dev/ttyGS0
+        if [[ -e "$1" ]]; then
             return 0
         fi
         sleep 0.1
     done
-    echo "warning: /dev/ttyGS0 not found" >&2
+    return 1
+}
+
+fix_device() {
+    if [[ -n "${SUDO_USER:-}" ]]; then
+        chown "$SUDO_USER" "$1"
+    fi
+    chmod 0660 "$1"
+}
+
+fix_permissions() {
+    wait_for_device /dev/ttyGS0 || echo "warning: /dev/ttyGS0 not found" >&2
+    wait_for_device /dev/ttyACM0 || echo "warning: /dev/ttyACM0 not found" >&2
+    [[ -e /dev/ttyGS0 ]] && fix_device /dev/ttyGS0
+    [[ -e /dev/ttyACM0 ]] && fix_device /dev/ttyACM0
 }
 
 start() {

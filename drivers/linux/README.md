@@ -160,7 +160,48 @@ Driver:
 
 ---
 
-## 8. Batas
+## 8. Permission `/dev/ttyACM0`
+
+Jika Arduino IDE menampilkan:
+
+```text
+cannot open port /dev/ttyACM0: Permission denied
+```
+
+jangan menjalankan Arduino IDE dengan sudo. Perbaiki permission device.
+
+Cek:
+
+```bash
+ls -l /dev/ttyACM0
+id
+```
+
+Script `usb-gadget.sh start` sudah melakukan `chown` ke `SUDO_USER` dan
+`chmod 0660` untuk `/dev/ttyACM0` dan `/dev/ttyGS0`.
+
+Untuk aturan permanen, pasang udev rule:
+
+```bash
+sudo drivers/linux/scripts/install-udev.sh
+```
+
+Rule memakai `TAG+="uaccess"` agar user yang sedang login mendapat akses.
+
+Alternatif tanpa udev rule:
+
+```bash
+sudo usermod -aG dialout "$USER"
+```
+
+Logout dan login kembali setelah menambah group.
+
+Jika Arduino IDE dipasang sebagai Flatpak atau Snap, pastikan izin device
+serial juga diberikan oleh sandbox-nya.
+
+---
+
+## 9. Batas
 
 - ConfigFS ACM memakai driver kernel, bukan FunctionFS C++.
 - Setup membutuhkan root.

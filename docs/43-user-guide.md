@@ -311,6 +311,16 @@ Test bridge tanpa gadget kernel:
 python3 scripts/test-usb-bridge.py
 ```
 
+Jika Arduino IDE mendapat `Permission denied` pada `/dev/ttyACM0`, jangan
+jalankan IDE dengan sudo. Pasang udev rule:
+
+```bash
+sudo drivers/linux/scripts/install-udev.sh
+```
+
+Atau tambahkan user ke group serial, misalnya `dialout`, lalu logout dan
+login kembali.
+
 Setup membutuhkan root. Detail ada di
 [`drivers/linux/README.md`](../drivers/linux/README.md).
 

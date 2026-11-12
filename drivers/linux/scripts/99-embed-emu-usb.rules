@@ -1,0 +1,6 @@
+# embed-emu virtual USB serial
+# Grants the active local user access through systemd-logind uaccess.
+SUBSYSTEM=="tty", ATTRS{idVendor}=="1209", ATTRS{idProduct}=="0001", TAG+="uaccess", MODE="0660"
+
+# Alternative for systems without uaccess:
+# SUBSYSTEM=="tty", ATTRS{idVendor}=="1209", ATTRS{idProduct}=="0001", GROUP="dialout", MODE="0660"
