@@ -160,11 +160,12 @@ ke net dengan umpan balik visual yang jelas.
 - [x] G4-04 Tolak kabel yang melewati body komponen.
 - [x] G4-05 Tolak segmen diagonal dan vertex di luar grid.
 - [x] G4-06 Implementasikan junction otomatis 3 atau 4 arah.
-- [ ] G4-07 Implementasikan edit vertex dan delete wire.
+- [ ] G4-07 Implementasikan edit vertex kabel.
 - [x] G4-08 Test konektivitas, collision, dan junction.
 - [x] G4-09 Terapkan belokan 90 derajat tegas.
 - [ ] G4-10 Implementasikan animasi aliran sinyal opsional, default mati.
 - [x] G4-11 Tolak ujung kabel yang bukan pin, junction, atau vertex valid.
+- [x] G4-12 Implementasikan selection dan delete wire.
 
 **Acceptance G4:** dua pin dapat dihubungkan dengan kabel ortogonal rapi,
 tanpa segmen diagonal, dan tanpa menembus komponen.

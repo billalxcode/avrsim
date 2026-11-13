@@ -6,8 +6,9 @@ penempatan komponen, probing, dan pengujian simulasi.
 **Status:** G0 dan G1 awal sudah diimplementasikan: crate `sim-gui`, app
 shell, canvas, grid, pan, zoom, status bar, dan test kamera. Library
 komponen awal, placement ghost, selection, drag move, rotate, mirror,
-inspector dasar, wire ortogonal, junction otomatis, dan warna net juga
-sudah ada. Simulasi dan grafik belum ada. Dependensi GUI yang disetujui
+inspector dasar, wire ortogonal, junction otomatis, warna net,
+selection wire, dan delete wire juga sudah ada. Simulasi dan grafik
+belum ada. Dependensi GUI yang disetujui
 hanya untuk crate `sim-gui`: `egui`, `eframe`, `serde`, `serde_json`,
 `rfd`, dan `png`. `egui_plot`, `libloading`, dan crate lain tidak
 diizinkan tanpa keputusan baru.

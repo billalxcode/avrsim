@@ -2,8 +2,8 @@
 
 use crate::library;
 use crate::model::{
-    ComponentDefinition, ComponentId, Document, GridPos, Mirror, NetClass, Rotation, body_size,
-    pin_direction, world_pin,
+    ComponentDefinition, ComponentId, Document, GridPos, Mirror, NetClass, Rotation, WireId,
+    body_size, pin_direction, world_pin,
 };
 use eframe::egui;
 
@@ -24,6 +24,7 @@ pub struct Scene<'a> {
     pub document: &'a Document,
     pub library: &'a [ComponentDefinition],
     pub selected: Option<ComponentId>,
+    pub selected_wire: Option<WireId>,
     pub placing: Option<&'a ComponentDefinition>,
     pub hover: Option<GridPos>,
     pub rotation: Rotation,
@@ -40,7 +41,7 @@ pub fn draw(
     camera: &crate::canvas::GridCamera,
     scene: Scene<'_>,
 ) {
-    draw_wires(painter, rect, camera, scene.document);
+    draw_wires(painter, rect, camera, scene.document, scene.selected_wire);
     draw_junctions(painter, rect, camera, scene.document);
     draw_components(painter, rect, camera, &scene);
     draw_wire_preview(painter, rect, camera, &scene);
@@ -71,13 +72,28 @@ fn draw_wires(
     rect: egui::Rect,
     camera: &crate::canvas::GridCamera,
     document: &Document,
+    selected: Option<WireId>,
 ) {
     let mut wires: Vec<_> = document.wires().iter().collect();
     wires.sort_by_key(|wire| wire.id);
     for wire in wires {
-        let color = net_color(wire.class);
-        draw_polyline(painter, rect, camera, &wire.points, color, 2.0);
+        draw_wire(painter, rect, camera, wire, selected == Some(wire.id));
     }
+}
+
+fn draw_wire(
+    painter: &egui::Painter,
+    rect: egui::Rect,
+    camera: &crate::canvas::GridCamera,
+    wire: &crate::model::Wire,
+    selected: bool,
+) {
+    if selected {
+        let halo = SELECTED_STROKE.gamma_multiply(0.6);
+        draw_polyline(painter, rect, camera, &wire.points, halo, 6.0);
+    }
+    let color = net_color(wire.class);
+    draw_polyline(painter, rect, camera, &wire.points, color, 2.0);
 }
 
 fn draw_junctions(

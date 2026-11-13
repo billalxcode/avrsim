@@ -431,6 +431,29 @@ impl Document {
         self.has_pin_at(library, point) || self.has_wire_vertex(point)
     }
 
+    /// Removes a wire.
+    pub fn remove_wire(&mut self, id: WireId) {
+        self.wires.retain(|wire| wire.id != id);
+    }
+
+    /// Returns the nearest wire within a world-space tolerance.
+    #[must_use]
+    pub fn wire_at(&self, point: [f32; 2], tolerance: f32) -> Option<WireId> {
+        let mut best: Option<(f32, WireId)> = None;
+        for wire in &self.wires {
+            for segment in wire.points.windows(2) {
+                let distance = segment_distance(point, segment[0], segment[1]);
+                if distance > tolerance {
+                    continue;
+                }
+                if best.is_none_or(|(current, _)| distance < current) {
+                    best = Some((distance, wire.id));
+                }
+            }
+        }
+        best.map(|(_, id)| id)
+    }
+
     /// Returns grid points where three or more segments meet.
     #[must_use]
     pub fn junctions(&self) -> Vec<GridPos> {
@@ -876,6 +899,21 @@ fn segment_edges(start: GridPos, end: GridPos) -> Vec<GridEdge> {
         .collect()
 }
 
+fn segment_distance(point: [f32; 2], start: GridPos, end: GridPos) -> f32 {
+    let x = point[0];
+    let y = point[1];
+    if start.y == end.y {
+        let min = start.x.min(end.x) as f32;
+        let max = start.x.max(end.x) as f32;
+        let nearest = x.clamp(min, max);
+        return ((x - nearest).powi(2) + (y - start.y as f32).powi(2)).sqrt();
+    }
+    let min = start.y.min(end.y) as f32;
+    let max = start.y.max(end.y) as f32;
+    let nearest = y.clamp(min, max);
+    ((x - start.x as f32).powi(2) + (y - nearest).powi(2)).sqrt()
+}
+
 fn segment_length(start: GridPos, end: GridPos) -> i32 {
     (end.x - start.x).abs() + (end.y - start.y).abs()
 }
@@ -1042,6 +1080,24 @@ mod tests {
                 .add_wire(library, points, NetClass::Digital)
                 .is_none()
         );
+    }
+
+    #[test]
+    fn wire_hit_test_uses_tolerance() {
+        let library = library::builtin();
+        let resistor = library::find("resistor").expect("resistor");
+        let mut document = Document::new();
+        document.add(resistor, GridPos::new(0, 0), Rotation::Deg0, Mirror::None);
+        document.add(resistor, GridPos::new(6, 0), Rotation::Deg0, Mirror::None);
+        let wire = document
+            .add_wire(
+                library,
+                vec![GridPos::new(4, 1), GridPos::new(6, 1)],
+                NetClass::Digital,
+            )
+            .expect("wire");
+        assert_eq!(document.wire_at([5.0, 1.2], 0.3), Some(wire));
+        assert_eq!(document.wire_at([5.0, 2.0], 0.3), None);
     }
 
     fn junction_document() -> Document {
