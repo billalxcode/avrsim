@@ -44,6 +44,7 @@ pub fn draw(
     draw_wires(painter, rect, camera, scene.document, scene.selected_wire);
     draw_junctions(painter, rect, camera, scene.document);
     draw_components(painter, rect, camera, &scene);
+    draw_wire_handles(painter, rect, camera, &scene);
     draw_wire_preview(painter, rect, camera, &scene);
     if let Some(definition) = scene.placing {
         if let Some(hover) = scene.hover {
@@ -65,6 +66,43 @@ fn draw_components(
         let selected = scene.selected == Some(instance.id);
         draw_component(painter, rect, camera, definition, instance, selected);
     }
+}
+
+fn draw_wire_handles(
+    painter: &egui::Painter,
+    rect: egui::Rect,
+    camera: &crate::canvas::GridCamera,
+    scene: &Scene<'_>,
+) {
+    let Some(id) = scene.selected_wire else {
+        return;
+    };
+    let Some(wire) = scene.document.wires().iter().find(|wire| wire.id == id) else {
+        return;
+    };
+    for segment in wire.points.windows(2) {
+        let midpoint = segment_midpoint(segment[0], segment[1]);
+        let screen = camera.world_to_screen(rect, midpoint);
+        draw_handle(painter, screen);
+    }
+}
+
+fn segment_midpoint(first: GridPos, second: GridPos) -> egui::Pos2 {
+    egui::pos2(
+        (first.x + second.x) as f32 * 0.5,
+        (first.y + second.y) as f32 * 0.5,
+    )
+}
+
+fn draw_handle(painter: &egui::Painter, screen: egui::Pos2) {
+    let handle = egui::Rect::from_center_size(screen, egui::vec2(8.0, 8.0));
+    painter.rect_filled(handle, egui::CornerRadius::ZERO, SELECTED_STROKE);
+    painter.rect_stroke(
+        handle,
+        egui::CornerRadius::ZERO,
+        egui::Stroke::new(1.0, JUNCTION_COLOR),
+        egui::StrokeKind::Middle,
+    );
 }
 
 fn draw_wires(

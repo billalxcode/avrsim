@@ -39,6 +39,12 @@ enum InspectorAction {
 }
 
 #[derive(Clone, Copy, Debug)]
+struct SegmentDrag {
+    wire: WireId,
+    index: usize,
+}
+
+#[derive(Clone, Copy, Debug)]
 struct DragState {
     id: ComponentId,
     offset: GridPos,
@@ -67,6 +73,7 @@ pub struct GuiApp {
     selected: Option<ComponentId>,
     selected_wire: Option<WireId>,
     dragging: Option<DragState>,
+    dragging_segment: Option<SegmentDrag>,
     placing: Option<&'static ComponentDefinition>,
     placement_rotation: Rotation,
     placement_mirror: Mirror,
@@ -173,12 +180,41 @@ impl GuiApp {
                     ui.selectable_value(&mut self.wire_class, class, class.label());
                 }
             });
+        self.route_buttons(ui);
         if ui.button("Finish").clicked() {
             self.finish_wire();
         }
         if ui.button("Cancel").clicked() {
             self.wire_points.clear();
         }
+    }
+
+    fn route_buttons(&mut self, ui: &mut egui::Ui) {
+        if ui.button("L-H").clicked() {
+            self.apply_l_route(true);
+        }
+        if ui.button("L-V").clicked() {
+            self.apply_l_route(false);
+        }
+    }
+
+    fn apply_l_route(&mut self, horizontal_first: bool) {
+        let Some(&last) = self.wire_points.last() else {
+            return;
+        };
+        let Some(world) = self.pointer_world else {
+            return;
+        };
+        let target = world_to_grid(world);
+        let path = l_route(last, target, horizontal_first);
+        let mut current = last;
+        for &point in &path {
+            if !self.document.can_add_segment(self.library, current, point) {
+                return;
+            }
+            current = point;
+        }
+        self.wire_points.extend(path);
     }
 
     fn placement_controls(&mut self, ui: &mut egui::Ui) {
@@ -256,6 +292,9 @@ impl GuiApp {
         if !state.drag_started || state.space_down {
             return;
         }
+        if self.begin_segment_drag(state) {
+            return;
+        }
         let Some(world) = state.pointer_world else {
             return;
         };
@@ -274,8 +313,33 @@ impl GuiApp {
         });
     }
 
+    fn begin_segment_drag(&mut self, state: &canvas::CanvasState) -> bool {
+        let Some(wire_id) = self.selected_wire else {
+            return false;
+        };
+        let Some(world) = state.pointer_world else {
+            return false;
+        };
+        let Some(index) = self.segment_at(wire_id, world) else {
+            return false;
+        };
+        self.dragging_segment = Some(SegmentDrag {
+            wire: wire_id,
+            index,
+        });
+        true
+    }
+
+    fn segment_at(&self, wire_id: WireId, world: egui::Pos2) -> Option<usize> {
+        self.document
+            .wire_segment_at(wire_id, [world.x, world.y], 0.35)
+    }
+
     fn drag_move(&mut self, state: &canvas::CanvasState) {
         if !state.dragged {
+            return;
+        }
+        if self.drag_segment(state) {
             return;
         }
         let Some(drag) = self.dragging else {
@@ -288,9 +352,34 @@ impl GuiApp {
         self.document.move_component(self.library, drag.id, target);
     }
 
+    fn drag_segment(&mut self, state: &canvas::CanvasState) -> bool {
+        let Some(drag) = self.dragging_segment else {
+            return false;
+        };
+        let Some(world) = state.pointer_world else {
+            return true;
+        };
+        let Some(mut points) = self
+            .document
+            .wires()
+            .iter()
+            .find(|wire| wire.id == drag.wire)
+            .map(|wire| wire.points.clone())
+        else {
+            return true;
+        };
+        if !move_segment(&mut points, drag.index, world_to_grid(world)) {
+            return true;
+        }
+        self.document
+            .update_wire_points(self.library, drag.wire, points);
+        true
+    }
+
     fn end_drag(&mut self, state: &canvas::CanvasState) {
         if state.drag_stopped {
             self.dragging = None;
+            self.dragging_segment = None;
         }
     }
 
@@ -699,4 +788,70 @@ fn library_list<'a>(
 
 fn world_to_grid(position: egui::Pos2) -> GridPos {
     GridPos::new(position.x.round() as i32, position.y.round() as i32)
+}
+
+fn move_segment(points: &mut [GridPos], index: usize, target: GridPos) -> bool {
+    let Some(&end) = points.get(index + 1) else {
+        return false;
+    };
+    let start = points[index];
+    if start.y == end.y {
+        points[index].y = target.y;
+        points[index + 1].y = target.y;
+    } else {
+        points[index].x = target.x;
+        points[index + 1].x = target.x;
+    }
+    true
+}
+
+fn l_route(last: GridPos, target: GridPos, horizontal_first: bool) -> Vec<GridPos> {
+    if last == target {
+        return Vec::new();
+    }
+    if last.x == target.x || last.y == target.y {
+        return vec![target];
+    }
+    let corner = if horizontal_first {
+        GridPos::new(target.x, last.y)
+    } else {
+        GridPos::new(last.x, target.y)
+    };
+    vec![corner, target]
+}
+
+#[cfg(test)]
+mod tests {
+    use super::{l_route, move_segment};
+    use crate::model::GridPos;
+
+    #[test]
+    fn l_route_adds_one_corner() {
+        let route = l_route(GridPos::new(0, 0), GridPos::new(4, 2), true);
+        assert_eq!(route, vec![GridPos::new(4, 0), GridPos::new(4, 2)]);
+        let route = l_route(GridPos::new(0, 0), GridPos::new(4, 2), false);
+        assert_eq!(route, vec![GridPos::new(0, 2), GridPos::new(4, 2)]);
+    }
+
+    #[test]
+    fn l_route_handles_aligned_and_same_points() {
+        assert_eq!(
+            l_route(GridPos::new(0, 0), GridPos::new(4, 0), true),
+            vec![GridPos::new(4, 0)]
+        );
+        assert!(l_route(GridPos::new(0, 0), GridPos::new(0, 0), true).is_empty());
+    }
+
+    #[test]
+    fn move_segment_shifts_both_endpoints() {
+        let mut points = vec![
+            GridPos::new(0, 0),
+            GridPos::new(0, 2),
+            GridPos::new(4, 2),
+            GridPos::new(4, 4),
+        ];
+        assert!(move_segment(&mut points, 1, GridPos::new(0, 3)));
+        assert_eq!(points[1], GridPos::new(0, 3));
+        assert_eq!(points[2], GridPos::new(4, 3));
+    }
 }

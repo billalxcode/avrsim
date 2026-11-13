@@ -160,7 +160,7 @@ ke net dengan umpan balik visual yang jelas.
 - [x] G4-04 Tolak kabel yang melewati body komponen.
 - [x] G4-05 Tolak segmen diagonal dan vertex di luar grid.
 - [x] G4-06 Implementasikan junction otomatis 3 atau 4 arah.
-- [ ] G4-07 Implementasikan edit vertex kabel.
+- [x] G4-07 Implementasikan segment drag untuk mengedit kabel.
 - [x] G4-08 Test konektivitas, collision, dan junction.
 - [x] G4-09 Terapkan belokan 90 derajat tegas.
 - [ ] G4-10 Implementasikan animasi aliran sinyal opsional, default mati.
@@ -174,7 +174,7 @@ tanpa segmen diagonal, dan tanpa menembus komponen.
 
 ## G5 - Routing, Warna, dan Label Net
 
-- [ ] G5-01 Implementasikan saran jalur L dan Z.
+- [x] G5-01 Implementasikan saran jalur L.
 - [x] G5-02 Dokumentasikan keputusan menunda auto-router penuh.
 - [ ] G5-03 Terapkan aturan persilangan tanpa junction.
 - [x] G5-04 Deteksi kelas net dan petakan ke warna.
@@ -184,6 +184,7 @@ tanpa segmen diagonal, dan tanpa menembus komponen.
 - [ ] G5-08 Implementasikan override warna per net.
 - [ ] G5-09 Kunci palet warna final dan target kontras WCAG AA.
 - [ ] G5-10 Implementasikan ruler grid dan probe tegangan.
+- [ ] G5-11 Implementasikan saran jalur Z.
 
 **Acceptance G5:** kabel mengikuti jalur grid yang tersedia, warna sesuai
 fungsi net, dan persilangan tidak menimbulkan koneksi palsu.

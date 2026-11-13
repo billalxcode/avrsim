@@ -397,7 +397,7 @@ impl Document {
         points: Vec<GridPos>,
         class: NetClass,
     ) -> Option<WireId> {
-        if !self.validate_wire(library, &points) {
+        if !self.validate_wire(library, &points, None) {
             return None;
         }
         let id = WireId(self.next_wire_id);
@@ -406,7 +406,25 @@ impl Document {
         Some(id)
     }
 
-    /// Tests whether a single segment can be added.    #[must_use]
+    /// Replaces a wire polyline when the result is valid.
+    pub fn update_wire_points(
+        &mut self,
+        library: &[ComponentDefinition],
+        id: WireId,
+        points: Vec<GridPos>,
+    ) -> bool {
+        if !self.validate_wire(library, &points, Some(id)) {
+            return false;
+        }
+        let Some(wire) = self.wires.iter_mut().find(|wire| wire.id == id) else {
+            return false;
+        };
+        wire.points = points;
+        true
+    }
+
+    /// Tests whether a single segment can be added.
+    #[must_use]
     pub fn can_add_segment(
         &self,
         library: &[ComponentDefinition],
@@ -422,13 +440,22 @@ impl Document {
         let Some(edges) = wire_edges(&[start, end]) else {
             return false;
         };
-        !edges.iter().any(|edge| self.edge_occupied(*edge))
+        !edges.iter().any(|edge| self.edge_occupied(*edge, None))
     }
 
     /// Returns true when a point is a pin or an existing wire vertex.
     #[must_use]
     pub fn is_connection_point(&self, library: &[ComponentDefinition], point: GridPos) -> bool {
-        self.has_pin_at(library, point) || self.has_wire_vertex(point)
+        self.is_connection_point_excluding(library, point, None)
+    }
+
+    fn is_connection_point_excluding(
+        &self,
+        library: &[ComponentDefinition],
+        point: GridPos,
+        ignore: Option<WireId>,
+    ) -> bool {
+        self.has_pin_at(library, point) || self.has_wire_vertex(point, ignore)
     }
 
     /// Removes a wire.
@@ -452,6 +479,23 @@ impl Document {
             }
         }
         best.map(|(_, id)| id)
+    }
+
+    /// Returns the nearest segment of one wire within a tolerance.
+    #[must_use]
+    pub fn wire_segment_at(&self, id: WireId, point: [f32; 2], tolerance: f32) -> Option<usize> {
+        let wire = self.wires.iter().find(|wire| wire.id == id)?;
+        let mut best: Option<(f32, usize)> = None;
+        for (index, segment) in wire.points.windows(2).enumerate() {
+            let distance = segment_distance(point, segment[0], segment[1]);
+            if distance > tolerance {
+                continue;
+            }
+            if best.is_none_or(|(current, _)| distance < current) {
+                best = Some((distance, index));
+            }
+        }
+        best.map(|(_, index)| index)
     }
 
     /// Returns grid points where three or more segments meet.
@@ -663,30 +707,38 @@ impl Document {
         id
     }
 
-    fn validate_wire(&self, library: &[ComponentDefinition], points: &[GridPos]) -> bool {
+    fn validate_wire(
+        &self,
+        library: &[ComponentDefinition],
+        points: &[GridPos],
+        ignore: Option<WireId>,
+    ) -> bool {
         let Some(&first) = points.first() else {
             return false;
         };
         let Some(&last) = points.last() else {
             return false;
         };
-        if points.len() < 2 || !self.is_connection_point(library, first) {
+        if points.len() < 2 || !self.is_connection_point_excluding(library, first, ignore) {
             return false;
         }
-        if !self.is_connection_point(library, last) {
+        if !self.is_connection_point_excluding(library, last, ignore) {
             return false;
         }
         let Some(edges) = wire_edges(points) else {
             return false;
         };
-        if edges.iter().any(|edge| self.edge_occupied(*edge)) {
+        if edges.iter().any(|edge| self.edge_occupied(*edge, ignore)) {
             return false;
         }
         !self.path_blocked(library, points)
     }
 
-    fn edge_occupied(&self, edge: GridEdge) -> bool {
+    fn edge_occupied(&self, edge: GridEdge, ignore: Option<WireId>) -> bool {
         self.wires.iter().any(|wire| {
+            if Some(wire.id) == ignore {
+                return false;
+            }
             wire.points
                 .windows(2)
                 .any(|segment| segment_edges(segment[0], segment[1]).contains(&edge))
@@ -730,8 +782,10 @@ impl Document {
         })
     }
 
-    fn has_wire_vertex(&self, point: GridPos) -> bool {
-        self.wires.iter().any(|wire| wire.points.contains(&point))
+    fn has_wire_vertex(&self, point: GridPos, ignore: Option<WireId>) -> bool {
+        self.wires
+            .iter()
+            .any(|wire| Some(wire.id) != ignore && wire.points.contains(&point))
     }
 
     fn next_reference(&self, prefix: &str) -> usize {
@@ -1098,6 +1152,45 @@ mod tests {
             .expect("wire");
         assert_eq!(document.wire_at([5.0, 1.2], 0.3), Some(wire));
         assert_eq!(document.wire_at([5.0, 2.0], 0.3), None);
+    }
+
+    fn segment_document() -> (Document, super::WireId) {
+        let library = library::builtin();
+        let resistor = library::find("resistor").expect("resistor");
+        let mut document = Document::new();
+        document.add(resistor, GridPos::new(0, 0), Rotation::Deg0, Mirror::None);
+        document.add(resistor, GridPos::new(6, 0), Rotation::Deg0, Mirror::None);
+        let points = vec![
+            GridPos::new(4, 1),
+            GridPos::new(4, 0),
+            GridPos::new(6, 0),
+            GridPos::new(6, 1),
+        ];
+        let wire = document
+            .add_wire(library, points, NetClass::Digital)
+            .expect("wire");
+        (document, wire)
+    }
+
+    #[test]
+    fn update_wire_points_moves_segment() {
+        let library = library::builtin();
+        let (mut document, wire) = segment_document();
+        let moved = vec![
+            GridPos::new(4, 1),
+            GridPos::new(4, 2),
+            GridPos::new(6, 2),
+            GridPos::new(6, 1),
+        ];
+        assert!(document.update_wire_points(library, wire, moved.clone()));
+        assert_eq!(document.wires()[0].points, moved);
+        let invalid = vec![
+            GridPos::new(4, 1),
+            GridPos::new(4, 1),
+            GridPos::new(6, 1),
+            GridPos::new(6, 1),
+        ];
+        assert!(!document.update_wire_points(library, wire, invalid));
     }
 
     fn junction_document() -> Document {
