@@ -178,7 +178,7 @@ tanpa segmen diagonal, dan tanpa menembus komponen.
 - [x] G5-02 Dokumentasikan keputusan menunda auto-router penuh.
 - [ ] G5-03 Terapkan aturan persilangan tanpa junction.
 - [x] G5-04 Deteksi kelas net dan petakan ke warna.
-- [ ] G5-05 Implementasikan label net saat hover atau seleksi.
+- [x] G5-05 Implementasikan label net saat hover, seleksi, atau zoom tinggi.
 - [ ] G5-06 Tambahkan legenda warna dan pola ramah buta warna.
 - [ ] G5-07 Test routing, warna, label, dan aturan persilangan.
 - [ ] G5-08 Implementasikan override warna per net.

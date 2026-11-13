@@ -25,6 +25,7 @@ pub struct Scene<'a> {
     pub library: &'a [ComponentDefinition],
     pub selected: Option<ComponentId>,
     pub selected_wire: Option<WireId>,
+    pub hover_wire: Option<WireId>,
     pub placing: Option<&'a ComponentDefinition>,
     pub hover: Option<GridPos>,
     pub rotation: Rotation,
@@ -41,16 +42,43 @@ pub fn draw(
     camera: &crate::canvas::GridCamera,
     scene: Scene<'_>,
 ) {
-    draw_wires(painter, rect, camera, scene.document, scene.selected_wire);
+    draw_wire_layer(painter, rect, camera, &scene);
     draw_junctions(painter, rect, camera, scene.document);
     draw_components(painter, rect, camera, &scene);
     draw_wire_handles(painter, rect, camera, &scene);
     draw_wire_preview(painter, rect, camera, &scene);
-    if let Some(definition) = scene.placing {
-        if let Some(hover) = scene.hover {
-            draw_ghost(painter, rect, camera, &scene, definition, hover);
-        }
-    }
+    draw_ghost_layer(painter, rect, camera, &scene);
+}
+
+fn draw_wire_layer(
+    painter: &egui::Painter,
+    rect: egui::Rect,
+    camera: &crate::canvas::GridCamera,
+    scene: &Scene<'_>,
+) {
+    draw_wires(
+        painter,
+        rect,
+        camera,
+        scene.document,
+        scene.selected_wire,
+        scene.hover_wire,
+    );
+}
+
+fn draw_ghost_layer(
+    painter: &egui::Painter,
+    rect: egui::Rect,
+    camera: &crate::canvas::GridCamera,
+    scene: &Scene<'_>,
+) {
+    let Some(definition) = scene.placing else {
+        return;
+    };
+    let Some(hover) = scene.hover else {
+        return;
+    };
+    draw_ghost(painter, rect, camera, scene, definition, hover);
 }
 
 fn draw_components(
@@ -111,12 +139,53 @@ fn draw_wires(
     camera: &crate::canvas::GridCamera,
     document: &Document,
     selected: Option<WireId>,
+    hovered: Option<WireId>,
 ) {
     let mut wires: Vec<_> = document.wires().iter().collect();
     wires.sort_by_key(|wire| wire.id);
-    for wire in wires {
+    for wire in &wires {
         draw_wire(painter, rect, camera, wire, selected == Some(wire.id));
     }
+    for wire in &wires {
+        if show_wire_label(
+            selected == Some(wire.id),
+            hovered == Some(wire.id),
+            camera.zoom,
+        ) {
+            draw_net_label(painter, rect, camera, wire);
+        }
+    }
+}
+
+fn show_wire_label(selected: bool, hovered: bool, zoom: f32) -> bool {
+    selected || hovered || zoom >= 1.5
+}
+
+fn draw_net_label(
+    painter: &egui::Painter,
+    rect: egui::Rect,
+    camera: &crate::canvas::GridCamera,
+    wire: &crate::model::Wire,
+) {
+    let Some(midpoint) = wire_midpoint(wire) else {
+        return;
+    };
+    let pos = camera.world_to_screen(rect, midpoint) + egui::vec2(4.0, -16.0);
+    let color = net_color(wire.class);
+    let galley = painter.layout_no_wrap(
+        wire.class.label().to_string(),
+        egui::FontId::monospace(11.0),
+        color,
+    );
+    let background = egui::Rect::from_min_size(pos, galley.size()).expand(3.0);
+    painter.rect_filled(background, 3.0, egui::Color32::from_black_alpha(190));
+    painter.galley(pos, galley, color);
+}
+
+fn wire_midpoint(wire: &crate::model::Wire) -> Option<egui::Pos2> {
+    let index = wire.points.len().saturating_sub(1) / 2;
+    let segment = wire.points.windows(2).nth(index)?;
+    Some(segment_midpoint(segment[0], segment[1]))
 }
 
 fn draw_wire(
@@ -200,7 +269,7 @@ fn draw_segment(
     painter.line_segment([start, end], egui::Stroke::new(width, color));
 }
 
-fn net_color(class: NetClass) -> egui::Color32 {
+pub(crate) fn net_color(class: NetClass) -> egui::Color32 {
     match class {
         NetClass::Power => egui::Color32::from_rgb(225, 85, 85),
         NetClass::Ground => egui::Color32::from_rgb(125, 130, 140),
@@ -514,9 +583,43 @@ pub fn placement_position(
 
 #[cfg(test)]
 mod tests {
-    use super::placement_position;
+    use super::{net_color, placement_position, show_wire_label, wire_midpoint};
     use crate::library;
-    use crate::model::{GridPos, Rotation};
+    use crate::model::{GridPos, NetClass, Rotation, Wire, WireId};
+
+    #[test]
+    fn wire_label_visible_on_hover_selection_or_zoom() {
+        assert!(show_wire_label(true, false, 0.5));
+        assert!(show_wire_label(false, true, 0.5));
+        assert!(show_wire_label(false, false, 1.5));
+        assert!(!show_wire_label(false, false, 1.0));
+    }
+
+    #[test]
+    fn wire_midpoint_uses_middle_segment() {
+        let wire = Wire {
+            id: WireId(1),
+            points: vec![GridPos::new(0, 0), GridPos::new(4, 0), GridPos::new(4, 4)],
+            class: NetClass::Digital,
+        };
+        assert_eq!(wire_midpoint(&wire), Some(eframe::egui::pos2(4.0, 2.0)));
+        let short = Wire {
+            id: WireId(2),
+            points: vec![GridPos::new(0, 0)],
+            class: NetClass::Digital,
+        };
+        assert_eq!(wire_midpoint(&short), None);
+    }
+
+    #[test]
+    fn net_colors_are_distinct() {
+        let colors: Vec<_> = NetClass::ALL.into_iter().map(net_color).collect();
+        for (index, color) in colors.iter().enumerate() {
+            for other in &colors[index + 1..] {
+                assert_ne!(color, other);
+            }
+        }
+    }
 
     #[test]
     fn placement_centers_component() {

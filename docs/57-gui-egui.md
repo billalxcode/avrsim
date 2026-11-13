@@ -9,8 +9,8 @@ komponen awal, placement ghost, selection, drag move, rotate, mirror,
 inspector dasar, wire ortogonal, junction otomatis, warna net,
 selection wire, delete wire, segment drag, saran jalur L, saran jalur Z, save/load
 JSON, undo/redo, autosave, backup, recent files, konfigurasi XDG,
-deteksi perubahan file eksternal, simulasi PB5, dan waveform digital
-awal juga sudah ada. Probe generik, UART di GUI, dan grafik analog
+deteksi perubahan file eksternal, label net, legenda warna, simulasi PB5,
+dan waveform digital awal juga sudah ada. Probe generik, UART di GUI, dan grafik analog
 belum ada. Dependensi GUI yang disetujui
 hanya untuk crate `sim-gui`: `egui`, `eframe`, `serde`, `serde_json`,
 `rfd`, dan `png`. `egui_plot`, `libloading`, dan crate lain tidak
@@ -342,14 +342,14 @@ Aturan:
 
 - Warna harus ramah buta warna dan memiliki pola tambahan, misalnya
   ketebalan atau dash, jika diperlukan.
-- Legenda warna tersedia di panel bantu.
+- Legenda warna tersedia melalui tombol `Legend` di toolbar.
 - Warna default mengikuti kelas net.
 - Warna net dapat dioverride per net.
 - Kabel terpilih memiliki halo, bukan mengganti warna kelas.
 
 ### 7.5 Label net
 
-- Label default muncul saat hover atau seleksi.
+- Label default muncul saat hover, seleksi, atau zoom minimal 1.5.
 - Label dapat ditempel di pin, midpoint, atau vertex.
 - Label mengikuti rotasi kabel.
 - Label dapat disembunyikan per net atau secara global.

@@ -84,6 +84,7 @@ struct DragState {
 struct SceneConfig<'a> {
     selected: Option<ComponentId>,
     selected_wire: Option<WireId>,
+    hover_wire: Option<WireId>,
     placing: Option<&'static ComponentDefinition>,
     rotation: Rotation,
     mirror: Mirror,
@@ -109,6 +110,7 @@ pub struct GuiApp {
     placement_mirror: Mirror,
     library_open: bool,
     inspector_open: bool,
+    legend_open: bool,
     search: String,
     category: Option<Category>,
     wire_points: Vec<GridPos>,
@@ -160,6 +162,7 @@ impl eframe::App for GuiApp {
         self.handle_keys(ui);
         self.library_window(ui);
         self.inspector_window(ui);
+        self.legend_window(ui);
         self.waveform_window(ui);
         self.conflict_modal(ui);
     }
@@ -549,6 +552,9 @@ impl GuiApp {
         {
             self.inspector_open = true;
         }
+        if ui.selectable_label(self.legend_open, "Legend").clicked() {
+            self.legend_open = true;
+        }
     }
 
     fn toolbar_view(&mut self, ui: &mut egui::Ui) {
@@ -647,6 +653,9 @@ impl GuiApp {
         let config = SceneConfig {
             selected: self.selected,
             selected_wire: self.selected_wire,
+            hover_wire: self
+                .pointer_world
+                .and_then(|point| self.document.wire_at([point.x, point.y], 0.35)),
             placing: self.placing,
             rotation: self.placement_rotation,
             mirror: self.placement_mirror,
@@ -1005,6 +1014,20 @@ impl GuiApp {
         }
     }
 
+    fn legend_window(&mut self, ui: &mut egui::Ui) {
+        if !self.legend_open {
+            return;
+        }
+        let mut open = self.legend_open;
+        egui::Window::new("Net legend")
+            .open(&mut open)
+            .default_width(190.0)
+            .show(ui.ctx(), |ui| {
+                show_net_legend(ui);
+            });
+        self.legend_open = open;
+    }
+
     fn library_window(&mut self, ui: &mut egui::Ui) {
         let mut open = self.library_open;
         let mut search = self.search.clone();
@@ -1315,6 +1338,7 @@ fn build_scene<'a>(
         rotation: config.rotation,
         mirror: config.mirror,
         selected_wire: config.selected_wire,
+        hover_wire: config.hover_wire,
         wire_preview: config.wire_preview,
         wire_hover: None,
         wire_class: config.wire_class,
@@ -1461,6 +1485,16 @@ fn file_name(path: &std::path::Path) -> String {
         || "firmware".to_string(),
         |name| name.to_string_lossy().into_owned(),
     )
+}
+
+fn show_net_legend(ui: &mut egui::Ui) {
+    for class in NetClass::ALL {
+        ui.horizontal(|ui| {
+            let (rect, _) = ui.allocate_exact_size(egui::vec2(20.0, 8.0), egui::Sense::hover());
+            ui.painter().rect_filled(rect, 2.0, scene::net_color(class));
+            ui.label(class.label());
+        });
+    }
 }
 
 fn show_waveform(ui: &mut egui::Ui, waveform: &Waveform, current: u64, led_on: bool) {
