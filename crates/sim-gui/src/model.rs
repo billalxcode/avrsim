@@ -363,7 +363,7 @@ struct TransformTarget<'a> {
 }
 
 /// Schematic document containing components and wires.
-#[derive(Default)]
+#[derive(Clone, Default)]
 pub struct Document {
     components: Vec<ComponentInstance>,
     wires: Vec<Wire>,

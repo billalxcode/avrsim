@@ -1,6 +1,7 @@
 //! GUI application shell, library sheet, inspector, and canvas integration.
 
 use crate::canvas::{self, GridCamera};
+use crate::history::History;
 use crate::library;
 use crate::model::{
     Category, ComponentDefinition, ComponentId, ComponentInstance, Document, GridPos, Mirror,
@@ -87,6 +88,8 @@ pub struct GuiApp {
     wire_class: NetClass,
     current_path: Option<PathBuf>,
     message: String,
+    history: History,
+    drag_history_pending: bool,
 }
 
 impl GuiApp {
@@ -136,10 +139,26 @@ impl GuiApp {
         ui.strong("embed-emu");
         ui.separator();
         self.file_buttons(ui);
+        self.edit_buttons(ui);
         ui.separator();
         self.tool_buttons(ui);
         ui.separator();
         self.sheet_buttons(ui);
+    }
+
+    fn edit_buttons(&mut self, ui: &mut egui::Ui) {
+        let undo = ui
+            .add_enabled(self.history.can_undo(), egui::Button::new("Undo"))
+            .clicked();
+        let redo = ui
+            .add_enabled(self.history.can_redo(), egui::Button::new("Redo"))
+            .clicked();
+        if undo {
+            self.undo();
+        }
+        if redo {
+            self.redo();
+        }
     }
 
     fn file_buttons(&mut self, ui: &mut egui::Ui) {
@@ -192,12 +211,8 @@ impl GuiApp {
         self.document = project.document;
         self.camera = project.camera;
         self.grid_visible = project.grid_visible;
-        self.selected = None;
-        self.selected_wire = None;
-        self.dragging = None;
-        self.dragging_segment = None;
-        self.placing = None;
-        self.wire_points.clear();
+        self.reset_transient();
+        self.history.clear();
         self.initialized = true;
         self.current_path = Some(path);
         self.message = "Loaded".to_string();
@@ -378,6 +393,7 @@ impl GuiApp {
             id,
             offset: component.position.subtract(point),
         });
+        self.drag_history_pending = true;
     }
 
     fn begin_segment_drag(&mut self, state: &canvas::CanvasState) -> bool {
@@ -394,6 +410,7 @@ impl GuiApp {
             wire: wire_id,
             index,
         });
+        self.drag_history_pending = true;
         true
     }
 
@@ -416,7 +433,24 @@ impl GuiApp {
             return;
         };
         let target = world_to_grid(world).offset(drag.offset);
-        self.document.move_component(self.library, drag.id, target);
+        let Some(current) = self.document.component(drag.id).map(|item| item.position) else {
+            return;
+        };
+        if current == target {
+            return;
+        }
+        let before = self.document.clone();
+        if self.document.move_component(self.library, drag.id, target) {
+            self.record_drag(&before);
+        }
+    }
+
+    fn record_drag(&mut self, before: &Document) {
+        if !self.drag_history_pending {
+            return;
+        }
+        self.history.record(before);
+        self.drag_history_pending = false;
     }
 
     fn drag_segment(&mut self, state: &canvas::CanvasState) -> bool {
@@ -438,8 +472,13 @@ impl GuiApp {
         if !move_segment(&mut points, drag.index, world_to_grid(world)) {
             return true;
         }
-        self.document
-            .update_wire_points(self.library, drag.wire, points);
+        let before = self.document.clone();
+        if self
+            .document
+            .update_wire_points(self.library, drag.wire, points)
+        {
+            self.record_drag(&before);
+        }
         true
     }
 
@@ -447,6 +486,7 @@ impl GuiApp {
         if state.drag_stopped {
             self.dragging = None;
             self.dragging_segment = None;
+            self.drag_history_pending = false;
         }
     }
 
@@ -475,6 +515,7 @@ impl GuiApp {
         ) {
             return;
         }
+        self.push_undo();
         let id = self.document.add(
             definition,
             position,
@@ -526,11 +567,13 @@ impl GuiApp {
             return;
         }
         let points = self.wire_points.clone();
+        let before = self.document.clone();
         if self
             .document
             .add_wire(self.library, points, self.wire_class)
             .is_some()
         {
+            self.history.record(&before);
             self.wire_points.clear();
         }
     }
@@ -540,7 +583,25 @@ impl GuiApp {
             return;
         }
         self.handle_file_keys(ui);
+        self.handle_history_keys(ui);
         self.handle_edit_keys(ui);
+    }
+
+    fn handle_history_keys(&mut self, ui: &egui::Ui) {
+        let undo = ui.input(|input| {
+            input.modifiers.command && !input.modifiers.shift && input.key_pressed(egui::Key::Z)
+        });
+        let redo = ui.input(|input| {
+            input.modifiers.command
+                && (input.key_pressed(egui::Key::Y)
+                    || (input.modifiers.shift && input.key_pressed(egui::Key::Z)))
+        });
+        if undo {
+            self.undo();
+        }
+        if redo {
+            self.redo();
+        }
     }
 
     fn handle_file_keys(&mut self, ui: &egui::Ui) {
@@ -588,7 +649,10 @@ impl GuiApp {
             return;
         };
         let rotation = component.rotation.next();
-        self.document.set_rotation(self.library, id, rotation);
+        let before = self.document.clone();
+        if self.document.set_rotation(self.library, id, rotation) {
+            self.history.record(&before);
+        }
     }
 
     fn mirror(&mut self) {
@@ -603,7 +667,10 @@ impl GuiApp {
             return;
         };
         let mirror = component.mirror.next();
-        self.document.set_mirror(self.library, id, mirror);
+        let before = self.document.clone();
+        if self.document.set_mirror(self.library, id, mirror) {
+            self.history.record(&before);
+        }
     }
 
     fn library_window(&mut self, ui: &mut egui::Ui) {
@@ -698,7 +765,42 @@ impl GuiApp {
         Some((component, definition))
     }
 
+    fn push_undo(&mut self) {
+        self.history.record(&self.document);
+    }
+
+    fn undo(&mut self) {
+        let Some(previous) = self.history.undo(&self.document) else {
+            return;
+        };
+        self.document = previous;
+        self.reset_transient();
+        self.message = "Undo".to_string();
+    }
+
+    fn redo(&mut self) {
+        let Some(next) = self.history.redo(&self.document) else {
+            return;
+        };
+        self.document = next;
+        self.reset_transient();
+        self.message = "Redo".to_string();
+    }
+
+    fn reset_transient(&mut self) {
+        self.selected = None;
+        self.selected_wire = None;
+        self.dragging = None;
+        self.dragging_segment = None;
+        self.drag_history_pending = false;
+        self.placing = None;
+        self.wire_points.clear();
+    }
+
     fn delete_selection(&mut self) {
+        if self.selected_wire.is_some() || self.selected.is_some() {
+            self.push_undo();
+        }
         if let Some(id) = self.selected_wire {
             self.document.remove_wire(id);
             self.selected_wire = None;

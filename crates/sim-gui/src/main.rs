@@ -2,6 +2,7 @@
 
 mod app;
 mod canvas;
+mod history;
 mod library;
 mod model;
 mod persist;

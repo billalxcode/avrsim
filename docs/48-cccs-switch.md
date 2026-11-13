@@ -81,7 +81,7 @@ state histeresis.
 - Switch off dengan `roff = 1e9 Ohm` mempertahankan output di atas `4.9 V`.
 
 Total test `sim-analysis`: 108.
-Total workspace: 580.
+Total workspace: 582.
 
 ---
 
