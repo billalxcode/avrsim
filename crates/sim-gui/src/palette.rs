@@ -16,11 +16,13 @@ pub enum Command {
     Duplicate,
     Delete,
     ToggleGrid,
+    ToggleMinimap,
     ToggleLibrary,
     ToggleInspector,
     ToggleLegend,
     ToggleWaveform,
     ToggleUart,
+    ToggleLog,
     ZoomReset,
     SelectTool,
     WireTool,
@@ -36,7 +38,7 @@ pub enum Command {
 
 impl Command {
     /// All commands shown by the palette.
-    pub const ALL: [Self; 29] = [
+    pub const ALL: [Self; 31] = [
         Self::Save,
         Self::Open,
         Self::LoadHex,
@@ -50,11 +52,13 @@ impl Command {
         Self::Duplicate,
         Self::Delete,
         Self::ToggleGrid,
+        Self::ToggleMinimap,
         Self::ToggleLibrary,
         Self::ToggleInspector,
         Self::ToggleLegend,
         Self::ToggleWaveform,
         Self::ToggleUart,
+        Self::ToggleLog,
         Self::ZoomReset,
         Self::SelectTool,
         Self::WireTool,
@@ -108,11 +112,13 @@ impl Command {
         match self {
             Self::Delete => "Delete selection",
             Self::ToggleGrid => "Toggle grid",
+            Self::ToggleMinimap => "Toggle minimap",
             Self::ToggleLibrary => "Toggle library",
             Self::ToggleInspector => "Toggle inspector",
             Self::ToggleLegend => "Toggle net legend",
             Self::ToggleWaveform => "Toggle waveform",
             Self::ToggleUart => "Toggle UART monitor",
+            Self::ToggleLog => "Toggle log panel",
             Self::ZoomReset => "Reset zoom",
             Self::SelectTool => "Select tool",
             Self::WireTool => "Wire tool",

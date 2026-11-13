@@ -7,6 +7,7 @@ use crate::export;
 use crate::history::History;
 use crate::layout::{self, Align, Distribute};
 use crate::library;
+use crate::log::Log;
 use crate::model::{
     Category, ComponentDefinition, ComponentId, ComponentInstance, Document, GridPos, GridRect,
     Mirror, NetClass, Rotation, WireId,
@@ -112,6 +113,7 @@ struct SceneConfig<'a> {
     wire_preview: &'a [GridPos],
     wire_class: NetClass,
     selection_box: Option<(GridPos, GridPos)>,
+    minimap: bool,
 }
 
 #[derive(Default)]
@@ -119,6 +121,7 @@ pub struct GuiApp {
     camera: GridCamera,
     canvas_rect: Option<egui::Rect>,
     grid_visible: bool,
+    minimap_open: bool,
     tool: Tool,
     pointer_world: Option<egui::Pos2>,
     initialized: bool,
@@ -148,6 +151,8 @@ pub struct GuiApp {
     wire_class: NetClass,
     current_path: Option<PathBuf>,
     message: String,
+    log: Log,
+    log_open: bool,
     history: History,
     drag_history_pending: bool,
     sim: Option<SimHandle>,
@@ -213,6 +218,7 @@ impl GuiApp {
         self.legend_window(ui);
         self.waveform_window(ui);
         self.uart_window(ui);
+        self.log_window(ui);
         self.show_context_menu(ui);
         self.command_palette(ui);
         self.delete_modal(ui);
@@ -432,6 +438,8 @@ impl GuiApp {
             return;
         }
         self.last_toast = self.message.clone();
+        self.log
+            .push(format!("[{}] {}", self.sim_status.cycles, self.message));
         self.toast_until = Some(Instant::now() + TOAST_DURATION);
     }
 
@@ -680,6 +688,7 @@ impl GuiApp {
     fn toolbar_view(&mut self, ui: &mut egui::Ui) {
         self.zoom_controls(ui);
         ui.checkbox(&mut self.grid_visible, "Grid");
+        ui.checkbox(&mut self.minimap_open, "Mini");
         ui.separator();
         if self.tool == Tool::Wire {
             self.wire_controls(ui);
@@ -811,6 +820,7 @@ impl GuiApp {
             wire_preview: &self.wire_points,
             wire_class: self.wire_class,
             selection_box: self.selection_box(),
+            minimap: self.minimap_open,
         };
         let scene = build_scene(&self.document, self.library, config);
         let camera = &mut self.camera;
@@ -1499,11 +1509,13 @@ impl GuiApp {
     fn run_view_command(&mut self, command: Command) {
         match command {
             Command::ToggleGrid => self.grid_visible = !self.grid_visible,
+            Command::ToggleMinimap => self.minimap_open = !self.minimap_open,
             Command::ToggleLibrary => self.library_open = !self.library_open,
             Command::ToggleInspector => self.inspector_open = !self.inspector_open,
             Command::ToggleLegend => self.legend_open = !self.legend_open,
             Command::ToggleWaveform => self.waveform_open = !self.waveform_open,
             Command::ToggleUart => self.uart_open = !self.uart_open,
+            Command::ToggleLog => self.log_open = !self.log_open,
             Command::ZoomReset => self.camera.zoom = 1.0,
             Command::SelectTool => self.set_tool(Tool::Select),
             Command::WireTool => self.set_tool(Tool::Wire),
@@ -1575,6 +1587,33 @@ impl GuiApp {
         self.inspector_open = open;
         if let Some(action) = action {
             self.apply_inspector(action);
+        }
+    }
+
+    fn log_window(&mut self, ui: &mut egui::Ui) {
+        if !self.log_open {
+            return;
+        }
+        let mut open = self.log_open;
+        let mut clear = false;
+        egui::Window::new("Log")
+            .open(&mut open)
+            .default_size([460.0, 220.0])
+            .show(ui.ctx(), |ui| {
+                if ui.button("Clear").clicked() {
+                    clear = true;
+                }
+                egui::ScrollArea::vertical()
+                    .stick_to_bottom(true)
+                    .show(ui, |ui| {
+                        for entry in self.log.entries() {
+                            ui.monospace(entry);
+                        }
+                    });
+            });
+        self.log_open = open;
+        if clear {
+            self.log.clear();
         }
     }
 
@@ -1987,6 +2026,7 @@ fn build_scene<'a>(
         wire_hover: None,
         wire_class: config.wire_class,
         selection_box: config.selection_box,
+        minimap: config.minimap,
     }
 }
 
@@ -2489,8 +2529,8 @@ fn include_components(
             continue;
         };
         let bounds = instance.bounds(definition);
-        update_bounds(min, max, bounds.min);
-        update_bounds(min, max, GridPos::new(bounds.max_x(), bounds.max_y()));
+        crate::model::extend_bounds(min, max, bounds.min);
+        crate::model::extend_bounds(min, max, GridPos::new(bounds.max_x(), bounds.max_y()));
     }
 }
 
@@ -2505,18 +2545,9 @@ fn include_wires(
             continue;
         }
         for point in &wire.points {
-            update_bounds(min, max, *point);
+            crate::model::extend_bounds(min, max, *point);
         }
     }
-}
-
-fn update_bounds(min: &mut Option<GridPos>, max: &mut Option<GridPos>, point: GridPos) {
-    let low = min.get_or_insert(point);
-    low.x = low.x.min(point.x);
-    low.y = low.y.min(point.y);
-    let high = max.get_or_insert(point);
-    high.x = high.x.max(point.x);
-    high.y = high.y.max(point.y);
 }
 
 fn move_segment(points: &mut [GridPos], index: usize, target: GridPos) -> bool {

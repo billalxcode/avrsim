@@ -529,6 +529,40 @@ impl Document {
             .collect()
     }
 
+    /// Returns the outer bounds of all components and wires.
+    #[must_use]
+    pub fn bounds(&self, library: &[ComponentDefinition]) -> Option<(GridPos, GridPos)> {
+        let mut min = None;
+        let mut max = None;
+        self.include_component_bounds(library, &mut min, &mut max);
+        self.include_wire_bounds(&mut min, &mut max);
+        Some((min?, max?))
+    }
+
+    fn include_component_bounds(
+        &self,
+        library: &[ComponentDefinition],
+        min: &mut Option<GridPos>,
+        max: &mut Option<GridPos>,
+    ) {
+        for instance in &self.components {
+            let Some(definition) = find_definition(library, instance.definition) else {
+                continue;
+            };
+            let bounds = instance.bounds(definition);
+            extend_bounds(min, max, bounds.min);
+            extend_bounds(min, max, GridPos::new(bounds.max_x(), bounds.max_y()));
+        }
+    }
+
+    fn include_wire_bounds(&self, min: &mut Option<GridPos>, max: &mut Option<GridPos>) {
+        for wire in &self.wires {
+            for point in &wire.points {
+                extend_bounds(min, max, *point);
+            }
+        }
+    }
+
     /// Returns the nearest segment of one wire within a tolerance.
     #[must_use]
     pub fn wire_segment_at(&self, id: WireId, point: [f32; 2], tolerance: f32) -> Option<usize> {
@@ -1033,6 +1067,15 @@ fn segment_edges(start: GridPos, end: GridPos) -> Vec<GridEdge> {
             )
         })
         .collect()
+}
+
+pub(crate) fn extend_bounds(min: &mut Option<GridPos>, max: &mut Option<GridPos>, point: GridPos) {
+    let low = min.get_or_insert(point);
+    low.x = low.x.min(point.x);
+    low.y = low.y.min(point.y);
+    let high = max.get_or_insert(point);
+    high.x = high.x.max(point.x);
+    high.y = high.y.max(point.y);
 }
 
 fn crossing_point(

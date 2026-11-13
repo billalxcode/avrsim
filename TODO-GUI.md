@@ -99,7 +99,7 @@ membangun crate, dan tidak ada dependensi eksternal di luar daftar
 - [x] G1-08 Tampilkan koordinat grid dan status snap di status bar.
 - [ ] G1-09 Tambahkan tema gelap, terang, high-DPI, dan aksen cyan.
 - [x] G1-10 Test transformasi, zoom, snap, dan culling.
-- [ ] G1-11 Implementasikan minimap opsional di kanan bawah.
+- [x] G1-11 Implementasikan minimap opsional di kanan bawah.
 - [ ] G1-12 Terapkan latar dark dotted dan toolbar ikon serta teks.
 - [x] G1-13 Tampilkan koordinat, zoom, seleksi, sim time, dan FPS di status bar.
 - [x] G1-14 Gunakan font monospace untuk seluruh UI.
@@ -276,9 +276,9 @@ data, dan semua aksi editing dapat di-undo.
 - [ ] G9-09 Tambahkan golden image RGBA snapshot.
 - [ ] G9-10 Lengkapi test model, interaction, integrasi, dan visual.
 - [ ] G9-11 Verifikasi kontras WCAG AA dan navigasi keyboard.
-- [ ] G9-12 Sediakan minimap opsional dengan toggle.
+- [x] G9-12 Sediakan minimap opsional dengan toggle.
 - [ ] G9-13 Dokumentasikan prosedur update golden RGBA.
-- [ ] G9-14 Sediakan tab log error opsional di analysis drawer.
+- [x] G9-14 Sediakan panel log status dan error opsional.
 
 **Acceptance G9:** target 60 FPS terukur, semua tool dapat dipakai dengan
 keyboard, dan tidak ada panic pada input tidak valid.

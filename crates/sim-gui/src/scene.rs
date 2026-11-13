@@ -41,6 +41,7 @@ pub struct Scene<'a> {
     pub wire_hover: Option<GridPos>,
     pub wire_class: NetClass,
     pub selection_box: Option<(GridPos, GridPos)>,
+    pub minimap: bool,
 }
 
 /// Draws all wires, components, and the placement ghost.
@@ -57,6 +58,9 @@ pub fn draw(
     draw_wire_preview(painter, rect, camera, &scene);
     draw_ghost_layer(painter, rect, camera, &scene);
     draw_selection_box(painter, rect, camera, scene.selection_box);
+    if scene.minimap {
+        draw_minimap(painter, rect, camera, &scene);
+    }
 }
 
 fn draw_wire_layer(
@@ -106,6 +110,126 @@ fn draw_selection_box(
         box_rect,
         0.0,
         egui::Stroke::new(1.0, SELECTED_STROKE),
+        egui::StrokeKind::Middle,
+    );
+}
+
+#[derive(Clone, Copy)]
+struct MinimapMap {
+    origin: egui::Pos2,
+    scale: f32,
+}
+
+impl MinimapMap {
+    fn point(self, point: GridPos) -> egui::Pos2 {
+        self.origin + egui::vec2(point.x as f32, point.y as f32) * self.scale
+    }
+}
+
+fn draw_minimap(
+    painter: &egui::Painter,
+    rect: egui::Rect,
+    camera: &crate::canvas::GridCamera,
+    scene: &Scene<'_>,
+) {
+    if rect.width() < 360.0 || rect.height() < 260.0 {
+        return;
+    }
+    let area = egui::Rect::from_min_size(
+        egui::pos2(rect.right() - 172.0, rect.bottom() - 122.0),
+        egui::vec2(160.0, 110.0),
+    );
+    painter.rect_filled(area, 4.0, egui::Color32::from_black_alpha(205));
+    painter.rect_stroke(
+        area,
+        4.0,
+        egui::Stroke::new(1.0, JUNCTION_COLOR),
+        egui::StrokeKind::Middle,
+    );
+    let Some((min, max)) = scene.document.bounds(scene.library) else {
+        return;
+    };
+    let Some(map) = minimap_map(area, min, max) else {
+        return;
+    };
+    draw_minimap_wires(painter, map, scene.document);
+    draw_minimap_components(painter, map, scene.document, scene.library);
+    draw_minimap_viewport(painter, map, rect, camera);
+}
+
+fn minimap_map(area: egui::Rect, min: GridPos, max: GridPos) -> Option<MinimapMap> {
+    let inner = area.shrink(6.0);
+    let width = (max.x - min.x).max(1) as f32;
+    let height = (max.y - min.y).max(1) as f32;
+    let scale = (inner.width() / width).min(inner.height() / height);
+    if !scale.is_finite() || scale <= 0.0 {
+        return None;
+    }
+    let center = egui::vec2((min.x + max.x) as f32 * 0.5, (min.y + max.y) as f32 * 0.5);
+    Some(MinimapMap {
+        origin: inner.center() - center * scale,
+        scale,
+    })
+}
+
+fn draw_minimap_wires(painter: &egui::Painter, map: MinimapMap, document: &Document) {
+    for wire in document.wires() {
+        let color = net_color(wire.class).gamma_multiply(0.8);
+        for segment in wire.points.windows(2) {
+            painter.line_segment(
+                [map.point(segment[0]), map.point(segment[1])],
+                egui::Stroke::new(1.0, color),
+            );
+        }
+    }
+}
+
+fn draw_minimap_components(
+    painter: &egui::Painter,
+    map: MinimapMap,
+    document: &Document,
+    definitions: &[ComponentDefinition],
+) {
+    for instance in document.components() {
+        let Some(definition) = definitions
+            .iter()
+            .find(|definition| definition.id == instance.definition)
+        else {
+            continue;
+        };
+        painter.rect_filled(
+            minimap_component_rect(map, instance, definition),
+            1.0,
+            egui::Color32::from_rgb(120, 130, 150),
+        );
+    }
+}
+
+fn minimap_component_rect(
+    map: MinimapMap,
+    instance: &crate::model::ComponentInstance,
+    definition: &ComponentDefinition,
+) -> egui::Rect {
+    let bounds = instance.bounds(definition);
+    let min = map.point(bounds.min);
+    let max = map.point(GridPos::new(bounds.max_x(), bounds.max_y()));
+    egui::Rect::from_min_max(min, max)
+}
+
+fn draw_minimap_viewport(
+    painter: &egui::Painter,
+    map: MinimapMap,
+    rect: egui::Rect,
+    camera: &crate::canvas::GridCamera,
+) {
+    let min = camera.screen_to_world(rect, rect.min);
+    let max = camera.screen_to_world(rect, rect.max);
+    let min = map.point(GridPos::new(min.x.round() as i32, min.y.round() as i32));
+    let max = map.point(GridPos::new(max.x.round() as i32, max.y.round() as i32));
+    painter.rect_stroke(
+        egui::Rect::from_two_pos(min, max),
+        0.0,
+        egui::Stroke::new(1.0, egui::Color32::from_rgb(240, 220, 120)),
         egui::StrokeKind::Middle,
     );
 }
@@ -720,9 +844,23 @@ pub fn placement_position(
 
 #[cfg(test)]
 mod tests {
-    use super::{net_color, placement_position, segment_visible, show_wire_label, wire_midpoint};
+    use super::{
+        minimap_map, net_color, placement_position, segment_visible, show_wire_label, wire_midpoint,
+    };
     use crate::library;
     use crate::model::{GridPos, NetClass, Rotation, Wire, WireId};
+
+    #[test]
+    fn minimap_centers_world_bounds() {
+        let area = eframe::egui::Rect::from_min_size(
+            eframe::egui::pos2(0.0, 0.0),
+            eframe::egui::vec2(160.0, 110.0),
+        );
+        let map = minimap_map(area, GridPos::new(0, 0), GridPos::new(10, 10)).expect("map");
+        let center = map.point(GridPos::new(5, 5));
+        assert!((center - area.center()).length() < 1e-4);
+        assert!(map.scale > 0.0);
+    }
 
     #[test]
     fn segment_visibility_rejects_offscreen_wires() {

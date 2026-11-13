@@ -8,6 +8,7 @@ mod export;
 mod history;
 mod layout;
 mod library;
+mod log;
 mod model;
 mod palette;
 mod persist;
