@@ -723,6 +723,21 @@ impl Document {
         true
     }
 
+    /// Returns true when a wire endpoint touches one of the component pins.
+    #[must_use]
+    pub fn component_has_wire(&self, library: &[ComponentDefinition], id: ComponentId) -> bool {
+        let Some(instance) = self.component(id) else {
+            return false;
+        };
+        let Some(definition) = find_definition(library, instance.definition) else {
+            return false;
+        };
+        definition.pins.iter().any(|pin| {
+            let point = world_pin(instance, definition, pin);
+            self.wires.iter().any(|wire| wire.points.contains(&point))
+        })
+    }
+
     /// Returns the topmost component at a grid point.
     #[must_use]
     pub fn hit_test(&self, library: &[ComponentDefinition], point: GridPos) -> Option<ComponentId> {
@@ -1206,6 +1221,26 @@ mod tests {
             .expect("wire");
         assert!(!document.can_add_segment(library, GridPos::new(7, 0), GridPos::new(7, 2)));
         assert!(document.can_add_segment(library, GridPos::new(4, 1), GridPos::new(4, 3)));
+    }
+
+    #[test]
+    fn detects_component_wires() {
+        let library = library::builtin();
+        let resistor = library::find("resistor").expect("resistor");
+        let mut document = Document::new();
+        let first = document.add(resistor, GridPos::new(0, 0), Rotation::Deg0, Mirror::None);
+        let second = document.add(resistor, GridPos::new(6, 0), Rotation::Deg0, Mirror::None);
+        let third = document.add(resistor, GridPos::new(20, 0), Rotation::Deg0, Mirror::None);
+        document
+            .add_wire(
+                library,
+                vec![GridPos::new(4, 1), GridPos::new(6, 1)],
+                NetClass::Digital,
+            )
+            .expect("wire");
+        assert!(document.component_has_wire(library, first));
+        assert!(document.component_has_wire(library, second));
+        assert!(!document.component_has_wire(library, third));
     }
 
     #[test]

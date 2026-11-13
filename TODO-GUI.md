@@ -250,11 +250,11 @@ melihat sinyal digital dan analog, serta memeriksa nilai pada cursor.
 - [x] G8-10 Kelompokkan undo per aksi drag atau klik.
 - [x] G8-11 Simpan konfigurasi aplikasi di XDG config.
 - [x] G8-12 Simpan 10 recent files.
-- [ ] G8-13 Tampilkan error sebagai toast dan status bar.
+- [x] G8-13 Tampilkan status sebagai toast singkat dan status bar.
 - [x] G8-14 Gunakan UI berbahasa Inggris dan dokumentasi Indonesia.
 - [x] G8-15 Satu window menampilkan satu proyek.
 - [x] G8-16 Prompt reload jika file berubah di luar aplikasi.
-- [ ] G8-17 Konfirmasi hapus hanya untuk komponen dengan kabel atau seleksi besar.
+- [x] G8-17 Konfirmasi hapus untuk komponen dengan kabel atau seleksi besar.
 - [ ] G8-18 Implementasikan migrasi otomatis skema JSON setelah backup.
 - [x] G8-19 Test selection komponen, wire, dan selection box.
 

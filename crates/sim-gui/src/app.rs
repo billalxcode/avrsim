@@ -23,6 +23,7 @@ use std::time::{Duration, Instant, SystemTime};
 
 const AUTOSAVE_DELAY: Duration = Duration::from_secs(2);
 const WATCH_INTERVAL: Duration = Duration::from_secs(1);
+const TOAST_DURATION: Duration = Duration::from_secs(3);
 const PB5_COLOR: egui::Color32 = egui::Color32::from_rgb(0, 190, 210);
 const LED_COLOR: egui::Color32 = egui::Color32::from_rgb(85, 205, 125);
 
@@ -77,6 +78,7 @@ enum ContextAction {
     Delete,
     Rotate,
     Mirror,
+    Properties,
     SelectTool,
     WireTool,
 }
@@ -123,6 +125,9 @@ pub struct GuiApp {
     selection: Selection,
     clipboard: Clipboard,
     context_menu: Option<egui::Pos2>,
+    pending_delete: bool,
+    toast_until: Option<Instant>,
+    last_toast: String,
     box_start: Option<GridPos>,
     box_current: Option<GridPos>,
     box_additive: bool,
@@ -181,6 +186,7 @@ impl eframe::App for GuiApp {
         self.poll_sim();
         self.watch_file(ui.ctx());
         self.autosave(ui.ctx());
+        self.update_toast();
         self.toolbar(ui);
         self.status_bar(ui);
         let state = self.canvas(ui);
@@ -205,6 +211,8 @@ impl GuiApp {
         self.uart_window(ui);
         self.show_context_menu(ui);
         self.command_palette(ui);
+        self.delete_modal(ui);
+        self.show_toast(ui);
         self.conflict_modal(ui);
     }
     fn toolbar(&mut self, ui: &mut egui::Ui) {
@@ -372,6 +380,34 @@ impl GuiApp {
         if let Err(error) = config::save(path, &self.config) {
             self.message = error;
         }
+    }
+
+    fn update_toast(&mut self) {
+        if self.message.is_empty() || self.message == self.last_toast {
+            return;
+        }
+        self.last_toast = self.message.clone();
+        self.toast_until = Some(Instant::now() + TOAST_DURATION);
+    }
+
+    fn show_toast(&mut self, ui: &egui::Ui) {
+        let Some(until) = self.toast_until else {
+            return;
+        };
+        let now = Instant::now();
+        if now >= until {
+            self.toast_until = None;
+            return;
+        }
+        egui::Area::new(egui::Id::unique("toast"))
+            .anchor(egui::Align2::CENTER_BOTTOM, egui::vec2(0.0, -44.0))
+            .order(egui::Order::Tooltip)
+            .show(ui.ctx(), |ui| {
+                egui::Frame::popup(ui.style()).show(ui, |ui| {
+                    ui.label(&self.message);
+                });
+            });
+        ui.ctx().request_repaint_after(until - now);
     }
 
     fn autosave(&mut self, ctx: &egui::Context) {
@@ -1280,6 +1316,7 @@ impl GuiApp {
             ContextAction::Delete => self.delete_selection(),
             ContextAction::Rotate => self.rotate(),
             ContextAction::Mirror => self.mirror(),
+            ContextAction::Properties => self.inspector_open = true,
             ContextAction::SelectTool => self.set_tool(Tool::Select),
             ContextAction::WireTool => self.set_tool(Tool::Wire),
         }
@@ -1529,6 +1566,34 @@ impl GuiApp {
         self.waveform_open = open;
     }
 
+    fn delete_modal(&mut self, ui: &mut egui::Ui) {
+        if !self.pending_delete || self.conflict {
+            return;
+        }
+        let mut action = None;
+        egui::Modal::new(egui::Id::unique("delete-confirm")).show(ui.ctx(), |ui| {
+            ui.set_width(320.0);
+            ui.heading("Delete selection?");
+            ui.label(format!("{} items will be removed.", self.selection.len()));
+            ui.horizontal(|ui| {
+                if ui.button("Delete").clicked() {
+                    action = Some(true);
+                }
+                if ui.button("Cancel").clicked() {
+                    action = Some(false);
+                }
+            });
+        });
+        match action {
+            Some(true) => {
+                self.pending_delete = false;
+                self.delete_selection_now();
+            }
+            Some(false) => self.pending_delete = false,
+            None => {}
+        }
+    }
+
     fn conflict_modal(&mut self, ui: &mut egui::Ui) {
         if !self.conflict {
             return;
@@ -1710,6 +1775,7 @@ impl GuiApp {
         self.box_start = None;
         self.box_current = None;
         self.box_additive = false;
+        self.pending_delete = false;
         self.dragging = None;
         self.dragging_segment = None;
         self.drag_history_pending = false;
@@ -1721,6 +1787,26 @@ impl GuiApp {
         if self.selection.is_empty() {
             return;
         }
+        if self.needs_delete_confirmation() {
+            self.pending_delete = true;
+            self.context_menu = None;
+            self.palette.close();
+            return;
+        }
+        self.delete_selection_now();
+    }
+
+    fn needs_delete_confirmation(&self) -> bool {
+        if self.selection.len() > 5 {
+            return true;
+        }
+        self.selection
+            .components()
+            .iter()
+            .any(|id| self.document.component_has_wire(self.library, *id))
+    }
+
+    fn delete_selection_now(&mut self) {
         self.push_undo();
         let wires: Vec<_> = self.selection.wires().iter().copied().collect();
         let components: Vec<_> = self.selection.components().iter().copied().collect();
@@ -2040,23 +2126,22 @@ fn context_edit_buttons(
     action: &mut Option<ContextAction>,
 ) {
     let any = !selection.is_empty();
-    if ui.add_enabled(any, egui::Button::new("Copy")).clicked() {
-        *action = Some(ContextAction::Copy);
-    }
-    if ui
-        .add_enabled(!clipboard_empty, egui::Button::new("Paste"))
-        .clicked()
-    {
-        *action = Some(ContextAction::Paste);
-    }
-    if ui
-        .add_enabled(any, egui::Button::new("Duplicate"))
-        .clicked()
-    {
-        *action = Some(ContextAction::Duplicate);
-    }
-    if ui.add_enabled(any, egui::Button::new("Delete")).clicked() {
-        *action = Some(ContextAction::Delete);
+    context_button(ui, any, "Copy", ContextAction::Copy, action);
+    context_button(ui, !clipboard_empty, "Paste", ContextAction::Paste, action);
+    context_button(ui, any, "Duplicate", ContextAction::Duplicate, action);
+    context_button(ui, any, "Delete", ContextAction::Delete, action);
+    context_button(ui, any, "Properties", ContextAction::Properties, action);
+}
+
+fn context_button(
+    ui: &mut egui::Ui,
+    enabled: bool,
+    label: &str,
+    value: ContextAction,
+    action: &mut Option<ContextAction>,
+) {
+    if ui.add_enabled(enabled, egui::Button::new(label)).clicked() {
+        *action = Some(value);
     }
 }
 
@@ -2618,6 +2703,18 @@ mod tests {
         document.add(resistor, GridPos::new(6, 0), Rotation::Deg0, Mirror::None);
         let bounds = content_bounds(&document, library, None).expect("bounds");
         assert_eq!(bounds, (GridPos::new(0, 0), GridPos::new(10, 2)));
+    }
+
+    #[test]
+    fn delete_confirmation_for_wired_or_large_selection() {
+        let (mut app, first, _) = context_app();
+        app.selection.select_component(first);
+        assert!(!app.needs_delete_confirmation());
+        sample_wire(&mut app.document, app.library);
+        assert!(app.needs_delete_confirmation());
+        let large: Vec<_> = (0..6u32).map(ComponentId).collect();
+        app.selection.apply(large, [], false);
+        assert!(app.needs_delete_confirmation());
     }
 
     #[test]
