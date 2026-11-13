@@ -7,8 +7,8 @@ penempatan komponen, probing, dan pengujian simulasi.
 shell, canvas, grid, pan, zoom, status bar, dan test kamera. Library
 komponen awal, placement ghost, selection, drag move, rotate, mirror,
 inspector dasar, wire ortogonal, junction otomatis, warna net,
-selection wire, delete wire, segment drag, dan saran jalur L juga sudah
-ada. Simulasi dan grafik belum ada. Dependensi GUI yang disetujui
+selection wire, delete wire, segment drag, saran jalur L, dan save/load
+JSON juga sudah ada. Simulasi dan grafik belum ada. Dependensi GUI yang disetujui
 hanya untuk crate `sim-gui`: `egui`, `eframe`, `serde`, `serde_json`,
 `rfd`, dan `png`. `egui_plot`, `libloading`, dan crate lain tidak
 diizinkan tanpa keputusan baru.

@@ -55,7 +55,7 @@ Kontrol `1 V` melalui resistor `1 kOhm` menghasilkan arus kontrol `1 mA`.
 Dengan `rm = 1000 Ohm`, output menjadi `1 V`.
 
 Total test `sim-analysis`: 108.
-Total workspace: 577.
+Total workspace: 580.
 
 ---
 

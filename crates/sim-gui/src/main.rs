@@ -4,6 +4,7 @@ mod app;
 mod canvas;
 mod library;
 mod model;
+mod persist;
 mod scene;
 
 use app::GuiApp;

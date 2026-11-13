@@ -6,8 +6,10 @@ use crate::model::{
     Category, ComponentDefinition, ComponentId, ComponentInstance, Document, GridPos, Mirror,
     NetClass, Rotation, WireId,
 };
+use crate::persist;
 use crate::scene::{self, Scene};
 use eframe::egui;
+use std::path::PathBuf;
 
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
 enum Tool {
@@ -83,6 +85,8 @@ pub struct GuiApp {
     category: Option<Category>,
     wire_points: Vec<GridPos>,
     wire_class: NetClass,
+    current_path: Option<PathBuf>,
+    message: String,
 }
 
 impl GuiApp {
@@ -131,9 +135,72 @@ impl GuiApp {
     fn toolbar_tools(&mut self, ui: &mut egui::Ui) {
         ui.strong("embed-emu");
         ui.separator();
+        self.file_buttons(ui);
+        ui.separator();
         self.tool_buttons(ui);
         ui.separator();
         self.sheet_buttons(ui);
+    }
+
+    fn file_buttons(&mut self, ui: &mut egui::Ui) {
+        if ui.button("Open").clicked() {
+            self.open_project();
+        }
+        if ui.button("Save").clicked() {
+            self.save_project();
+        }
+        if !self.message.is_empty() {
+            ui.label(&self.message);
+        }
+    }
+
+    fn open_project(&mut self) {
+        let Some(path) = rfd::FileDialog::new()
+            .add_filter("embed-emu project", &["json"])
+            .pick_file()
+        else {
+            self.message = "Open cancelled".to_string();
+            return;
+        };
+        match persist::load(&path, self.library) {
+            Ok(project) => self.apply_project(project, path),
+            Err(error) => self.message = error,
+        }
+    }
+
+    fn save_project(&mut self) {
+        let path = self.current_path.clone().or_else(|| {
+            rfd::FileDialog::new()
+                .add_filter("embed-emu project", &["json"])
+                .set_file_name("project.emu.json")
+                .save_file()
+        });
+        let Some(path) = path else {
+            self.message = "Save cancelled".to_string();
+            return;
+        };
+        match persist::save(&path, &self.document, &self.camera, self.grid_visible) {
+            Ok(()) => {
+                self.current_path = Some(path);
+                self.message = "Saved".to_string();
+            }
+            Err(error) => self.message = error,
+        }
+    }
+
+    fn apply_project(&mut self, project: persist::Project, path: PathBuf) {
+        self.document = project.document;
+        self.camera = project.camera;
+        self.grid_visible = project.grid_visible;
+        self.selected = None;
+        self.selected_wire = None;
+        self.dragging = None;
+        self.dragging_segment = None;
+        self.placing = None;
+        self.wire_points.clear();
+        self.initialized = true;
+        self.current_path = Some(path);
+        self.message = "Loaded".to_string();
     }
 
     fn tool_buttons(&mut self, ui: &mut egui::Ui) {
@@ -472,6 +539,22 @@ impl GuiApp {
         if ui.ctx().egui_wants_keyboard_input() {
             return;
         }
+        self.handle_file_keys(ui);
+        self.handle_edit_keys(ui);
+    }
+
+    fn handle_file_keys(&mut self, ui: &egui::Ui) {
+        let save = ui.input(|input| input.modifiers.command && input.key_pressed(egui::Key::S));
+        let open = ui.input(|input| input.modifiers.command && input.key_pressed(egui::Key::O));
+        if save {
+            self.save_project();
+        }
+        if open {
+            self.open_project();
+        }
+    }
+
+    fn handle_edit_keys(&mut self, ui: &egui::Ui) {
         if ui.input(|input| input.key_pressed(egui::Key::R)) {
             self.rotate();
         }

@@ -237,19 +237,20 @@ melihat sinyal digital dan analog, serta memeriksa nilai pada cursor.
 - [ ] G8-02 Implementasikan multi-select dan selection box.
 - [ ] G8-03 Implementasikan copy, paste, duplicate, dan delete.
 - [ ] G8-04 Implementasikan align dan distribute.
-- [ ] G8-05 Implementasikan format `.emu.json` versi 1 dengan pretty print 2 spasi.
-- [ ] G8-06 Implementasikan load, validasi, migrasi otomatis setelah backup, dan round-trip.
+- [x] G8-05 Implementasikan format `.emu.json` versi 1 dengan pretty print 2 spasi.
+- [x] G8-06 Implementasikan load, validasi, dan round-trip.
 - [ ] G8-07 Implementasikan autosave debounce 2 detik, backup, 10 recent files, dan `rfd`.
-- [ ] G8-08 Implementasikan shortcut, command palette Ctrl+K, dan context menu.
+- [ ] G8-08 Implementasikan command palette Ctrl+K dan context menu lengkap.
 - [ ] G8-09 Test undo/redo, selection, dan persistence.
 - [ ] G8-10 Kelompokkan undo per aksi drag atau klik.
 - [ ] G8-11 Simpan konfigurasi aplikasi di XDG config.
 - [ ] G8-12 Simpan 10 recent files.
 - [ ] G8-13 Tampilkan error sebagai toast dan status bar.
-- [ ] G8-14 Gunakan UI berbahasa Inggris dan dokumentasi Indonesia.
-- [ ] G8-15 Satu window menampilkan satu proyek.
+- [x] G8-14 Gunakan UI berbahasa Inggris dan dokumentasi Indonesia.
+- [x] G8-15 Satu window menampilkan satu proyek.
 - [ ] G8-16 Prompt reload jika file berubah di luar aplikasi.
 - [ ] G8-17 Konfirmasi hapus hanya untuk komponen dengan kabel atau seleksi besar.
+- [ ] G8-18 Implementasikan migrasi otomatis skema JSON setelah backup.
 
 **Acceptance G8:** proyek dapat disimpan, dimuat kembali tanpa kehilangan
 data, dan semua aksi editing dapat di-undo.

@@ -378,6 +378,23 @@ impl Document {
         Self::default()
     }
 
+    /// Creates a document from restored components and wires.
+    #[must_use]
+    pub fn restore(components: Vec<ComponentInstance>, wires: Vec<Wire>) -> Self {
+        let next_id = components
+            .iter()
+            .map(|component| component.id.0 + 1)
+            .max()
+            .unwrap_or(0);
+        let next_wire_id = wires.iter().map(|wire| wire.id.0 + 1).max().unwrap_or(0);
+        Self {
+            components,
+            wires,
+            next_id,
+            next_wire_id,
+        }
+    }
+
     /// Returns all components.
     #[must_use]
     pub fn components(&self) -> &[ComponentInstance] {
