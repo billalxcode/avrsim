@@ -235,7 +235,7 @@ melihat sinyal digital dan analog, serta memeriksa nilai pada cursor.
 
 - [x] G8-01 Implementasikan undo/redo berbasis snapshot.
 - [x] G8-02 Implementasikan multi-select, shift-click, dan selection box.
-- [ ] G8-03 Implementasikan copy, paste, dan duplicate.
+- [x] G8-03 Implementasikan copy, paste, dan duplicate.
 - [ ] G8-04 Implementasikan align dan distribute.
 - [x] G8-05 Implementasikan format `.emu.json` versi 1 dengan pretty print 2 spasi.
 - [x] G8-06 Implementasikan load, validasi, dan round-trip.

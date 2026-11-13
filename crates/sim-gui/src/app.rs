@@ -1,6 +1,7 @@
 //! GUI application shell, library sheet, inspector, and canvas integration.
 
 use crate::canvas::{self, GridCamera};
+use crate::clipboard::{self, Clipboard};
 use crate::config;
 use crate::history::History;
 use crate::library;
@@ -103,6 +104,7 @@ pub struct GuiApp {
     library: &'static [ComponentDefinition],
     document: Document,
     selection: Selection,
+    clipboard: Clipboard,
     box_start: Option<GridPos>,
     box_current: Option<GridPos>,
     box_additive: bool,
@@ -1009,6 +1011,7 @@ impl GuiApp {
         }
         self.handle_file_keys(ui);
         self.handle_history_keys(ui);
+        self.handle_clipboard_keys(ui);
         self.handle_edit_keys(ui);
     }
 
@@ -1026,6 +1029,22 @@ impl GuiApp {
         }
         if redo {
             self.redo();
+        }
+    }
+
+    fn handle_clipboard_keys(&mut self, ui: &egui::Ui) {
+        let copy = ui.input(|input| input.modifiers.command && input.key_pressed(egui::Key::C));
+        let paste = ui.input(|input| input.modifiers.command && input.key_pressed(egui::Key::V));
+        let duplicate =
+            ui.input(|input| input.modifiers.command && input.key_pressed(egui::Key::D));
+        if copy {
+            self.copy_selection();
+        }
+        if paste {
+            self.paste_selection();
+        }
+        if duplicate {
+            self.duplicate_selection();
         }
     }
 
@@ -1215,6 +1234,9 @@ impl GuiApp {
             Command::Reset => self.send_sim(SimAction::Reset),
             Command::Undo => self.undo(),
             Command::Redo => self.redo(),
+            Command::Copy => self.copy_selection(),
+            Command::Paste => self.paste_selection(),
+            Command::Duplicate => self.duplicate_selection(),
             Command::Delete => self.delete_selection(),
             _ => return false,
         }
@@ -1399,6 +1421,77 @@ impl GuiApp {
         let component = self.document.component(id)?;
         let definition = library::find(component.definition)?;
         Some((component, definition))
+    }
+
+    fn copy_selection(&mut self) {
+        if self.selection.components().is_empty() {
+            self.message = "Nothing to copy".to_string();
+            return;
+        }
+        self.clipboard = Clipboard::capture(
+            &self.document,
+            self.selection.components(),
+            self.selection.wires(),
+        );
+        if self.clipboard.is_empty() {
+            self.message = "Nothing to copy".to_string();
+            return;
+        }
+        self.message = format!(
+            "Copied {} components, {} wires",
+            self.selection.components().len(),
+            self.selection.wires().len()
+        );
+    }
+
+    fn paste_selection(&mut self) {
+        let offset = self.paste_offset();
+        let before = self.document.clone();
+        match self
+            .clipboard
+            .paste(&mut self.document, self.library, offset)
+        {
+            Ok(result) => self.after_paste(result, before),
+            Err(error) => self.message = error,
+        }
+    }
+
+    fn duplicate_selection(&mut self) {
+        let clipboard = Clipboard::capture(
+            &self.document,
+            self.selection.components(),
+            self.selection.wires(),
+        );
+        if clipboard.is_empty() {
+            self.message = "Nothing to duplicate".to_string();
+            return;
+        }
+        let before = self.document.clone();
+        match clipboard.paste(&mut self.document, self.library, GridPos::new(2, 2)) {
+            Ok(result) => self.after_paste(result, before),
+            Err(error) => self.message = error,
+        }
+    }
+
+    fn after_paste(&mut self, result: clipboard::PasteResult, before: Document) {
+        let components = result.components.len();
+        let wires = result.wires.len();
+        self.history.record(&before);
+        self.selection.apply(result.components, result.wires, false);
+        self.mark_dirty();
+        self.message = format!("Pasted {components} components, {wires} wires");
+    }
+
+    fn paste_offset(&self) -> GridPos {
+        let Some(world) = self.pointer_world else {
+            return GridPos::new(2, 2);
+        };
+        let offset = world_to_grid(world).subtract(self.clipboard.origin());
+        if offset == GridPos::new(0, 0) {
+            GridPos::new(2, 2)
+        } else {
+            offset
+        }
     }
 
     fn push_undo(&mut self) {
@@ -1985,6 +2078,25 @@ mod tests {
         app.apply_box(GridPos::new(-1, -1), GridPos::new(10, 3), false);
         assert_eq!(app.selection.components().len(), 2);
         assert!(app.selection.contains_wire(wire));
+    }
+
+    #[test]
+    fn copy_and_paste_selects_new_components() {
+        let library = crate::library::builtin();
+        let resistor = crate::library::find("resistor").expect("resistor");
+        let mut document = Document::new();
+        let first = document.add(resistor, GridPos::new(0, 0), Rotation::Deg0, Mirror::None);
+        let mut app = GuiApp {
+            library,
+            document,
+            ..GuiApp::default()
+        };
+        app.selection.select_component(first);
+        app.copy_selection();
+        app.paste_selection();
+        assert_eq!(app.document.components().len(), 2);
+        assert_eq!(app.selection.components().len(), 1);
+        assert_ne!(app.selection.single_component(), Some(first));
     }
 
     #[test]

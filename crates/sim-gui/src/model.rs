@@ -592,13 +592,32 @@ impl Document {
         rotation: Rotation,
         mirror: Mirror,
     ) -> ComponentId {
+        self.add_with_value(
+            definition,
+            position,
+            rotation,
+            mirror,
+            definition.default_value,
+        )
+    }
+
+    /// Adds a component with an explicit value and a generated label.
+    pub fn add_with_value(
+        &mut self,
+        definition: &ComponentDefinition,
+        position: GridPos,
+        rotation: Rotation,
+        mirror: Mirror,
+        value: &str,
+    ) -> ComponentId {
         let id = self.allocate_id();
         let label = format!(
             "{}{}",
             definition.reference_prefix,
             self.next_reference(definition.reference_prefix)
         );
-        let instance = new_instance(id, definition, position, rotation, mirror, label);
+        let mut instance = new_instance(id, definition, position, rotation, mirror, label);
+        instance.value = value.to_string();
         self.components.push(instance);
         id
     }
@@ -1193,6 +1212,21 @@ mod tests {
         let second = document.add(&RESISTOR, GridPos::new(5, 0), Rotation::Deg0, Mirror::None);
         assert_eq!(document.component(first).expect("first").label, "R1");
         assert_eq!(document.component(second).expect("second").label, "R2");
+    }
+
+    #[test]
+    fn add_with_value_preserves_value() {
+        let mut document = Document::new();
+        let id = document.add_with_value(
+            &RESISTOR,
+            GridPos::new(0, 0),
+            Rotation::Deg0,
+            Mirror::None,
+            "10k",
+        );
+        let instance = document.component(id).expect("instance");
+        assert_eq!(instance.value, "10k");
+        assert_eq!(instance.label, "R1");
     }
 
     #[test]

@@ -10,8 +10,8 @@ inspector dasar, wire ortogonal, junction otomatis, warna net,
 selection wire, delete wire, segment drag, saran jalur L, saran jalur Z, save/load
 JSON, undo/redo, autosave, backup, recent files, konfigurasi XDG,
 deteksi perubahan file eksternal, label net, legenda warna, command
-palette, multi-select, selection box, simulasi PB5, dan waveform digital
-awal juga sudah ada. Probe generik, UART di GUI, dan grafik analog
+palette, multi-select, selection box, copy/paste/duplicate, simulasi PB5,
+dan waveform digital awal juga sudah ada. Probe generik, UART di GUI, dan grafik analog
 belum ada. Dependensi GUI yang disetujui hanya untuk crate `sim-gui`:
 `egui`, `eframe`, `serde`, `serde_json`, `rfd`, dan `png`. `egui_plot`,
 `libloading`, dan crate lain tidak diizinkan tanpa keputusan baru.
@@ -386,6 +386,9 @@ Aturan:
 | R | Rotate |
 | M | Mirror |
 | Delete | Hapus seleksi |
+| Ctrl+C | Copy seleksi |
+| Ctrl+V | Paste |
+| Ctrl+D | Duplicate |
 | Ctrl+Z | Undo |
 | Ctrl+Shift+Z | Redo |
 | Ctrl+S | Save |

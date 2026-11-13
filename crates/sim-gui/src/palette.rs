@@ -11,6 +11,9 @@ pub enum Command {
     Reset,
     Undo,
     Redo,
+    Copy,
+    Paste,
+    Duplicate,
     Delete,
     ToggleGrid,
     ToggleLibrary,
@@ -24,7 +27,7 @@ pub enum Command {
 
 impl Command {
     /// All commands shown by the palette.
-    pub const ALL: [Self; 17] = [
+    pub const ALL: [Self; 20] = [
         Self::Save,
         Self::Open,
         Self::LoadHex,
@@ -33,6 +36,9 @@ impl Command {
         Self::Reset,
         Self::Undo,
         Self::Redo,
+        Self::Copy,
+        Self::Paste,
+        Self::Duplicate,
         Self::Delete,
         Self::ToggleGrid,
         Self::ToggleLibrary,
@@ -59,6 +65,15 @@ impl Command {
 
     const fn static_label(self) -> &'static str {
         match self {
+            Self::Copy => "Copy selection",
+            Self::Paste => "Paste selection",
+            Self::Duplicate => "Duplicate selection",
+            _ => self.edit_label(),
+        }
+    }
+
+    const fn edit_label(self) -> &'static str {
+        match self {
             Self::Save => "Save project",
             Self::Open => "Open project",
             Self::LoadHex => "Load HEX firmware",
@@ -67,6 +82,12 @@ impl Command {
             Self::Reset => "Reset simulation",
             Self::Undo => "Undo",
             Self::Redo => "Redo",
+            _ => self.view_label(),
+        }
+    }
+
+    const fn view_label(self) -> &'static str {
+        match self {
             Self::Delete => "Delete selection",
             Self::ToggleGrid => "Toggle grid",
             Self::ToggleLibrary => "Toggle library",
@@ -76,6 +97,7 @@ impl Command {
             Self::ZoomReset => "Reset zoom",
             Self::SelectTool => "Select tool",
             Self::WireTool => "Wire tool",
+            _ => "Unknown command",
         }
     }
 }

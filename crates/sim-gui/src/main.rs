@@ -2,6 +2,7 @@
 
 mod app;
 mod canvas;
+mod clipboard;
 mod config;
 mod history;
 mod library;
