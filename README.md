@@ -5,7 +5,8 @@ yang memodelkan transistor, gerbang CMOS, CPU AVR, peripheral, dan board,
 serta mampu menjalankan firmware AVR.
 
 > **Status v0.1:** 553 test lulus, 7 crate, crate simulasi zero external
-> dependency; `egui`/`eframe` disetujui hanya untuk `sim-gui`.
+> dependency; dependensi GUI dibatasi pada daftar yang disetujui di
+> `AGENTS.md`.
 > Tag `v0.1` tersedia. Archive Linux ada di
 > `dist/embed-emu-x86_64-unknown-linux-gnu.tar.gz`.
 

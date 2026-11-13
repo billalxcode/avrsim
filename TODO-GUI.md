@@ -8,38 +8,75 @@ Backlog eksekusi untuk GUI interaktif berbasis `egui`/`eframe`.
 
 **Keputusan yang sudah disetujui:**
 
-- `egui` dan `eframe` hanya boleh dipakai di crate `sim-gui`.
+- `egui`, `eframe`, `serde`, `serde_json`, `rfd`, dan `png` hanya boleh
+  dipakai di crate `sim-gui`.
 - Crate simulasi lain tetap zero external dependency.
-- `egui_plot`, `serde`, `rfd`, dan crate eksternal lain tidak diizinkan
+- `egui_plot`, `libloading`, dan crate eksternal lain tidak diizinkan
   tanpa keputusan baru.
 - Grafik memakai widget internal berbasis `egui::Painter`.
+- Format proyek JSON melalui `serde_json`.
+- Dialog file memakai `rfd`.
+- Export PNG memakai crate `png`.
+- Plugin memakai trait internal, bukan dynamic library.
+- Golden image memakai snapshot RGBA.
 
-**Default usulan yang belum dikunci:**
+**Keputusan desain yang sudah dikunci:**
 
-- Satu edge grid hanya boleh memuat satu kabel.
+- Linux desktop lebih dulu.
+- Editor, simulasi, dan grafik digital serta analog.
+- Canvas 90 persen dengan overlay sheet.
+- Library kategori dan pencarian.
+- Klik dan drag-and-drop untuk penempatan.
+- Routing manual dengan saran L/Z.
+- Satu edge grid hanya satu kabel.
 - Persilangan tanpa junction dilarang.
-- GUI pertama hanya Linux.
-- Format simpan berupa teks ASCII kustom.
-- Session simulasi belum diekstrak ke crate bersama.
+- Junction otomatis pada 3 atau 4 arah.
+- Label pin memakai LOD dan hover.
+- Warna net mengikuti kelas dan dapat dioverride.
+- Grafik di drawer dan floating window.
+- Simulasi pada UI thread dengan budget per frame.
+- Run, pause, step, reset.
+- Ring buffer grafik 10 detik.
+- Undo 100 langkah.
+- Autosave debounce dan backup.
+- Tema gelap default.
+- Satu sheet.
+- Probe dibuka dari context menu pin.
+- Target 500 komponen dan 60 FPS.
+- Simbol bawaan.
+- Command palette Ctrl+K.
+- Sheet dapat dipin atau dilepas.
+- Format `.emu.json`, pretty print 2 spasi, migrasi otomatis.
+- Sampling default 100 cycle, decimation min/max.
+- Inspector tiga section.
+- Plugin dua trait internal, probe analog read-only.
+- Satu proyek per window, prompt reload saat file berubah.
+- Library komponen berupa kode Rust internal.
 
 ---
 
 ## G0 - Fondasi dan Keputusan
 
-- [x] G0-01 Setujui pengecualian `egui`/`eframe` untuk `sim-gui`.
+- [x] G0-01 Setujui pengecualian dependensi GUI di `sim-gui`.
 - [x] G0-02 Catat keputusan di `AGENTS.md` dan `docs/57`.
 - [ ] G0-03 Buat crate `crates/sim-gui` dengan binary `embed-emu-gui`.
 - [ ] G0-04 Tambahkan `sim-gui` ke workspace dan dependency graph.
-- [ ] G0-05 Pin versi `egui`/`eframe`, commit `Cargo.lock`.
+- [ ] G0-05 Pin versi semua dependensi `sim-gui`, commit `Cargo.lock`.
 - [ ] G0-06 Buat app error type dan aturan no-panic untuk input GUI.
 - [ ] G0-07 Tambahkan build dan test `sim-gui` ke CI Linux.
 - [ ] G0-08 Dokumentasikan perintah build dan run GUI.
-- [ ] G0-09 Kunci default routing, persilangan, platform, dan format simpan.
-- [ ] G0-10 Perbarui `docs/02-architecture.md` untuk `sim-gui` dan pengecualian dependensi.
+- [x] G0-09 Kunci default routing, persilangan, platform, dan format simpan.
+- [ ] G0-10 Perbarui `docs/02-architecture.md` untuk `sim-gui` dan daftar dependensi.
+- [x] G0-11 Kunci grid default 20 px, zoom preset dan halus.
+- [ ] G0-12 Kunci palet warna final untuk setiap kelas net.
+- [ ] G0-13 Kunci field skema JSON dan aturan migrasi otomatis.
+- [ ] G0-14 Kunci signature trait komponen dan analisis.
+- [ ] G0-15 Kunci API probe analog read-only dan default N 100 cycle.
+- [x] G0-16 Ekstensi file `.emu.json`; konfigurasi di XDG config.
 
 **Acceptance G0:** `cargo run -p sim-gui` membuka window kosong, CI
-membangun crate, dan tidak ada dependensi eksternal di luar
-`egui`/`eframe`.
+membangun crate, dan tidak ada dependensi eksternal di luar daftar
+`sim-gui`.
 
 ---
 
@@ -47,14 +84,16 @@ membangun crate, dan tidak ada dependensi eksternal di luar
 
 - [ ] G1-01 Buat app shell dengan central panel, toolbar, dan status bar.
 - [ ] G1-02 Implementasikan kamera world ke screen dan screen ke world.
-- [ ] G1-03 Implementasikan pan, zoom, fit all, dan fit selection.
-- [ ] G1-04 Gambar grid minor, grid major, dan sumbu X/Y.
+- [ ] G1-03 Implementasikan pan, zoom preset, zoom halus, fit all, dan fit selection.
+- [ ] G1-04 Gambar grid minor 20 px, grid major, sumbu X/Y, dan titik grid.
 - [ ] G1-05 Terapkan level of detail grid dan label.
 - [ ] G1-06 Buat layout canvas 90 persen dengan sheet overlay.
 - [ ] G1-07 Implementasikan culling grid dan objek di luar viewport.
 - [ ] G1-08 Tampilkan koordinat grid dan status snap di status bar.
-- [ ] G1-09 Tambahkan tema gelap, terang, dan high-DPI.
+- [ ] G1-09 Tambahkan tema gelap, terang, high-DPI, dan aksen cyan.
 - [ ] G1-10 Test transformasi, zoom, snap, dan culling.
+- [ ] G1-11 Implementasikan minimap opsional.
+- [ ] G1-12 Terapkan latar dark dotted dan toolbar ikon serta teks.
 
 **Acceptance G1:** canvas kosong berjalan 60 FPS, grid simetris terlihat,
 pan dan zoom stabil, dan area canvas mendominasi layout.
@@ -64,14 +103,17 @@ pan dan zoom stabil, dan area canvas mendominasi layout.
 ## G2 - Model Dokumen dan Library
 
 - [ ] G2-01 Definisikan tipe dokumen: komponen, pin, kabel, net, junction.
-- [ ] G2-02 Definisikan metadata library: simbol, pin, parameter, probe.
-- [ ] G2-03 Buat library awal: ATmega328P, LED, resistor, button, VCC, GND.
+- [ ] G2-02 Definisikan metadata library: simbol vektor datar, pin, parameter, probe.
+- [ ] G2-03 Buat library awal: ATmega328P, board Arduino, passive, LED, button, VCC, GND.
 - [ ] G2-04 Buat library sheet dengan pencarian dan kategori.
 - [ ] G2-05 Buat preview simbol dan recently used.
-- [ ] G2-06 Implementasikan ghost placement dan validasi tabrakan.
-- [ ] G2-07 Implementasikan move, rotate, dan mirror di grid.
+- [ ] G2-06 Implementasikan ghost placement, klik, dan drag-and-drop.
+- [ ] G2-07 Implementasikan move, rotate, dan mirror di grid dengan pusat rotasi.
 - [ ] G2-08 Implementasikan selection dan inspector dasar.
 - [ ] G2-09 Test transformasi pin, tabrakan, dan model dokumen.
+- [ ] G2-10 Definisikan trait internal `ComponentProvider` untuk plugin komponen.
+- [ ] G2-11 Tampilkan label referensi dan nilai komponen secara default.
+- [ ] G2-12 Simpan definisi library sebagai kode Rust internal.
 
 **Acceptance G2:** pengguna dapat memilih komponen dari library,
 menempatkannya di grid, memindahkan, memutar, dan mencerminkannya.
@@ -80,13 +122,15 @@ menempatkannya di grid, memindahkan, memutar, dan mencerminkannya.
 
 ## G3 - Pin, Label, dan Net
 
-- [ ] G3-01 Gambar pin, nama pin, nomor pin, dan arah pin.
+- [ ] G3-01 Gambar pin sebagai garis dengan titik, nama, nomor, dan arah.
 - [ ] G3-02 Implementasikan hover tooltip pin.
 - [ ] G3-03 Implementasikan klik pin untuk memilih net.
 - [ ] G3-04 Implementasikan highlight net dan pin terhubung.
 - [ ] G3-05 Tampilkan reference designator dan value komponen.
-- [ ] G3-06 Tambahkan toggle visibility label dan level of detail.
+- [ ] G3-06 Terapkan label pin nama dan nomor dengan LOD dan hover.
 - [ ] G3-07 Test hit testing dan pemetaan pin ke net.
+- [ ] G3-08 Tampilkan label net saat hover atau seleksi.
+- [ ] G3-09 Buat inspector tiga section: properties, pins, simulation.
 
 **Acceptance G3:** setiap pin dapat diperiksa, dipilih, dan dihubungkan
 ke net dengan umpan balik visual yang jelas.
@@ -103,6 +147,8 @@ ke net dengan umpan balik visual yang jelas.
 - [ ] G4-06 Implementasikan junction eksplisit.
 - [ ] G4-07 Implementasikan edit vertex dan delete wire.
 - [ ] G4-08 Test konektivitas, collision, dan junction.
+- [ ] G4-09 Terapkan belokan 90 derajat tegas.
+- [ ] G4-10 Implementasikan animasi aliran sinyal opsional, default mati.
 
 **Acceptance G4:** dua pin dapat dihubungkan dengan kabel ortogonal rapi,
 tanpa segmen diagonal, dan tanpa menembus komponen.
@@ -112,12 +158,15 @@ tanpa segmen diagonal, dan tanpa menembus komponen.
 ## G5 - Routing, Warna, dan Label Net
 
 - [ ] G5-01 Implementasikan saran jalur L dan Z.
-- [ ] G5-02 Implementasikan maze router Manhattan dengan batas eksplorasi.
+- [x] G5-02 Dokumentasikan keputusan menunda auto-router penuh.
 - [ ] G5-03 Terapkan aturan persilangan tanpa junction.
 - [ ] G5-04 Deteksi kelas net dan petakan ke warna.
-- [ ] G5-05 Implementasikan label net di pin atau midpoint.
+- [ ] G5-05 Implementasikan label net saat hover atau seleksi.
 - [ ] G5-06 Tambahkan legenda warna dan pola ramah buta warna.
 - [ ] G5-07 Test routing, warna, label, dan aturan persilangan.
+- [ ] G5-08 Implementasikan override warna per net.
+- [ ] G5-09 Kunci palet warna final dan target kontras WCAG AA.
+- [ ] G5-10 Implementasikan ruler grid dan probe tegangan.
 
 **Acceptance G5:** kabel mengikuti jalur grid yang tersedia, warna sesuai
 fungsi net, dan persilangan tidak menimbulkan koneksi palsu.
@@ -127,13 +176,14 @@ fungsi net, dan persilangan tidak menimbulkan koneksi palsu.
 ## G6 - Integrasi Simulasi
 
 - [ ] G6-01 Buat `SimSession` untuk CPU dan board.
-- [ ] G6-02 Implementasikan run, pause, step, reset, dan stop.
-- [ ] G6-03 Terapkan budget cycle per frame.
+- [ ] G6-02 Implementasikan run, pause, step, dan reset.
+- [ ] G6-03 Terapkan budget 100.000 cycle per frame.
 - [ ] G6-04 Sampel pin digital dan state board.
 - [ ] G6-05 Tampilkan simulation time, cycle, dan status tertinggal.
 - [ ] G6-06 Tampilkan error simulasi di UI tanpa panic.
 - [ ] G6-07 Test integrasi ATmega328P dan LED.
 - [ ] G6-08 Evaluasi ekstraksi runtime bersama dengan `sim-cli`.
+- [ ] G6-09 Implementasikan sampling probe setiap N cycle yang dapat dikonfigurasi.
 
 **Acceptance G6:** sketsa blink dan UART hello dapat dijalankan, dijeda,
 dan dilangkah dari GUI.
@@ -142,15 +192,19 @@ dan dilangkah dari GUI.
 
 ## G7 - Probe dan Grafik
 
-- [ ] G7-01 Definisikan model probe dan ring buffer.
+- [ ] G7-01 Definisikan model probe dan ring buffer 10 detik.
 - [ ] G7-02 Implementasikan decimation min/max.
 - [ ] G7-03 Buat widget plot analog internal.
 - [ ] G7-04 Buat widget waveform digital.
-- [ ] G7-05 Implementasikan decode bus digital.
+- [x] G7-05 Dokumentasikan keputusan menunda decode bus.
 - [ ] G7-06 Buat graph drawer, tab, dan floating window.
 - [ ] G7-07 Tambahkan aksi add graph dari pin atau komponen.
-- [ ] G7-08 Sampel node voltage dan branch current analog.
+- [ ] G7-08 Sampel node voltage dan branch current melalui API read-only.
 - [ ] G7-09 Test buffer, decimation, skala, cursor, dan render.
+- [ ] G7-10 Definisikan trait internal `AnalysisProvider` untuk plugin analisis.
+- [ ] G7-11 Batasi grafik maksimal 8 series.
+- [ ] G7-12 Implementasikan cursor, zoom, pan, autoscale, dan legend toggle.
+- [ ] G7-13 Gunakan default sampling setiap 100 cycle, dapat dikonfigurasi per probe.
 
 **Acceptance G7:** pengguna dapat membuka grafik per pin atau komponen,
 melihat sinyal digital dan analog, serta memeriksa nilai pada cursor.
@@ -163,11 +217,18 @@ melihat sinyal digital dan analog, serta memeriksa nilai pada cursor.
 - [ ] G8-02 Implementasikan multi-select dan selection box.
 - [ ] G8-03 Implementasikan copy, paste, duplicate, dan delete.
 - [ ] G8-04 Implementasikan align dan distribute.
-- [ ] G8-05 Implementasikan format simpan teks ASCII versi 1.
-- [ ] G8-06 Implementasikan load, validasi, dan round-trip.
-- [ ] G8-07 Implementasikan autosave, backup, dan recent files.
-- [ ] G8-08 Implementasikan shortcut dan context menu lengkap.
+- [ ] G8-05 Implementasikan format `.emu.json` versi 1 dengan pretty print 2 spasi.
+- [ ] G8-06 Implementasikan load, validasi, migrasi otomatis setelah backup, dan round-trip.
+- [ ] G8-07 Implementasikan autosave debounce 2 detik, backup, 10 recent files, dan `rfd`.
+- [ ] G8-08 Implementasikan shortcut, command palette Ctrl+K, dan context menu.
 - [ ] G8-09 Test undo/redo, selection, dan persistence.
+- [ ] G8-10 Kelompokkan undo per aksi drag atau klik.
+- [ ] G8-11 Simpan konfigurasi aplikasi di XDG config.
+- [ ] G8-12 Simpan 10 recent files.
+- [ ] G8-13 Tampilkan error sebagai toast dan status bar.
+- [ ] G8-14 Gunakan UI berbahasa Inggris dan dokumentasi Indonesia.
+- [ ] G8-15 Satu window menampilkan satu proyek.
+- [ ] G8-16 Prompt reload jika file berubah di luar aplikasi.
 
 **Acceptance G8:** proyek dapat disimpan, dimuat kembali tanpa kehilangan
 data, dan semua aksi editing dapat di-undo.
@@ -183,6 +244,12 @@ data, dan semua aksi editing dapat di-undo.
 - [ ] G9-05 Audit palet warna dan kontras.
 - [ ] G9-06 Tambahkan interaction test dengan `egui::Context`.
 - [ ] G9-07 Tulis user guide GUI dan screenshot.
+- [ ] G9-08 Implementasikan export PNG melalui crate `png`.
+- [ ] G9-09 Tambahkan golden image RGBA snapshot.
+- [ ] G9-10 Lengkapi test model, interaction, integrasi, dan visual.
+- [ ] G9-11 Verifikasi kontras WCAG AA dan navigasi keyboard.
+- [ ] G9-12 Sediakan minimap opsional dengan toggle.
+- [ ] G9-13 Dokumentasikan prosedur update golden RGBA.
 
 **Acceptance G9:** target 60 FPS terukur, semua tool dapat dipakai dengan
 keyboard, dan tidak ada panic pada input tidak valid.
@@ -218,7 +285,7 @@ terbuka, dan dokumentasi instalasi tersedia.
 
 - [ ] Perubahan sesuai task.
 - [ ] Test model atau interaction ditambahkan.
-- [ ] Tidak ada dependensi eksternal selain `egui`/`eframe`.
+- [ ] Tidak ada dependensi eksternal di luar daftar `sim-gui`.
 - [ ] Tidak ada `unsafe`.
 - [ ] Setiap fungsi maksimal 20 baris.
 - [ ] Guard clause dipakai.

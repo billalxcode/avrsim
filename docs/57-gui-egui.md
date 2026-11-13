@@ -3,8 +3,10 @@
 Dokumen ini merancang GUI interaktif berbasis egui untuk eksplorasi,
 penempatan komponen, probing, dan pengujian simulasi.
 
-**Status:** desain dan backlog. Dependensi `egui`/`eframe` disetujui hanya
-untuk crate `sim-gui`. Belum ada implementasi.
+**Status:** desain dan backlog. Dependensi GUI yang disetujui hanya untuk
+crate `sim-gui`: `egui`, `eframe`, `serde`, `serde_json`, `rfd`, dan
+`png`. `egui_plot`, `libloading`, dan crate lain tidak diizinkan tanpa
+keputusan baru. Belum ada implementasi.
 
 **Rekomendasi:** buat crate baru `sim-gui` sebagai adapter/composition,
 mirip `sim-cli`. Semua crate simulasi tetap zero external dependency.
@@ -12,7 +14,7 @@ mirip `sim-cli`. Semua crate simulasi tetap zero external dependency.
 
 ---
 
-## 1. Keputusan yang Perlu Disetujui
+## 1. Keputusan dan Batas
 
 ### 1.1 Konflik dependensi
 
@@ -23,9 +25,18 @@ Aturan repository sebelumnya:
 
 `egui` dan `eframe` adalah dependensi eksternal.
 
-**Keputusan:** `egui` dan `eframe` diizinkan hanya di crate `sim-gui`.
-Semua crate lain tetap zero external dependency. `egui_plot`, `serde`,
-`rfd`, dan crate eksternal lain tidak diizinkan tanpa keputusan baru.
+**Keputusan:** dependensi eksternal hanya diizinkan di crate `sim-gui`,
+yaitu `egui`, `eframe`, `serde`, `serde_json`, `rfd`, dan `png`.
+Semua crate lain tetap zero external dependency.
+`egui_plot`, `libloading`, dan crate eksternal lain tidak diizinkan tanpa
+keputusan baru.
+
+**Keputusan tambahan:**
+
+- Format proyek memakai JSON melalui `serde_json`.
+- Dialog file memakai `rfd`.
+- Export PNG memakai crate `png`.
+- Plugin memakai trait internal, bukan dynamic library.
 
 ### 1.2 Backend grafik
 
@@ -34,16 +45,40 @@ Tidak memakai `egui_plot` pada MVP. Jika kebutuhan grafik terbukti
 melebihi widget internal, penambahan `egui_plot` harus disetujui
 terpisah.
 
-### 1.3 Batas GUI pertama
+### 1.3 Keputusan MVP
 
-Rekomendasi rilis GUI pertama:
+Keputusan yang sudah dikunci:
 
 - Linux desktop.
-- Editor skematik dasar: pilih, tempatkan, pindahkan, rotasi, mirror,
-  hubungkan dengan kabel ortogonal, simpan, dan muat.
-- Simulasi AVR dan board.
-- Probe pin digital dan grafik sederhana.
-- Belum ada autorouting bebas, analog penuh, atau kolaborasi.
+- Editor skematik, simulasi, dan grafik.
+- Canvas 90 persen dengan overlay sheet.
+- Library kategori dan pencarian.
+- Klik dan drag-and-drop untuk penempatan.
+- Routing manual dengan saran L/Z.
+- Satu kabel per edge grid.
+- Persilangan tanpa junction dilarang.
+- Junction otomatis pada 3 atau 4 arah.
+- Label pin memakai level of detail dan hover.
+- Warna kabel mengikuti kelas net dan dapat dioverride.
+- Grafik digital dan analog.
+- Drawer dan floating window untuk grafik.
+- Simulasi pada UI thread dengan budget per frame.
+- Run, pause, step, reset.
+- Ring buffer grafik 10 detik.
+- JSON untuk format proyek.
+- Dialog file OS melalui `rfd`.
+- Undo 100 langkah.
+- Autosave debounce dan backup.
+- Tema gelap default.
+- Satu sheet.
+- Grafik dibuka dari context menu pin.
+- Target 500 komponen dan 60 FPS.
+- Export PNG.
+- Simbol bawaan, belum ada editor simbol.
+- Command palette Ctrl+K.
+- Sheet dapat dipin atau dilepas.
+- Test model, interaksi, dan golden image RGBA.
+- Plugin API berupa trait internal untuk komponen dan analisis.
 
 ---
 
@@ -115,10 +150,16 @@ Aturan layout:
 - Toolbar atas sekitar 44 px.
 - Status bar bawah sekitar 24 px.
 - Library dan Inspector adalah sheet overlay yang dapat di-pin.
+- Sheet default tertutup agar canvas tetap 90 persen.
 - Analysis drawer di bawah canvas, default tertutup, tinggi maksimum
   30 persen saat terbuka.
 - Grafik dapat menjadi tab di analysis drawer atau floating window.
 - Layout terakhir disimpan di file konfigurasi.
+- Tema default gelap, dengan opsi tema terang.
+- Aksen UI cyan.
+- UI berbahasa Inggris; dokumentasi tetap Indonesia.
+- Target kontras WCAG AA.
+- Pin/unpin sheet mengubah overlay menjadi sidebar tanpa docking penuh.
 
 ---
 
@@ -147,18 +188,28 @@ Aturan layout:
 
 - Pan dengan drag tengah, Space + drag, atau dua jari.
 - Zoom dengan wheel di sekitar kursor.
-- Zoom level diskrit: 25, 50, 75, 100, 150, 200, 400 persen.
+- Preset zoom: 25, 50, 75, 100, 150, 200, 400 persen.
+- Zoom halus tersedia di antara preset.
 - Fit selection, fit all, dan center origin.
 - Level of detail: label kecil dan grid minor disembunyikan saat zoom
   rendah.
 
 ### 5.4 Rendering grid
 
+- Ukuran sel default 20 px pada zoom 100 persen.
 - Grid minor setiap sel.
 - Grid major setiap 5 atau 10 sel.
+- Latar gelap dengan titik grid halus.
 - Sumbu X dan Y berbeda warna.
 - Culling hanya menggambar garis yang terlihat.
 - Grid dapat dimatikan sementara untuk melihat rangkaian.
+
+### 5.5 Minimap
+
+- Minimap opsional di sudut canvas.
+- Default tersembunyi.
+- Menampilkan viewport, komponen, dan kabel secara ringkas.
+- Klik minimap memindahkan kamera.
 
 ---
 
@@ -170,8 +221,9 @@ Setiap definisi memiliki:
 
 - ID stabil.
 - Nama dan kategori.
-- Simbol vektor.
+- Simbol vektor datar.
 - Daftar pin: nama, nomor, arah, tipe listrik, offset grid.
+- Pin digambar sebagai garis dengan titik di ujung.
 - Parameter default.
 - Probe yang tersedia.
 - Batas ukuran dan anchor.
@@ -184,19 +236,24 @@ Setiap instance memiliki:
 - Referensi definition.
 - Posisi grid.
 - Rotasi dan mirror.
+- Label referensi dan nilai ditampilkan secara default, misalnya `R1 220`.
 - Label referensi, nilai, dan parameter.
 - Status lock dan visibility.
 - Probe yang aktif.
 
 ### 6.3 Library sheet
 
-- Kategori: MCU, board, passive, diode, transistor, digital, source,
-  probe, ground, dan power.
+- Library awal: ATmega328P, board Arduino, passive, LED, button, VCC,
+  dan GND.
+- Definisi komponen disimpan sebagai kode Rust internal.
+- Kategori tetap disiapkan untuk MCU, board, passive, diode, transistor,
+  digital, source, probe, ground, dan power.
 - Pencarian nama dan kategori.
 - Preview simbol.
 - Drag-and-drop ke canvas atau klik lalu tempatkan.
 - Recently used.
 - Filter berdasarkan tipe pin atau domain sinyal.
+- Simbol bawaan untuk MVP; editor simbol belum tersedia.
 
 ### 6.4 Penempatan
 
@@ -224,11 +281,13 @@ Setiap instance memiliki:
 - Semua segmen horizontal atau vertikal.
 - Semua vertex berada di grid.
 - Tidak ada segmen diagonal.
+- Belokan memakai sudut 90 derajat tegas.
 - Panjang minimum satu sel.
 - Kabel tidak boleh melewati body komponen.
 - Satu edge grid hanya boleh dipakai satu kabel pada MVP.
 - Persilangan hanya boleh di junction eksplisit.
 - Jika edge sudah terpakai, kabel harus berbelok atau mencari jalur lain.
+- Animasi aliran sinyal opsional dan default mati.
 
 ### 7.2 Mode menggambar
 
@@ -236,8 +295,7 @@ Setiap instance memiliki:
   double-click atau Enter untuk selesai, Esc untuk batal.
 - L-route: pilih dua titik, sistem menawarkan jalur L.
 - Z-route: pilih dua titik, sistem menawarkan jalur Z.
-- Auto-route sederhana: cari jalur Manhattan terpendek yang tidak
-  bertabrakan, dengan batas eksplorasi.
+- Auto-route sederhana ditunda sampai setelah MVP.
 - Pengguna selalu dapat memilih vertex dan menggesernya selama tetap
   di grid.
 
@@ -245,6 +303,8 @@ Setiap instance memiliki:
 
 - Junction adalah objek eksplisit di titik grid.
 - Tiga atau empat segmen pada satu titik wajib memiliki junction.
+- Sistem membuat junction otomatis saat tiga atau empat arah bertemu.
+- Pengguna dapat menghapus atau menambah junction secara manual.
 - Menghapus junction memutus koneksi.
 - Junction memiliki ukuran dan warna yang konsisten.
 
@@ -271,11 +331,13 @@ Aturan:
 - Warna harus ramah buta warna dan memiliki pola tambahan, misalnya
   ketebalan atau dash, jika diperlukan.
 - Legenda warna tersedia di panel bantu.
-- Warna net dapat dioverride per net, tetapi default tetap kelas.
+- Warna default mengikuti kelas net.
+- Warna net dapat dioverride per net.
 - Kabel terpilih memiliki halo, bukan mengganti warna kelas.
 
 ### 7.5 Label net
 
+- Label default muncul saat hover atau seleksi.
 - Label dapat ditempel di pin, midpoint, atau vertex.
 - Label mengikuti rotasi kabel.
 - Label dapat disembunyikan per net atau secara global.
@@ -292,7 +354,9 @@ Aturan:
 - Wire: menggambar kabel ortogonal.
 - Probe: memilih pin atau net untuk grafik.
 - Pan: drag kanvas.
-- Measure: opsional, untuk mengukur jarak grid.
+- Measure: ruler grid dan probe tegangan.
+- Toolbar memakai ikon dan teks singkat.
+- Error ditampilkan sebagai toast singkat dan status bar.
 
 ### 8.2 Shortcut
 
@@ -311,6 +375,7 @@ Aturan:
 | Ctrl+Shift+Z | Redo |
 | Ctrl+S | Save |
 | Ctrl+O | Open |
+| Ctrl+K | Command palette |
 | Esc | Batal tool |
 | Enter | Selesai wire |
 
@@ -330,6 +395,14 @@ Aturan:
 - Kabel: select net, change color, add label, delete.
 - Kanvas: paste, fit all, toggle grid, add component.
 
+### 8.5 Inspector
+
+- Section Properties: ID, tipe, posisi, rotasi, mirror, nilai.
+- Section Pins: nama, nomor, net, arah, state.
+- Section Simulation: pin voltage, current, probe, dan graph.
+- Section mengikuti objek yang dipilih.
+- Objek ganda menampilkan ringkasan dan aksi massal.
+
 ---
 
 ## 9. Simulasi
@@ -343,8 +416,8 @@ Aturan:
 
 ### 9.2 Sinkronisasi
 
-- Untuk MVP, simulation berjalan di UI thread dengan budget waktu per
-  frame.
+- Untuk MVP, simulation berjalan di UI thread dengan budget 100.000
+  cycle per frame.
 - Jika budget habis, frame berikutnya melanjutkan.
 - Background thread dan channel adalah optimasi lanjutan.
 - GUI tidak boleh memakai wall-clock sebagai bagian dari model simulasi.
@@ -355,6 +428,9 @@ Aturan:
 - Board: LED, tombol, UART host.
 - Analog: node voltage dan branch current dari solver.
 - Setiap probe memiliki satuan dan tipe sinyal.
+- Probe mengambil sampel setiap N cycle; nilai default N adalah 100.
+- N dapat dikonfigurasi per probe.
+- Decimation memakai min/max per pixel waktu.
 
 ---
 
@@ -367,17 +443,21 @@ Setiap probe memiliki:
 - ID sinyal.
 - Tipe: analog, digital, bus, power.
 - Satuan.
-- Ring buffer sampel.
-- Decimation policy.
+- Ring buffer sampel 10 detik simulasi.
+- Decimation min/max per pixel waktu.
 - Warna dan label.
+
+Grafik MVP mencakup sinyal digital dan analog. Bus dan power dapat
+menyusul setelah alur dasar stabil.
 
 ### 10.2 Tampilan
 
-- Satu grafik dapat memuat beberapa series.
+- Satu grafik dapat memuat maksimal 8 series.
 - Digital ditampilkan sebagai lane logika.
 - Bus ditampilkan sebagai nilai heksadesimal pada transisi.
 - Cursor vertikal menampilkan waktu dan nilai.
 - Autoscale dan manual scale.
+- Zoom, pan, dan legend toggle.
 - Pause membekukan data tanpa menghentikan simulasi jika dipilih.
 - Legend dapat disembunyikan.
 
@@ -426,42 +506,81 @@ Modul usulan:
 | `persist` | Format simpan dan muat |
 | `theme` | Warna, LOD, aksesibilitas |
 
+Dependensi eksternal `sim-gui`:
+
+- `egui` dan `eframe` untuk UI.
+- `serde` dan `serde_json` untuk format proyek.
+- `rfd` untuk dialog file.
+- `png` untuk export gambar.
+
+Plugin API MVP berupa trait internal yang dikompilasi bersama GUI:
+
+- Provider komponen untuk menambah definisi library.
+- Provider analisis untuk menambah probe atau panel.
+- Tidak ada dynamic loading, `libloading`, atau `unsafe`.
+
+Data analog dibaca melalui API read-only:
+
+- Node voltage.
+- Branch current.
+- Tidak ada mutasi state solver dari GUI.
+- Sampling dilakukan oleh layer GUI setelah solver menghasilkan solusi.
+
 ---
 
 ## 12. Format Simpan
 
-Format awal berupa teks ASCII dengan versi eksplisit.
+Format proyek memakai JSON melalui `serde_json`. Ekstensi file:
+`.emu.json`. Output memakai pretty print 2 spasi.
 
-```text
-format=embed-emu-gui
-version=1
+Contoh skema:
 
-[view]
-camera=0,0,1.0
-grid=visible
-
-[component]
-id=U1
-type=atmega328p
-pos=10,10
-rot=0
-mirror=none
-label=U1
-
-[wire]
-net=LED_A
-class=digital
-points=10,12 14,12 14,16
+```json
+{
+  "format": "embed-emu-gui",
+  "version": 1,
+  "view": {
+    "camera": [0.0, 0.0, 1.0],
+    "grid_visible": true
+  },
+  "components": [
+    {
+      "id": "U1",
+      "type": "atmega328p",
+      "position": [10, 10],
+      "rotation": 0,
+      "mirror": "none",
+      "label": "U1"
+    }
+  ],
+  "wires": [
+    {
+      "net": "LED_A",
+      "class": "digital",
+      "points": [[10, 12], [14, 12], [14, 16]]
+    }
+  ],
+  "probes": []
+}
 ```
 
 Aturan:
 
-- Urutan baris deterministik.
-- File mudah di-diff.
-- Parser memvalidasi versi dan nilai.
-- Unknown key ditolak pada versi 1.
-- Save memakai file sementara lalu rename.
-- Autosave dan backup terpisah dari file utama.
+- Versi skema eksplisit dan wajib.
+- Field tidak dikenal ditolak pada versi 1.
+- Skema lama dimigrasikan otomatis setelah backup.
+- Array komponen dan wire diurutkan berdasarkan ID agar output stabil.
+- Satu file JSON berisi seluruh proyek.
+- Satu window menampilkan satu proyek; proyek lain dibuka di window baru.
+- Simpan memakai file sementara lalu rename.
+- Autosave memakai debounce 2 detik dan membuat backup sebelum menimpa.
+- Undo/redo menyimpan 100 langkah.
+- Dialog buka dan simpan memakai `rfd`.
+- Recent files menyimpan 10 file terakhir.
+- Konfigurasi aplikasi disimpan di XDG config, misalnya
+  `~/.config/embed-emu`.
+- Jika file berubah di luar aplikasi, GUI meminta reload atau simpan ulang.
+- Path absolut tidak disimpan di proyek.
 
 ---
 
@@ -469,12 +588,18 @@ Aturan:
 
 Target awal:
 
-- 60 FPS pada 500 komponen dan 2000 segmen kabel.
+- 500 komponen dan 2000 segmen kabel pada 60 FPS.
 - Grid dan komponen di-cull berdasarkan viewport.
 - Hit testing memakai grid bucket atau spatial hash.
-- Grafik memakai decimation.
+- Grafik memakai decimation dan ring buffer 10 detik.
 - Alokasi per frame diminimalkan.
 - Repaint hanya saat input, animasi, atau simulasi berjalan.
+
+Export:
+
+- Screenshot canvas ke PNG melalui crate `png`.
+- Ukuran gambar mengikuti resolusi viewport atau skala ekspor.
+- Export tidak memakai wall-clock dan tidak mengubah state simulasi.
 
 Optimasi lanjutan:
 
@@ -513,8 +638,9 @@ Test integrasi:
 
 Test visual:
 
-- Snapshot geometry atau layout.
-- Golden image hanya jika renderer stabil.
+- Snapshot RGBA mentah dari renderer headless atau screenshot test.
+- Golden image membandingkan byte RGBA, bukan file PNG.
+- Perubahan yang disengaja harus memperbarui golden dengan review manual.
 
 ---
 
@@ -522,7 +648,8 @@ Test visual:
 
 | Risiko | Dampak | Mitigasi |
 |---|---|---|
-| Konflik zero dependency | Blocker aturan | Keputusan scoped exception |
+| Dependensi GUI bertambah | Supply chain dan build | Daftar terbatas, pin versi, audit |
+| Skema JSON berubah | Proyek lama gagal dibuka | Versi skema dan migrasi |
 | API egui berubah | Build rusak | Pin versi, layer UI tipis |
 | Routing terlalu kompleks | UI macet | Manual orthogonal dulu |
 | Simulasi tidak real-time | Ekspektasi pengguna | Tampilkan sim time dan budget |
@@ -530,6 +657,7 @@ Test visual:
 | Duplikasi session CLI | Perawatan sulit | Pertimbangkan runtime bersama |
 | Input konflik | UX buruk | Tool mode eksplisit |
 | Wayland/GPU | Render gagal | Uji backend eframe |
+| Dialog rfd berbeda per OS | UX tidak konsisten | Fallback dialog internal |
 | Aksesibilitas warna | Sulit dibaca | Palet ramah buta warna |
 
 ---
@@ -552,20 +680,70 @@ Test visual:
 
 ---
 
-## 17. Keputusan Terbuka
+## 17. Keputusan
 
-Sudah diputuskan:
+### 17.1 Keputusan utama
 
-1. `sim-gui` boleh memakai `eframe`/`egui`.
+1. `sim-gui` memakai `egui`, `eframe`, `serde`, `serde_json`, `rfd`,
+   dan `png`.
 2. Grafik memakai widget internal, bukan `egui_plot`.
+3. Satu edge grid hanya boleh satu kabel.
+4. Persilangan tanpa junction dilarang.
+5. GUI pertama hanya Linux.
+6. Format proyek JSON dengan `serde_json`.
+7. Session simulasi belum diekstrak ke crate bersama.
+8. Plugin memakai trait internal.
+9. Export PNG memakai crate `png`.
+10. Golden image memakai snapshot RGBA.
 
-Belum diputuskan:
+### 17.2 Detail visual dan interaksi
 
-3. Apakah satu edge grid hanya boleh satu kabel? Default usulan: ya.
-4. Apakah persilangan tanpa junction dilarang total? Default usulan: ya.
-5. Apakah GUI pertama hanya Linux? Default usulan: ya.
-6. Apakah format simpan memakai teks kustom? Default usulan: ya.
-7. Apakah session simulasi diekstrak ke crate bersama? Default usulan:
-   tunda sampai ada duplikasi nyata dengan `sim-cli`.
+1. Grid default 20 px; zoom preset dan halus.
+2. Latar gelap dengan titik grid.
+3. Simbol komponen vektor datar.
+4. Pin berupa garis dengan titik.
+5. Label pin berisi nama dan nomor.
+6. Kabel memakai sudut 90 derajat tegas.
+7. Animasi aliran sinyal opsional dan default mati.
+8. Ruler dan probe tersedia.
+9. Minimap opsional dan default tersembunyi.
+10. Library awal board dan passive.
+11. Grafik maksimal 8 series.
+12. Grafik mendukung cursor, zoom, pan, autoscale, dan legend.
+13. Probe mengambil sampel setiap N cycle.
+14. Proyek berupa satu file JSON.
+15. Konfigurasi di XDG config.
+16. Autosave debounce 2 detik.
+17. Recent files 10.
+18. Aksen UI cyan.
+19. Toolbar ikon dan teks.
+20. Shortcut CAD-like.
+21. Error berupa toast dan status bar.
+22. Label komponen referensi dan nilai.
+23. Label net muncul saat hover atau seleksi.
+24. Rotasi mengelilingi pusat komponen.
+25. Undo dikelompokkan per aksi.
+26. UI berbahasa Inggris.
+27. Target aksesibilitas WCAG AA.
+28. Ekstensi `.emu.json`, pretty print 2 spasi.
+29. Migrasi skema otomatis setelah backup.
+30. Sampling default 100 cycle dan decimation min/max.
+31. Inspector tiga section: properties, pins, simulation.
+32. Plugin dua trait internal: komponen dan analisis.
+33. Probe analog memakai API read-only.
+34. Satu proyek per window dan prompt reload saat file berubah.
+35. Library komponen berupa kode Rust internal.
+
+### 17.3 Detail teknis yang belum dikunci
+
+1. Palet warna final untuk setiap kelas net.
+2. Field dan struktur lengkap skema JSON.
+3. Signature method trait komponen dan analisis.
+4. Bentuk konkret API probe analog.
+5. Strategi update golden image saat tampilan berubah.
+6. Jumlah maksimum recent files saat proyek sangat banyak.
+7. Perilaku undo saat file eksternal berubah.
+
+Detail ini dibahas saat implementasi G0 dan G7.
 
 Backlog eksekusi ada di [`TODO-GUI.md`](../TODO-GUI.md).

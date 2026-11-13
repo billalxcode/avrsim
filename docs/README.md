@@ -3,8 +3,8 @@
 Pintu masuk dokumentasi `embed-emulation` versi 0.1.0.
 
 **Status saat ini:** 553 test lulus, 7 crate, crate simulasi zero external
-dependency Rust. `egui`/`eframe` disetujui hanya untuk `sim-gui`.
-Tag `v0.1` tersedia.
+dependency Rust. Dependensi GUI dibatasi pada daftar yang disetujui di
+`AGENTS.md`. Tag `v0.1` tersedia.
 
 ---
 
