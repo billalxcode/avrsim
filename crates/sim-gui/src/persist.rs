@@ -8,7 +8,7 @@ use crate::model::{
 use eframe::egui;
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeSet;
-use std::path::Path;
+use std::path::{Path, PathBuf};
 
 const FORMAT: &str = "embed-emu-gui";
 const VERSION: u32 = 1;
@@ -122,9 +122,42 @@ pub fn save(
     grid_visible: bool,
 ) -> Result<(), String> {
     let text = to_json(document, camera, grid_visible)?;
+    backup(path)?;
+    write_atomic(path, &text)
+}
+
+/// Returns the backup path used before overwriting a project.
+#[must_use]
+pub fn backup_path(path: &Path) -> PathBuf {
+    let mut name = path.as_os_str().to_os_string();
+    name.push(".bak");
+    PathBuf::from(name)
+}
+
+fn backup(path: &Path) -> Result<(), String> {
+    if !path.exists() {
+        return Ok(());
+    }
+    std::fs::copy(path, backup_path(path)).map_err(|error| format!("backup failed: {error}"))?;
+    Ok(())
+}
+
+/// Writes text through a temporary file and atomic rename.
+pub(crate) fn write_atomic(path: &Path, text: &str) -> Result<(), String> {
+    create_parent(path)?;
     let temp = path.with_extension("tmp");
     std::fs::write(&temp, text).map_err(|error| format!("write failed: {error}"))?;
     std::fs::rename(&temp, path).map_err(|error| format!("rename failed: {error}"))
+}
+
+fn create_parent(path: &Path) -> Result<(), String> {
+    let Some(parent) = path
+        .parent()
+        .filter(|parent| !parent.as_os_str().is_empty())
+    else {
+        return Ok(());
+    };
+    std::fs::create_dir_all(parent).map_err(|error| format!("create dir failed: {error}"))
 }
 
 /// Loads a project from a JSON file.
@@ -263,9 +296,17 @@ fn parse_class(value: &str) -> Result<NetClass, String> {
 
 #[cfg(test)]
 mod tests {
-    use super::{from_json, to_json};
+    use super::{backup_path, from_json, save, to_json};
+    use crate::canvas::GridCamera;
     use crate::library;
-    use crate::model::{GridPos, Mirror, NetClass, Rotation};
+    use crate::model::{Document, GridPos, Mirror, NetClass, Rotation};
+    use std::path::PathBuf;
+
+    fn temp_dir(name: &str) -> PathBuf {
+        let dir = std::env::temp_dir().join(format!("embed-emu-gui-{}-{name}", std::process::id()));
+        let _ = std::fs::remove_dir_all(&dir);
+        dir
+    }
 
     fn sample_text() -> String {
         let library = library::builtin();
@@ -290,6 +331,20 @@ mod tests {
         let project = from_json(&sample_text(), library).expect("load");
         assert_eq!(project.document.components().len(), 2);
         assert_eq!(project.document.wires().len(), 1);
+    }
+
+    #[test]
+    fn save_creates_backup_of_previous_file() {
+        let dir = temp_dir("backup");
+        let path = dir.join("project.emu.json");
+        let camera = GridCamera::default();
+        let document = Document::new();
+        save(&path, &document, &camera, true).expect("first save");
+        let first = std::fs::read_to_string(&path).expect("first");
+        save(&path, &document, &camera, false).expect("second save");
+        let backup = std::fs::read_to_string(backup_path(&path)).expect("backup");
+        assert_eq!(backup, first);
+        let _ = std::fs::remove_dir_all(dir);
     }
 
     #[test]

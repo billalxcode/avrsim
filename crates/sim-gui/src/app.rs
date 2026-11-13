@@ -1,6 +1,7 @@
 //! GUI application shell, library sheet, inspector, and canvas integration.
 
 use crate::canvas::{self, GridCamera};
+use crate::config;
 use crate::history::History;
 use crate::library;
 use crate::model::{
@@ -12,7 +13,10 @@ use crate::scene::{self, Scene};
 use crate::sim::{self, Event, Sample, SimHandle, Status, Waveform};
 use eframe::egui;
 use std::collections::VecDeque;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
+use std::time::{Duration, Instant};
+
+const AUTOSAVE_DELAY: Duration = Duration::from_secs(2);
 
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
 enum Tool {
@@ -104,23 +108,24 @@ pub struct GuiApp {
     sim_status: Status,
     waveform: Waveform,
     waveform_open: bool,
+    config: config::AppConfig,
+    config_path: Option<PathBuf>,
+    dirty: bool,
+    last_edit: Option<Instant>,
 }
 
 impl GuiApp {
     pub fn new(context: &eframe::CreationContext<'_>) -> Self {
-        context.egui_ctx.set_theme(egui::ThemePreference::Dark);
-        context.egui_ctx.style_mut_of(egui::Theme::Dark, |style| {
-            for font in style.text_styles.values_mut() {
-                font.family = egui::FontFamily::Monospace;
-            }
-            style.visuals.selection.bg_fill = egui::Color32::from_rgb(0, 150, 170);
-        });
+        configure_style(context);
+        let (config_path, config) = load_config();
         Self {
             library: library::builtin(),
             document: Document::new(),
             grid_visible: true,
             inspector_open: true,
             sim: Some(SimHandle::spawn()),
+            config_path,
+            config,
             ..Self::default()
         }
     }
@@ -129,6 +134,7 @@ impl GuiApp {
 impl eframe::App for GuiApp {
     fn ui(&mut self, ui: &mut egui::Ui, _frame: &mut eframe::Frame) {
         self.poll_sim();
+        self.autosave(ui.ctx());
         self.toolbar(ui);
         self.status_bar(ui);
         let state = self.canvas(ui);
@@ -138,6 +144,10 @@ impl eframe::App for GuiApp {
         self.library_window(ui);
         self.inspector_window(ui);
         self.waveform_window(ui);
+    }
+
+    fn on_exit(&mut self) {
+        let _ = self.flush_autosave();
     }
 }
 
@@ -191,6 +201,27 @@ impl GuiApp {
         if ui.button("Save").clicked() {
             self.save_project();
         }
+        self.recent_menu(ui);
+    }
+
+    fn recent_menu(&mut self, ui: &mut egui::Ui) {
+        let mut chosen = None;
+        ui.menu_button("Recent", |ui| {
+            if self.config.recent_files.is_empty() {
+                ui.label("No recent files");
+            }
+            for path in &self.config.recent_files {
+                let label = file_name(path);
+                let hint = path.display().to_string();
+                if ui.button(label).on_hover_text(hint).clicked() {
+                    chosen = Some(path.clone());
+                    ui.close();
+                }
+            }
+        });
+        if let Some(path) = chosen {
+            self.open_path(path);
+        }
     }
 
     fn sim_buttons(&mut self, ui: &mut egui::Ui) {
@@ -227,30 +258,108 @@ impl GuiApp {
             self.message = "Open cancelled".to_string();
             return;
         };
+        self.open_path(path);
+    }
+
+    fn open_path(&mut self, path: PathBuf) {
+        if !self.flush_autosave() {
+            return;
+        }
         match persist::load(&path, self.library) {
-            Ok(project) => self.apply_project(project, path),
+            Ok(project) => {
+                self.apply_project(project, path.clone());
+                self.remember_recent(&path);
+            }
             Err(error) => self.message = error,
         }
     }
 
     fn save_project(&mut self) {
-        let path = self.current_path.clone().or_else(|| {
-            rfd::FileDialog::new()
-                .add_filter("embed-emu project", &["json"])
-                .set_file_name("project.emu.json")
-                .save_file()
-        });
+        let path = self.current_path.clone().or_else(select_save_path);
         let Some(path) = path else {
             self.message = "Save cancelled".to_string();
             return;
         };
         match persist::save(&path, &self.document, &self.camera, self.grid_visible) {
-            Ok(()) => {
-                self.current_path = Some(path);
-                self.message = "Saved".to_string();
-            }
+            Ok(()) => self.after_save(path),
             Err(error) => self.message = error,
         }
+    }
+
+    fn after_save(&mut self, path: PathBuf) {
+        self.current_path = Some(path.clone());
+        self.dirty = false;
+        self.last_edit = None;
+        self.message = "Saved".to_string();
+        self.remember_recent(&path);
+    }
+
+    fn remember_recent(&mut self, path: &Path) {
+        config::push_recent(&mut self.config, path);
+        self.save_config();
+    }
+
+    fn save_config(&mut self) {
+        let Some(path) = self.config_path.as_deref() else {
+            return;
+        };
+        if let Err(error) = config::save(path, &self.config) {
+            self.message = error;
+        }
+    }
+
+    fn autosave(&mut self, ctx: &egui::Context) {
+        let now = Instant::now();
+        let Some(remaining) = self.autosave_remaining(now) else {
+            return;
+        };
+        if remaining.is_zero() {
+            self.write_autosave(now);
+            return;
+        }
+        ctx.request_repaint_after(remaining);
+    }
+
+    fn autosave_remaining(&self, now: Instant) -> Option<Duration> {
+        if !self.dirty || self.current_path.is_none() {
+            return None;
+        }
+        let last = self.last_edit?;
+        Some(AUTOSAVE_DELAY.saturating_sub(now.saturating_duration_since(last)))
+    }
+
+    fn write_autosave(&mut self, now: Instant) {
+        let Some(path) = self.current_path.clone() else {
+            return;
+        };
+        match persist::save(&path, &self.document, &self.camera, self.grid_visible) {
+            Ok(()) => {
+                self.dirty = false;
+                self.last_edit = None;
+                self.message = "Autosaved".to_string();
+            }
+            Err(error) => {
+                self.last_edit = Some(now);
+                self.message = error;
+            }
+        }
+    }
+
+    fn mark_dirty(&mut self) {
+        self.dirty = true;
+        self.last_edit = Some(Instant::now());
+    }
+
+    fn flush_autosave(&mut self) -> bool {
+        if !self.dirty {
+            return true;
+        }
+        if self.current_path.is_none() {
+            self.message = "Save project before opening another file".to_string();
+            return false;
+        }
+        self.write_autosave(Instant::now());
+        !self.dirty
     }
 
     fn apply_project(&mut self, project: persist::Project, path: PathBuf) {
@@ -261,6 +370,8 @@ impl GuiApp {
         self.history.clear();
         self.initialized = true;
         self.current_path = Some(path);
+        self.dirty = false;
+        self.last_edit = None;
         self.message = "Loaded".to_string();
     }
 
@@ -568,6 +679,7 @@ impl GuiApp {
         }
         self.history.record(before);
         self.drag_history_pending = false;
+        self.mark_dirty();
     }
 
     fn drag_segment(&mut self, state: &canvas::CanvasState) -> bool {
@@ -642,6 +754,7 @@ impl GuiApp {
         self.selected = Some(id);
         self.selected_wire = None;
         self.placing = None;
+        self.mark_dirty();
     }
 
     fn handle_wire(&mut self, state: canvas::CanvasState) {
@@ -692,6 +805,7 @@ impl GuiApp {
         {
             self.history.record(&before);
             self.wire_points.clear();
+            self.mark_dirty();
         }
     }
 
@@ -769,6 +883,7 @@ impl GuiApp {
         let before = self.document.clone();
         if self.document.set_rotation(self.library, id, rotation) {
             self.history.record(&before);
+            self.mark_dirty();
         }
     }
 
@@ -787,6 +902,7 @@ impl GuiApp {
         let before = self.document.clone();
         if self.document.set_mirror(self.library, id, mirror) {
             self.history.record(&before);
+            self.mark_dirty();
         }
     }
 
@@ -909,6 +1025,7 @@ impl GuiApp {
         self.document = previous;
         self.reset_transient();
         self.message = "Undo".to_string();
+        self.mark_dirty();
     }
 
     fn redo(&mut self) {
@@ -918,6 +1035,7 @@ impl GuiApp {
         self.document = next;
         self.reset_transient();
         self.message = "Redo".to_string();
+        self.mark_dirty();
     }
 
     fn reset_transient(&mut self) {
@@ -937,11 +1055,13 @@ impl GuiApp {
         if let Some(id) = self.selected_wire {
             self.document.remove_wire(id);
             self.selected_wire = None;
+            self.mark_dirty();
             return;
         }
         if let Some(id) = self.selected {
             self.document.remove(id);
             self.selected = None;
+            self.mark_dirty();
         }
     }
 
@@ -1141,6 +1261,31 @@ fn library_list<'a>(
     None
 }
 
+fn configure_style(context: &eframe::CreationContext<'_>) {
+    context.egui_ctx.set_theme(egui::ThemePreference::Dark);
+    context.egui_ctx.style_mut_of(egui::Theme::Dark, |style| {
+        for font in style.text_styles.values_mut() {
+            font.family = egui::FontFamily::Monospace;
+        }
+        style.visuals.selection.bg_fill = egui::Color32::from_rgb(0, 150, 170);
+    });
+}
+
+fn load_config() -> (Option<PathBuf>, config::AppConfig) {
+    let Some(path) = config::path() else {
+        return (None, config::AppConfig::default());
+    };
+    let config = config::load(&path);
+    (Some(path), config)
+}
+
+fn select_save_path() -> Option<PathBuf> {
+    rfd::FileDialog::new()
+        .add_filter("embed-emu project", &["json"])
+        .set_file_name("project.emu.json")
+        .save_file()
+}
+
 fn pick_hex() -> Option<PathBuf> {
     rfd::FileDialog::new()
         .add_filter("Intel HEX", &["hex", "ihx"])
@@ -1248,8 +1393,95 @@ fn l_route(last: GridPos, target: GridPos, horizontal_first: bool) -> Vec<GridPo
 
 #[cfg(test)]
 mod tests {
-    use super::{l_route, move_segment};
-    use crate::model::GridPos;
+    use super::{AUTOSAVE_DELAY, GuiApp, l_route, move_segment};
+    use crate::canvas::GridCamera;
+    use crate::model::{Document, GridPos, Mirror, Rotation};
+    use crate::persist;
+    use std::path::{Path, PathBuf};
+    use std::time::{Duration, Instant};
+
+    fn temp_dir(name: &str) -> PathBuf {
+        let dir = std::env::temp_dir().join(format!("embed-emu-app-{}-{name}", std::process::id()));
+        let _ = std::fs::remove_dir_all(&dir);
+        dir
+    }
+
+    fn dirty_app(path: &Path) -> GuiApp {
+        let resistor = crate::library::find("resistor").expect("resistor");
+        let mut document = Document::new();
+        document.add(resistor, GridPos::new(0, 0), Rotation::Deg0, Mirror::None);
+        GuiApp {
+            library: crate::library::builtin(),
+            document,
+            current_path: Some(path.to_path_buf()),
+            dirty: true,
+            last_edit: Some(Instant::now()),
+            ..GuiApp::default()
+        }
+    }
+
+    #[test]
+    fn open_flushes_dirty_document_and_updates_recent() {
+        let dir = temp_dir("open-flush");
+        let old = dir.join("old.emu.json");
+        let new = dir.join("new.emu.json");
+        let camera = GridCamera::default();
+        persist::save(&old, &Document::new(), &camera, true).expect("old");
+        persist::save(&new, &Document::new(), &camera, true).expect("new");
+        let mut app = dirty_app(&old);
+        app.open_path(new.clone());
+        let text = std::fs::read_to_string(&old).expect("flushed");
+        assert!(text.contains("resistor"));
+        assert_eq!(app.current_path, Some(new.clone()));
+        assert_eq!(app.config.recent_files.first(), Some(&new));
+        let _ = std::fs::remove_dir_all(dir);
+    }
+
+    #[test]
+    fn open_is_blocked_for_unsaved_project() {
+        let mut app = GuiApp {
+            dirty: true,
+            ..GuiApp::default()
+        };
+        assert!(!app.flush_autosave());
+        assert!(app.message.contains("Save project"));
+    }
+
+    #[test]
+    fn autosave_requires_a_path_and_full_delay() {
+        let now = Instant::now();
+        let mut app = GuiApp {
+            dirty: true,
+            last_edit: Some(now),
+            ..GuiApp::default()
+        };
+        assert_eq!(app.autosave_remaining(now), None);
+        app.current_path = Some(PathBuf::from("/tmp/project.emu.json"));
+        assert_eq!(app.autosave_remaining(now), Some(AUTOSAVE_DELAY));
+        assert_eq!(
+            app.autosave_remaining(now + AUTOSAVE_DELAY),
+            Some(Duration::ZERO)
+        );
+        app.current_path = None;
+    }
+
+    #[test]
+    fn autosave_writes_and_clears_dirty() {
+        let dir = std::env::temp_dir().join(format!("embed-emu-autosave-{}", std::process::id()));
+        let _ = std::fs::remove_dir_all(&dir);
+        let path = dir.join("project.emu.json");
+        let mut app = GuiApp {
+            current_path: Some(path.clone()),
+            dirty: true,
+            last_edit: Some(Instant::now()),
+            ..GuiApp::default()
+        };
+        app.write_autosave(Instant::now());
+        assert!(!app.dirty);
+        assert!(path.exists());
+        assert_eq!(app.message, "Autosaved");
+        let _ = std::fs::remove_dir_all(dir);
+    }
 
     #[test]
     fn l_route_adds_one_corner() {

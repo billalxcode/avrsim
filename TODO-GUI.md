@@ -239,12 +239,12 @@ melihat sinyal digital dan analog, serta memeriksa nilai pada cursor.
 - [ ] G8-04 Implementasikan align dan distribute.
 - [x] G8-05 Implementasikan format `.emu.json` versi 1 dengan pretty print 2 spasi.
 - [x] G8-06 Implementasikan load, validasi, dan round-trip.
-- [ ] G8-07 Implementasikan autosave debounce 2 detik, backup, 10 recent files, dan `rfd`.
+- [x] G8-07 Implementasikan autosave debounce 2 detik, backup, 10 recent files, dan `rfd`.
 - [ ] G8-08 Implementasikan command palette Ctrl+K dan context menu lengkap.
 - [x] G8-09 Test undo/redo dan persistence.
 - [x] G8-10 Kelompokkan undo per aksi drag atau klik.
-- [ ] G8-11 Simpan konfigurasi aplikasi di XDG config.
-- [ ] G8-12 Simpan 10 recent files.
+- [x] G8-11 Simpan konfigurasi aplikasi di XDG config.
+- [x] G8-12 Simpan 10 recent files.
 - [ ] G8-13 Tampilkan error sebagai toast dan status bar.
 - [x] G8-14 Gunakan UI berbahasa Inggris dan dokumentasi Indonesia.
 - [x] G8-15 Satu window menampilkan satu proyek.

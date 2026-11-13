@@ -8,8 +8,9 @@ shell, canvas, grid, pan, zoom, status bar, dan test kamera. Library
 komponen awal, placement ghost, selection, drag move, rotate, mirror,
 inspector dasar, wire ortogonal, junction otomatis, warna net,
 selection wire, delete wire, segment drag, saran jalur L, save/load
-JSON, undo/redo, simulasi PB5, dan waveform digital awal juga sudah
-ada. Probe generik, UART di GUI, dan grafik analog belum ada. Dependensi GUI yang disetujui
+JSON, undo/redo, autosave, backup, recent files, konfigurasi XDG,
+simulasi PB5, dan waveform digital awal juga sudah ada. Probe generik,
+UART di GUI, dan grafik analog belum ada. Dependensi GUI yang disetujui
 hanya untuk crate `sim-gui`: `egui`, `eframe`, `serde`, `serde_json`,
 `rfd`, dan `png`. `egui_plot`, `libloading`, dan crate lain tidak
 diizinkan tanpa keputusan baru.
@@ -522,6 +523,7 @@ Modul usulan:
 | `probe` | Ring buffer dan decimation |
 | `sim` | Sinkronisasi simulasi |
 | `persist` | Format simpan dan muat |
+| `config` | XDG config dan recent files |
 | `theme` | Warna, LOD, aksesibilitas |
 
 Dependensi eksternal `sim-gui`:
@@ -591,12 +593,16 @@ Aturan:
 - Satu file JSON berisi seluruh proyek.
 - Satu window menampilkan satu proyek; proyek lain dibuka di window baru.
 - Simpan memakai file sementara lalu rename.
-- Autosave memakai debounce 2 detik dan membuat backup sebelum menimpa.
+- Backup `<file>.bak` dibuat sebelum menimpa file yang sudah ada.
+- Autosave memakai debounce 2 detik, hanya aktif setelah proyek punya
+  path, dan di-flush saat membuka proyek lain atau keluar.
+- Proyek baru yang belum pernah disimpan harus disimpan sebelum proyek
+  lain dibuka.
 - Undo/redo menyimpan 100 langkah.
 - Dialog buka dan simpan memakai `rfd`.
-- Recent files menyimpan 10 file terakhir.
-- Konfigurasi aplikasi disimpan di XDG config, misalnya
-  `~/.config/embed-emu`.
+- Recent files menyimpan 10 file terakhir dan tampil di menu toolbar.
+- Konfigurasi aplikasi disimpan di XDG config, yaitu
+  `~/.config/embed-emu/gui.json` atau `$XDG_CONFIG_HOME/embed-emu/gui.json`.
 - Jika file berubah di luar aplikasi, GUI meminta reload atau simpan ulang.
 - Path absolut tidak disimpan di proyek.
 
