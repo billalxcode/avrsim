@@ -9,6 +9,7 @@ mod model;
 mod palette;
 mod persist;
 mod scene;
+mod selection;
 mod sim;
 
 use app::GuiApp;

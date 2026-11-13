@@ -5,12 +5,13 @@ use crate::config;
 use crate::history::History;
 use crate::library;
 use crate::model::{
-    Category, ComponentDefinition, ComponentId, ComponentInstance, Document, GridPos, Mirror,
-    NetClass, Rotation, WireId,
+    Category, ComponentDefinition, ComponentId, ComponentInstance, Document, GridPos, GridRect,
+    Mirror, NetClass, Rotation, WireId,
 };
 use crate::palette::{self, Command};
 use crate::persist;
 use crate::scene::{self, Scene};
+use crate::selection::Selection;
 use crate::sim::{self, Event, Sample, SimHandle, Status, Waveform};
 use eframe::egui;
 use std::collections::VecDeque;
@@ -75,22 +76,21 @@ struct SegmentDrag {
     index: usize,
 }
 
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Debug)]
 struct DragState {
-    id: ComponentId,
-    offset: GridPos,
+    offsets: Vec<(ComponentId, GridPos)>,
 }
 
 #[derive(Clone, Copy)]
 struct SceneConfig<'a> {
-    selected: Option<ComponentId>,
-    selected_wire: Option<WireId>,
+    selection: &'a Selection,
     hover_wire: Option<WireId>,
     placing: Option<&'static ComponentDefinition>,
     rotation: Rotation,
     mirror: Mirror,
     wire_preview: &'a [GridPos],
     wire_class: NetClass,
+    selection_box: Option<(GridPos, GridPos)>,
 }
 
 #[derive(Default)]
@@ -102,8 +102,10 @@ pub struct GuiApp {
     initialized: bool,
     library: &'static [ComponentDefinition],
     document: Document,
-    selected: Option<ComponentId>,
-    selected_wire: Option<WireId>,
+    selection: Selection,
+    box_start: Option<GridPos>,
+    box_current: Option<GridPos>,
+    box_additive: bool,
     dragging: Option<DragState>,
     dragging_segment: Option<SegmentDrag>,
     placing: Option<&'static ComponentDefinition>,
@@ -655,8 +657,7 @@ impl GuiApp {
 
     fn canvas(&mut self, ui: &mut egui::Ui) -> canvas::CanvasState {
         let config = SceneConfig {
-            selected: self.selected,
-            selected_wire: self.selected_wire,
+            selection: &self.selection,
             hover_wire: self
                 .pointer_world
                 .and_then(|point| self.document.wire_at([point.x, point.y], 0.35)),
@@ -665,6 +666,7 @@ impl GuiApp {
             mirror: self.placement_mirror,
             wire_preview: &self.wire_points,
             wire_class: self.wire_class,
+            selection_box: self.selection_box(),
         };
         let scene = build_scene(&self.document, self.library, config);
         let camera = &mut self.camera;
@@ -686,8 +688,7 @@ impl GuiApp {
         self.drag_move(&state);
         self.end_drag(&state);
         if state.secondary_clicked {
-            self.selected = None;
-            self.selected_wire = None;
+            self.selection.clear();
             return;
         }
         if !state.clicked {
@@ -696,18 +697,30 @@ impl GuiApp {
         let Some(world) = state.click_world else {
             return;
         };
-        self.select_at(world);
+        self.select_at(world, state.multi_select);
     }
 
-    fn select_at(&mut self, world: egui::Pos2) {
+    fn select_at(&mut self, world: egui::Pos2, additive: bool) {
         let point = world_to_grid(world);
         if let Some(id) = self.document.hit_test(self.library, point) {
-            self.selected = Some(id);
-            self.selected_wire = None;
+            if additive {
+                self.selection.toggle_component(id);
+            } else {
+                self.selection.select_component(id);
+            }
             return;
         }
-        self.selected = None;
-        self.selected_wire = self.document.wire_at([world.x, world.y], 0.35);
+        if let Some(id) = self.document.wire_at([world.x, world.y], 0.35) {
+            if additive {
+                self.selection.toggle_wire(id);
+            } else {
+                self.selection.select_wire(id);
+            }
+            return;
+        }
+        if !additive {
+            self.selection.clear();
+        }
     }
 
     fn begin_drag(&mut self, state: &canvas::CanvasState) {
@@ -722,22 +735,45 @@ impl GuiApp {
         };
         let point = world_to_grid(world);
         let Some(id) = self.document.hit_test(self.library, point) else {
+            self.begin_box(point, state.multi_select);
             return;
         };
-        let Some(component) = self.document.component(id) else {
-            return;
-        };
-        self.selected = Some(id);
-        self.selected_wire = None;
-        self.dragging = Some(DragState {
-            id,
-            offset: component.position.subtract(point),
-        });
+        self.ensure_selected(id, state.multi_select);
+        let offsets = self.drag_offsets(point);
+        self.dragging = Some(DragState { offsets });
         self.drag_history_pending = true;
     }
 
+    fn begin_box(&mut self, point: GridPos, additive: bool) {
+        self.box_start = Some(point);
+        self.box_current = Some(point);
+        self.box_additive = additive;
+    }
+
+    fn ensure_selected(&mut self, id: ComponentId, additive: bool) {
+        if self.selection.contains_component(id) {
+            return;
+        }
+        if additive {
+            self.selection.add_component(id);
+        } else {
+            self.selection.select_component(id);
+        }
+    }
+
+    fn drag_offsets(&self, point: GridPos) -> Vec<(ComponentId, GridPos)> {
+        self.selection
+            .components()
+            .iter()
+            .filter_map(|id| {
+                let component = self.document.component(*id)?;
+                Some((*id, component.position.subtract(point)))
+            })
+            .collect()
+    }
+
     fn begin_segment_drag(&mut self, state: &canvas::CanvasState) -> bool {
-        let Some(wire_id) = self.selected_wire else {
+        let Some(wire_id) = self.selection.single_wire() else {
             return false;
         };
         let Some(world) = state.pointer_world else {
@@ -766,23 +802,49 @@ impl GuiApp {
         if self.drag_segment(state) {
             return;
         }
-        let Some(drag) = self.dragging else {
+        if self.update_box(state) {
+            return;
+        }
+        let Some(moves) = self.drag_moves(state) else {
             return;
         };
-        let Some(world) = state.pointer_world else {
-            return;
-        };
-        let target = world_to_grid(world).offset(drag.offset);
-        let Some(current) = self.document.component(drag.id).map(|item| item.position) else {
-            return;
-        };
-        if current == target {
+        if !self.any_moved(&moves) {
             return;
         }
         let before = self.document.clone();
-        if self.document.move_component(self.library, drag.id, target) {
+        if self.document.move_components(self.library, &moves) {
             self.record_drag(&before);
         }
+    }
+
+    fn drag_moves(&self, state: &canvas::CanvasState) -> Option<Vec<(ComponentId, GridPos)>> {
+        let drag = self.dragging.as_ref()?;
+        let world = state.pointer_world?;
+        let point = world_to_grid(world);
+        Some(
+            drag.offsets
+                .iter()
+                .map(|(id, offset)| (*id, point.offset(*offset)))
+                .collect(),
+        )
+    }
+
+    fn any_moved(&self, moves: &[(ComponentId, GridPos)]) -> bool {
+        moves.iter().any(|(id, position)| {
+            self.document
+                .component(*id)
+                .is_some_and(|component| component.position != *position)
+        })
+    }
+
+    fn update_box(&mut self, state: &canvas::CanvasState) -> bool {
+        if self.box_start.is_none() {
+            return false;
+        }
+        if let Some(world) = state.pointer_world {
+            self.box_current = Some(world_to_grid(world));
+        }
+        true
     }
 
     fn record_drag(&mut self, before: &Document) {
@@ -824,11 +886,29 @@ impl GuiApp {
     }
 
     fn end_drag(&mut self, state: &canvas::CanvasState) {
-        if state.drag_stopped {
-            self.dragging = None;
-            self.dragging_segment = None;
-            self.drag_history_pending = false;
+        if !state.drag_stopped {
+            return;
         }
+        if let (Some(start), Some(end)) = (self.box_start, self.box_current) {
+            self.apply_box(start, end, self.box_additive);
+        }
+        self.box_start = None;
+        self.box_current = None;
+        self.box_additive = false;
+        self.dragging = None;
+        self.dragging_segment = None;
+        self.drag_history_pending = false;
+    }
+
+    fn apply_box(&mut self, start: GridPos, end: GridPos, additive: bool) {
+        let rect = GridRect::from_corners(start, end);
+        let components = self.document.components_in_rect(self.library, rect);
+        let wires = self.document.wires_in_rect(rect);
+        self.selection.apply(components, wires, additive);
+    }
+
+    fn selection_box(&self) -> Option<(GridPos, GridPos)> {
+        Some((self.box_start?, self.box_current?))
     }
 
     fn handle_placement(&mut self, state: canvas::CanvasState) {
@@ -863,8 +943,7 @@ impl GuiApp {
             self.placement_rotation,
             self.placement_mirror,
         );
-        self.selected = Some(id);
-        self.selected_wire = None;
+        self.selection.select_component(id);
         self.placing = None;
         self.mark_dirty();
     }
@@ -988,7 +1067,7 @@ impl GuiApp {
             self.placement_rotation = self.placement_rotation.next();
             return;
         }
-        let Some(id) = self.selected else {
+        let Some(id) = self.selection.single_component() else {
             return;
         };
         let Some(component) = self.document.component(id) else {
@@ -1007,7 +1086,7 @@ impl GuiApp {
             self.placement_mirror = self.placement_mirror.next();
             return;
         }
-        let Some(id) = self.selected else {
+        let Some(id) = self.selection.single_component() else {
             return;
         };
         let Some(component) = self.document.component(id) else {
@@ -1275,16 +1354,31 @@ impl GuiApp {
     }
 
     fn inspector_contents(&self, ui: &mut egui::Ui, action: &mut Option<InspectorAction>) {
-        if let Some(id) = self.selected_wire {
+        if let Some(id) = self.selection.single_wire() {
             self.wire_inspector(ui, action, id);
             return;
         }
-        let Some((component, definition)) = self.selected_pair() else {
+        if let Some((component, definition)) = self.selected_pair() {
+            show_component_info(ui, component, definition);
+            show_component_actions(ui, action);
+            return;
+        }
+        if self.selection.is_empty() {
             ui.label("No selection");
             return;
-        };
-        show_component_info(ui, component, definition);
-        show_component_actions(ui, action);
+        }
+        self.multi_inspector(ui, action);
+    }
+
+    fn multi_inspector(&self, ui: &mut egui::Ui, action: &mut Option<InspectorAction>) {
+        ui.label(format!(
+            "{} components, {} wires",
+            self.selection.components().len(),
+            self.selection.wires().len()
+        ));
+        if ui.button("Delete").clicked() {
+            *action = Some(InspectorAction::Delete);
+        }
     }
 
     fn wire_inspector(&self, ui: &mut egui::Ui, action: &mut Option<InspectorAction>, id: WireId) {
@@ -1301,7 +1395,7 @@ impl GuiApp {
     }
 
     fn selected_pair(&self) -> Option<(&ComponentInstance, &ComponentDefinition)> {
-        let id = self.selected?;
+        let id = self.selection.single_component()?;
         let component = self.document.component(id)?;
         let definition = library::find(component.definition)?;
         Some((component, definition))
@@ -1332,8 +1426,10 @@ impl GuiApp {
     }
 
     fn reset_transient(&mut self) {
-        self.selected = None;
-        self.selected_wire = None;
+        self.selection.clear();
+        self.box_start = None;
+        self.box_current = None;
+        self.box_additive = false;
         self.dragging = None;
         self.dragging_segment = None;
         self.drag_history_pending = false;
@@ -1342,20 +1438,20 @@ impl GuiApp {
     }
 
     fn delete_selection(&mut self) {
-        if self.selected_wire.is_some() || self.selected.is_some() {
-            self.push_undo();
-        }
-        if let Some(id) = self.selected_wire {
-            self.document.remove_wire(id);
-            self.selected_wire = None;
-            self.mark_dirty();
+        if self.selection.is_empty() {
             return;
         }
-        if let Some(id) = self.selected {
-            self.document.remove(id);
-            self.selected = None;
-            self.mark_dirty();
+        self.push_undo();
+        let wires: Vec<_> = self.selection.wires().iter().copied().collect();
+        let components: Vec<_> = self.selection.components().iter().copied().collect();
+        for id in wires {
+            self.document.remove_wire(id);
         }
+        for id in components {
+            self.document.remove(id);
+        }
+        self.selection.clear();
+        self.mark_dirty();
     }
 
     fn apply_inspector(&mut self, action: InspectorAction) {
@@ -1395,7 +1491,7 @@ impl GuiApp {
     fn edit_status(&self, ui: &mut egui::Ui) {
         ui.label(format!("Tool: {}", self.tool.label()));
         ui.separator();
-        let selection = usize::from(self.selected.is_some() || self.selected_wire.is_some());
+        let selection = self.selection.len();
         ui.label(format!("Sel {selection}"));
         ui.separator();
         ui.label(format!("Parts {}", self.document.components().len()));
@@ -1468,16 +1564,16 @@ fn build_scene<'a>(
     Scene {
         document,
         library,
-        selected: config.selected,
+        selection: config.selection,
         placing: config.placing,
         hover: None,
         rotation: config.rotation,
         mirror: config.mirror,
-        selected_wire: config.selected_wire,
         hover_wire: config.hover_wire,
         wire_preview: config.wire_preview,
         wire_hover: None,
         wire_class: config.wire_class,
+        selection_box: config.selection_box,
     }
 }
 
@@ -1781,7 +1877,9 @@ mod tests {
         watch_remaining, z_route,
     };
     use crate::canvas::GridCamera;
-    use crate::model::{Document, GridPos, Mirror, Rotation};
+    use crate::model::{
+        ComponentDefinition, Document, GridPos, Mirror, NetClass, Rotation, WireId,
+    };
     use crate::persist;
     use std::path::{Path, PathBuf};
     use std::time::{Duration, Instant};
@@ -1806,6 +1904,16 @@ mod tests {
         }
     }
 
+    fn sample_wire(document: &mut Document, library: &[ComponentDefinition]) -> WireId {
+        document
+            .add_wire(
+                library,
+                vec![GridPos::new(4, 1), GridPos::new(6, 1)],
+                NetClass::Digital,
+            )
+            .expect("wire")
+    }
+
     #[test]
     fn open_flushes_dirty_document_and_updates_recent() {
         let dir = temp_dir("open-flush");
@@ -1821,6 +1929,62 @@ mod tests {
         assert_eq!(app.current_path, Some(new.clone()));
         assert_eq!(app.config.recent_files.first(), Some(&new));
         let _ = std::fs::remove_dir_all(dir);
+    }
+
+    #[test]
+    fn additive_click_collects_components() {
+        let library = crate::library::builtin();
+        let resistor = crate::library::find("resistor").expect("resistor");
+        let mut document = Document::new();
+        let first = document.add(resistor, GridPos::new(0, 0), Rotation::Deg0, Mirror::None);
+        document.add(resistor, GridPos::new(6, 0), Rotation::Deg0, Mirror::None);
+        let mut app = GuiApp {
+            library,
+            document,
+            ..GuiApp::default()
+        };
+        app.select_at(eframe::egui::pos2(1.0, 1.0), false);
+        assert_eq!(app.selection.single_component(), Some(first));
+        app.select_at(eframe::egui::pos2(7.0, 1.0), true);
+        assert_eq!(app.selection.components().len(), 2);
+    }
+
+    #[test]
+    fn drag_offsets_keep_relative_positions() {
+        let library = crate::library::builtin();
+        let resistor = crate::library::find("resistor").expect("resistor");
+        let mut document = Document::new();
+        let first = document.add(resistor, GridPos::new(0, 0), Rotation::Deg0, Mirror::None);
+        let second = document.add(resistor, GridPos::new(6, 0), Rotation::Deg0, Mirror::None);
+        let mut app = GuiApp {
+            library,
+            document,
+            ..GuiApp::default()
+        };
+        app.selection.apply([first, second], [], false);
+        let offsets = app.drag_offsets(GridPos::new(1, 0));
+        assert_eq!(
+            offsets,
+            vec![(first, GridPos::new(-1, 0)), (second, GridPos::new(5, 0))]
+        );
+    }
+
+    #[test]
+    fn selection_box_selects_components_and_wires() {
+        let library = crate::library::builtin();
+        let resistor = crate::library::find("resistor").expect("resistor");
+        let mut document = Document::new();
+        document.add(resistor, GridPos::new(0, 0), Rotation::Deg0, Mirror::None);
+        document.add(resistor, GridPos::new(6, 0), Rotation::Deg0, Mirror::None);
+        let wire = sample_wire(&mut document, library);
+        let mut app = GuiApp {
+            library,
+            document,
+            ..GuiApp::default()
+        };
+        app.apply_box(GridPos::new(-1, -1), GridPos::new(10, 3), false);
+        assert_eq!(app.selection.components().len(), 2);
+        assert!(app.selection.contains_wire(wire));
     }
 
     #[test]

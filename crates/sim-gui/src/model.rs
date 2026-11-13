@@ -111,6 +111,15 @@ impl GridRect {
             && self.min.y < other.max_y()
             && other.min.y < self.max_y()
     }
+
+    /// Builds an inclusive rectangle from two corners.
+    #[must_use]
+    pub fn from_corners(first: GridPos, second: GridPos) -> Self {
+        let min = GridPos::new(first.x.min(second.x), first.y.min(second.y));
+        let width = (first.x - second.x).abs().max(1);
+        let height = (first.y - second.y).abs().max(1);
+        Self::new(min, GridSize::new(width, height))
+    }
 }
 
 /// Component rotation in quarter turns.
@@ -250,7 +259,7 @@ pub struct ComponentDefinition {
 }
 
 /// Stable component instance identifier.
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct ComponentId(pub u32);
 
 /// Stable wire identifier.
@@ -498,6 +507,37 @@ impl Document {
         best.map(|(_, id)| id)
     }
 
+    /// Returns components intersecting a selection rectangle.
+    #[must_use]
+    pub fn components_in_rect(
+        &self,
+        library: &[ComponentDefinition],
+        rect: GridRect,
+    ) -> Vec<ComponentId> {
+        self.components
+            .iter()
+            .filter_map(|instance| {
+                let definition = find_definition(library, instance.definition)?;
+                rect.intersects(instance.bounds(definition))
+                    .then_some(instance.id)
+            })
+            .collect()
+    }
+
+    /// Returns wires crossing a selection rectangle.
+    #[must_use]
+    pub fn wires_in_rect(&self, rect: GridRect) -> Vec<WireId> {
+        self.wires
+            .iter()
+            .filter(|wire| {
+                wire.points
+                    .windows(2)
+                    .any(|segment| segment_in_rect(segment, rect))
+            })
+            .map(|wire| wire.id)
+            .collect()
+    }
+
     /// Returns the nearest segment of one wire within a tolerance.
     #[must_use]
     pub fn wire_segment_at(&self, id: WireId, point: [f32; 2], tolerance: f32) -> Option<usize> {
@@ -581,28 +621,47 @@ impl Document {
         !self.overlaps(library, definition, position, rotation, mirror, None)
     }
 
-    /// Moves a component when the target does not overlap.
-    pub fn move_component(
+    /// Moves several components atomically when every target is free.
+    pub fn move_components(
         &mut self,
         library: &[ComponentDefinition],
-        id: ComponentId,
-        position: GridPos,
+        moves: &[(ComponentId, GridPos)],
     ) -> bool {
+        let ids: BTreeSet<_> = moves.iter().map(|(id, _)| *id).collect();
+        if ids.len() != moves.len() {
+            return false;
+        }
+        let mut candidate = self.clone();
+        for &(id, position) in moves {
+            let Some(instance) = candidate.component_mut(id) else {
+                return false;
+            };
+            instance.position = position;
+        }
+        if !ids.iter().all(|id| candidate.position_valid(library, *id)) {
+            return false;
+        }
+        *self = candidate;
+        true
+    }
+
+    fn position_valid(&self, library: &[ComponentDefinition], id: ComponentId) -> bool {
         let Some(instance) = self.component(id) else {
             return false;
         };
         let Some(definition) = find_definition(library, instance.definition) else {
             return false;
         };
-        let rotation = instance.rotation;
-        let mirror = instance.mirror;
-        if self.overlaps(library, definition, position, rotation, mirror, Some(id)) {
-            return false;
-        }
-        if let Some(instance) = self.component_mut(id) {
-            instance.position = position;
-        }
-        true
+        let bounds = instance.bounds(definition);
+        self.components
+            .iter()
+            .filter(|other| other.id != id)
+            .all(|other| {
+                let Some(other_definition) = find_definition(library, other.definition) else {
+                    return true;
+                };
+                !bounds.intersects(other.bounds(other_definition))
+            })
     }
 
     /// Rotates a component when the target does not overlap.
@@ -970,6 +1029,16 @@ fn segment_edges(start: GridPos, end: GridPos) -> Vec<GridEdge> {
         .collect()
 }
 
+fn segment_in_rect(segment: &[GridPos], rect: GridRect) -> bool {
+    let first = segment[0];
+    let second = segment[1];
+    let min_x = first.x.min(second.x);
+    let max_x = first.x.max(second.x);
+    let min_y = first.y.min(second.y);
+    let max_y = first.y.max(second.y);
+    min_x <= rect.max_x() && rect.min.x <= max_x && min_y <= rect.max_y() && rect.min.y <= max_y
+}
+
 fn segment_distance(point: [f32; 2], start: GridPos, end: GridPos) -> f32 {
     let x = point[0];
     let y = point[1];
@@ -1075,6 +1144,46 @@ mod tests {
             Rotation::Deg0,
             Mirror::None
         ));
+    }
+
+    #[test]
+    fn selection_rect_finds_components_and_wires() {
+        let library = library::builtin();
+        let resistor = library::find("resistor").expect("resistor");
+        let mut document = Document::new();
+        let first = document.add(resistor, GridPos::new(0, 0), Rotation::Deg0, Mirror::None);
+        let second = document.add(resistor, GridPos::new(6, 0), Rotation::Deg0, Mirror::None);
+        let wire = document
+            .add_wire(
+                library,
+                vec![GridPos::new(4, 1), GridPos::new(6, 1)],
+                NetClass::Digital,
+            )
+            .expect("wire");
+        let rect = super::GridRect::from_corners(GridPos::new(-1, -1), GridPos::new(10, 3));
+        let components = document.components_in_rect(library, rect);
+        assert_eq!(components, vec![first, second]);
+        assert_eq!(document.wires_in_rect(rect), vec![wire]);
+    }
+
+    #[test]
+    fn move_components_is_atomic() {
+        let mut document = Document::new();
+        let first = document.add(&RESISTOR, GridPos::new(0, 0), Rotation::Deg0, Mirror::None);
+        let second = document.add(&RESISTOR, GridPos::new(6, 0), Rotation::Deg0, Mirror::None);
+        assert!(document.move_components(
+            LIBRARY,
+            &[(first, GridPos::new(0, 4)), (second, GridPos::new(6, 4))]
+        ));
+        assert_eq!(
+            document.component(first).expect("first").position,
+            GridPos::new(0, 4)
+        );
+        assert!(!document.move_components(LIBRARY, &[(first, GridPos::new(6, 4))]));
+        assert_eq!(
+            document.component(first).expect("first").position,
+            GridPos::new(0, 4)
+        );
     }
 
     #[test]

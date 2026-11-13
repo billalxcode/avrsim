@@ -97,6 +97,8 @@ pub struct CanvasState {
     pub drag_stopped: bool,
     /// True while the Space key is held.
     pub space_down: bool,
+    /// True when Shift or Ctrl is held for additive selection.
+    pub multi_select: bool,
 }
 
 /// Draws the canvas and applies pan and zoom input.
@@ -133,16 +135,31 @@ fn canvas_state(
     CanvasState {
         pointer_world,
         clicked: response.clicked(),
-        click_world: response
-            .interact_pointer_pos()
-            .map(|position| camera.screen_to_world(rect, position)),
+        click_world: click_world(response, rect, camera),
         secondary_clicked: response.secondary_clicked(),
         double_clicked: response.double_clicked(),
-        drag_started: response.drag_started(),
+        drag_started: response.drag_started_by(egui::PointerButton::Primary),
         dragged: response.dragged_by(egui::PointerButton::Primary),
-        drag_stopped: response.drag_stopped(),
+        drag_stopped: response.drag_stopped_by(egui::PointerButton::Primary),
         space_down,
+        multi_select: multi_select(response),
     }
+}
+
+fn click_world(
+    response: &egui::Response,
+    rect: egui::Rect,
+    camera: &GridCamera,
+) -> Option<egui::Pos2> {
+    response
+        .interact_pointer_pos()
+        .map(|position| camera.screen_to_world(rect, position))
+}
+
+fn multi_select(response: &egui::Response) -> bool {
+    response
+        .ctx
+        .input(|input| input.modifiers.shift || input.modifiers.command)
 }
 
 fn initialize_camera(rect: egui::Rect, camera: &mut GridCamera, initialized: &mut bool) {

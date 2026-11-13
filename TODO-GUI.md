@@ -234,7 +234,7 @@ melihat sinyal digital dan analog, serta memeriksa nilai pada cursor.
 ## G8 - Editing, Undo, dan Persistence
 
 - [x] G8-01 Implementasikan undo/redo berbasis snapshot.
-- [ ] G8-02 Implementasikan multi-select dan selection box.
+- [x] G8-02 Implementasikan multi-select, shift-click, dan selection box.
 - [ ] G8-03 Implementasikan copy, paste, dan duplicate.
 - [ ] G8-04 Implementasikan align dan distribute.
 - [x] G8-05 Implementasikan format `.emu.json` versi 1 dengan pretty print 2 spasi.
@@ -252,7 +252,7 @@ melihat sinyal digital dan analog, serta memeriksa nilai pada cursor.
 - [x] G8-16 Prompt reload jika file berubah di luar aplikasi.
 - [ ] G8-17 Konfirmasi hapus hanya untuk komponen dengan kabel atau seleksi besar.
 - [ ] G8-18 Implementasikan migrasi otomatis skema JSON setelah backup.
-- [ ] G8-19 Test selection komponen dan wire.
+- [x] G8-19 Test selection komponen, wire, dan selection box.
 
 **Acceptance G8:** proyek dapat disimpan, dimuat kembali tanpa kehilangan
 data, dan semua aksi editing dapat di-undo.

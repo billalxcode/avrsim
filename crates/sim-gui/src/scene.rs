@@ -2,9 +2,10 @@
 
 use crate::library;
 use crate::model::{
-    ComponentDefinition, ComponentId, Document, GridPos, Mirror, NetClass, Rotation, WireId,
-    body_size, pin_direction, world_pin,
+    ComponentDefinition, Document, GridPos, Mirror, NetClass, Rotation, WireId, body_size,
+    pin_direction, world_pin,
 };
+use crate::selection::Selection;
 use eframe::egui;
 
 const BODY_FILL: egui::Color32 = egui::Color32::from_rgb(31, 35, 43);
@@ -23,8 +24,7 @@ const PREVIEW_BAD: egui::Color32 = egui::Color32::from_rgb(240, 90, 90);
 pub struct Scene<'a> {
     pub document: &'a Document,
     pub library: &'a [ComponentDefinition],
-    pub selected: Option<ComponentId>,
-    pub selected_wire: Option<WireId>,
+    pub selection: &'a Selection,
     pub hover_wire: Option<WireId>,
     pub placing: Option<&'a ComponentDefinition>,
     pub hover: Option<GridPos>,
@@ -33,6 +33,7 @@ pub struct Scene<'a> {
     pub wire_preview: &'a [GridPos],
     pub wire_hover: Option<GridPos>,
     pub wire_class: NetClass,
+    pub selection_box: Option<(GridPos, GridPos)>,
 }
 
 /// Draws all wires, components, and the placement ghost.
@@ -48,6 +49,7 @@ pub fn draw(
     draw_wire_handles(painter, rect, camera, &scene);
     draw_wire_preview(painter, rect, camera, &scene);
     draw_ghost_layer(painter, rect, camera, &scene);
+    draw_selection_box(painter, rect, camera, scene.selection_box);
 }
 
 fn draw_wire_layer(
@@ -61,7 +63,7 @@ fn draw_wire_layer(
         rect,
         camera,
         scene.document,
-        scene.selected_wire,
+        scene.selection,
         scene.hover_wire,
     );
 }
@@ -81,6 +83,37 @@ fn draw_ghost_layer(
     draw_ghost(painter, rect, camera, scene, definition, hover);
 }
 
+fn draw_selection_box(
+    painter: &egui::Painter,
+    rect: egui::Rect,
+    camera: &crate::canvas::GridCamera,
+    corners: Option<(GridPos, GridPos)>,
+) {
+    let Some((start, end)) = corners else {
+        return;
+    };
+    let box_rect = screen_box(rect, camera, start, end);
+    let fill = egui::Color32::from_rgba_unmultiplied(0, 200, 220, 28);
+    painter.rect_filled(box_rect, 0.0, fill);
+    painter.rect_stroke(
+        box_rect,
+        0.0,
+        egui::Stroke::new(1.0, SELECTED_STROKE),
+        egui::StrokeKind::Middle,
+    );
+}
+
+fn screen_box(
+    rect: egui::Rect,
+    camera: &crate::canvas::GridCamera,
+    start: GridPos,
+    end: GridPos,
+) -> egui::Rect {
+    let first = screen_pos(rect, camera, start);
+    let second = screen_pos(rect, camera, end);
+    egui::Rect::from_two_pos(first, second)
+}
+
 fn draw_components(
     painter: &egui::Painter,
     rect: egui::Rect,
@@ -91,7 +124,7 @@ fn draw_components(
         let Some(definition) = library::find(instance.definition) else {
             continue;
         };
-        let selected = scene.selected == Some(instance.id);
+        let selected = scene.selection.contains_component(instance.id);
         draw_component(painter, rect, camera, definition, instance, selected);
     }
 }
@@ -102,16 +135,15 @@ fn draw_wire_handles(
     camera: &crate::canvas::GridCamera,
     scene: &Scene<'_>,
 ) {
-    let Some(id) = scene.selected_wire else {
-        return;
-    };
-    let Some(wire) = scene.document.wires().iter().find(|wire| wire.id == id) else {
-        return;
-    };
-    for segment in wire.points.windows(2) {
-        let midpoint = segment_midpoint(segment[0], segment[1]);
-        let screen = camera.world_to_screen(rect, midpoint);
-        draw_handle(painter, screen);
+    for wire in scene.document.wires() {
+        if !scene.selection.contains_wire(wire.id) {
+            continue;
+        }
+        for segment in wire.points.windows(2) {
+            let midpoint = segment_midpoint(segment[0], segment[1]);
+            let screen = camera.world_to_screen(rect, midpoint);
+            draw_handle(painter, screen);
+        }
     }
 }
 
@@ -138,20 +170,18 @@ fn draw_wires(
     rect: egui::Rect,
     camera: &crate::canvas::GridCamera,
     document: &Document,
-    selected: Option<WireId>,
+    selection: &Selection,
     hovered: Option<WireId>,
 ) {
     let mut wires: Vec<_> = document.wires().iter().collect();
     wires.sort_by_key(|wire| wire.id);
     for wire in &wires {
-        draw_wire(painter, rect, camera, wire, selected == Some(wire.id));
+        let selected = selection.contains_wire(wire.id);
+        draw_wire(painter, rect, camera, wire, selected);
     }
     for wire in &wires {
-        if show_wire_label(
-            selected == Some(wire.id),
-            hovered == Some(wire.id),
-            camera.zoom,
-        ) {
+        let selected = selection.contains_wire(wire.id);
+        if show_wire_label(selected, hovered == Some(wire.id), camera.zoom) {
             draw_net_label(painter, rect, camera, wire);
         }
     }
