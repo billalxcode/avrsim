@@ -273,7 +273,7 @@ data, dan semua aksi editing dapat di-undo.
 - [ ] G9-03 Buat benchmark 500 komponen dan 2000 segmen kabel.
 - [ ] G9-04 Tambahkan navigasi keyboard dan fokus yang jelas.
 - [x] G9-05 Audit palet warna dan kontras.
-- [ ] G9-06 Tambahkan interaction test dengan `egui::Context`.
+- [x] G9-06 Tambahkan interaction test dengan `egui::Context`.
 - [x] G9-07 Tulis user guide GUI dan screenshot.
 - [x] G9-08 Implementasikan export PNG melalui crate `png`.
 - [ ] G9-09 Tambahkan golden image RGBA snapshot.

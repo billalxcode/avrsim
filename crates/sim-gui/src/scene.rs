@@ -915,7 +915,8 @@ mod tests {
         show_component_labels, show_wire_label, wire_midpoint,
     };
     use crate::library;
-    use crate::model::{GridPos, NetClass, Rotation, Wire, WireId};
+    use crate::model::{Document, GridPos, Mirror, NetClass, Rotation, Wire, WireId};
+    use crate::selection::Selection;
 
     #[test]
     fn component_labels_use_lod_except_selection() {
@@ -945,6 +946,72 @@ mod tests {
         let center = map.point(GridPos::new(5, 5));
         assert!((center - area.center()).length() < 1e-4);
         assert!(map.scale > 0.0);
+    }
+
+    #[test]
+    fn scene_renders_in_egui_context() {
+        let output = sample_render();
+        assert!(!output.shapes.is_empty());
+    }
+
+    fn sample_render() -> eframe::egui::FullOutput {
+        let library = library::builtin();
+        let resistor = crate::library::find("resistor").expect("resistor");
+        let mut document = Document::new();
+        document.add(resistor, GridPos::new(0, 0), Rotation::Deg0, Mirror::None);
+        let selection = Selection::default();
+        let camera = crate::canvas::GridCamera::default();
+        let scene = sample_scene(&document, library, &selection);
+        let input = test_input();
+        let mut output = eframe::egui::Context::default().run_ui(input, |ui| {
+            render_into(ui, scene, &camera);
+        });
+        output.textures_delta.clear();
+        output
+    }
+
+    fn test_input() -> eframe::egui::RawInput {
+        eframe::egui::RawInput {
+            screen_rect: Some(eframe::egui::Rect::from_min_size(
+                eframe::egui::Pos2::ZERO,
+                eframe::egui::vec2(800.0, 600.0),
+            )),
+            ..Default::default()
+        }
+    }
+
+    fn render_into(
+        ui: &mut eframe::egui::Ui,
+        scene: super::Scene<'_>,
+        camera: &crate::canvas::GridCamera,
+    ) {
+        let (response, painter) = ui.allocate_painter(
+            eframe::egui::vec2(400.0, 300.0),
+            eframe::egui::Sense::hover(),
+        );
+        super::draw(&painter, response.rect, camera, scene);
+    }
+
+    fn sample_scene<'a>(
+        document: &'a Document,
+        library: &'a [crate::model::ComponentDefinition],
+        selection: &'a Selection,
+    ) -> super::Scene<'a> {
+        super::Scene {
+            document,
+            library,
+            selection,
+            hover_wire: None,
+            placing: None,
+            hover: None,
+            rotation: Rotation::Deg0,
+            mirror: Mirror::None,
+            wire_preview: &[],
+            wire_hover: None,
+            wire_class: NetClass::Digital,
+            selection_box: None,
+            minimap: true,
+        }
     }
 
     #[test]
