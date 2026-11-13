@@ -2,7 +2,7 @@
 
 use crate::library;
 use crate::model::{
-    ComponentDefinition, ComponentId, Document, GridPos, Mirror, Rotation, body_size,
+    ComponentDefinition, ComponentId, Document, GridPos, Mirror, NetClass, Rotation, body_size,
     pin_direction, world_pin,
 };
 use eframe::egui;
@@ -13,8 +13,10 @@ const SELECTED_STROKE: egui::Color32 = egui::Color32::from_rgb(0, 200, 220);
 const SYMBOL_STROKE: egui::Color32 = egui::Color32::from_rgb(190, 198, 210);
 const PIN_COLOR: egui::Color32 = egui::Color32::from_rgb(215, 220, 230);
 const TEXT_COLOR: egui::Color32 = egui::Color32::from_rgb(200, 205, 215);
+const JUNCTION_COLOR: egui::Color32 = egui::Color32::from_rgb(230, 235, 245);
 const GHOST_OK: egui::Color32 = egui::Color32::from_rgb(60, 210, 130);
 const GHOST_BAD: egui::Color32 = egui::Color32::from_rgb(230, 80, 80);
+const PREVIEW_BAD: egui::Color32 = egui::Color32::from_rgb(240, 90, 90);
 
 /// Immutable scene used by the canvas renderer.
 #[derive(Clone, Copy)]
@@ -26,14 +28,34 @@ pub struct Scene<'a> {
     pub hover: Option<GridPos>,
     pub rotation: Rotation,
     pub mirror: Mirror,
+    pub wire_preview: &'a [GridPos],
+    pub wire_hover: Option<GridPos>,
+    pub wire_class: NetClass,
 }
 
-/// Draws all components and the placement ghost.
+/// Draws all wires, components, and the placement ghost.
 pub fn draw(
     painter: &egui::Painter,
     rect: egui::Rect,
     camera: &crate::canvas::GridCamera,
     scene: Scene<'_>,
+) {
+    draw_wires(painter, rect, camera, scene.document);
+    draw_junctions(painter, rect, camera, scene.document);
+    draw_components(painter, rect, camera, &scene);
+    draw_wire_preview(painter, rect, camera, &scene);
+    if let Some(definition) = scene.placing {
+        if let Some(hover) = scene.hover {
+            draw_ghost(painter, rect, camera, &scene, definition, hover);
+        }
+    }
+}
+
+fn draw_components(
+    painter: &egui::Painter,
+    rect: egui::Rect,
+    camera: &crate::canvas::GridCamera,
+    scene: &Scene<'_>,
 ) {
     for instance in scene.document.components() {
         let Some(definition) = library::find(instance.definition) else {
@@ -42,10 +64,101 @@ pub fn draw(
         let selected = scene.selected == Some(instance.id);
         draw_component(painter, rect, camera, definition, instance, selected);
     }
-    if let Some(definition) = scene.placing {
-        if let Some(hover) = scene.hover {
-            draw_ghost(painter, rect, camera, &scene, definition, hover);
-        }
+}
+
+fn draw_wires(
+    painter: &egui::Painter,
+    rect: egui::Rect,
+    camera: &crate::canvas::GridCamera,
+    document: &Document,
+) {
+    let mut wires: Vec<_> = document.wires().iter().collect();
+    wires.sort_by_key(|wire| wire.id);
+    for wire in wires {
+        let color = net_color(wire.class);
+        draw_polyline(painter, rect, camera, &wire.points, color, 2.0);
+    }
+}
+
+fn draw_junctions(
+    painter: &egui::Painter,
+    rect: egui::Rect,
+    camera: &crate::canvas::GridCamera,
+    document: &Document,
+) {
+    for point in document.junctions() {
+        painter.circle_filled(screen_pos(rect, camera, point), 3.2, JUNCTION_COLOR);
+    }
+}
+
+fn draw_wire_preview(
+    painter: &egui::Painter,
+    rect: egui::Rect,
+    camera: &crate::canvas::GridCamera,
+    scene: &Scene<'_>,
+) {
+    if scene.wire_preview.is_empty() {
+        return;
+    }
+    let color = net_color(scene.wire_class).gamma_multiply(0.8);
+    draw_polyline(painter, rect, camera, scene.wire_preview, color, 2.0);
+    let Some(hover) = scene.wire_hover else {
+        return;
+    };
+    let Some(&last) = scene.wire_preview.last() else {
+        return;
+    };
+    if last == hover {
+        return;
+    }
+    let color = if scene.document.can_add_segment(scene.library, last, hover) {
+        color
+    } else {
+        PREVIEW_BAD
+    };
+    draw_segment(painter, rect, camera, last, hover, color, 2.0);
+}
+
+fn draw_polyline(
+    painter: &egui::Painter,
+    rect: egui::Rect,
+    camera: &crate::canvas::GridCamera,
+    points: &[GridPos],
+    color: egui::Color32,
+    width: f32,
+) {
+    for segment in points.windows(2) {
+        draw_segment(painter, rect, camera, segment[0], segment[1], color, width);
+    }
+}
+
+fn draw_segment(
+    painter: &egui::Painter,
+    rect: egui::Rect,
+    camera: &crate::canvas::GridCamera,
+    start: GridPos,
+    end: GridPos,
+    color: egui::Color32,
+    width: f32,
+) {
+    let start = screen_pos(rect, camera, start);
+    let end = screen_pos(rect, camera, end);
+    painter.line_segment([start, end], egui::Stroke::new(width, color));
+}
+
+fn net_color(class: NetClass) -> egui::Color32 {
+    match class {
+        NetClass::Power => egui::Color32::from_rgb(225, 85, 85),
+        NetClass::Ground => egui::Color32::from_rgb(125, 130, 140),
+        NetClass::Digital => egui::Color32::from_rgb(85, 205, 125),
+        NetClass::Analog => egui::Color32::from_rgb(90, 155, 240),
+        NetClass::Clock => egui::Color32::from_rgb(240, 165, 75),
+        NetClass::Uart => egui::Color32::from_rgb(80, 215, 225),
+        NetClass::Spi => egui::Color32::from_rgb(185, 125, 235),
+        NetClass::I2c => egui::Color32::from_rgb(230, 210, 95),
+        NetClass::Pwm => egui::Color32::from_rgb(230, 115, 195),
+        NetClass::Reset => egui::Color32::from_rgb(185, 135, 95),
+        NetClass::User => egui::Color32::from_rgb(195, 200, 210),
     }
 }
 

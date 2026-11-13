@@ -154,17 +154,17 @@ ke net dengan umpan balik visual yang jelas.
 
 ## G4 - Kabel Ortogonal
 
-- [ ] G4-01 Definisikan model wire, segment, vertex, dan konektivitas.
-- [ ] G4-02 Implementasikan wire tool manual dengan vertex di grid.
-- [ ] G4-03 Implementasikan occupancy map satu kabel per edge.
-- [ ] G4-04 Tolak kabel yang melewati body komponen.
-- [ ] G4-05 Tolak segmen diagonal dan vertex di luar grid.
-- [ ] G4-06 Implementasikan junction eksplisit.
+- [x] G4-01 Definisikan model wire, segment, vertex, dan konektivitas.
+- [x] G4-02 Implementasikan wire tool manual dengan vertex di grid.
+- [x] G4-03 Implementasikan occupancy map satu kabel per edge.
+- [x] G4-04 Tolak kabel yang melewati body komponen.
+- [x] G4-05 Tolak segmen diagonal dan vertex di luar grid.
+- [x] G4-06 Implementasikan junction otomatis 3 atau 4 arah.
 - [ ] G4-07 Implementasikan edit vertex dan delete wire.
-- [ ] G4-08 Test konektivitas, collision, dan junction.
-- [ ] G4-09 Terapkan belokan 90 derajat tegas.
+- [x] G4-08 Test konektivitas, collision, dan junction.
+- [x] G4-09 Terapkan belokan 90 derajat tegas.
 - [ ] G4-10 Implementasikan animasi aliran sinyal opsional, default mati.
-- [ ] G4-11 Tolak ujung kabel yang bukan pin, junction, atau vertex valid.
+- [x] G4-11 Tolak ujung kabel yang bukan pin, junction, atau vertex valid.
 
 **Acceptance G4:** dua pin dapat dihubungkan dengan kabel ortogonal rapi,
 tanpa segmen diagonal, dan tanpa menembus komponen.
@@ -176,7 +176,7 @@ tanpa segmen diagonal, dan tanpa menembus komponen.
 - [ ] G5-01 Implementasikan saran jalur L dan Z.
 - [x] G5-02 Dokumentasikan keputusan menunda auto-router penuh.
 - [ ] G5-03 Terapkan aturan persilangan tanpa junction.
-- [ ] G5-04 Deteksi kelas net dan petakan ke warna.
+- [x] G5-04 Deteksi kelas net dan petakan ke warna.
 - [ ] G5-05 Implementasikan label net saat hover atau seleksi.
 - [ ] G5-06 Tambahkan legenda warna dan pola ramah buta warna.
 - [ ] G5-07 Test routing, warna, label, dan aturan persilangan.

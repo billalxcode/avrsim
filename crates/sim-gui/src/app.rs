@@ -4,13 +4,14 @@ use crate::canvas::{self, GridCamera};
 use crate::library;
 use crate::model::{
     Category, ComponentDefinition, ComponentId, ComponentInstance, Document, GridPos, Mirror,
-    Rotation,
+    NetClass, Rotation,
 };
 use crate::scene::{self, Scene};
 use eframe::egui;
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
 enum Tool {
+    #[default]
     Select,
     Place,
     Wire,
@@ -44,13 +45,16 @@ struct DragState {
 }
 
 #[derive(Clone, Copy)]
-struct SceneConfig {
+struct SceneConfig<'a> {
     selected: Option<ComponentId>,
     placing: Option<&'static ComponentDefinition>,
     rotation: Rotation,
     mirror: Mirror,
+    wire_preview: &'a [GridPos],
+    wire_class: NetClass,
 }
 
+#[derive(Default)]
 pub struct GuiApp {
     camera: GridCamera,
     grid_visible: bool,
@@ -68,29 +72,8 @@ pub struct GuiApp {
     inspector_open: bool,
     search: String,
     category: Option<Category>,
-}
-
-impl Default for GuiApp {
-    fn default() -> Self {
-        Self {
-            camera: GridCamera::default(),
-            grid_visible: true,
-            tool: Tool::Select,
-            pointer_world: None,
-            initialized: false,
-            library: library::builtin(),
-            document: Document::new(),
-            selected: None,
-            dragging: None,
-            placing: None,
-            placement_rotation: Rotation::Deg0,
-            placement_mirror: Mirror::None,
-            library_open: false,
-            inspector_open: true,
-            search: String::new(),
-            category: None,
-        }
-    }
+    wire_points: Vec<GridPos>,
+    wire_class: NetClass,
 }
 
 impl GuiApp {
@@ -102,7 +85,13 @@ impl GuiApp {
             }
             style.visuals.selection.bg_fill = egui::Color32::from_rgb(0, 150, 170);
         });
-        Self::default()
+        Self {
+            library: library::builtin(),
+            document: Document::new(),
+            grid_visible: true,
+            inspector_open: true,
+            ..Self::default()
+        }
     }
 }
 
@@ -133,10 +122,22 @@ impl GuiApp {
     fn toolbar_tools(&mut self, ui: &mut egui::Ui) {
         ui.strong("embed-emu");
         ui.separator();
+        self.tool_buttons(ui);
+        ui.separator();
+        self.sheet_buttons(ui);
+    }
+
+    fn tool_buttons(&mut self, ui: &mut egui::Ui) {
+        let previous = self.tool;
         for tool in Tool::ALL {
             ui.selectable_value(&mut self.tool, tool, tool.label());
         }
-        ui.separator();
+        if previous != self.tool {
+            self.wire_points.clear();
+        }
+    }
+
+    fn sheet_buttons(&mut self, ui: &mut egui::Ui) {
         if ui.selectable_label(self.library_open, "Library").clicked() {
             self.library_open = true;
         }
@@ -154,7 +155,28 @@ impl GuiApp {
         }
         ui.checkbox(&mut self.grid_visible, "Grid");
         ui.separator();
-        self.placement_controls(ui);
+        if self.tool == Tool::Wire {
+            self.wire_controls(ui);
+        } else {
+            self.placement_controls(ui);
+        }
+    }
+
+    fn wire_controls(&mut self, ui: &mut egui::Ui) {
+        ui.label("Wire");
+        egui::ComboBox::from_id_salt("wire_class")
+            .selected_text(self.wire_class.label())
+            .show_ui(ui, |ui| {
+                for class in NetClass::ALL {
+                    ui.selectable_value(&mut self.wire_class, class, class.label());
+                }
+            });
+        if ui.button("Finish").clicked() {
+            self.finish_wire();
+        }
+        if ui.button("Cancel").clicked() {
+            self.wire_points.clear();
+        }
     }
 
     fn placement_controls(&mut self, ui: &mut egui::Ui) {
@@ -175,37 +197,28 @@ impl GuiApp {
     }
 
     fn canvas(&mut self, ui: &mut egui::Ui) -> canvas::CanvasState {
-        let scene = build_scene(&self.document, self.library, self.scene_config());
-        let camera = &mut self.camera;
-        let grid_visible = self.grid_visible;
-        let initialized = &mut self.initialized;
-        egui::CentralPanel::default()
-            .show(ui, |ui| {
-                canvas::show(
-                    ui,
-                    camera,
-                    grid_visible,
-                    initialized,
-                    |painter, rect, camera, pointer| {
-                        draw_scene(painter, rect, camera, pointer, scene);
-                    },
-                )
-            })
-            .inner
-    }
-
-    fn scene_config(&self) -> SceneConfig {
-        SceneConfig {
+        let config = SceneConfig {
             selected: self.selected,
             placing: self.placing,
             rotation: self.placement_rotation,
             mirror: self.placement_mirror,
-        }
+            wire_preview: &self.wire_points,
+            wire_class: self.wire_class,
+        };
+        let scene = build_scene(&self.document, self.library, config);
+        let camera = &mut self.camera;
+        let grid_visible = self.grid_visible;
+        let initialized = &mut self.initialized;
+        show_canvas(ui, camera, grid_visible, initialized, scene)
     }
 
     fn handle_canvas(&mut self, state: canvas::CanvasState) {
         if self.placing.is_some() {
             self.handle_placement(state);
+            return;
+        }
+        if self.tool == Tool::Wire {
+            self.handle_wire(state);
             return;
         }
         self.begin_drag(&state);
@@ -300,6 +313,55 @@ impl GuiApp {
         self.placing = None;
     }
 
+    fn handle_wire(&mut self, state: canvas::CanvasState) {
+        if state.secondary_clicked {
+            self.wire_points.clear();
+            return;
+        }
+        if state.double_clicked {
+            self.finish_wire();
+            return;
+        }
+        if !state.clicked {
+            return;
+        }
+        let Some(world) = state.click_world else {
+            return;
+        };
+        self.wire_click(world_to_grid(world));
+    }
+
+    fn wire_click(&mut self, point: GridPos) {
+        if self.wire_points.is_empty() {
+            if self.document.is_connection_point(self.library, point) {
+                self.wire_points.push(point);
+            }
+            return;
+        }
+        let Some(&last) = self.wire_points.last() else {
+            return;
+        };
+        if point == last || !self.document.can_add_segment(self.library, last, point) {
+            return;
+        }
+        self.wire_points.push(point);
+    }
+
+    fn finish_wire(&mut self) {
+        if self.wire_points.len() < 2 {
+            self.wire_points.clear();
+            return;
+        }
+        let points = self.wire_points.clone();
+        if self
+            .document
+            .add_wire(self.library, points, self.wire_class)
+            .is_some()
+        {
+            self.wire_points.clear();
+        }
+    }
+
     fn handle_keys(&mut self, ui: &egui::Ui) {
         if ui.ctx().egui_wants_keyboard_input() {
             return;
@@ -310,8 +372,15 @@ impl GuiApp {
         if ui.input(|input| input.key_pressed(egui::Key::M)) {
             self.mirror();
         }
+        if ui.input(|input| input.key_pressed(egui::Key::Enter)) && self.tool == Tool::Wire {
+            self.finish_wire();
+        }
+        if ui.input(|input| input.key_pressed(egui::Key::Backspace)) && self.tool == Tool::Wire {
+            self.wire_points.pop();
+        }
         if ui.input(|input| input.key_pressed(egui::Key::Escape)) {
             self.placing = None;
+            self.wire_points.clear();
         }
     }
 
@@ -473,10 +542,27 @@ impl GuiApp {
     }
 }
 
+fn show_canvas(
+    ui: &mut egui::Ui,
+    camera: &mut GridCamera,
+    grid_visible: bool,
+    initialized: &mut bool,
+    scene: Scene<'_>,
+) -> canvas::CanvasState {
+    let draw = |painter: &egui::Painter,
+                rect: egui::Rect,
+                camera: &GridCamera,
+                pointer: Option<egui::Pos2>| {
+        draw_scene(painter, rect, camera, pointer, scene);
+    };
+    let show = |ui: &mut egui::Ui| canvas::show(ui, camera, grid_visible, initialized, draw);
+    egui::CentralPanel::default().show(ui, show).inner
+}
+
 fn build_scene<'a>(
     document: &'a Document,
     library: &'a [ComponentDefinition],
-    config: SceneConfig,
+    config: SceneConfig<'a>,
 ) -> Scene<'a> {
     Scene {
         document,
@@ -486,6 +572,9 @@ fn build_scene<'a>(
         hover: None,
         rotation: config.rotation,
         mirror: config.mirror,
+        wire_preview: config.wire_preview,
+        wire_hover: None,
+        wire_class: config.wire_class,
     }
 }
 
@@ -497,7 +586,16 @@ fn draw_scene(
     scene: Scene<'_>,
 ) {
     let hover = pointer.map(world_to_grid);
-    scene::draw(painter, rect, camera, Scene { hover, ..scene });
+    scene::draw(
+        painter,
+        rect,
+        camera,
+        Scene {
+            hover,
+            wire_hover: hover,
+            ..scene
+        },
+    );
 }
 
 fn show_component_info(

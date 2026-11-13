@@ -87,6 +87,8 @@ pub struct CanvasState {
     pub click_world: Option<egui::Pos2>,
     /// True when the secondary button was clicked on the canvas.
     pub secondary_clicked: bool,
+    /// True when the primary button was double-clicked.
+    pub double_clicked: bool,
     /// True when a primary drag started this frame.
     pub drag_started: bool,
     /// True while a primary drag is active.
@@ -135,6 +137,7 @@ fn canvas_state(
             .interact_pointer_pos()
             .map(|position| camera.screen_to_world(rect, position)),
         secondary_clicked: response.secondary_clicked(),
+        double_clicked: response.double_clicked(),
         drag_started: response.drag_started(),
         dragged: response.dragged_by(egui::PointerButton::Primary),
         drag_stopped: response.drag_stopped(),

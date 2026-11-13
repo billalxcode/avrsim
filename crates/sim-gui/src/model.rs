@@ -1,7 +1,9 @@
 //! Schematic document model, grid geometry, and component transforms.
 
+use std::collections::{BTreeMap, BTreeSet};
+
 /// Integer position on the schematic grid.
-#[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Hash)]
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct GridPos {
     pub x: i32,
     pub y: i32,
@@ -90,6 +92,15 @@ impl GridRect {
             && point.x <= self.max_x()
             && point.y >= self.min.y
             && point.y <= self.max_y()
+    }
+
+    /// Returns true when a grid point lies strictly inside the rectangle.
+    #[must_use]
+    pub const fn strictly_contains(self, point: GridPos) -> bool {
+        point.x > self.min.x
+            && point.x < self.max_x()
+            && point.y > self.min.y
+            && point.y < self.max_y()
     }
 
     /// Returns true when two rectangles overlap in their interiors.
@@ -242,6 +253,88 @@ pub struct ComponentDefinition {
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub struct ComponentId(pub u32);
 
+/// Stable wire identifier.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
+pub struct WireId(pub u32);
+
+/// Net class used for wire coloring and semantics.
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+pub enum NetClass {
+    Power,
+    Ground,
+    #[default]
+    Digital,
+    Analog,
+    Clock,
+    Uart,
+    Spi,
+    I2c,
+    Pwm,
+    Reset,
+    User,
+}
+
+impl NetClass {
+    pub const ALL: [Self; 11] = [
+        Self::Power,
+        Self::Ground,
+        Self::Digital,
+        Self::Analog,
+        Self::Clock,
+        Self::Uart,
+        Self::Spi,
+        Self::I2c,
+        Self::Pwm,
+        Self::Reset,
+        Self::User,
+    ];
+
+    /// Returns a human-readable label.
+    #[must_use]
+    pub const fn label(self) -> &'static str {
+        match self {
+            Self::Power => "Power",
+            Self::Ground => "Ground",
+            Self::Digital => "Digital",
+            Self::Analog => "Analog",
+            Self::Clock => "Clock",
+            Self::Uart => "UART",
+            Self::Spi => "SPI",
+            Self::I2c => "I2C",
+            Self::Pwm => "PWM",
+            Self::Reset => "Reset",
+            Self::User => "User",
+        }
+    }
+}
+
+/// One placed wire polyline.
+#[derive(Clone, Debug)]
+pub struct Wire {
+    pub id: WireId,
+    pub points: Vec<GridPos>,
+    pub class: NetClass,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
+struct GridEdge {
+    first: GridPos,
+    second: GridPos,
+}
+
+impl GridEdge {
+    fn new(first: GridPos, second: GridPos) -> Self {
+        if first <= second {
+            Self { first, second }
+        } else {
+            Self {
+                first: second,
+                second: first,
+            }
+        }
+    }
+}
+
 /// One placed component.
 #[derive(Clone, Debug)]
 pub struct ComponentInstance {
@@ -269,11 +362,13 @@ struct TransformTarget<'a> {
     mirror: Mirror,
 }
 
-/// Schematic document containing components.
+/// Schematic document containing components and wires.
 #[derive(Default)]
 pub struct Document {
     components: Vec<ComponentInstance>,
+    wires: Vec<Wire>,
     next_id: u32,
+    next_wire_id: u32,
 }
 
 impl Document {
@@ -287,6 +382,69 @@ impl Document {
     #[must_use]
     pub fn components(&self) -> &[ComponentInstance] {
         &self.components
+    }
+
+    /// Returns all wires.
+    #[must_use]
+    pub fn wires(&self) -> &[Wire] {
+        &self.wires
+    }
+
+    /// Adds a validated wire polyline.
+    pub fn add_wire(
+        &mut self,
+        library: &[ComponentDefinition],
+        points: Vec<GridPos>,
+        class: NetClass,
+    ) -> Option<WireId> {
+        if !self.validate_wire(library, &points) {
+            return None;
+        }
+        let id = WireId(self.next_wire_id);
+        self.next_wire_id += 1;
+        self.wires.push(Wire { id, points, class });
+        Some(id)
+    }
+
+    /// Tests whether a single segment can be added.    #[must_use]
+    pub fn can_add_segment(
+        &self,
+        library: &[ComponentDefinition],
+        start: GridPos,
+        end: GridPos,
+    ) -> bool {
+        if !is_orthogonal(start, end) || start == end {
+            return false;
+        }
+        if self.segment_blocked(library, start, end) {
+            return false;
+        }
+        let Some(edges) = wire_edges(&[start, end]) else {
+            return false;
+        };
+        !edges.iter().any(|edge| self.edge_occupied(*edge))
+    }
+
+    /// Returns true when a point is a pin or an existing wire vertex.
+    #[must_use]
+    pub fn is_connection_point(&self, library: &[ComponentDefinition], point: GridPos) -> bool {
+        self.has_pin_at(library, point) || self.has_wire_vertex(point)
+    }
+
+    /// Returns grid points where three or more segments meet.
+    #[must_use]
+    pub fn junctions(&self) -> Vec<GridPos> {
+        let mut counts: BTreeMap<GridPos, usize> = BTreeMap::new();
+        for wire in &self.wires {
+            for segment in wire.points.windows(2) {
+                *counts.entry(segment[0]).or_default() += 1;
+                *counts.entry(segment[1]).or_default() += 1;
+            }
+        }
+        counts
+            .into_iter()
+            .filter_map(|(point, count)| (count >= 3).then_some(point))
+            .collect()
     }
 
     /// Finds one component by ID.
@@ -482,6 +640,77 @@ impl Document {
         id
     }
 
+    fn validate_wire(&self, library: &[ComponentDefinition], points: &[GridPos]) -> bool {
+        let Some(&first) = points.first() else {
+            return false;
+        };
+        let Some(&last) = points.last() else {
+            return false;
+        };
+        if points.len() < 2 || !self.is_connection_point(library, first) {
+            return false;
+        }
+        if !self.is_connection_point(library, last) {
+            return false;
+        }
+        let Some(edges) = wire_edges(points) else {
+            return false;
+        };
+        if edges.iter().any(|edge| self.edge_occupied(*edge)) {
+            return false;
+        }
+        !self.path_blocked(library, points)
+    }
+
+    fn edge_occupied(&self, edge: GridEdge) -> bool {
+        self.wires.iter().any(|wire| {
+            wire.points
+                .windows(2)
+                .any(|segment| segment_edges(segment[0], segment[1]).contains(&edge))
+        })
+    }
+
+    fn path_blocked(&self, library: &[ComponentDefinition], points: &[GridPos]) -> bool {
+        points
+            .windows(2)
+            .any(|segment| self.segment_blocked(library, segment[0], segment[1]))
+    }
+
+    fn segment_blocked(
+        &self,
+        library: &[ComponentDefinition],
+        start: GridPos,
+        end: GridPos,
+    ) -> bool {
+        let length = segment_length(start, end);
+        (1..length).any(|step| self.point_in_body(library, segment_step(start, end, step)))
+    }
+
+    fn point_in_body(&self, library: &[ComponentDefinition], point: GridPos) -> bool {
+        self.components.iter().any(|instance| {
+            let Some(definition) = find_definition(library, instance.definition) else {
+                return false;
+            };
+            instance.bounds(definition).strictly_contains(point)
+        })
+    }
+
+    fn has_pin_at(&self, library: &[ComponentDefinition], point: GridPos) -> bool {
+        self.components.iter().any(|instance| {
+            let Some(definition) = find_definition(library, instance.definition) else {
+                return false;
+            };
+            definition
+                .pins
+                .iter()
+                .any(|pin| world_pin(instance, definition, pin) == point)
+        })
+    }
+
+    fn has_wire_vertex(&self, point: GridPos) -> bool {
+        self.wires.iter().any(|wire| wire.points.contains(&point))
+    }
+
     fn next_reference(&self, prefix: &str) -> usize {
         self.components
             .iter()
@@ -611,12 +840,59 @@ pub fn find_definition<'a>(
     library.iter().find(|definition| definition.id == id)
 }
 
+fn is_orthogonal(start: GridPos, end: GridPos) -> bool {
+    start.x == end.x || start.y == end.y
+}
+
+fn wire_edges(points: &[GridPos]) -> Option<BTreeSet<GridEdge>> {
+    if points.len() < 2 {
+        return None;
+    }
+    let mut edges = BTreeSet::new();
+    for segment in points.windows(2) {
+        let start = segment[0];
+        let end = segment[1];
+        if start == end || !is_orthogonal(start, end) {
+            return None;
+        }
+        for edge in segment_edges(start, end) {
+            if !edges.insert(edge) {
+                return None;
+            }
+        }
+    }
+    Some(edges)
+}
+
+fn segment_edges(start: GridPos, end: GridPos) -> Vec<GridEdge> {
+    let length = segment_length(start, end);
+    (0..length)
+        .map(|step| {
+            GridEdge::new(
+                segment_step(start, end, step),
+                segment_step(start, end, step + 1),
+            )
+        })
+        .collect()
+}
+
+fn segment_length(start: GridPos, end: GridPos) -> i32 {
+    (end.x - start.x).abs() + (end.y - start.y).abs()
+}
+
+fn segment_step(start: GridPos, end: GridPos, step: i32) -> GridPos {
+    let dx = (end.x - start.x).signum();
+    let dy = (end.y - start.y).signum();
+    GridPos::new(start.x + dx * step, start.y + dy * step)
+}
+
 #[cfg(test)]
 mod tests {
     use super::{
-        ComponentDefinition, Document, GridPos, GridSize, Mirror, PinDefinition, Rotation,
-        SymbolKind, body_size, world_pin,
+        ComponentDefinition, Document, GridPos, GridSize, Mirror, NetClass, PinDefinition,
+        Rotation, SymbolKind, body_size, world_pin,
     };
+    use crate::library;
 
     const PINS: &[PinDefinition] = &[
         PinDefinition {
@@ -707,5 +983,97 @@ mod tests {
         let id = document.add(&RESISTOR, GridPos::new(0, 0), Rotation::Deg0, Mirror::None);
         assert_eq!(document.hit_test(LIBRARY, GridPos::new(2, 1)), Some(id));
         assert_eq!(document.hit_test(LIBRARY, GridPos::new(10, 10)), None);
+    }
+
+    #[test]
+    fn accepts_wire_between_pins() {
+        let library = library::builtin();
+        let resistor = library::find("resistor").expect("resistor");
+        let mut document = Document::new();
+        document.add(resistor, GridPos::new(0, 0), Rotation::Deg0, Mirror::None);
+        document.add(resistor, GridPos::new(6, 0), Rotation::Deg0, Mirror::None);
+        let wire = document.add_wire(
+            library,
+            vec![GridPos::new(4, 1), GridPos::new(6, 1)],
+            NetClass::Digital,
+        );
+        assert!(wire.is_some());
+    }
+
+    #[test]
+    fn rejects_wire_through_body() {
+        let library = library::builtin();
+        let resistor = library::find("resistor").expect("resistor");
+        let mut document = Document::new();
+        document.add(resistor, GridPos::new(0, 0), Rotation::Deg0, Mirror::None);
+        let wire = document.add_wire(
+            library,
+            vec![GridPos::new(0, 1), GridPos::new(4, 1)],
+            NetClass::Digital,
+        );
+        assert!(wire.is_none());
+    }
+
+    #[test]
+    fn rejects_diagonal_segment() {
+        let document = Document::new();
+        assert!(!document.can_add_segment(
+            library::builtin(),
+            GridPos::new(4, 1),
+            GridPos::new(6, 2)
+        ));
+    }
+
+    #[test]
+    fn rejects_duplicate_edge() {
+        let library = library::builtin();
+        let resistor = library::find("resistor").expect("resistor");
+        let mut document = Document::new();
+        document.add(resistor, GridPos::new(0, 0), Rotation::Deg0, Mirror::None);
+        document.add(resistor, GridPos::new(6, 0), Rotation::Deg0, Mirror::None);
+        let points = vec![GridPos::new(4, 1), GridPos::new(6, 1)];
+        assert!(
+            document
+                .add_wire(library, points.clone(), NetClass::Digital)
+                .is_some()
+        );
+        assert!(
+            document
+                .add_wire(library, points, NetClass::Digital)
+                .is_none()
+        );
+    }
+
+    fn junction_document() -> Document {
+        let library = library::builtin();
+        let resistor = library::find("resistor").expect("resistor");
+        let vcc = library::find("vcc").expect("vcc");
+        let mut document = Document::new();
+        document.add(resistor, GridPos::new(0, 0), Rotation::Deg0, Mirror::None);
+        document.add(resistor, GridPos::new(6, 0), Rotation::Deg0, Mirror::None);
+        document.add(vcc, GridPos::new(4, -2), Rotation::Deg0, Mirror::None);
+        add_junction_wires(&mut document, library);
+        document
+    }
+
+    fn add_junction_wires(document: &mut Document, library: &[super::ComponentDefinition]) {
+        let horizontal = vec![GridPos::new(4, 1), GridPos::new(5, 1), GridPos::new(6, 1)];
+        let vertical = vec![GridPos::new(5, 1), GridPos::new(5, 0)];
+        assert!(
+            document
+                .add_wire(library, horizontal, NetClass::Digital)
+                .is_some()
+        );
+        assert!(
+            document
+                .add_wire(library, vertical, NetClass::Power)
+                .is_some()
+        );
+    }
+
+    #[test]
+    fn junction_detected_at_three_segments() {
+        let document = junction_document();
+        assert_eq!(document.junctions(), vec![GridPos::new(5, 1)]);
     }
 }
