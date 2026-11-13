@@ -4,11 +4,12 @@ Dokumen ini merancang GUI interaktif berbasis egui untuk eksplorasi,
 penempatan komponen, probing, dan pengujian simulasi.
 
 **Status:** G0 dan G1 awal sudah diimplementasikan: crate `sim-gui`, app
-shell, canvas, grid, pan, zoom, status bar, dan test kamera. Fitur
-komponen, kabel, simulasi, dan grafik belum ada. Dependensi GUI yang
-disetujui hanya untuk crate `sim-gui`: `egui`, `eframe`, `serde`,
-`serde_json`, `rfd`, dan `png`. `egui_plot`, `libloading`, dan crate lain
-tidak diizinkan tanpa keputusan baru.
+shell, canvas, grid, pan, zoom, status bar, dan test kamera. Library
+komponen awal, placement ghost, selection, drag move, rotate, mirror,
+dan inspector dasar juga sudah ada. Kabel, simulasi, dan grafik belum
+ada. Dependensi GUI yang disetujui hanya untuk crate `sim-gui`: `egui`,
+`eframe`, `serde`, `serde_json`, `rfd`, dan `png`. `egui_plot`,
+`libloading`, dan crate lain tidak diizinkan tanpa keputusan baru.
 
 **Rekomendasi:** buat crate baru `sim-gui` sebagai adapter/composition,
 mirip `sim-cli`. Semua crate simulasi tetap zero external dependency.

@@ -2,6 +2,9 @@
 
 mod app;
 mod canvas;
+mod library;
+mod model;
+mod scene;
 
 use app::GuiApp;
 

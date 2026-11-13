@@ -81,6 +81,20 @@ struct GridRange {
 pub struct CanvasState {
     /// Pointer position in world grid space.
     pub pointer_world: Option<egui::Pos2>,
+    /// True when the primary button was clicked on the canvas.
+    pub clicked: bool,
+    /// World position of the primary click.
+    pub click_world: Option<egui::Pos2>,
+    /// True when the secondary button was clicked on the canvas.
+    pub secondary_clicked: bool,
+    /// True when a primary drag started this frame.
+    pub drag_started: bool,
+    /// True while a primary drag is active.
+    pub dragged: bool,
+    /// True when the primary drag stopped this frame.
+    pub drag_stopped: bool,
+    /// True while the Space key is held.
+    pub space_down: bool,
 }
 
 /// Draws the canvas and applies pan and zoom input.
@@ -89,6 +103,7 @@ pub fn show(
     camera: &mut GridCamera,
     grid_visible: bool,
     initialized: &mut bool,
+    draw_scene: impl FnOnce(&egui::Painter, egui::Rect, &GridCamera, Option<egui::Pos2>),
 ) -> CanvasState {
     let (response, painter) =
         ui.allocate_painter(ui.available_size(), egui::Sense::click_and_drag());
@@ -97,11 +112,33 @@ pub fn show(
     painter.rect_filled(rect, egui::CornerRadius::ZERO, BACKGROUND);
     handle_pan(&response, ui, camera);
     handle_zoom(&response, ui, camera, rect);
+    let pointer = pointer_world(&response, rect, camera);
     if grid_visible {
         draw_grid(&painter, rect, camera);
     }
+    draw_scene(&painter, rect, camera, pointer);
+    let space_down = ui.input(|input| input.key_down(egui::Key::Space));
+    canvas_state(&response, rect, camera, pointer, space_down)
+}
+
+fn canvas_state(
+    response: &egui::Response,
+    rect: egui::Rect,
+    camera: &GridCamera,
+    pointer_world: Option<egui::Pos2>,
+    space_down: bool,
+) -> CanvasState {
     CanvasState {
-        pointer_world: pointer_world(&response, rect, camera),
+        pointer_world,
+        clicked: response.clicked(),
+        click_world: response
+            .interact_pointer_pos()
+            .map(|position| camera.screen_to_world(rect, position)),
+        secondary_clicked: response.secondary_clicked(),
+        drag_started: response.drag_started(),
+        dragged: response.dragged_by(egui::PointerButton::Primary),
+        drag_stopped: response.drag_stopped(),
+        space_down,
     }
 }
 

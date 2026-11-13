@@ -1,0 +1,711 @@
+//! Schematic document model, grid geometry, and component transforms.
+
+/// Integer position on the schematic grid.
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Hash)]
+pub struct GridPos {
+    pub x: i32,
+    pub y: i32,
+}
+
+impl GridPos {
+    /// Creates a grid position.
+    #[must_use]
+    pub const fn new(x: i32, y: i32) -> Self {
+        Self { x, y }
+    }
+
+    /// Adds another grid offset.
+    #[must_use]
+    pub const fn offset(self, other: Self) -> Self {
+        Self {
+            x: self.x + other.x,
+            y: self.y + other.y,
+        }
+    }
+
+    /// Subtracts another grid offset.
+    #[must_use]
+    pub const fn subtract(self, other: Self) -> Self {
+        Self {
+            x: self.x - other.x,
+            y: self.y - other.y,
+        }
+    }
+}
+
+/// Size in grid cells.
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+pub struct GridSize {
+    pub width: i32,
+    pub height: i32,
+}
+
+impl GridSize {
+    /// Creates a grid size.
+    #[must_use]
+    pub const fn new(width: i32, height: i32) -> Self {
+        Self { width, height }
+    }
+
+    /// Returns the size with width and height swapped.
+    #[must_use]
+    pub const fn swapped(self) -> Self {
+        Self {
+            width: self.height,
+            height: self.width,
+        }
+    }
+}
+
+/// Axis-aligned rectangle on the grid.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct GridRect {
+    pub min: GridPos,
+    pub size: GridSize,
+}
+
+impl GridRect {
+    /// Creates a rectangle from its top-left position and size.
+    #[must_use]
+    pub const fn new(min: GridPos, size: GridSize) -> Self {
+        Self { min, size }
+    }
+
+    /// Returns the exclusive right edge.
+    #[must_use]
+    pub const fn max_x(self) -> i32 {
+        self.min.x + self.size.width
+    }
+
+    /// Returns the exclusive bottom edge.
+    #[must_use]
+    pub const fn max_y(self) -> i32 {
+        self.min.y + self.size.height
+    }
+
+    /// Returns true when a grid point lies inside or on the rectangle.
+    #[must_use]
+    pub const fn contains(self, point: GridPos) -> bool {
+        point.x >= self.min.x
+            && point.x <= self.max_x()
+            && point.y >= self.min.y
+            && point.y <= self.max_y()
+    }
+
+    /// Returns true when two rectangles overlap in their interiors.
+    #[must_use]
+    pub const fn intersects(self, other: Self) -> bool {
+        self.min.x < other.max_x()
+            && other.min.x < self.max_x()
+            && self.min.y < other.max_y()
+            && other.min.y < self.max_y()
+    }
+}
+
+/// Component rotation in quarter turns.
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+pub enum Rotation {
+    #[default]
+    Deg0,
+    Deg90,
+    Deg180,
+    Deg270,
+}
+
+impl Rotation {
+    /// Returns the next clockwise rotation.
+    #[must_use]
+    pub const fn next(self) -> Self {
+        match self {
+            Self::Deg0 => Self::Deg90,
+            Self::Deg90 => Self::Deg180,
+            Self::Deg180 => Self::Deg270,
+            Self::Deg270 => Self::Deg0,
+        }
+    }
+
+    /// Returns a human-readable label.
+    #[must_use]
+    pub const fn label(self) -> &'static str {
+        match self {
+            Self::Deg0 => "0",
+            Self::Deg90 => "90",
+            Self::Deg180 => "180",
+            Self::Deg270 => "270",
+        }
+    }
+
+    fn apply(self, delta: GridPos) -> GridPos {
+        match self {
+            Self::Deg0 => delta,
+            Self::Deg90 => GridPos::new(delta.y, -delta.x),
+            Self::Deg180 => GridPos::new(-delta.x, -delta.y),
+            Self::Deg270 => GridPos::new(-delta.y, delta.x),
+        }
+    }
+}
+
+/// Component mirroring across an axis.
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+pub enum Mirror {
+    #[default]
+    None,
+    Horizontal,
+    Vertical,
+}
+
+impl Mirror {
+    /// Returns the next mirror mode.
+    #[must_use]
+    pub const fn next(self) -> Self {
+        match self {
+            Self::None => Self::Horizontal,
+            Self::Horizontal => Self::Vertical,
+            Self::Vertical => Self::None,
+        }
+    }
+
+    /// Returns a human-readable label.
+    #[must_use]
+    pub const fn label(self) -> &'static str {
+        match self {
+            Self::None => "none",
+            Self::Horizontal => "horizontal",
+            Self::Vertical => "vertical",
+        }
+    }
+
+    fn apply(self, delta: GridPos) -> GridPos {
+        match self {
+            Self::None => delta,
+            Self::Horizontal => GridPos::new(-delta.x, delta.y),
+            Self::Vertical => GridPos::new(delta.x, -delta.y),
+        }
+    }
+}
+
+/// One pin on a component definition.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct PinDefinition {
+    pub name: &'static str,
+    pub number: &'static str,
+    pub offset: GridPos,
+}
+
+/// Symbol family used by the canvas renderer.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum SymbolKind {
+    Resistor,
+    Led,
+    Button,
+    Vcc,
+    Gnd,
+    Mcu,
+}
+
+/// Library category.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum Category {
+    Board,
+    Passive,
+    Power,
+}
+
+impl Category {
+    pub const ALL: [Self; 3] = [Self::Board, Self::Passive, Self::Power];
+
+    /// Returns a human-readable label.
+    #[must_use]
+    pub const fn label(self) -> &'static str {
+        match self {
+            Self::Board => "Board",
+            Self::Passive => "Passive",
+            Self::Power => "Power",
+        }
+    }
+}
+
+/// Static component definition.
+#[derive(Clone, Copy, Debug)]
+pub struct ComponentDefinition {
+    pub id: &'static str,
+    pub name: &'static str,
+    pub category: Category,
+    pub reference_prefix: &'static str,
+    pub default_value: &'static str,
+    pub size: GridSize,
+    pub pins: &'static [PinDefinition],
+    pub symbol: SymbolKind,
+}
+
+/// Stable component instance identifier.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
+pub struct ComponentId(pub u32);
+
+/// One placed component.
+#[derive(Clone, Debug)]
+pub struct ComponentInstance {
+    pub id: ComponentId,
+    pub definition: &'static str,
+    pub position: GridPos,
+    pub rotation: Rotation,
+    pub mirror: Mirror,
+    pub label: String,
+    pub value: String,
+}
+
+impl ComponentInstance {
+    /// Returns the placed body rectangle.
+    #[must_use]
+    pub fn bounds(&self, definition: &ComponentDefinition) -> GridRect {
+        GridRect::new(self.position, body_size(definition, self.rotation))
+    }
+}
+
+struct TransformTarget<'a> {
+    definition: &'a ComponentDefinition,
+    position: GridPos,
+    rotation: Rotation,
+    mirror: Mirror,
+}
+
+/// Schematic document containing components.
+#[derive(Default)]
+pub struct Document {
+    components: Vec<ComponentInstance>,
+    next_id: u32,
+}
+
+impl Document {
+    /// Creates an empty document.
+    #[must_use]
+    pub fn new() -> Self {
+        Self::default()
+    }
+
+    /// Returns all components.
+    #[must_use]
+    pub fn components(&self) -> &[ComponentInstance] {
+        &self.components
+    }
+
+    /// Finds one component by ID.
+    #[must_use]
+    pub fn component(&self, id: ComponentId) -> Option<&ComponentInstance> {
+        self.components.iter().find(|component| component.id == id)
+    }
+
+    /// Finds one component by ID for editing.
+    pub fn component_mut(&mut self, id: ComponentId) -> Option<&mut ComponentInstance> {
+        self.components
+            .iter_mut()
+            .find(|component| component.id == id)
+    }
+
+    /// Adds a component and generates its reference label.
+    pub fn add(
+        &mut self,
+        definition: &ComponentDefinition,
+        position: GridPos,
+        rotation: Rotation,
+        mirror: Mirror,
+    ) -> ComponentId {
+        let id = self.allocate_id();
+        let label = format!(
+            "{}{}",
+            definition.reference_prefix,
+            self.next_reference(definition.reference_prefix)
+        );
+        let instance = new_instance(id, definition, position, rotation, mirror, label);
+        self.components.push(instance);
+        id
+    }
+
+    /// Removes a component.
+    pub fn remove(&mut self, id: ComponentId) {
+        self.components.retain(|component| component.id != id);
+    }
+
+    /// Tests whether a definition can be placed without overlap.
+    #[must_use]
+    pub fn can_place(
+        &self,
+        library: &[ComponentDefinition],
+        definition: &ComponentDefinition,
+        position: GridPos,
+        rotation: Rotation,
+        mirror: Mirror,
+    ) -> bool {
+        !self.overlaps(library, definition, position, rotation, mirror, None)
+    }
+
+    /// Moves a component when the target does not overlap.
+    pub fn move_component(
+        &mut self,
+        library: &[ComponentDefinition],
+        id: ComponentId,
+        position: GridPos,
+    ) -> bool {
+        let Some(instance) = self.component(id) else {
+            return false;
+        };
+        let Some(definition) = find_definition(library, instance.definition) else {
+            return false;
+        };
+        let rotation = instance.rotation;
+        let mirror = instance.mirror;
+        if self.overlaps(library, definition, position, rotation, mirror, Some(id)) {
+            return false;
+        }
+        if let Some(instance) = self.component_mut(id) {
+            instance.position = position;
+        }
+        true
+    }
+
+    /// Rotates a component when the target does not overlap.
+    pub fn set_rotation(
+        &mut self,
+        library: &[ComponentDefinition],
+        id: ComponentId,
+        rotation: Rotation,
+    ) -> bool {
+        self.update_transform(library, id, rotation, None)
+    }
+
+    /// Mirrors a component when the target does not overlap.
+    pub fn set_mirror(
+        &mut self,
+        library: &[ComponentDefinition],
+        id: ComponentId,
+        mirror: Mirror,
+    ) -> bool {
+        self.update_transform(library, id, Rotation::Deg0, Some(mirror))
+    }
+
+    /// Returns the topmost component at a grid point.
+    #[must_use]
+    pub fn hit_test(&self, library: &[ComponentDefinition], point: GridPos) -> Option<ComponentId> {
+        self.components.iter().rev().find_map(|instance| {
+            let definition = find_definition(library, instance.definition)?;
+            instance
+                .bounds(definition)
+                .contains(point)
+                .then_some(instance.id)
+        })
+    }
+
+    fn update_transform(
+        &mut self,
+        library: &[ComponentDefinition],
+        id: ComponentId,
+        rotation: Rotation,
+        mirror: Option<Mirror>,
+    ) -> bool {
+        let Some(target) = self.transform_target(library, id, rotation, mirror) else {
+            return false;
+        };
+        if !self.transform_allowed(library, &target, id) {
+            return false;
+        }
+        self.apply_transform(id, target.rotation, target.mirror)
+    }
+
+    fn transform_allowed(
+        &self,
+        library: &[ComponentDefinition],
+        target: &TransformTarget<'_>,
+        id: ComponentId,
+    ) -> bool {
+        !self.overlaps(
+            library,
+            target.definition,
+            target.position,
+            target.rotation,
+            target.mirror,
+            Some(id),
+        )
+    }
+
+    fn transform_target<'a>(
+        &'a self,
+        library: &'a [ComponentDefinition],
+        id: ComponentId,
+        rotation: Rotation,
+        mirror: Option<Mirror>,
+    ) -> Option<TransformTarget<'a>> {
+        let instance = self.component(id)?;
+        let definition = find_definition(library, instance.definition)?;
+        let next_rotation = mirror.map_or(rotation, |_| instance.rotation);
+        Some(TransformTarget {
+            definition,
+            position: instance.position,
+            rotation: next_rotation,
+            mirror: mirror.unwrap_or(instance.mirror),
+        })
+    }
+
+    fn apply_transform(&mut self, id: ComponentId, rotation: Rotation, mirror: Mirror) -> bool {
+        let Some(instance) = self.component_mut(id) else {
+            return false;
+        };
+        instance.rotation = rotation;
+        instance.mirror = mirror;
+        true
+    }
+
+    fn overlaps(
+        &self,
+        library: &[ComponentDefinition],
+        definition: &ComponentDefinition,
+        position: GridPos,
+        rotation: Rotation,
+        mirror: Mirror,
+        ignore: Option<ComponentId>,
+    ) -> bool {
+        let _ = mirror;
+        let candidate = GridRect::new(position, body_size(definition, rotation));
+        self.components.iter().any(|instance| {
+            if Some(instance.id) == ignore {
+                return false;
+            }
+            let Some(existing) = find_definition(library, instance.definition) else {
+                return false;
+            };
+            candidate.intersects(instance.bounds(existing))
+        })
+    }
+
+    fn allocate_id(&mut self) -> ComponentId {
+        let id = ComponentId(self.next_id);
+        self.next_id += 1;
+        id
+    }
+
+    fn next_reference(&self, prefix: &str) -> usize {
+        self.components
+            .iter()
+            .filter(|component| component.label.starts_with(prefix))
+            .count()
+            + 1
+    }
+}
+
+fn new_instance(
+    id: ComponentId,
+    definition: &ComponentDefinition,
+    position: GridPos,
+    rotation: Rotation,
+    mirror: Mirror,
+    label: String,
+) -> ComponentInstance {
+    ComponentInstance {
+        id,
+        definition: definition.id,
+        position,
+        rotation,
+        mirror,
+        label,
+        value: definition.default_value.to_string(),
+    }
+}
+
+/// Returns the body size after rotation.
+#[must_use]
+pub fn body_size(definition: &ComponentDefinition, rotation: Rotation) -> GridSize {
+    match rotation {
+        Rotation::Deg0 | Rotation::Deg180 => definition.size,
+        Rotation::Deg90 | Rotation::Deg270 => definition.size.swapped(),
+    }
+}
+
+/// Returns a pin position in world grid coordinates.
+#[must_use]
+pub fn world_pin(
+    instance: &ComponentInstance,
+    definition: &ComponentDefinition,
+    pin: &PinDefinition,
+) -> GridPos {
+    instance.position.offset(transform_point(
+        definition,
+        pin.offset,
+        instance.rotation,
+        instance.mirror,
+    ))
+}
+
+/// Returns the outward direction of a pin in world grid units.
+#[must_use]
+pub fn pin_direction(
+    definition: &ComponentDefinition,
+    pin: &PinDefinition,
+    rotation: Rotation,
+    mirror: Mirror,
+) -> GridPos {
+    let delta = outward_delta(definition, pin.offset);
+    let mirrored = mirror.apply(delta);
+    rotation.apply(mirrored)
+}
+
+fn outward_delta(definition: &ComponentDefinition, offset: GridPos) -> GridPos {
+    if offset.x == 0 {
+        GridPos::new(-1, 0)
+    } else if offset.x == definition.size.width {
+        GridPos::new(1, 0)
+    } else if offset.y == 0 {
+        GridPos::new(0, -1)
+    } else {
+        GridPos::new(0, 1)
+    }
+}
+
+fn transform_point(
+    definition: &ComponentDefinition,
+    point: GridPos,
+    rotation: Rotation,
+    mirror: Mirror,
+) -> GridPos {
+    let min = transform_min(definition, rotation, mirror);
+    let raw = transform_raw(definition, point, rotation, mirror);
+    raw.subtract(min)
+}
+
+fn transform_min(definition: &ComponentDefinition, rotation: Rotation, mirror: Mirror) -> GridPos {
+    let width = definition.size.width;
+    let height = definition.size.height;
+    let corners = [
+        GridPos::new(0, 0),
+        GridPos::new(width, 0),
+        GridPos::new(0, height),
+        GridPos::new(width, height),
+    ];
+    let mut min_x = i32::MAX;
+    let mut min_y = i32::MAX;
+    for corner in corners {
+        let raw = transform_raw(definition, corner, rotation, mirror);
+        min_x = min_x.min(raw.x);
+        min_y = min_y.min(raw.y);
+    }
+    GridPos::new(min_x, min_y)
+}
+
+fn transform_raw(
+    definition: &ComponentDefinition,
+    point: GridPos,
+    rotation: Rotation,
+    mirror: Mirror,
+) -> GridPos {
+    let center = GridPos::new(definition.size.width / 2, definition.size.height / 2);
+    let delta = point.subtract(center);
+    let mirrored = mirror.apply(delta);
+    let rotated = rotation.apply(mirrored);
+    center.offset(rotated)
+}
+
+/// Looks up a definition by ID.
+#[must_use]
+pub fn find_definition<'a>(
+    library: &'a [ComponentDefinition],
+    id: &str,
+) -> Option<&'a ComponentDefinition> {
+    library.iter().find(|definition| definition.id == id)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::{
+        ComponentDefinition, Document, GridPos, GridSize, Mirror, PinDefinition, Rotation,
+        SymbolKind, body_size, world_pin,
+    };
+
+    const PINS: &[PinDefinition] = &[
+        PinDefinition {
+            name: "1",
+            number: "1",
+            offset: GridPos::new(0, 1),
+        },
+        PinDefinition {
+            name: "2",
+            number: "2",
+            offset: GridPos::new(4, 1),
+        },
+    ];
+
+    const RESISTOR: ComponentDefinition = ComponentDefinition {
+        id: "resistor",
+        name: "Resistor",
+        category: super::Category::Passive,
+        reference_prefix: "R",
+        default_value: "220",
+        size: GridSize::new(4, 2),
+        pins: PINS,
+        symbol: SymbolKind::Resistor,
+    };
+
+    const LIBRARY: &[ComponentDefinition] = &[RESISTOR];
+
+    #[test]
+    fn rotation_swaps_body_size() {
+        assert_eq!(body_size(&RESISTOR, Rotation::Deg0).width, 4);
+        assert_eq!(body_size(&RESISTOR, Rotation::Deg90).width, 2);
+        assert_eq!(body_size(&RESISTOR, Rotation::Deg90).height, 4);
+    }
+
+    #[test]
+    fn pins_stay_on_grid_after_transform() {
+        for rotation in [
+            Rotation::Deg0,
+            Rotation::Deg90,
+            Rotation::Deg180,
+            Rotation::Deg270,
+        ] {
+            for mirror in [Mirror::None, Mirror::Horizontal, Mirror::Vertical] {
+                let mut document = Document::new();
+                let id = document.add(&RESISTOR, GridPos::new(10, 10), rotation, mirror);
+                let instance = document.component(id).expect("instance");
+                for pin in PINS {
+                    let position = world_pin(instance, &RESISTOR, pin);
+                    assert!(position.x >= 10 && position.x <= 14);
+                    assert!(position.y >= 10 && position.y <= 14);
+                }
+            }
+        }
+    }
+
+    #[test]
+    fn overlap_rejects_interior_and_allows_touching_edge() {
+        let mut document = Document::new();
+        document.add(&RESISTOR, GridPos::new(0, 0), Rotation::Deg0, Mirror::None);
+        assert!(!document.can_place(
+            LIBRARY,
+            &RESISTOR,
+            GridPos::new(3, 0),
+            Rotation::Deg0,
+            Mirror::None
+        ));
+        assert!(document.can_place(
+            LIBRARY,
+            &RESISTOR,
+            GridPos::new(4, 0),
+            Rotation::Deg0,
+            Mirror::None
+        ));
+    }
+
+    #[test]
+    fn add_generates_unique_labels() {
+        let mut document = Document::new();
+        let first = document.add(&RESISTOR, GridPos::new(0, 0), Rotation::Deg0, Mirror::None);
+        let second = document.add(&RESISTOR, GridPos::new(5, 0), Rotation::Deg0, Mirror::None);
+        assert_eq!(document.component(first).expect("first").label, "R1");
+        assert_eq!(document.component(second).expect("second").label, "R2");
+    }
+
+    #[test]
+    fn hit_test_finds_topmost_component() {
+        let mut document = Document::new();
+        let id = document.add(&RESISTOR, GridPos::new(0, 0), Rotation::Deg0, Mirror::None);
+        assert_eq!(document.hit_test(LIBRARY, GridPos::new(2, 1)), Some(id));
+        assert_eq!(document.hit_test(LIBRARY, GridPos::new(10, 10)), None);
+    }
+}

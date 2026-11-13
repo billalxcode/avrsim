@@ -113,19 +113,19 @@ pan dan zoom stabil, dan area canvas mendominasi layout.
 ## G2 - Model Dokumen dan Library
 
 - [ ] G2-01 Definisikan tipe dokumen: komponen, pin, kabel, net, junction.
-- [ ] G2-02 Definisikan metadata library: simbol vektor datar, pin, parameter, probe.
-- [ ] G2-03 Buat library awal: ATmega328P, board Arduino, passive, LED, button, VCC, GND.
-- [ ] G2-04 Buat library sheet dengan pencarian dan kategori.
+- [x] G2-02 Definisikan metadata library: simbol vektor datar, pin, parameter, probe.
+- [x] G2-03 Buat library awal: ATmega328P, board Arduino, passive, LED, button, VCC, GND.
+- [x] G2-04 Buat library sheet dengan pencarian dan kategori.
 - [ ] G2-05 Buat preview simbol dan recently used.
 - [ ] G2-06 Implementasikan ghost placement, klik, dan drag-and-drop.
-- [ ] G2-07 Implementasikan move, rotate, dan mirror di grid dengan pusat rotasi.
-- [ ] G2-08 Implementasikan selection dan inspector dasar.
-- [ ] G2-09 Test transformasi pin, tabrakan, dan model dokumen.
+- [x] G2-07 Implementasikan move, rotate, dan mirror di grid dengan pusat rotasi.
+- [x] G2-08 Implementasikan selection dan inspector dasar.
+- [x] G2-09 Test transformasi pin, tabrakan, dan model dokumen.
 - [ ] G2-10 Definisikan trait internal `ComponentProvider` untuk plugin komponen.
-- [ ] G2-11 Tampilkan label referensi dan nilai komponen secara default.
-- [ ] G2-12 Simpan definisi library sebagai kode Rust internal.
+- [x] G2-11 Tampilkan label referensi dan nilai komponen secara default.
+- [x] G2-12 Simpan definisi library sebagai kode Rust internal.
 - [ ] G2-13 Terapkan snap selalu aktif dan Alt menonaktifkan sementara.
-- [ ] G2-14 Tolak penempatan komponen yang saling menimpa.
+- [x] G2-14 Tolak penempatan komponen yang saling menimpa.
 
 **Acceptance G2:** pengguna dapat memilih komponen dari library,
 menempatkannya di grid, memindahkan, memutar, dan mencerminkannya.

@@ -2,7 +2,7 @@
 
 Pintu masuk dokumentasi `embed-emulation` versi 0.1.0.
 
-**Status saat ini:** 557 test lulus, 8 crate, crate simulasi zero external
+**Status saat ini:** 567 test lulus, 8 crate, crate simulasi zero external
 dependency Rust. Dependensi GUI dibatasi pada daftar yang disetujui di
 `AGENTS.md`. Tag `v0.1` tersedia.
 
@@ -159,7 +159,7 @@ Setiap dokumen muncul satu kali pada peta ini.
 |---|---|
 | Versi workspace | `0.1.0` |
 | Tag | `v0.1` |
-| Test | 557 lulus |
+| Test | 567 lulus |
 | Crate | 7 |
 | Dependensi eksternal | 0 |
 | `unsafe` | Dilarang di seluruh workspace |
@@ -181,8 +181,8 @@ Setiap dokumen muncul satu kali pada peta ini.
 | `sim-avr` | 215 |
 | `sim-board` | 23 |
 | `sim-cli` | 26 |
-| `sim-gui` | 4 |
-| **Total** | **557** |
+| `sim-gui` | 14 |
+| **Total** | **567** |
 
 ---
 
