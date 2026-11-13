@@ -11,8 +11,9 @@ selection wire, delete wire, segment drag, saran jalur L, saran jalur Z, save/lo
 JSON, undo/redo, autosave, backup, recent files, konfigurasi XDG,
 deteksi perubahan file eksternal, label net, legenda warna, command
 palette, multi-select, selection box, copy/paste/duplicate, rotate/mirror
-grup, context menu, simulasi PB5, dan waveform digital awal juga sudah
-ada. Probe generik, UART di GUI, dan grafik analog belum ada. Dependensi
+grup, context menu, monitor UART TX, simulasi PB5, dan waveform digital
+awal juga sudah ada. Probe generik, UART input ke simulasi, dan grafik
+analog belum ada. Dependensi
 GUI yang disetujui hanya untuk crate `sim-gui`: `egui`, `eframe`,
 `serde`, `serde_json`, `rfd`, dan `png`. `egui_plot`,
 `libloading`, dan crate lain tidak diizinkan tanpa keputusan baru.
@@ -435,6 +436,7 @@ Aturan:
 ### 9.1 Kontrol
 
 - Run, pause, step one instruction, reset.
+- Monitor UART menampilkan byte TX dari CPU, buffer 16 KiB, dan auto-scroll.
 - Simulation time dan cycle count terlihat di status bar.
 - Speed target dalam cycle per frame, bukan klaim real-time.
 - Status menunjukkan apakah simulasi tertinggal dari target.

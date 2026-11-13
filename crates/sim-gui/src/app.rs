@@ -14,6 +14,7 @@ use crate::persist;
 use crate::scene::{self, Scene};
 use crate::selection::Selection;
 use crate::sim::{self, Event, Sample, SimHandle, Status, Waveform};
+use crate::uart::UartLog;
 use eframe::egui;
 use std::collections::VecDeque;
 use std::path::{Path, PathBuf};
@@ -142,6 +143,8 @@ pub struct GuiApp {
     sim_status: Status,
     waveform: Waveform,
     waveform_open: bool,
+    uart: UartLog,
+    uart_open: bool,
     config: config::AppConfig,
     config_path: Option<PathBuf>,
     dirty: bool,
@@ -184,6 +187,7 @@ impl eframe::App for GuiApp {
         self.inspector_window(ui);
         self.legend_window(ui);
         self.waveform_window(ui);
+        self.uart_window(ui);
         self.show_context_menu(ui);
         self.command_palette(ui);
         self.conflict_modal(ui);
@@ -282,6 +286,7 @@ impl GuiApp {
             .clicked();
         let reset = ui.add_enabled(loaded, egui::Button::new("Reset")).clicked();
         ui.checkbox(&mut self.waveform_open, "Wave");
+        ui.checkbox(&mut self.uart_open, "UART");
         if run {
             self.toggle_run();
         }
@@ -501,6 +506,7 @@ impl GuiApp {
         match sim.load(words) {
             Ok(()) => {
                 self.waveform.clear();
+                self.uart.clear();
                 self.waveform_open = true;
                 self.message = format!("Firmware {name}");
             }
@@ -533,6 +539,7 @@ impl GuiApp {
         }
         if action == SimAction::Reset {
             self.waveform.clear();
+            self.uart.clear();
         }
     }
 
@@ -547,6 +554,8 @@ impl GuiApp {
         match event {
             Event::Status(status) => self.sim_status = status,
             Event::Sample(sample) => self.waveform.push(sample),
+            Event::Uart(data) => self.uart.push(&data),
+            Event::UartCleared => self.uart.clear(),
             Event::Error(error) => {
                 self.sim_status.running = false;
                 self.message = error;
@@ -1326,6 +1335,7 @@ impl GuiApp {
             Command::ToggleInspector => self.inspector_open = !self.inspector_open,
             Command::ToggleLegend => self.legend_open = !self.legend_open,
             Command::ToggleWaveform => self.waveform_open = !self.waveform_open,
+            Command::ToggleUart => self.uart_open = !self.uart_open,
             Command::ZoomReset => self.camera.zoom = 1.0,
             Command::SelectTool => self.set_tool(Tool::Select),
             Command::WireTool => self.set_tool(Tool::Wire),
@@ -1397,6 +1407,24 @@ impl GuiApp {
         self.inspector_open = open;
         if let Some(action) = action {
             self.apply_inspector(action);
+        }
+    }
+
+    fn uart_window(&mut self, ui: &mut egui::Ui) {
+        if !self.uart_open {
+            return;
+        }
+        let mut open = self.uart_open;
+        let mut clear = false;
+        egui::Window::new("UART monitor")
+            .open(&mut open)
+            .default_size([420.0, 220.0])
+            .show(ui.ctx(), |ui| {
+                show_uart_contents(ui, &self.uart, &mut clear);
+            });
+        self.uart_open = open;
+        if clear {
+            self.uart.clear();
         }
     }
 
@@ -2004,6 +2032,29 @@ fn show_net_legend(ui: &mut egui::Ui) {
             ui.label(class.label());
         });
     }
+}
+
+fn show_uart_contents(ui: &mut egui::Ui, log: &UartLog, clear: &mut bool) {
+    ui.horizontal(|ui| {
+        if ui.button("Clear").clicked() {
+            *clear = true;
+        }
+        ui.label(format!("{} bytes", log.len()));
+    });
+    egui::ScrollArea::vertical()
+        .stick_to_bottom(true)
+        .show(ui, |ui| {
+            show_uart_text(ui, log.text());
+        });
+}
+
+fn show_uart_text(ui: &mut egui::Ui, text: &str) {
+    if text.is_empty() {
+        ui.label("No UART output");
+        return;
+    }
+    let label = egui::RichText::new(text).monospace();
+    ui.add(egui::Label::new(label).wrap());
 }
 
 fn show_waveform(ui: &mut egui::Ui, waveform: &Waveform, current: u64, led_on: bool) {

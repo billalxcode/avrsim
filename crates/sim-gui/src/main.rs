@@ -12,6 +12,7 @@ mod persist;
 mod scene;
 mod selection;
 mod sim;
+mod uart;
 
 use app::GuiApp;
 

@@ -82,6 +82,8 @@ pub enum Command {
 pub enum Event {
     Status(Status),
     Sample(Sample),
+    Uart(Vec<u8>),
+    UartCleared,
     Error(String),
 }
 
@@ -199,6 +201,7 @@ struct SimMachine {
     board: Board,
     config: PinElectricalConfig,
     led_on: bool,
+    uart_bytes: Vec<u8>,
 }
 
 impl SimMachine {
@@ -209,6 +212,7 @@ impl SimMachine {
             board: Board::new(),
             config: PinElectricalConfig::default(),
             led_on: false,
+            uart_bytes: Vec::new(),
         })
     }
 
@@ -218,6 +222,7 @@ impl SimMachine {
             return Ok(false);
         }
         self.update_board()?;
+        self.update_uart();
         Ok(true)
     }
 
@@ -231,10 +236,21 @@ impl SimMachine {
         Ok(())
     }
 
+    fn update_uart(&mut self) {
+        while let Some(byte) = self.cpu.uart().take_tx_byte() {
+            self.uart_bytes.push(byte);
+        }
+    }
+
+    fn take_uart(&mut self) -> Vec<u8> {
+        std::mem::take(&mut self.uart_bytes)
+    }
+
     fn reset(&mut self) -> Result<(), String> {
         self.cpu.reset().map_err(|error| error.to_string())?;
         self.board.set_pb5(false);
         self.led_on = false;
+        self.uart_bytes.clear();
         Ok(())
     }
 
@@ -324,6 +340,7 @@ fn load_machine(
         Ok(next) => {
             *last_led = next.led_on;
             *machine = Some(next);
+            let _ = events.send(Event::UartCleared);
             send_sample(0, *last_led, events);
         }
         Err(error) => {
@@ -355,6 +372,7 @@ fn step_once(
                 let _ = events.send(Event::Error(error));
             }
         }
+        send_uart(machine, events);
     }
     send_status(machine, false, events);
 }
@@ -370,6 +388,7 @@ fn reset_machine(
         match machine.reset() {
             Ok(()) => {
                 *last_led = false;
+                let _ = events.send(Event::UartCleared);
                 send_sample(0, false, events);
             }
             Err(error) => {
@@ -408,7 +427,15 @@ fn step_chunk(
             send_sample(current.cycles(), current.led_on, events);
         }
     }
+    send_uart(current, events);
     send_status(machine, *running, events);
+}
+
+fn send_uart(machine: &mut SimMachine, events: &Sender<Event>) {
+    let bytes = machine.take_uart();
+    if !bytes.is_empty() {
+        let _ = events.send(Event::Uart(bytes));
+    }
 }
 
 fn send_status(machine: &Option<SimMachine>, running: bool, events: &Sender<Event>) {
@@ -436,6 +463,17 @@ mod tests {
         vec![
             0xE200, 0xB904, 0xB905, 0xEF1F, 0x951A, 0xF7F1, 0xE220, 0x2702, 0xCFF9,
         ]
+    }
+
+    #[test]
+    fn uart_tx_bytes_are_collected() {
+        let mut machine = SimMachine::new(blink_program()).expect("machine");
+        machine.cpu.uart().write_control(1, 0x08);
+        machine.cpu.uart().write_tx(b'A');
+        machine.cpu.uart().tick(200);
+        machine.update_uart();
+        assert_eq!(machine.take_uart(), vec![b'A']);
+        assert!(machine.take_uart().is_empty());
     }
 
     #[test]

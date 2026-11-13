@@ -20,6 +20,7 @@ pub enum Command {
     ToggleInspector,
     ToggleLegend,
     ToggleWaveform,
+    ToggleUart,
     ZoomReset,
     SelectTool,
     WireTool,
@@ -27,7 +28,7 @@ pub enum Command {
 
 impl Command {
     /// All commands shown by the palette.
-    pub const ALL: [Self; 20] = [
+    pub const ALL: [Self; 21] = [
         Self::Save,
         Self::Open,
         Self::LoadHex,
@@ -45,6 +46,7 @@ impl Command {
         Self::ToggleInspector,
         Self::ToggleLegend,
         Self::ToggleWaveform,
+        Self::ToggleUart,
         Self::ZoomReset,
         Self::SelectTool,
         Self::WireTool,
@@ -94,6 +96,7 @@ impl Command {
             Self::ToggleInspector => "Toggle inspector",
             Self::ToggleLegend => "Toggle net legend",
             Self::ToggleWaveform => "Toggle waveform",
+            Self::ToggleUart => "Toggle UART monitor",
             Self::ZoomReset => "Reset zoom",
             Self::SelectTool => "Select tool",
             Self::WireTool => "Wire tool",

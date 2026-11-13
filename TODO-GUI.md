@@ -202,6 +202,7 @@ fungsi net, dan persilangan tidak menimbulkan koneksi palsu.
 - [x] G6-07 Test integrasi ATmega328P dan LED.
 - [ ] G6-08 Evaluasi ekstraksi runtime bersama dengan `sim-cli`.
 - [ ] G6-09 Implementasikan sampling probe setiap N cycle yang dapat dikonfigurasi.
+- [x] G6-10 Tampilkan output UART TX di monitor GUI.
 
 **Acceptance G6:** sketsa blink dan UART hello dapat dijalankan, dijeda,
 dan dilangkah dari GUI.
