@@ -1,0 +1,7 @@
+[Desktop Entry]
+Type=Application
+Name=embed-emu GUI
+Comment=AVR schematic simulator
+Exec=embed-emu-gui
+Terminal=false
+Categories=Development;Electronics;

@@ -172,7 +172,7 @@ I = max(V - Vf, 0) / R
 
 Total test `sim-avr`: 215.
 Total test `sim-board`: 23.
-Total workspace: 653.
+Total workspace: 654.
 
 ---
 

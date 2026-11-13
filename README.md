@@ -4,7 +4,7 @@
 yang memodelkan transistor, gerbang CMOS, CPU AVR, peripheral, dan board,
 serta mampu menjalankan firmware AVR.
 
-> **Status v0.1:** 653 test lulus, 8 crate, crate simulasi zero external
+> **Status v0.1:** 654 test lulus, 8 crate, crate simulasi zero external
 > dependency; dependensi GUI dibatasi pada daftar yang disetujui di
 > `AGENTS.md`.
 > Tag `v0.1` tersedia. Archive Linux ada di
@@ -12,6 +12,7 @@ serta mampu menjalankan firmware AVR.
 
 Dokumentasi lengkap: [`docs/README.md`](docs/README.md).
 Panduan pengguna: [`docs/43-user-guide.md`](docs/43-user-guide.md).
+Panduan GUI: [`docs/58-gui-user-guide.md`](docs/58-gui-user-guide.md).
 Fidelity dan batasan: [`docs/24-fidelity.md`](docs/24-fidelity.md).
 
 ---
@@ -138,6 +139,7 @@ Dokumen yang sering dipakai:
 | [`docs/29-ac.md`](docs/29-ac.md) | AC small-signal |
 | [`docs/53-release-notes.md`](docs/53-release-notes.md) | Isi rilis v0.1 |
 | [`docs/57-gui-egui.md`](docs/57-gui-egui.md) | Desain GUI egui dan kanvas CAD |
+| [`docs/58-gui-user-guide.md`](docs/58-gui-user-guide.md) | Panduan pengguna GUI |
 | [`TODO.md`](TODO.md) | Pekerjaan yang tersisa |
 | [`TODO-GUI.md`](TODO-GUI.md) | Backlog GUI egui |
 
@@ -147,12 +149,14 @@ Dokumen yang sering dipakai:
 
 Sudah:
 
-- 653 test workspace.
+- 654 test workspace.
 - fmt, clippy, test, dan build release lulus.
 - Paket Linux dapat dibuat.
 - Determinisme Linux diuji.
 - Firmware `avr-gcc` bare-metal dan sketsa Arduino core
   `Serial.println("Hello World")` berjalan.
+- GUI egui untuk editing skematik, simulasi PB5, monitor UART TX,
+  graph digital, minimap, dan export PNG.
 
 Belum:
 
@@ -160,7 +164,7 @@ Belum:
 - Upload dan Serial Monitor dari GUI Arduino IDE.
 - Determinisme macOS dan Windows.
 - Eksekusi GitHub Actions.
-- Probe generik, monitor UART di GUI, dan grafik analog.
+- Probe generik dan grafik analog.
 - Parser netlist SPICE.
 
 Model device memakai Level 1 atau model sederhana. Rincian ada di

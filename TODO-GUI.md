@@ -271,7 +271,7 @@ data, dan semua aksi editing dapat di-undo.
 - [ ] G9-04 Tambahkan navigasi keyboard dan fokus yang jelas.
 - [x] G9-05 Audit palet warna dan kontras.
 - [ ] G9-06 Tambahkan interaction test dengan `egui::Context`.
-- [ ] G9-07 Tulis user guide GUI dan screenshot.
+- [x] G9-07 Tulis user guide GUI dan screenshot.
 - [x] G9-08 Implementasikan export PNG melalui crate `png`.
 - [ ] G9-09 Tambahkan golden image RGBA snapshot.
 - [ ] G9-10 Lengkapi test model, interaction, integrasi, dan visual.
@@ -287,11 +287,11 @@ keyboard, dan tidak ada panic pada input tidak valid.
 
 ## G10 - Release GUI
 
-- [ ] G10-01 Buat paket Linux dan desktop entry.
-- [ ] G10-02 Verifikasi build Windows.
-- [ ] G10-03 Verifikasi build macOS.
-- [ ] G10-04 Buat contoh proyek: LED blink dan UART hello.
-- [ ] G10-05 Perbarui README, docs, dan TODO.
+- [x] G10-01 Buat paket Linux dan desktop entry.
+- [ ] G10-02 Verifikasi build Windows (perlu native runner).
+- [ ] G10-03 Verifikasi build macOS (perlu native runner).
+- [x] G10-04 Buat contoh proyek: LED blink dan UART hello.
+- [x] G10-05 Perbarui README, docs, dan TODO.
 - [ ] G10-06 Tag preview GUI.
 
 **Acceptance G10:** binary GUI dapat dijalankan di Linux, contoh proyek

@@ -1,0 +1,66 @@
+{
+  "format": "embed-emu-gui",
+  "version": 1,
+  "view": {
+    "pan": [
+      0.0,
+      0.0
+    ],
+    "zoom": 1.0,
+    "grid_visible": true
+  },
+  "components": [
+    {
+      "id": 0,
+      "kind": "resistor",
+      "position": [
+        0,
+        0
+      ],
+      "rotation": "0",
+      "mirror": "none",
+      "label": "R1",
+      "value": "220"
+    },
+    {
+      "id": 1,
+      "kind": "led",
+      "position": [
+        6,
+        0
+      ],
+      "rotation": "0",
+      "mirror": "none",
+      "label": "D1",
+      "value": "LED"
+    },
+    {
+      "id": 2,
+      "kind": "button",
+      "position": [
+        0,
+        6
+      ],
+      "rotation": "0",
+      "mirror": "none",
+      "label": "SW1",
+      "value": "Button"
+    }
+  ],
+  "wires": [
+    {
+      "id": 0,
+      "class": "Digital",
+      "points": [
+        [
+          4,
+          1
+        ],
+        [
+          6,
+          1
+        ]
+      ]
+    }
+  ]
+}

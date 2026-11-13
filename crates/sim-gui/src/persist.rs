@@ -358,4 +358,14 @@ mod tests {
         let text = sample_text().replace("\"kind\": \"resistor\"", "\"kind\": \"missing\"");
         assert!(from_json(&text, library::builtin()).is_err());
     }
+
+    #[test]
+    fn shipped_examples_parse() {
+        for text in [
+            include_str!("../../../examples/led.emu.json"),
+            include_str!("../../../examples/uart-hello.emu.json"),
+        ] {
+            from_json(text, library::builtin()).expect("example project");
+        }
+    }
 }

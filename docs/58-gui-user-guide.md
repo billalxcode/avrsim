@@ -1,0 +1,274 @@
+# 58 - Panduan Pengguna GUI
+
+Dokumen ini menjelaskan cara memakai GUI `embed-emu-gui` untuk menggambar
+skematik, menjalankan firmware AVR, memantau UART, dan mengekspor gambar.
+
+**Status:** GUI Linux sudah dapat dipakai untuk editing dasar, simulasi
+PB5, monitor UART TX, graph digital, dan persistence proyek. Probe generik,
+grafik analog, dan input UART ke simulasi belum tersedia.
+
+---
+
+## 1. Build dan Jalankan
+
+Prasyarat:
+
+- Rust toolchain sesuai `rust-toolchain.toml`.
+- Linux desktop dengan Wayland atau X11.
+- Dependensi sistem untuk `eframe` dan `rfd`.
+
+Perintah:
+
+```bash
+cargo build -p sim-gui
+cargo run -p sim-gui
+```
+
+Binary hasil build:
+
+```text
+target/debug/embed-emu-gui
+```
+
+Release build:
+
+```bash
+cargo build --workspace --release
+```
+
+---
+
+## 2. Tata Letak
+
+- Toolbar atas: file, undo/redo, simulasi, tool, sheet, dan zoom.
+- Kanvas tengah: grid, komponen, kabel, dan minimap opsional.
+- Status bar bawah: koordinat, zoom, grid, snap, tool, seleksi, parts,
+  cycle, PB5, LED, dan FPS.
+- Library, Inspector, Legend, Digital graph, UART monitor, Log, dan
+  Command palette tampil sebagai floating window.
+- Toast singkat muncul di bawah tengah untuk status terbaru.
+
+---
+
+## 3. Mouse dan Keyboard
+
+| Input | Aksi |
+|---|---|
+| Klik kiri | Pilih komponen atau kabel |
+| Shift atau Ctrl + klik | Tambah atau lepas item dari seleksi |
+| Drag area kosong | Selection box |
+| Drag komponen terpilih | Pindahkan seluruh grup |
+| Klik kanan | Context menu |
+| Space + drag | Pan kanvas |
+| Wheel | Zoom di posisi kursor |
+| R | Rotate |
+| M | Mirror |
+| Delete | Hapus seleksi, dengan konfirmasi jika perlu |
+| Ctrl+C | Copy |
+| Ctrl+V | Paste |
+| Ctrl+D | Duplicate |
+| Ctrl+Z | Undo |
+| Ctrl+Shift+Z atau Ctrl+Y | Redo |
+| Ctrl+S | Save |
+| Ctrl+O | Open |
+| Ctrl+K | Command palette |
+| Escape | Batal tool atau tutup menu |
+| Enter | Selesai menggambar wire |
+
+---
+
+## 4. Library dan Penempatan
+
+1. Klik `Library`.
+2. Cari komponen atau pilih kategori.
+3. Klik komponen untuk masuk mode placement.
+4. Gerakkan pointer di kanvas.
+5. Klik untuk menempatkan.
+6. Tekan `R` atau `M` sebelum menempatkan untuk transform.
+7. Escape membatalkan placement.
+
+Komponen tidak boleh saling menimpa. Selalu snap ke grid.
+
+---
+
+## 5. Menggambar Kabel
+
+1. Pilih tool `Wire`.
+2. Pilih kelas net.
+3. Klik pin atau titik koneksi.
+4. Klik titik grid berikutnya.
+5. Gunakan `L-H`, `L-V`, `Z-H`, atau `Z-V` untuk saran jalur.
+6. Klik `Finish` atau tekan Enter.
+7. Escape atau `Cancel` membatalkan.
+
+Aturan:
+
+- Semua segmen ortogonal.
+- Satu edge grid hanya untuk satu kabel.
+- Kabel tidak boleh menembus body komponen.
+- Persilangan tanpa junction ditolak.
+- Ujung kabel harus pin, junction, atau vertex kabel.
+
+Warna dan pola garis mengikuti kelas net. Legenda menampilkan warna dan
+pola.
+
+---
+
+## 6. Seleksi dan Editing
+
+- Selection box memilih objek yang seluruhnya berada di dalam kotak.
+- Inspector menampilkan properti satu objek atau ringkasan multi-select.
+- Rotate dan mirror berlaku untuk seluruh komponen terpilih.
+- Copy dan paste mempertahankan posisi relatif, nilai, rotasi, dan mirror.
+- Label komponen hasil paste dibuat baru.
+- Wire internal ikut disalin jika pin tujuan valid.
+- Align dan distribute tersedia melalui command palette.
+- Undo menyimpan hingga 100 langkah.
+
+Paste memakai posisi pointer. Jika pointer tepat di origin clipboard,
+offset menjadi `+2,+2`. Duplicate selalu memakai offset `+2,+2`.
+
+---
+
+## 7. Simulasi
+
+Kontrol:
+
+- `Load HEX`: memuat firmware Intel HEX.
+- `Run` atau `Pause`.
+- `Step`: satu instruksi.
+- `Reset`: cycle, waveform, dan UART dikosongkan.
+- `Wave`: membuka graph digital.
+- `UART`: membuka monitor TX.
+
+Graph digital menampilkan lane PB5 dan LED pada sumbu cycle. Arahkan
+pointer ke graph untuk melihat cursor dan nilai pada cycle tersebut.
+
+Monitor UART menampilkan byte TX sebagai UTF-8 lossy, dengan buffer 16 KiB
+dan auto-scroll.
+
+Simulasi berjalan di worker thread. Batch 100 instruksi memberi
+kesempatan GUI memproses input dan event.
+
+---
+
+## 8. Command Palette
+
+Tekan `Ctrl+K`, lalu ketik sebagian nama perintah.
+
+Contoh:
+
+- `save`, `open`, `load hex`
+- `run`, `pause`, `step`, `reset`
+- `fit`, `zoom`, `grid`, `minimap`
+- `copy`, `paste`, `duplicate`
+- `align left`, `distribute horizontally`
+- `uart`, `log`, `legend`, `wave`
+
+Gunakan panah atas dan bawah, lalu Enter. Escape menutup palette.
+
+---
+
+## 9. Proyek dan Konfigurasi
+
+Format proyek:
+
+```text
+.emu.json
+```
+
+Perilaku:
+
+- JSON pretty print 2 spasi.
+- Save atomik melalui file sementara.
+- Backup `<file>.bak` sebelum menimpa.
+- Autosave setelah 2 detik tanpa edit.
+- Autosave dan save manual ditahan jika file berubah di luar aplikasi.
+- Konflik file menampilkan pilihan `Reload` atau `Save Mine`.
+- Recent files disimpan maksimal 10.
+
+Konfigurasi:
+
+```text
+$XDG_CONFIG_HOME/embed-emu/gui.json
+```
+
+Fallback:
+
+```text
+~/.config/embed-emu/gui.json
+```
+
+---
+
+## 10. Export PNG
+
+1. Siapkan tampilan kanvas.
+2. Klik `PNG`.
+3. Pilih lokasi file.
+4. Screenshot viewport dipotong ke area kanvas dan disimpan sebagai RGBA PNG.
+
+Overlay yang sedang terbuka dapat ikut tertangkap jika menutupi kanvas.
+Tutup window yang tidak diinginkan sebelum export.
+
+---
+
+## 11. Troubleshooting
+
+### Window tidak terbuka
+
+Jalankan dari terminal untuk melihat pesan:
+
+```bash
+cargo run -p sim-gui
+```
+
+Pastikan backend grafis dan driver GPU tersedia.
+
+### Firmware tidak berjalan
+
+- Pastikan file Intel HEX valid.
+- Cek pesan error di toolbar, toast, atau Log.
+- Coba `Reset` setelah load.
+- Pastikan firmware tidak berhenti pada instruksi yang tidak didukung.
+
+### UART tidak menampilkan data
+
+- Pastikan firmware mengaktifkan transmitter UART.
+- Pastikan baud dan register UART diinisialisasi.
+- Cek monitor `UART` sudah dicentang.
+- Lihat `Log` untuk error simulasi.
+
+### File proyek berubah di luar aplikasi
+
+Modal konflik muncul. Pilih:
+
+- `Reload`: muat versi disk, edit lokal dibuang.
+- `Save Mine`: timpa file disk dengan versi GUI.
+
+### Kinerja rendah
+
+- Tutup graph atau minimap.
+- Kurangi jumlah komponen dan kabel yang terlihat.
+- Gunakan release build.
+
+---
+
+## 12. Batas Saat Ini
+
+- Probe generik per pin atau komponen belum ada.
+- Grafik analog belum ada.
+- Input UART RX dari GUI belum ada.
+- Clipboard hanya in-memory.
+- Wire tidak ikut berubah saat grup komponen ditransformasi.
+- Belum ada migrasi skema JSON lama.
+- Build Windows dan macOS belum diverifikasi.
+- Golden image test belum ada.
+
+---
+
+## 13. Referensi
+
+- `docs/57-gui-egui.md`: desain dan keputusan GUI.
+- `docs/43-user-guide.md`: panduan CLI dan simulasi.
+- `TODO-GUI.md`: backlog G0 sampai G10.
