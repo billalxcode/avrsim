@@ -99,6 +99,15 @@ pub struct CanvasState {
     pub space_down: bool,
     /// True when Shift or Ctrl is held for additive selection.
     pub multi_select: bool,
+    /// Position of a secondary click.
+    pub context_click: Option<ContextClick>,
+}
+
+/// Screen and world position of a context click.
+#[derive(Clone, Copy, Debug)]
+pub struct ContextClick {
+    pub screen: egui::Pos2,
+    pub world: egui::Pos2,
 }
 
 /// Draws the canvas and applies pan and zoom input.
@@ -143,7 +152,26 @@ fn canvas_state(
         drag_stopped: response.drag_stopped_by(egui::PointerButton::Primary),
         space_down,
         multi_select: multi_select(response),
+        context_click: context_click(response, rect, camera),
     }
+}
+
+fn context_click(
+    response: &egui::Response,
+    rect: egui::Rect,
+    camera: &GridCamera,
+) -> Option<ContextClick> {
+    let screen = interaction_screen(response)?;
+    Some(ContextClick {
+        screen,
+        world: camera.screen_to_world(rect, screen),
+    })
+}
+
+fn interaction_screen(response: &egui::Response) -> Option<egui::Pos2> {
+    response
+        .interact_pointer_pos()
+        .or_else(|| response.hover_pos())
 }
 
 fn click_world(

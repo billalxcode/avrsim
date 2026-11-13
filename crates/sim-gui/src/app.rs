@@ -66,6 +66,18 @@ enum ConflictAction {
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
+enum ContextAction {
+    Copy,
+    Paste,
+    Duplicate,
+    Delete,
+    Rotate,
+    Mirror,
+    SelectTool,
+    WireTool,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
 struct FileStamp {
     modified: Option<SystemTime>,
     len: u64,
@@ -105,6 +117,7 @@ pub struct GuiApp {
     document: Document,
     selection: Selection,
     clipboard: Clipboard,
+    context_menu: Option<egui::Pos2>,
     box_start: Option<GridPos>,
     box_current: Option<GridPos>,
     box_additive: bool,
@@ -171,6 +184,7 @@ impl eframe::App for GuiApp {
         self.inspector_window(ui);
         self.legend_window(ui);
         self.waveform_window(ui);
+        self.show_context_menu(ui);
         self.command_palette(ui);
         self.conflict_modal(ui);
     }
@@ -690,7 +704,7 @@ impl GuiApp {
         self.drag_move(&state);
         self.end_drag(&state);
         if state.secondary_clicked {
-            self.selection.clear();
+            self.open_context_menu(&state);
             return;
         }
         if !state.clicked {
@@ -723,6 +737,31 @@ impl GuiApp {
         if !additive {
             self.selection.clear();
         }
+    }
+
+    fn open_context_menu(&mut self, state: &canvas::CanvasState) {
+        let Some(click) = state.context_click else {
+            return;
+        };
+        self.select_context_target(click.world);
+        self.context_menu = Some(click.screen);
+    }
+
+    fn select_context_target(&mut self, world: egui::Pos2) {
+        let point = world_to_grid(world);
+        if let Some(id) = self.document.hit_test(self.library, point) {
+            if !self.selection.contains_component(id) {
+                self.selection.select_component(id);
+            }
+            return;
+        }
+        if let Some(id) = self.document.wire_at([world.x, world.y], 0.35) {
+            if !self.selection.contains_wire(id) {
+                self.selection.select_wire(id);
+            }
+            return;
+        }
+        self.selection.clear();
     }
 
     fn begin_drag(&mut self, state: &canvas::CanvasState) {
@@ -1125,6 +1164,49 @@ impl GuiApp {
                 show_net_legend(ui);
             });
         self.legend_open = open;
+    }
+
+    fn show_context_menu(&mut self, ui: &mut egui::Ui) {
+        let Some(position) = self.context_menu else {
+            return;
+        };
+        if self.conflict || self.palette.open {
+            self.context_menu = None;
+            return;
+        }
+        let (action, response) = show_context_area(
+            ui.ctx(),
+            position,
+            &self.selection,
+            self.clipboard.is_empty(),
+        );
+        let close = action.is_none()
+            && ui.input(|input| {
+                input.key_pressed(egui::Key::Escape)
+                    || (!input.pointer.secondary_clicked()
+                        && input.pointer.any_click()
+                        && !response.contains_pointer())
+            });
+        if close {
+            self.context_menu = None;
+        }
+        if let Some(action) = action {
+            self.context_menu = None;
+            self.run_context_action(action);
+        }
+    }
+
+    fn run_context_action(&mut self, action: ContextAction) {
+        match action {
+            ContextAction::Copy => self.copy_selection(),
+            ContextAction::Paste => self.paste_selection(),
+            ContextAction::Duplicate => self.duplicate_selection(),
+            ContextAction::Delete => self.delete_selection(),
+            ContextAction::Rotate => self.rotate(),
+            ContextAction::Mirror => self.mirror(),
+            ContextAction::SelectTool => self.set_tool(Tool::Select),
+            ContextAction::WireTool => self.set_tool(Tool::Wire),
+        }
     }
 
     fn palette_shortcut(&mut self, ui: &egui::Ui) {
@@ -1804,6 +1886,94 @@ fn file_name(path: &std::path::Path) -> String {
     )
 }
 
+fn show_context_area(
+    ctx: &egui::Context,
+    position: egui::Pos2,
+    selection: &Selection,
+    clipboard_empty: bool,
+) -> (Option<ContextAction>, egui::Response) {
+    let mut action = None;
+    let area = egui::Area::new(egui::Id::unique("canvas-context"))
+        .fixed_pos(position)
+        .order(egui::Order::Foreground)
+        .show(ctx, |ui| {
+            egui::Frame::popup(ui.style()).show(ui, |ui| {
+                ui.set_min_width(170.0);
+                context_buttons(ui, selection, clipboard_empty, &mut action);
+            });
+        });
+    (action, area.response)
+}
+
+fn context_buttons(
+    ui: &mut egui::Ui,
+    selection: &Selection,
+    clipboard_empty: bool,
+    action: &mut Option<ContextAction>,
+) {
+    context_edit_buttons(ui, selection, clipboard_empty, action);
+    ui.separator();
+    context_transform_buttons(ui, selection, action);
+    ui.separator();
+    context_tool_buttons(ui, action);
+}
+
+fn context_edit_buttons(
+    ui: &mut egui::Ui,
+    selection: &Selection,
+    clipboard_empty: bool,
+    action: &mut Option<ContextAction>,
+) {
+    let any = !selection.is_empty();
+    if ui.add_enabled(any, egui::Button::new("Copy")).clicked() {
+        *action = Some(ContextAction::Copy);
+    }
+    if ui
+        .add_enabled(!clipboard_empty, egui::Button::new("Paste"))
+        .clicked()
+    {
+        *action = Some(ContextAction::Paste);
+    }
+    if ui
+        .add_enabled(any, egui::Button::new("Duplicate"))
+        .clicked()
+    {
+        *action = Some(ContextAction::Duplicate);
+    }
+    if ui.add_enabled(any, egui::Button::new("Delete")).clicked() {
+        *action = Some(ContextAction::Delete);
+    }
+}
+
+fn context_transform_buttons(
+    ui: &mut egui::Ui,
+    selection: &Selection,
+    action: &mut Option<ContextAction>,
+) {
+    let components = !selection.components().is_empty();
+    if ui
+        .add_enabled(components, egui::Button::new("Rotate"))
+        .clicked()
+    {
+        *action = Some(ContextAction::Rotate);
+    }
+    if ui
+        .add_enabled(components, egui::Button::new("Mirror"))
+        .clicked()
+    {
+        *action = Some(ContextAction::Mirror);
+    }
+}
+
+fn context_tool_buttons(ui: &mut egui::Ui, action: &mut Option<ContextAction>) {
+    if ui.button("Select tool").clicked() {
+        *action = Some(ContextAction::SelectTool);
+    }
+    if ui.button("Wire tool").clicked() {
+        *action = Some(ContextAction::WireTool);
+    }
+}
+
 fn palette_list(
     ui: &mut egui::Ui,
     running: bool,
@@ -1963,7 +2133,7 @@ mod tests {
     };
     use crate::canvas::GridCamera;
     use crate::model::{
-        ComponentDefinition, Document, GridPos, Mirror, NetClass, Rotation, WireId,
+        ComponentDefinition, ComponentId, Document, GridPos, Mirror, NetClass, Rotation, WireId,
     };
     use crate::persist;
     use std::path::{Path, PathBuf};
@@ -2089,6 +2259,56 @@ mod tests {
         assert_eq!(app.document.components().len(), 2);
         assert_eq!(app.selection.components().len(), 1);
         assert_ne!(app.selection.single_component(), Some(first));
+    }
+
+    fn context_click(
+        world: eframe::egui::Pos2,
+        screen: eframe::egui::Pos2,
+    ) -> crate::canvas::CanvasState {
+        crate::canvas::CanvasState {
+            context_click: Some(crate::canvas::ContextClick { screen, world }),
+            ..Default::default()
+        }
+    }
+
+    fn context_app() -> (GuiApp, ComponentId, ComponentId) {
+        let library = crate::library::builtin();
+        let resistor = crate::library::find("resistor").expect("resistor");
+        let mut document = Document::new();
+        let first = document.add(resistor, GridPos::new(0, 0), Rotation::Deg0, Mirror::None);
+        let second = document.add(resistor, GridPos::new(6, 0), Rotation::Deg0, Mirror::None);
+        (
+            GuiApp {
+                library,
+                document,
+                ..GuiApp::default()
+            },
+            first,
+            second,
+        )
+    }
+
+    #[test]
+    fn context_click_selects_target() {
+        let (mut app, first, second) = context_app();
+        app.selection.select_component(second);
+        app.open_context_menu(&context_click(
+            eframe::egui::pos2(1.0, 1.0),
+            eframe::egui::pos2(10.0, 10.0),
+        ));
+        assert_eq!(app.selection.single_component(), Some(first));
+        assert_eq!(app.context_menu, Some(eframe::egui::pos2(10.0, 10.0)));
+    }
+
+    #[test]
+    fn context_click_empty_clears() {
+        let (mut app, first, _) = context_app();
+        app.selection.select_component(first);
+        app.open_context_menu(&context_click(
+            eframe::egui::pos2(30.0, 30.0),
+            eframe::egui::pos2(20.0, 20.0),
+        ));
+        assert!(app.selection.is_empty());
     }
 
     #[test]

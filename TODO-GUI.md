@@ -241,7 +241,8 @@ melihat sinyal digital dan analog, serta memeriksa nilai pada cursor.
 - [x] G8-06 Implementasikan load, validasi, dan round-trip.
 - [x] G8-07 Implementasikan autosave debounce 2 detik, backup, 10 recent files, dan `rfd`.
 - [x] G8-08 Implementasikan command palette Ctrl+K.
-- [ ] G8-20 Implementasikan context menu lengkap.
+- [x] G8-20 Implementasikan context menu dasar untuk edit dan tool.
+- [ ] G8-22 Lengkapi context menu properties, net, dan graph.
 - [x] G8-21 Implementasikan rotate dan mirror untuk seluruh seleksi.
 - [x] G8-09 Test undo/redo dan persistence.
 - [x] G8-10 Kelompokkan undo per aksi drag atau klik.
