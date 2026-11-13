@@ -52,6 +52,13 @@ Backlog eksekusi untuk GUI interaktif berbasis `egui`/`eframe`.
 - Plugin dua trait internal, probe analog read-only.
 - Satu proyek per window, prompt reload saat file berubah.
 - Library komponen berupa kode Rust internal.
+- Multi-select dipindahkan bersama.
+- Snap selalu aktif, Alt menonaktifkan sementara.
+- Overlap komponen ditolak.
+- Selection box memakai full containment.
+- Zoom berpusat di kursor.
+- Font UI monospace.
+- Minimap di kanan bawah, default tersembunyi.
 
 ---
 
@@ -92,8 +99,11 @@ membangun crate, dan tidak ada dependensi eksternal di luar daftar
 - [ ] G1-08 Tampilkan koordinat grid dan status snap di status bar.
 - [ ] G1-09 Tambahkan tema gelap, terang, high-DPI, dan aksen cyan.
 - [ ] G1-10 Test transformasi, zoom, snap, dan culling.
-- [ ] G1-11 Implementasikan minimap opsional.
+- [ ] G1-11 Implementasikan minimap opsional di kanan bawah.
 - [ ] G1-12 Terapkan latar dark dotted dan toolbar ikon serta teks.
+- [ ] G1-13 Tampilkan koordinat, zoom, seleksi, sim time, dan FPS di status bar.
+- [ ] G1-14 Gunakan font monospace untuk seluruh UI.
+- [ ] G1-15 Implementasikan zoom berpusat di kursor.
 
 **Acceptance G1:** canvas kosong berjalan 60 FPS, grid simetris terlihat,
 pan dan zoom stabil, dan area canvas mendominasi layout.
@@ -114,6 +124,8 @@ pan dan zoom stabil, dan area canvas mendominasi layout.
 - [ ] G2-10 Definisikan trait internal `ComponentProvider` untuk plugin komponen.
 - [ ] G2-11 Tampilkan label referensi dan nilai komponen secara default.
 - [ ] G2-12 Simpan definisi library sebagai kode Rust internal.
+- [ ] G2-13 Terapkan snap selalu aktif dan Alt menonaktifkan sementara.
+- [ ] G2-14 Tolak penempatan komponen yang saling menimpa.
 
 **Acceptance G2:** pengguna dapat memilih komponen dari library,
 menempatkannya di grid, memindahkan, memutar, dan mencerminkannya.
@@ -131,6 +143,9 @@ menempatkannya di grid, memindahkan, memutar, dan mencerminkannya.
 - [ ] G3-07 Test hit testing dan pemetaan pin ke net.
 - [ ] G3-08 Tampilkan label net saat hover atau seleksi.
 - [ ] G3-09 Buat inspector tiga section: properties, pins, simulation.
+- [ ] G3-10 Pindahkan semua objek terpilih saat multi-select digeser.
+- [ ] G3-11 Highlight seluruh net saat net dipilih.
+- [ ] G3-12 Gunakan selection box full containment.
 
 **Acceptance G3:** setiap pin dapat diperiksa, dipilih, dan dihubungkan
 ke net dengan umpan balik visual yang jelas.
@@ -149,6 +164,7 @@ ke net dengan umpan balik visual yang jelas.
 - [ ] G4-08 Test konektivitas, collision, dan junction.
 - [ ] G4-09 Terapkan belokan 90 derajat tegas.
 - [ ] G4-10 Implementasikan animasi aliran sinyal opsional, default mati.
+- [ ] G4-11 Tolak ujung kabel yang bukan pin, junction, atau vertex valid.
 
 **Acceptance G4:** dua pin dapat dihubungkan dengan kabel ortogonal rapi,
 tanpa segmen diagonal, dan tanpa menembus komponen.
@@ -205,6 +221,8 @@ dan dilangkah dari GUI.
 - [ ] G7-11 Batasi grafik maksimal 8 series.
 - [ ] G7-12 Implementasikan cursor, zoom, pan, autoscale, dan legend toggle.
 - [ ] G7-13 Gunakan default sampling setiap 100 cycle, dapat dikonfigurasi per probe.
+- [ ] G7-14 Gunakan waktu simulasi sebagai sumbu X.
+- [ ] G7-15 Warna series mengikuti warna net atau pin.
 
 **Acceptance G7:** pengguna dapat membuka grafik per pin atau komponen,
 melihat sinyal digital dan analog, serta memeriksa nilai pada cursor.
@@ -229,6 +247,7 @@ melihat sinyal digital dan analog, serta memeriksa nilai pada cursor.
 - [ ] G8-14 Gunakan UI berbahasa Inggris dan dokumentasi Indonesia.
 - [ ] G8-15 Satu window menampilkan satu proyek.
 - [ ] G8-16 Prompt reload jika file berubah di luar aplikasi.
+- [ ] G8-17 Konfirmasi hapus hanya untuk komponen dengan kabel atau seleksi besar.
 
 **Acceptance G8:** proyek dapat disimpan, dimuat kembali tanpa kehilangan
 data, dan semua aksi editing dapat di-undo.
@@ -250,6 +269,7 @@ data, dan semua aksi editing dapat di-undo.
 - [ ] G9-11 Verifikasi kontras WCAG AA dan navigasi keyboard.
 - [ ] G9-12 Sediakan minimap opsional dengan toggle.
 - [ ] G9-13 Dokumentasikan prosedur update golden RGBA.
+- [ ] G9-14 Sediakan tab log error opsional di analysis drawer.
 
 **Acceptance G9:** target 60 FPS terukur, semua tool dapat dipakai dengan
 keyboard, dan tidak ada panic pada input tidak valid.

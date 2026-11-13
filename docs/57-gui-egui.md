@@ -158,6 +158,7 @@ Aturan layout:
 - Tema default gelap, dengan opsi tema terang.
 - Aksen UI cyan.
 - UI berbahasa Inggris; dokumentasi tetap Indonesia.
+- Font UI monospace untuk seluruh antarmuka.
 - Target kontras WCAG AA.
 - Pin/unpin sheet mengubah overlay menjadi sidebar tanpa docking penuh.
 
@@ -206,7 +207,7 @@ Aturan layout:
 
 ### 5.5 Minimap
 
-- Minimap opsional di sudut canvas.
+- Minimap opsional di sudut kanan bawah canvas.
 - Default tersembunyi.
 - Menampilkan viewport, komponen, dan kabel secara ringkas.
 - Klik minimap memindahkan kamera.
@@ -258,8 +259,9 @@ Setiap instance memiliki:
 ### 6.4 Penempatan
 
 - Ghost komponen mengikuti kursor.
-- Snap ke grid.
+- Snap selalu aktif; Alt menonaktifkan snap sementara.
 - Hijau jika valid, merah jika bertabrakan.
+- Komponen tidak boleh saling menimpa.
 - R rotate, M mirror, Esc cancel.
 - Setelah ditempatkan, komponen langsung dapat dipilih.
 
@@ -283,6 +285,8 @@ Setiap instance memiliki:
 - Tidak ada segmen diagonal.
 - Belokan memakai sudut 90 derajat tegas.
 - Panjang minimum satu sel.
+- Kabel hanya boleh berakhir di pin, junction, atau vertex grid yang valid.
+- Kabel menggantung tanpa koneksi tidak diizinkan.
 - Kabel tidak boleh melewati body komponen.
 - Satu edge grid hanya boleh dipakai satu kabel pada MVP.
 - Persilangan hanya boleh di junction eksplisit.
@@ -357,6 +361,8 @@ Aturan:
 - Measure: ruler grid dan probe tegangan.
 - Toolbar memakai ikon dan teks singkat.
 - Error ditampilkan sebagai toast singkat dan status bar.
+- Log error opsional tersedia sebagai tab di analysis drawer.
+- Font UI monospace untuk seluruh antarmuka.
 
 ### 8.2 Shortcut
 
@@ -384,8 +390,11 @@ Aturan:
 - Klik memilih satu objek.
 - Shift-click menambah atau mengurangi seleksi.
 - Drag kosong membuat selection box.
-- Selection box hanya memilih objek yang seluruhnya berada di dalam.
+- Selection box memilih objek yang seluruhnya berada di dalam kotak.
 - Multi-select dapat dipindahkan bersama.
+- Klik net memilih seluruh net dan menghighlight semua pin serta kabel.
+- Hapus satu objek langsung; komponen dengan kabel atau seleksi besar
+  meminta konfirmasi.
 - Alignment guide dan distribusi horizontal/vertikal.
 
 ### 8.4 Context menu
@@ -453,6 +462,8 @@ menyusul setelah alur dasar stabil.
 ### 10.2 Tampilan
 
 - Satu grafik dapat memuat maksimal 8 series.
+- Sumbu X memakai waktu simulasi.
+- Warna series mengikuti warna net atau pin.
 - Digital ditampilkan sebagai lane logika.
 - Bus ditampilkan sebagai nilai heksadesimal pada transisi.
 - Cursor vertikal menampilkan waktu dan nilai.
@@ -733,6 +744,13 @@ Test visual:
 33. Probe analog memakai API read-only.
 34. Satu proyek per window dan prompt reload saat file berubah.
 35. Library komponen berupa kode Rust internal.
+36. Font UI monospace untuk seluruh antarmuka.
+37. Minimap di kanan bawah, default tersembunyi.
+38. Multi-select dipindahkan bersama.
+39. Snap selalu aktif, Alt menonaktifkan sementara.
+40. Overlap komponen ditolak.
+41. Selection box memakai full containment.
+42. Zoom berpusat di kursor.
 
 ### 17.3 Detail teknis yang belum dikunci
 
