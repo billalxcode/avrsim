@@ -483,6 +483,18 @@ impl Document {
         self.wires.retain(|wire| wire.id != id);
     }
 
+    /// Changes a wire net class.
+    pub fn set_wire_class(&mut self, id: WireId, class: NetClass) -> bool {
+        let Some(wire) = self.wires.iter_mut().find(|wire| wire.id == id) else {
+            return false;
+        };
+        if wire.class == class {
+            return false;
+        }
+        wire.class = class;
+        true
+    }
+
     /// Returns the nearest wire within a world-space tolerance.
     #[must_use]
     pub fn wire_at(&self, point: [f32; 2], tolerance: f32) -> Option<WireId> {
@@ -1367,6 +1379,23 @@ mod tests {
             document.snap_pin(library, GridPos::new(5, 1)),
             Some(GridPos::new(4, 1))
         );
+    }
+
+    #[test]
+    fn set_wire_class_changes_existing_wire() {
+        let mut document = Document::restore(
+            Vec::new(),
+            vec![test_wire(
+                1,
+                GridPos::new(0, 0),
+                GridPos::new(2, 0),
+                NetClass::Digital,
+            )],
+        );
+        assert!(document.set_wire_class(WireId(1), NetClass::Power));
+        assert_eq!(document.wires()[0].class, NetClass::Power);
+        assert!(!document.set_wire_class(WireId(1), NetClass::Power));
+        assert!(!document.set_wire_class(WireId(9), NetClass::Analog));
     }
 
     #[test]

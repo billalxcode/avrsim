@@ -350,6 +350,7 @@ Aturan:
 - Pola dash per kelas sudah diterapkan dan ditampilkan di legenda.
 - Kontras semua warna net terhadap latar kanvas diuji minimal 4.5:1.
 - Legenda warna tersedia melalui tombol `Legend` di toolbar.
+- Kelas net dapat diubah dari Inspector atau context menu.
 - Warna default mengikuti kelas net.
 - Warna net dapat dioverride per net.
 - Kabel terpilih memiliki halo, bukan mengganti warna kelas.

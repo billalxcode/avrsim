@@ -58,6 +58,7 @@ enum InspectorAction {
     Rotate,
     Mirror,
     Delete,
+    SetClass(NetClass),
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -84,6 +85,7 @@ enum ContextAction {
     Mirror,
     Properties,
     Graph,
+    SetClass(NetClass),
     SelectTool,
     WireTool,
 }
@@ -231,7 +233,7 @@ impl GuiApp {
     }
     fn toolbar(&mut self, ui: &mut egui::Ui) {
         egui::Panel::top("toolbar").show(ui, |ui| {
-            ui.horizontal(|ui| {
+            ui.horizontal_wrapped(|ui| {
                 self.toolbar_tools(ui);
                 ui.separator();
                 self.toolbar_view(ui);
@@ -742,6 +744,7 @@ impl GuiApp {
 
     fn wire_controls(&mut self, ui: &mut egui::Ui) {
         ui.label("Wire");
+        ui.label("Class");
         egui::ComboBox::from_id_salt("wire_class")
             .selected_text(self.wire_class.label())
             .show_ui(ui, |ui| {
@@ -1384,6 +1387,7 @@ impl GuiApp {
             position,
             &self.selection,
             self.clipboard.is_empty(),
+            self.selection_wire_class(),
         );
         let close = action.is_none()
             && ui.input(|input| {
@@ -1411,6 +1415,7 @@ impl GuiApp {
             ContextAction::Mirror => self.mirror(),
             ContextAction::Properties => self.inspector_open = true,
             ContextAction::Graph => self.waveform_open = true,
+            ContextAction::SetClass(class) => self.set_wire_class(class),
             ContextAction::SelectTool => self.set_tool(Tool::Select),
             ContextAction::WireTool => self.set_tool(Tool::Wire),
         }
@@ -1792,12 +1797,30 @@ impl GuiApp {
     }
 
     fn multi_inspector(&self, ui: &mut egui::Ui, action: &mut Option<InspectorAction>) {
-        ui.label(format!(
-            "{} components, {} wires",
-            self.selection.components().len(),
-            self.selection.wires().len()
-        ));
-        show_component_actions(ui, action);
+        let components = self.selection.components().len();
+        let wires = self.selection.wires().len();
+        ui.label(format!("{components} components, {wires} wires"));
+        if components > 0 {
+            show_component_actions(ui, action);
+        }
+        if wires > 0 {
+            show_wire_class_combo(ui, "multi_wire_class", self.selection_wire_class(), action);
+            if components == 0 && ui.button("Delete").clicked() {
+                *action = Some(InspectorAction::Delete);
+            }
+        }
+    }
+
+    fn selection_wire_class(&self) -> Option<NetClass> {
+        let mut classes = self.selection.wires().iter().filter_map(|id| {
+            self.document
+                .wires()
+                .iter()
+                .find(|wire| wire.id == *id)
+                .map(|wire| wire.class)
+        });
+        let first = classes.next()?;
+        classes.all(|class| class == first).then_some(first)
     }
 
     fn wire_inspector(&self, ui: &mut egui::Ui, action: &mut Option<InspectorAction>, id: WireId) {
@@ -1806,7 +1829,7 @@ impl GuiApp {
             return;
         };
         ui.label(format!("Wire {}", wire.id.0));
-        ui.label(format!("Class: {}", wire.class.label()));
+        show_wire_class_combo(ui, "inspector_wire_class", Some(wire.class), action);
         ui.label(format!("Vertices: {}", wire.points.len()));
         if ui.button("Delete").clicked() {
             *action = Some(InspectorAction::Delete);
@@ -1970,7 +1993,26 @@ impl GuiApp {
             InspectorAction::Rotate => self.rotate(),
             InspectorAction::Mirror => self.mirror(),
             InspectorAction::Delete => self.delete_selection(),
+            InspectorAction::SetClass(class) => self.set_wire_class(class),
         }
+    }
+
+    fn set_wire_class(&mut self, class: NetClass) {
+        let ids: Vec<_> = self.selection.wires().iter().copied().collect();
+        if ids.is_empty() {
+            return;
+        }
+        let before = self.document.clone();
+        let mut changed = false;
+        for id in ids {
+            changed |= self.document.set_wire_class(id, class);
+        }
+        if !changed {
+            return;
+        }
+        self.history.record(&before);
+        self.mark_dirty();
+        self.message = format!("Net class {}", class.label());
     }
 
     fn status_bar(&mut self, ui: &mut egui::Ui) {
@@ -2159,6 +2201,27 @@ fn show_component_actions(ui: &mut egui::Ui, action: &mut Option<InspectorAction
     });
 }
 
+fn show_wire_class_combo(
+    ui: &mut egui::Ui,
+    salt: &str,
+    current: Option<NetClass>,
+    action: &mut Option<InspectorAction>,
+) {
+    let mut choice = current;
+    egui::ComboBox::from_id_salt(salt)
+        .selected_text(current.map_or("Mixed", NetClass::label))
+        .show_ui(ui, |ui| {
+            for class in NetClass::ALL {
+                ui.selectable_value(&mut choice, Some(class), class.label());
+            }
+        });
+    if choice != current {
+        if let Some(class) = choice {
+            *action = Some(InspectorAction::SetClass(class));
+        }
+    }
+}
+
 fn library_list<'a>(
     ui: &mut egui::Ui,
     library: &'a [ComponentDefinition],
@@ -2254,6 +2317,7 @@ fn show_context_area(
     position: egui::Pos2,
     selection: &Selection,
     clipboard_empty: bool,
+    wire_class: Option<NetClass>,
 ) -> (Option<ContextAction>, egui::Response) {
     let mut action = None;
     let area = egui::Area::new(egui::Id::unique("canvas-context"))
@@ -2262,7 +2326,7 @@ fn show_context_area(
         .show(ctx, |ui| {
             egui::Frame::popup(ui.style()).show(ui, |ui| {
                 ui.set_min_width(170.0);
-                context_buttons(ui, selection, clipboard_empty, &mut action);
+                context_buttons(ui, selection, clipboard_empty, wire_class, &mut action);
             });
         });
     (action, area.response)
@@ -2272,13 +2336,42 @@ fn context_buttons(
     ui: &mut egui::Ui,
     selection: &Selection,
     clipboard_empty: bool,
+    wire_class: Option<NetClass>,
     action: &mut Option<ContextAction>,
 ) {
     context_edit_buttons(ui, selection, clipboard_empty, action);
     ui.separator();
     context_transform_buttons(ui, selection, action);
+    if !selection.wires().is_empty() {
+        ui.separator();
+        context_class_combo(ui, wire_class, action);
+    }
     ui.separator();
     context_tool_buttons(ui, action);
+}
+
+fn context_class_combo(
+    ui: &mut egui::Ui,
+    current: Option<NetClass>,
+    action: &mut Option<ContextAction>,
+) {
+    let mut choice = current;
+    let text = current.map_or_else(
+        || "Net class: mixed".to_string(),
+        |class| format!("Net class: {}", class.label()),
+    );
+    egui::ComboBox::from_id_salt("context_net_class")
+        .selected_text(text)
+        .show_ui(ui, |ui| {
+            for class in NetClass::ALL {
+                ui.selectable_value(&mut choice, Some(class), class.label());
+            }
+        });
+    if choice != current {
+        if let Some(class) = choice {
+            *action = Some(ContextAction::SetClass(class));
+        }
+    }
 }
 
 fn context_edit_buttons(
@@ -2942,6 +3035,36 @@ mod tests {
         app.handle_canvas(click_state(6.0, 1.0));
         assert_eq!(app.document.wires().len(), 1);
         assert!(app.wire_points.is_empty());
+    }
+
+    #[test]
+    fn wire_class_is_applied_to_new_wire() {
+        let library = crate::library::builtin();
+        let resistor = crate::library::find("resistor").expect("resistor");
+        let mut document = Document::new();
+        document.add(resistor, GridPos::new(0, 0), Rotation::Deg0, Mirror::None);
+        document.add(resistor, GridPos::new(6, 0), Rotation::Deg0, Mirror::None);
+        let mut app = GuiApp {
+            library,
+            document,
+            tool: crate::app::Tool::Wire,
+            wire_class: NetClass::Power,
+            wire_points: vec![GridPos::new(4, 1)],
+            ..GuiApp::default()
+        };
+        app.handle_canvas(click_state(6.0, 1.0));
+        assert_eq!(app.document.wires()[0].class, NetClass::Power);
+    }
+
+    #[test]
+    fn selected_wire_class_can_be_changed() {
+        let (mut app, _, _) = context_app();
+        let wire = sample_wire(&mut app.document, app.library);
+        app.selection.apply([], [wire], false);
+        app.set_wire_class(NetClass::Analog);
+        assert_eq!(app.document.wires()[0].class, NetClass::Analog);
+        app.undo();
+        assert_eq!(app.document.wires()[0].class, NetClass::Digital);
     }
 
     #[test]

@@ -94,13 +94,21 @@ Komponen tidak boleh saling menimpa. Selalu snap ke grid.
 ## 5. Menggambar Kabel
 
 1. Pilih tool `Wire`.
-2. Pilih kelas net.
+2. Pilih `Class` di toolbar.
 3. Klik pin atau titik koneksi.
 4. Klik titik grid berikutnya.
 5. Gunakan `L-H`, `L-V`, `Z-H`, atau `Z-V` untuk saran jalur.
 6. Klik pin kedua; wire selesai otomatis.
 7. Klik `Finish` atau tekan Enter untuk menyelesaikan jalur manual.
 8. Escape atau `Cancel` membatalkan.
+
+Kelas net juga dapat diubah setelah wire dibuat:
+
+- Pilih wire.
+- Buka Inspector, lalu ganti `Class`.
+- Atau klik kanan wire, lalu pilih `Net class`.
+- Warna dan pola garis mengikuti kelas baru.
+- Undo mengembalikan kelas sebelumnya.
 
 Aturan:
 
