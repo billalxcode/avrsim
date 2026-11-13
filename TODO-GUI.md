@@ -2,7 +2,9 @@
 
 Backlog eksekusi untuk GUI interaktif berbasis `egui`/`eframe`.
 
-**Status:** desain selesai, implementasi belum dimulai.
+**Status:** implementasi inti G0 sampai G10 selesai. Item yang tertunda
+karena batas netlist analog, renderer golden, atau native runner dicatat
+di bagian Status Akhir.
 
 **Desain:** [`docs/57-gui-egui.md`](docs/57-gui-egui.md)
 
@@ -299,6 +301,37 @@ keyboard, dan tidak ada panic pada input tidak valid.
 
 **Acceptance G10:** binary GUI dapat dijalankan di Linux, contoh proyek
 terbuka, dan dokumentasi instalasi tersedia.
+
+---
+
+## Status Akhir G0-G10
+
+Selesai dan teruji:
+
+- Canvas, grid, zoom, fit, culling, minimap, selection box, multi-select.
+- Library, placement, ghost, rotate, mirror grup, copy, paste, duplicate,
+  align, distribute.
+- Wire ortogonal, L/Z route, junction, pola net, label, legenda, net
+  highlight, aturan persilangan.
+- Simulasi PB5/LED, run, pause, step, reset, UART TX, graph digital,
+  cursor cycle.
+- Undo/redo, JSON, autosave, backup, recent files, XDG config, prompt
+  reload, command palette, context menu, toast, log, PNG export.
+- CI workspace Linux, paket Linux, desktop entry, contoh proyek, panduan
+  pengguna.
+
+Tertunda karena batas teknis atau lingkungan:
+
+- Probe generik dan grafik analog: skematik GUI belum memiliki netlist
+  elektrik yang terhubung ke solver analog.
+- Decimation, sampling analog, dan branch current belum ada karena alasan
+  yang sama.
+- Golden image RGBA dan interaction visual penuh memerlukan renderer
+  headless yang stabil.
+- Build Windows dan macOS belum dijalankan pada native runner.
+- Drag-and-drop library, preview simbol, Alt snap, animasi aliran, dan
+  override warna net belum diimplementasikan.
+- Migrasi skema JSON lama belum ada karena baru ada versi 1.
 
 ---
 
