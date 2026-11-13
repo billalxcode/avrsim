@@ -83,6 +83,7 @@ enum ContextAction {
     Rotate,
     Mirror,
     Properties,
+    Graph,
     SelectTool,
     WireTool,
 }
@@ -1405,6 +1406,7 @@ impl GuiApp {
             ContextAction::Rotate => self.rotate(),
             ContextAction::Mirror => self.mirror(),
             ContextAction::Properties => self.inspector_open = true,
+            ContextAction::Graph => self.waveform_open = true,
             ContextAction::SelectTool => self.set_tool(Tool::Select),
             ContextAction::WireTool => self.set_tool(Tool::Wire),
         }
@@ -2322,6 +2324,9 @@ fn context_transform_buttons(
 }
 
 fn context_tool_buttons(ui: &mut egui::Ui, action: &mut Option<ContextAction>) {
+    if ui.button("Digital graph").clicked() {
+        *action = Some(ContextAction::Graph);
+    }
     if ui.button("Select tool").clicked() {
         *action = Some(ContextAction::SelectTool);
     }

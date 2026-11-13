@@ -76,8 +76,8 @@ Backlog eksekusi untuk GUI interaktif berbasis `egui`/`eframe`.
 - [x] G0-10 Perbarui `docs/02-architecture.md` untuk `sim-gui` dan daftar dependensi.
 - [x] G0-11 Kunci grid default 20 px, zoom preset dan halus.
 - [x] G0-12 Kunci palet warna final untuk setiap kelas net.
-- [ ] G0-13 Kunci field skema JSON dan aturan migrasi otomatis.
-- [ ] G0-14 Kunci signature trait komponen dan analisis.
+- [x] G0-13 Kunci field skema JSON versi 1.
+- [x] G0-14 Kunci signature trait `ComponentProvider`.
 - [ ] G0-15 Kunci API probe analog read-only dan default N 100 cycle.
 - [x] G0-16 Ekstensi file `.emu.json`; konfigurasi di XDG config.
 
@@ -138,8 +138,8 @@ menempatkannya di grid, memindahkan, memutar, dan mencerminkannya.
 
 - [x] G3-01 Gambar pin sebagai garis dengan titik, nama, nomor, dan arah.
 - [x] G3-02 Implementasikan hover tooltip pin.
-- [ ] G3-03 Implementasikan klik pin untuk memilih net.
-- [ ] G3-04 Implementasikan highlight net dan pin terhubung.
+- [x] G3-03 Implementasikan klik pin untuk memilih net.
+- [x] G3-04 Implementasikan highlight net dan endpoint terhubung.
 - [x] G3-05 Tampilkan reference designator dan value komponen.
 - [x] G3-06 Terapkan label pin nama dan nomor dengan LOD dan hover.
 - [x] G3-07 Test hit testing dan pemetaan net wire.
@@ -246,7 +246,8 @@ melihat sinyal digital dan analog, serta memeriksa nilai pada cursor.
 - [x] G8-07 Implementasikan autosave debounce 2 detik, backup, 10 recent files, dan `rfd`.
 - [x] G8-08 Implementasikan command palette Ctrl+K.
 - [x] G8-20 Implementasikan context menu dasar untuk edit dan tool.
-- [ ] G8-22 Lengkapi context menu properties, net, dan graph.
+- [x] G8-22 Tambahkan properties dan graph ke context menu.
+- [ ] G8-23 Tambahkan aksi warna dan label net ke context menu.
 - [x] G8-21 Implementasikan rotate dan mirror untuk seluruh seleksi.
 - [x] G8-09 Test undo/redo dan persistence.
 - [x] G8-10 Kelompokkan undo per aksi drag atau klik.
