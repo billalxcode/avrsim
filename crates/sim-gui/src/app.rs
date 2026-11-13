@@ -1180,6 +1180,7 @@ impl GuiApp {
     }
 
     fn wire_click(&mut self, point: GridPos) {
+        let point = self.document.snap_pin(self.library, point).unwrap_or(point);
         if self.wire_points.is_empty() {
             if self.document.is_connection_point(self.library, point) {
                 self.wire_points.push(point);
@@ -2727,6 +2728,28 @@ mod tests {
             .expect("wire")
     }
 
+    fn wire_app(points: Vec<GridPos>) -> GuiApp {
+        let library = crate::library::builtin();
+        let resistor = crate::library::find("resistor").expect("resistor");
+        let mut document = Document::new();
+        document.add(resistor, GridPos::new(0, 0), Rotation::Deg0, Mirror::None);
+        GuiApp {
+            library,
+            document,
+            tool: crate::app::Tool::Wire,
+            wire_points: points,
+            ..GuiApp::default()
+        }
+    }
+
+    fn click_state(x: f32, y: f32) -> crate::canvas::CanvasState {
+        crate::canvas::CanvasState {
+            clicked: true,
+            click_world: Some(eframe::egui::pos2(x, y)),
+            ..Default::default()
+        }
+    }
+
     #[test]
     fn open_flushes_dirty_document_and_updates_recent() {
         let dir = temp_dir("open-flush");
@@ -2880,6 +2903,23 @@ mod tests {
         let large: Vec<_> = (0..6u32).map(ComponentId).collect();
         app.selection.apply(large, [], false);
         assert!(app.needs_delete_confirmation());
+    }
+
+    #[test]
+    fn wire_tool_starts_at_pin() {
+        let mut app = wire_app(Vec::new());
+        app.handle_canvas(click_state(5.0, 1.0));
+        assert_eq!(app.wire_points, vec![GridPos::new(4, 1)]);
+    }
+
+    #[test]
+    fn wire_tool_extends_to_valid_point() {
+        let mut app = wire_app(vec![GridPos::new(4, 1)]);
+        app.handle_canvas(click_state(8.0, 1.0));
+        assert_eq!(
+            app.wire_points,
+            vec![GridPos::new(4, 1), GridPos::new(8, 1)]
+        );
     }
 
     #[test]

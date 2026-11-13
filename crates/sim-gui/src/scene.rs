@@ -706,7 +706,7 @@ fn draw_pin(
     if camera.zoom >= 0.75 {
         draw_pin_label(painter, stub, pin, direction);
     }
-    if hover == Some(world) {
+    if hover == Some(world) || hover == Some(world.offset(direction)) {
         draw_pin_tooltip(painter, stub, pin, direction);
     }
 }

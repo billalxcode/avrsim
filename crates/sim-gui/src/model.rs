@@ -559,19 +559,23 @@ impl Document {
     /// Returns a wire connected to a pin at a grid point.
     #[must_use]
     pub fn pin_wire_at(&self, library: &[ComponentDefinition], point: GridPos) -> Option<WireId> {
+        let world = self.snap_pin(library, point)?;
+        self.wires
+            .iter()
+            .find(|wire| wire.points.contains(&world))
+            .map(|wire| wire.id)
+    }
+
+    /// Maps a visible pin dot or pin point to the model connection point.
+    #[must_use]
+    pub fn snap_pin(&self, library: &[ComponentDefinition], point: GridPos) -> Option<GridPos> {
         self.components.iter().find_map(|instance| {
             let definition = find_definition(library, instance.definition)?;
-            let is_pin = definition
-                .pins
-                .iter()
-                .any(|pin| world_pin(instance, definition, pin) == point);
-            if !is_pin {
-                return None;
-            }
-            self.wires
-                .iter()
-                .find(|wire| wire.points.contains(&point))
-                .map(|wire| wire.id)
+            definition.pins.iter().find_map(|pin| {
+                let world = world_pin(instance, definition, pin);
+                let direction = pin_direction(definition, pin, instance.rotation, instance.mirror);
+                (point == world || point == world.offset(direction)).then_some(world)
+            })
         })
     }
 
@@ -1351,6 +1355,18 @@ mod tests {
             Some(wire)
         );
         assert_eq!(document.pin_wire_at(library, GridPos::new(1, 1)), None);
+    }
+
+    #[test]
+    fn snap_pin_maps_visible_dot() {
+        let library = library::builtin();
+        let resistor = library::find("resistor").expect("resistor");
+        let mut document = Document::new();
+        document.add(resistor, GridPos::new(0, 0), Rotation::Deg0, Mirror::None);
+        assert_eq!(
+            document.snap_pin(library, GridPos::new(5, 1)),
+            Some(GridPos::new(4, 1))
+        );
     }
 
     #[test]
