@@ -248,7 +248,7 @@ melihat sinyal digital dan analog, serta memeriksa nilai pada cursor.
 - [ ] G8-13 Tampilkan error sebagai toast dan status bar.
 - [x] G8-14 Gunakan UI berbahasa Inggris dan dokumentasi Indonesia.
 - [x] G8-15 Satu window menampilkan satu proyek.
-- [ ] G8-16 Prompt reload jika file berubah di luar aplikasi.
+- [x] G8-16 Prompt reload jika file berubah di luar aplikasi.
 - [ ] G8-17 Konfirmasi hapus hanya untuk komponen dengan kabel atau seleksi besar.
 - [ ] G8-18 Implementasikan migrasi otomatis skema JSON setelah backup.
 - [ ] G8-19 Test selection komponen dan wire.

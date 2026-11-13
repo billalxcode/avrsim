@@ -14,9 +14,10 @@ use crate::sim::{self, Event, Sample, SimHandle, Status, Waveform};
 use eframe::egui;
 use std::collections::VecDeque;
 use std::path::{Path, PathBuf};
-use std::time::{Duration, Instant};
+use std::time::{Duration, Instant, SystemTime};
 
 const AUTOSAVE_DELAY: Duration = Duration::from_secs(2);
+const WATCH_INTERVAL: Duration = Duration::from_secs(1);
 
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
 enum Tool {
@@ -53,6 +54,18 @@ enum SimAction {
     Pause,
     Step,
     Reset,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+enum ConflictAction {
+    Reload,
+    SaveMine,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+struct FileStamp {
+    modified: Option<SystemTime>,
+    len: u64,
 }
 
 #[derive(Clone, Copy, Debug)]
@@ -112,6 +125,9 @@ pub struct GuiApp {
     config_path: Option<PathBuf>,
     dirty: bool,
     last_edit: Option<Instant>,
+    file_stamp: Option<FileStamp>,
+    watch_at: Option<Instant>,
+    conflict: bool,
 }
 
 impl GuiApp {
@@ -134,6 +150,7 @@ impl GuiApp {
 impl eframe::App for GuiApp {
     fn ui(&mut self, ui: &mut egui::Ui, _frame: &mut eframe::Frame) {
         self.poll_sim();
+        self.watch_file(ui.ctx());
         self.autosave(ui.ctx());
         self.toolbar(ui);
         self.status_bar(ui);
@@ -144,6 +161,7 @@ impl eframe::App for GuiApp {
         self.library_window(ui);
         self.inspector_window(ui);
         self.waveform_window(ui);
+        self.conflict_modal(ui);
     }
 
     fn on_exit(&mut self) {
@@ -275,6 +293,15 @@ impl GuiApp {
     }
 
     fn save_project(&mut self) {
+        if self.external_changed() {
+            self.conflict = true;
+            self.message = "File changed on disk".to_string();
+            return;
+        }
+        self.save_project_now();
+    }
+
+    fn save_project_now(&mut self) {
         let path = self.current_path.clone().or_else(select_save_path);
         let Some(path) = path else {
             self.message = "Save cancelled".to_string();
@@ -288,6 +315,7 @@ impl GuiApp {
 
     fn after_save(&mut self, path: PathBuf) {
         self.current_path = Some(path.clone());
+        self.record_file_stamp(&path);
         self.dirty = false;
         self.last_edit = None;
         self.message = "Saved".to_string();
@@ -321,7 +349,7 @@ impl GuiApp {
     }
 
     fn autosave_remaining(&self, now: Instant) -> Option<Duration> {
-        if !self.dirty || self.current_path.is_none() {
+        if self.conflict || !self.dirty || self.current_path.is_none() {
             return None;
         }
         let last = self.last_edit?;
@@ -332,17 +360,34 @@ impl GuiApp {
         let Some(path) = self.current_path.clone() else {
             return;
         };
-        match persist::save(&path, &self.document, &self.camera, self.grid_visible) {
-            Ok(()) => {
-                self.dirty = false;
-                self.last_edit = None;
-                self.message = "Autosaved".to_string();
-            }
-            Err(error) => {
-                self.last_edit = Some(now);
-                self.message = error;
-            }
+        if self.external_changed() {
+            self.conflict = true;
+            self.message = "File changed on disk".to_string();
+            return;
         }
+        match persist::save(&path, &self.document, &self.camera, self.grid_visible) {
+            Ok(()) => self.finish_autosave(&path),
+            Err(error) => self.fail_autosave(now, error),
+        }
+    }
+
+    fn finish_autosave(&mut self, path: &Path) {
+        self.record_file_stamp(path);
+        self.dirty = false;
+        self.last_edit = None;
+        self.message = "Autosaved".to_string();
+    }
+
+    fn fail_autosave(&mut self, now: Instant, error: String) {
+        self.last_edit = Some(now);
+        self.message = error;
+    }
+
+    fn external_changed(&self) -> bool {
+        let Some((path, stamp)) = self.watch_target() else {
+            return false;
+        };
+        file_stamp(&path) != Some(stamp)
     }
 
     fn mark_dirty(&mut self) {
@@ -351,6 +396,10 @@ impl GuiApp {
     }
 
     fn flush_autosave(&mut self) -> bool {
+        if self.conflict {
+            self.message = "Resolve file conflict before continuing".to_string();
+            return false;
+        }
         if !self.dirty {
             return true;
         }
@@ -362,6 +411,37 @@ impl GuiApp {
         !self.dirty
     }
 
+    fn record_file_stamp(&mut self, path: &Path) {
+        self.file_stamp = file_stamp(path);
+        self.watch_at = Some(Instant::now());
+        self.conflict = false;
+    }
+
+    fn watch_file(&mut self, ctx: &egui::Context) {
+        if self.conflict {
+            return;
+        }
+        let Some((path, stamp)) = self.watch_target() else {
+            return;
+        };
+        let now = Instant::now();
+        let remaining = watch_remaining(self.watch_at, now);
+        if !remaining.is_zero() {
+            ctx.request_repaint_after(remaining);
+            return;
+        }
+        self.watch_at = Some(now);
+        ctx.request_repaint_after(WATCH_INTERVAL);
+        if file_stamp(&path) != Some(stamp) {
+            self.conflict = true;
+            self.message = "File changed on disk".to_string();
+        }
+    }
+
+    fn watch_target(&self) -> Option<(PathBuf, FileStamp)> {
+        Some((self.current_path.clone()?, self.file_stamp?))
+    }
+
     fn apply_project(&mut self, project: persist::Project, path: PathBuf) {
         self.document = project.document;
         self.camera = project.camera;
@@ -369,7 +449,8 @@ impl GuiApp {
         self.reset_transient();
         self.history.clear();
         self.initialized = true;
-        self.current_path = Some(path);
+        self.current_path = Some(path.clone());
+        self.record_file_stamp(&path);
         self.dirty = false;
         self.last_edit = None;
         self.message = "Loaded".to_string();
@@ -981,6 +1062,41 @@ impl GuiApp {
         self.waveform_open = open;
     }
 
+    fn conflict_modal(&mut self, ui: &mut egui::Ui) {
+        if !self.conflict {
+            return;
+        }
+        let path = self.current_path.clone().unwrap_or_default();
+        let mut action = None;
+        egui::Modal::new(egui::Id::unique("file-conflict")).show(ui.ctx(), |ui| {
+            conflict_contents(ui, &path, &mut action);
+        });
+        if let Some(action) = action {
+            self.apply_conflict(action);
+        }
+    }
+
+    fn apply_conflict(&mut self, action: ConflictAction) {
+        match action {
+            ConflictAction::Reload => self.reload_from_disk(),
+            ConflictAction::SaveMine => self.save_project_now(),
+        }
+    }
+
+    fn reload_from_disk(&mut self) {
+        let Some(path) = self.current_path.clone() else {
+            self.conflict = false;
+            return;
+        };
+        match persist::load(&path, self.library) {
+            Ok(project) => {
+                self.apply_project(project, path);
+                self.message = "Reloaded".to_string();
+            }
+            Err(error) => self.message = error,
+        }
+    }
+
     fn inspector_contents(&self, ui: &mut egui::Ui, action: &mut Option<InspectorAction>) {
         if let Some(id) = self.selected_wire {
             self.wire_inspector(ui, action, id);
@@ -1261,6 +1377,36 @@ fn library_list<'a>(
     None
 }
 
+fn file_stamp(path: &Path) -> Option<FileStamp> {
+    let metadata = std::fs::metadata(path).ok()?;
+    Some(FileStamp {
+        modified: metadata.modified().ok(),
+        len: metadata.len(),
+    })
+}
+
+fn watch_remaining(last: Option<Instant>, now: Instant) -> Duration {
+    last.map_or(Duration::ZERO, |last| {
+        WATCH_INTERVAL.saturating_sub(now.saturating_duration_since(last))
+    })
+}
+
+fn conflict_contents(ui: &mut egui::Ui, path: &Path, action: &mut Option<ConflictAction>) {
+    ui.set_width(380.0);
+    ui.heading("File changed on disk");
+    ui.label("The project was modified outside embed-emu.");
+    ui.label(path.display().to_string());
+    ui.label("Reload discards local edits. Save Mine overwrites the file.");
+    ui.horizontal(|ui| {
+        if ui.button("Reload").clicked() {
+            *action = Some(ConflictAction::Reload);
+        }
+        if ui.button("Save Mine").clicked() {
+            *action = Some(ConflictAction::SaveMine);
+        }
+    });
+}
+
 fn configure_style(context: &eframe::CreationContext<'_>) {
     context.egui_ctx.set_theme(egui::ThemePreference::Dark);
     context.egui_ctx.style_mut_of(egui::Theme::Dark, |style| {
@@ -1393,7 +1539,10 @@ fn l_route(last: GridPos, target: GridPos, horizontal_first: bool) -> Vec<GridPo
 
 #[cfg(test)]
 mod tests {
-    use super::{AUTOSAVE_DELAY, GuiApp, l_route, move_segment};
+    use super::{
+        AUTOSAVE_DELAY, ConflictAction, GuiApp, WATCH_INTERVAL, file_stamp, l_route, move_segment,
+        watch_remaining,
+    };
     use crate::canvas::GridCamera;
     use crate::model::{Document, GridPos, Mirror, Rotation};
     use crate::persist;
@@ -1445,6 +1594,120 @@ mod tests {
         };
         assert!(!app.flush_autosave());
         assert!(app.message.contains("Save project"));
+    }
+
+    #[test]
+    fn autosave_waits_for_conflict_resolution() {
+        let now = Instant::now();
+        let app = GuiApp {
+            conflict: true,
+            dirty: true,
+            current_path: Some(PathBuf::from("/tmp/project.emu.json")),
+            last_edit: Some(now),
+            ..GuiApp::default()
+        };
+        assert_eq!(app.autosave_remaining(now + AUTOSAVE_DELAY), None);
+    }
+
+    #[test]
+    fn watch_remaining_respects_interval() {
+        let now = Instant::now();
+        assert_eq!(watch_remaining(None, now), Duration::ZERO);
+        assert_eq!(watch_remaining(Some(now), now), WATCH_INTERVAL);
+        assert_eq!(
+            watch_remaining(Some(now), now + WATCH_INTERVAL),
+            Duration::ZERO
+        );
+    }
+
+    #[test]
+    fn external_write_sets_conflict() {
+        let dir = temp_dir("watch");
+        let path = dir.join("project.emu.json");
+        let camera = GridCamera::default();
+        persist::save(&path, &Document::new(), &camera, true).expect("save");
+        let stamp = file_stamp(&path).expect("stamp");
+        let past = Instant::now().checked_sub(WATCH_INTERVAL).expect("clock");
+        let mut app = GuiApp {
+            current_path: Some(path.clone()),
+            file_stamp: Some(stamp),
+            watch_at: Some(past),
+            ..GuiApp::default()
+        };
+        std::fs::write(&path, "external change").expect("write");
+        app.watch_file(&eframe::egui::Context::default());
+        assert!(app.conflict);
+        let _ = std::fs::remove_dir_all(dir);
+    }
+
+    #[test]
+    fn autosave_refuses_external_change() {
+        let dir = temp_dir("autosave-conflict");
+        let path = dir.join("project.emu.json");
+        persist::save(&path, &Document::new(), &GridCamera::default(), true).expect("save");
+        let stamp = file_stamp(&path).expect("stamp");
+        let mut app = dirty_app(&path);
+        app.file_stamp = Some(stamp);
+        std::fs::write(&path, "external change").expect("write");
+        app.write_autosave(Instant::now());
+        assert!(app.conflict);
+        assert!(app.dirty);
+        let text = std::fs::read_to_string(&path).expect("file");
+        assert_eq!(text, "external change");
+        let _ = std::fs::remove_dir_all(dir);
+    }
+
+    #[test]
+    fn manual_save_detects_external_change() {
+        let dir = temp_dir("save-watch");
+        let path = dir.join("project.emu.json");
+        persist::save(&path, &Document::new(), &GridCamera::default(), true).expect("save");
+        let stamp = file_stamp(&path).expect("stamp");
+        let mut app = dirty_app(&path);
+        app.file_stamp = Some(stamp);
+        std::fs::write(&path, "external change").expect("write");
+        app.save_project();
+        assert!(app.conflict);
+        let text = std::fs::read_to_string(&path).expect("file");
+        assert_eq!(text, "external change");
+        let _ = std::fs::remove_dir_all(dir);
+    }
+
+    #[test]
+    fn reload_replaces_document_and_clears_conflict() {
+        let dir = temp_dir("reload");
+        let path = dir.join("project.emu.json");
+        persist::save(&path, &Document::new(), &GridCamera::default(), true).expect("save");
+        let mut external = Document::new();
+        let resistor = crate::library::find("resistor").expect("resistor");
+        external.add(resistor, GridPos::new(0, 0), Rotation::Deg0, Mirror::None);
+        persist::save(&path, &external, &GridCamera::default(), true).expect("external");
+        let mut app = GuiApp {
+            library: crate::library::builtin(),
+            current_path: Some(path.clone()),
+            conflict: true,
+            ..GuiApp::default()
+        };
+        app.reload_from_disk();
+        assert!(!app.conflict);
+        assert_eq!(app.document.components().len(), 1);
+        assert_eq!(app.message, "Reloaded");
+        let _ = std::fs::remove_dir_all(dir);
+    }
+
+    #[test]
+    fn save_mine_overwrites_external_file() {
+        let dir = temp_dir("save-mine");
+        let path = dir.join("project.emu.json");
+        let camera = GridCamera::default();
+        persist::save(&path, &Document::new(), &camera, true).expect("save");
+        let mut app = dirty_app(&path);
+        app.conflict = true;
+        app.apply_conflict(ConflictAction::SaveMine);
+        assert!(!app.conflict);
+        let text = std::fs::read_to_string(&path).expect("saved");
+        assert!(text.contains("resistor"));
+        let _ = std::fs::remove_dir_all(dir);
     }
 
     #[test]

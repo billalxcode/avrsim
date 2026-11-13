@@ -9,8 +9,9 @@ komponen awal, placement ghost, selection, drag move, rotate, mirror,
 inspector dasar, wire ortogonal, junction otomatis, warna net,
 selection wire, delete wire, segment drag, saran jalur L, save/load
 JSON, undo/redo, autosave, backup, recent files, konfigurasi XDG,
-simulasi PB5, dan waveform digital awal juga sudah ada. Probe generik,
-UART di GUI, dan grafik analog belum ada. Dependensi GUI yang disetujui
+deteksi perubahan file eksternal, simulasi PB5, dan waveform digital
+awal juga sudah ada. Probe generik, UART di GUI, dan grafik analog
+belum ada. Dependensi GUI yang disetujui
 hanya untuk crate `sim-gui`: `egui`, `eframe`, `serde`, `serde_json`,
 `rfd`, dan `png`. `egui_plot`, `libloading`, dan crate lain tidak
 diizinkan tanpa keputusan baru.
@@ -603,7 +604,9 @@ Aturan:
 - Recent files menyimpan 10 file terakhir dan tampil di menu toolbar.
 - Konfigurasi aplikasi disimpan di XDG config, yaitu
   `~/.config/embed-emu/gui.json` atau `$XDG_CONFIG_HOME/embed-emu/gui.json`.
-- Jika file berubah di luar aplikasi, GUI meminta reload atau simpan ulang.
+- Jika file berubah di luar aplikasi, GUI memantau metadata setiap
+  1 detik dan menampilkan modal `Reload` atau `Save Mine`.
+- Autosave dan flush ditahan selama konflik belum diselesaikan.
 - Path absolut tidak disimpan di proyek.
 
 ---
