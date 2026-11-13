@@ -1,0 +1,16 @@
+[package]
+name = "sim-gui"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+
+[lints]
+workspace = true
+
+[[bin]]
+name = "embed-emu-gui"
+path = "src/main.rs"
+
+[dependencies]
+eframe = "0.37.0"

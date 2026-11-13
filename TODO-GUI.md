@@ -66,12 +66,12 @@ Backlog eksekusi untuk GUI interaktif berbasis `egui`/`eframe`.
 
 - [x] G0-01 Setujui pengecualian dependensi GUI di `sim-gui`.
 - [x] G0-02 Catat keputusan di `AGENTS.md` dan `docs/57`.
-- [ ] G0-03 Buat crate `crates/sim-gui` dengan binary `embed-emu-gui`.
-- [ ] G0-04 Tambahkan `sim-gui` ke workspace dan dependency graph.
-- [ ] G0-05 Pin versi semua dependensi `sim-gui`, commit `Cargo.lock`.
+- [x] G0-03 Buat crate `crates/sim-gui` dengan binary `embed-emu-gui`.
+- [x] G0-04 Tambahkan `sim-gui` ke workspace dan dependency graph.
+- [x] G0-05 Pin versi semua dependensi `sim-gui`, commit `Cargo.lock`.
 - [ ] G0-06 Buat app error type dan aturan no-panic untuk input GUI.
 - [ ] G0-07 Tambahkan build dan test `sim-gui` ke CI Linux.
-- [ ] G0-08 Dokumentasikan perintah build dan run GUI.
+- [x] G0-08 Dokumentasikan perintah build dan run GUI.
 - [x] G0-09 Kunci default routing, persilangan, platform, dan format simpan.
 - [ ] G0-10 Perbarui `docs/02-architecture.md` untuk `sim-gui` dan daftar dependensi.
 - [x] G0-11 Kunci grid default 20 px, zoom preset dan halus.
@@ -89,10 +89,10 @@ membangun crate, dan tidak ada dependensi eksternal di luar daftar
 
 ## G1 - Canvas, Grid, dan Layout
 
-- [ ] G1-01 Buat app shell dengan central panel, toolbar, dan status bar.
-- [ ] G1-02 Implementasikan kamera world ke screen dan screen ke world.
+- [x] G1-01 Buat app shell dengan central panel, toolbar, dan status bar.
+- [x] G1-02 Implementasikan kamera world ke screen dan screen ke world.
 - [ ] G1-03 Implementasikan pan, zoom preset, zoom halus, fit all, dan fit selection.
-- [ ] G1-04 Gambar grid minor 20 px, grid major, sumbu X/Y, dan titik grid.
+- [x] G1-04 Gambar grid minor 20 px, grid major, sumbu X/Y, dan titik grid.
 - [ ] G1-05 Terapkan level of detail grid dan label.
 - [ ] G1-06 Buat layout canvas 90 persen dengan sheet overlay.
 - [ ] G1-07 Implementasikan culling grid dan objek di luar viewport.
@@ -101,9 +101,9 @@ membangun crate, dan tidak ada dependensi eksternal di luar daftar
 - [ ] G1-10 Test transformasi, zoom, snap, dan culling.
 - [ ] G1-11 Implementasikan minimap opsional di kanan bawah.
 - [ ] G1-12 Terapkan latar dark dotted dan toolbar ikon serta teks.
-- [ ] G1-13 Tampilkan koordinat, zoom, seleksi, sim time, dan FPS di status bar.
-- [ ] G1-14 Gunakan font monospace untuk seluruh UI.
-- [ ] G1-15 Implementasikan zoom berpusat di kursor.
+- [x] G1-13 Tampilkan koordinat, zoom, seleksi, sim time, dan FPS di status bar.
+- [x] G1-14 Gunakan font monospace untuk seluruh UI.
+- [x] G1-15 Implementasikan zoom berpusat di kursor.
 
 **Acceptance G1:** canvas kosong berjalan 60 FPS, grid simetris terlihat,
 pan dan zoom stabil, dan area canvas mendominasi layout.

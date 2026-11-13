@@ -3,10 +3,12 @@
 Dokumen ini merancang GUI interaktif berbasis egui untuk eksplorasi,
 penempatan komponen, probing, dan pengujian simulasi.
 
-**Status:** desain dan backlog. Dependensi GUI yang disetujui hanya untuk
-crate `sim-gui`: `egui`, `eframe`, `serde`, `serde_json`, `rfd`, dan
-`png`. `egui_plot`, `libloading`, dan crate lain tidak diizinkan tanpa
-keputusan baru. Belum ada implementasi.
+**Status:** G0 dan G1 awal sudah diimplementasikan: crate `sim-gui`, app
+shell, canvas, grid, pan, zoom, status bar, dan test kamera. Fitur
+komponen, kabel, simulasi, dan grafik belum ada. Dependensi GUI yang
+disetujui hanya untuk crate `sim-gui`: `egui`, `eframe`, `serde`,
+`serde_json`, `rfd`, dan `png`. `egui_plot`, `libloading`, dan crate lain
+tidak diizinkan tanpa keputusan baru.
 
 **Rekomendasi:** buat crate baru `sim-gui` sebagai adapter/composition,
 mirip `sim-cli`. Semua crate simulasi tetap zero external dependency.
@@ -763,5 +765,22 @@ Test visual:
 7. Perilaku undo saat file eksternal berubah.
 
 Detail ini dibahas saat implementasi G0 dan G7.
+
+## 18. Menjalankan
+
+Build dan jalankan GUI:
+
+```bash
+cargo run -p sim-gui
+```
+
+Build release:
+
+```bash
+cargo build --release -p sim-gui
+./target/release/embed-emu-gui
+```
+
+Crate berada di `crates/sim-gui` dengan binary `embed-emu-gui`.
 
 Backlog eksekusi ada di [`TODO-GUI.md`](../TODO-GUI.md).

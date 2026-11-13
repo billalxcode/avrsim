@@ -9,14 +9,12 @@ berikutnya.
 
 Proyek sudah berada pada tahap implementasi matang:
 
-- 7 crate Rust.
-- 113 file Rust.
-- 24.473 baris Rust.
-- 55 dokumen Markdown.
-- 168 commit.
-- 553 test.
-- Nol dependensi Rust eksternal.
-- Release archive 400 KB.
+- 8 crate Rust.
+- 557 test.
+- Nol dependensi Rust eksternal di crate simulasi; `sim-gui` memakai
+  daftar dependensi yang disetujui.
+- Dokumentasi lengkap di `docs/`.
+- Release archive tersedia di `dist/`.
 
 Semua quality gate lokal lulus:
 
@@ -181,7 +179,7 @@ Urutan pekerjaan:
 
 ## 6. Kriteria Keberhasilan
 
-- 553 test lama tetap lulus.
+- 557 test lama tetap lulus.
 - Test baru untuk setiap perilaku.
 - Tidak ada dependensi eksternal.
 - Tidak ada `unsafe`.
