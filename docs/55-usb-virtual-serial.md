@@ -465,6 +465,8 @@ Sudah diverifikasi:
 - Firmware hasil `avr-gcc` berjalan, termasuk `ADIW` dan `SBIW`.
 - Sketsa Arduino core `Serial.println("Hello World")` mengeluarkan teks
   yang benar lewat `/dev/ttyACM0`.
+- Bridge membuka ulang `/dev/ttyGS0` per client setelah device dibuat
+  ulang.
 - DTR dari avrdude tidak memutus bridge.
 
 Belum diverifikasi:

@@ -125,21 +125,14 @@ int Bridge::run() {
     if (server < 0) {
         return fail("socket");
     }
-    const int device = open_device(options_.device_path);
-    if (device < 0) {
-        close(server);
-        unlink(options_.socket_path.c_str());
-        return fail("device");
-    }
     std::cout << "listening on " << options_.socket_path << "\n" << std::flush;
-    serve(server, device);
-    close(device);
+    serve(server);
     close(server);
     unlink(options_.socket_path.c_str());
     return 0;
 }
 
-void Bridge::serve(int server, int device) {
+void Bridge::serve(int server) {
     while (!g_stop) {
         const int client = accept(server, nullptr, nullptr);
         if (client < 0) {
@@ -149,11 +142,22 @@ void Bridge::serve(int server, int device) {
             std::perror("accept");
             return;
         }
-        std::cout << "client connected\n" << std::flush;
-        bridge_client(client, device);
-        close(client);
-        std::cout << "client disconnected\n" << std::flush;
+        handle_client(client);
     }
+}
+
+void Bridge::handle_client(int client) {
+    const int device = open_device(options_.device_path);
+    if (device < 0) {
+        std::perror("device");
+        close(client);
+        return;
+    }
+    std::cout << "client connected\n" << std::flush;
+    bridge_client(client, device);
+    close(device);
+    close(client);
+    std::cout << "client disconnected\n" << std::flush;
 }
 
 void Bridge::bridge_client(int client, int device) {

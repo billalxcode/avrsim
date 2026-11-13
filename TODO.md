@@ -857,6 +857,8 @@ ditutup otomatis saat proses berhenti.
 - [x] P19-51 Tambah test urutan cleanup `run-usb.sh`.
 - [x] P19-52 Tulis tutorial aman start, upload, dan stop.
 - [ ] P19-53 Verifikasi cleanup gadget kernel nyata setelah perubahan script.
+- [x] P19-54 Buka `/dev/ttyGS0` per client untuk menghindari stale fd.
+- [x] P19-55 Tambah test reopen bridge setelah device recreation.
 - [x] P19-38 Perbarui `docs/55` dan `docs/README.md` setelah verifikasi.
 
 **Exit P19:** driver C++ menghasilkan USB serial virtual yang terdeteksi

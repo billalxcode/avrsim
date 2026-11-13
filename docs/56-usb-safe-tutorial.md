@@ -224,6 +224,7 @@ Penyebab umum:
 | `stop` menolak | `ttyGS0` masih dibuka | Hentikan bridge lebih dulu |
 | UDC busy | Gadget sudah terikat | Jalankan script baru; bind idempoten |
 | Upload busy | Serial Monitor atau avrdude lain membuka port | Tutup program tersebut |
+| Client langsung disconnect | Bridge memegang fd tty lama setelah gadget recreate | Restart `run-usb.sh`; bridge baru membuka tty per client |
 | Permission denied | Device dimiliki `root:dialout` dan user bukan anggota `dialout` | Chown device atau tambahkan user ke `dialout` |
 | Port tidak ada | Gadget setengah terhapus | `stop`, lalu `run-usb.sh` |
 | Dua client menunggu | Lebih dari satu `embed-emu usb` | Hentikan semuanya, jalankan satu |
@@ -258,6 +259,26 @@ Logout dan login kembali agar group baru berlaku. Script `run-usb.sh`
 juga melakukan chown ke `SUDO_USER` setelah `udevadm settle`, tetapi
 `uaccess` tidak selalu memberi ACL pada `dummy_hcd` karena device virtual
 tersebut tidak punya `ID_SEAT`.
+
+### 8.2 Client langsung disconnect
+
+Jika `embed-emu usb` langsung keluar tanpa error, bridge mungkin masih
+memegang fd `/dev/ttyGS0` lama setelah gadget membuat ulang tty. Bridge
+baru membuka device per client, sehingga client berikutnya memakai fd yang
+valid.
+
+Hentikan sesi lama dan jalankan ulang:
+
+```bash
+# Ctrl-C di terminal run-usb.sh
+drivers/linux/scripts/run-usb.sh
+```
+
+Verifikasi bridge baru:
+
+```bash
+python3 scripts/test-usb-bridge-reopen.py
+```
 
 Urutan pemulihan:
 

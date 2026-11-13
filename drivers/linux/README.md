@@ -46,6 +46,10 @@ embed-emu usb (Rust)
 C++ hanya melakukan bridge byte antara `/dev/ttyGS0` dan Unix socket.
 USB descriptor dan CDC ACM ditangani kernel melalui ConfigFS ACM.
 
+Bridge membuka `/dev/ttyGS0` saat client terhubung dan menutupnya saat
+client pergi. Jika gadget membuat ulang tty, client berikutnya membuka fd
+baru, bukan memakai fd lama yang sudah HUP.
+
 ---
 
 ## 2. Prasyarat
@@ -79,6 +83,7 @@ ls /sys/class/udc
 ```bash
 ctest --test-dir build/drivers-linux --output-on-failure
 python3 scripts/test-usb-bridge.py
+python3 scripts/test-usb-bridge-reopen.py
 python3 scripts/test-run-usb-cleanup.py
 ```
 
@@ -91,6 +96,8 @@ Test Python bridge memakai PTY sebagai pengganti `/dev/ttyGS0` dan menguji:
 - Output UART.
 - Echo RX.
 - Cleanup socket.
+- Pembukaan ulang tty setelah device dibuat ulang.
+- Urutan cleanup `run-usb.sh`.
 
 Test cleanup memakai driver dan gadget palsu untuk memastikan bridge
 berhenti sebelum `usb-gadget.sh stop` dijalankan.

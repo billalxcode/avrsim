@@ -13,7 +13,8 @@ public:
     int run();
 
 private:
-    void serve(int server, int device);
+    void serve(int server);
+    void handle_client(int client);
     void bridge_client(int client, int device);
     bool bridge_ready(pollfd& client, pollfd& device, int client_fd, int device_fd);
     bool forward(int from, int to) const;
