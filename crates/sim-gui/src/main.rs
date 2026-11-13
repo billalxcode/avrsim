@@ -6,6 +6,7 @@ mod config;
 mod history;
 mod library;
 mod model;
+mod palette;
 mod persist;
 mod scene;
 mod sim;

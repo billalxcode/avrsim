@@ -8,6 +8,7 @@ use crate::model::{
     Category, ComponentDefinition, ComponentId, ComponentInstance, Document, GridPos, Mirror,
     NetClass, Rotation, WireId,
 };
+use crate::palette::{self, Command};
 use crate::persist;
 use crate::scene::{self, Scene};
 use crate::sim::{self, Event, Sample, SimHandle, Status, Waveform};
@@ -111,6 +112,7 @@ pub struct GuiApp {
     library_open: bool,
     inspector_open: bool,
     legend_open: bool,
+    palette: palette::State,
     search: String,
     category: Option<Category>,
     wire_points: Vec<GridPos>,
@@ -151,6 +153,7 @@ impl GuiApp {
 
 impl eframe::App for GuiApp {
     fn ui(&mut self, ui: &mut egui::Ui, _frame: &mut eframe::Frame) {
+        self.palette_shortcut(ui);
         self.poll_sim();
         self.watch_file(ui.ctx());
         self.autosave(ui.ctx());
@@ -164,6 +167,7 @@ impl eframe::App for GuiApp {
         self.inspector_window(ui);
         self.legend_window(ui);
         self.waveform_window(ui);
+        self.command_palette(ui);
         self.conflict_modal(ui);
     }
 
@@ -918,6 +922,9 @@ impl GuiApp {
     }
 
     fn handle_keys(&mut self, ui: &egui::Ui) {
+        if self.palette.open {
+            return;
+        }
         if ui.ctx().egui_wants_keyboard_input() {
             return;
         }
@@ -1026,6 +1033,135 @@ impl GuiApp {
                 show_net_legend(ui);
             });
         self.legend_open = open;
+    }
+
+    fn palette_shortcut(&mut self, ui: &egui::Ui) {
+        if self.conflict {
+            self.palette.close();
+            return;
+        }
+        let toggle = ui.input(|input| input.modifiers.command && input.key_pressed(egui::Key::K));
+        if toggle {
+            self.palette.toggle();
+        }
+    }
+
+    fn command_palette(&mut self, ui: &mut egui::Ui) {
+        if !self.palette.open {
+            return;
+        }
+        if self.conflict {
+            self.palette.close();
+            return;
+        }
+        let running = self.sim_status.running;
+        let matches = palette::matching(&self.palette.query, running);
+        let mut chosen = None;
+        let response = egui::Modal::new(egui::Id::unique("command-palette")).show(ui.ctx(), |ui| {
+            self.palette_contents(ui, running, &matches, &mut chosen);
+        });
+        if response.backdrop_response.clicked() {
+            self.palette.close();
+        }
+        if let Some(command) = chosen {
+            self.run_command(command);
+        }
+    }
+
+    fn palette_contents(
+        &mut self,
+        ui: &mut egui::Ui,
+        running: bool,
+        matches: &[Command],
+        chosen: &mut Option<Command>,
+    ) {
+        ui.set_width(460.0);
+        self.palette_input(ui, matches.len());
+        ui.separator();
+        palette_list(ui, running, matches, self.palette.selected, chosen);
+        self.palette_submit(ui, matches, chosen);
+    }
+
+    fn palette_input(&mut self, ui: &mut egui::Ui, count: usize) {
+        self.palette_keys(ui, count);
+        let edit = ui.text_edit_singleline(&mut self.palette.query);
+        if self.palette.focus {
+            edit.request_focus();
+            self.palette.focus = false;
+        }
+        if edit.changed() {
+            self.palette.selected = 0;
+        }
+    }
+
+    fn palette_keys(&mut self, ui: &egui::Ui, count: usize) {
+        let down =
+            ui.input_mut(|input| input.consume_key(egui::Modifiers::NONE, egui::Key::ArrowDown));
+        let up = ui.input_mut(|input| input.consume_key(egui::Modifiers::NONE, egui::Key::ArrowUp));
+        if down {
+            self.palette.move_selection(count, 1);
+        }
+        if up {
+            self.palette.move_selection(count, -1);
+        }
+    }
+
+    fn palette_submit(&mut self, ui: &egui::Ui, matches: &[Command], chosen: &mut Option<Command>) {
+        let enter =
+            ui.input_mut(|input| input.consume_key(egui::Modifiers::NONE, egui::Key::Enter));
+        if enter {
+            *chosen = matches.get(self.palette.selected).copied();
+        }
+        let escape =
+            ui.input_mut(|input| input.consume_key(egui::Modifiers::NONE, egui::Key::Escape));
+        if escape {
+            self.palette.close();
+        }
+    }
+
+    fn run_command(&mut self, command: Command) {
+        self.palette.close();
+        if !self.run_edit_command(command) {
+            self.run_view_command(command);
+        }
+    }
+
+    fn run_edit_command(&mut self, command: Command) -> bool {
+        match command {
+            Command::Save => self.save_project(),
+            Command::Open => self.open_project(),
+            Command::LoadHex => self.open_hex(),
+            Command::RunPause => self.toggle_run(),
+            Command::Step => self.send_sim(SimAction::Step),
+            Command::Reset => self.send_sim(SimAction::Reset),
+            Command::Undo => self.undo(),
+            Command::Redo => self.redo(),
+            Command::Delete => self.delete_selection(),
+            _ => return false,
+        }
+        true
+    }
+
+    fn run_view_command(&mut self, command: Command) {
+        match command {
+            Command::ToggleGrid => self.grid_visible = !self.grid_visible,
+            Command::ToggleLibrary => self.library_open = !self.library_open,
+            Command::ToggleInspector => self.inspector_open = !self.inspector_open,
+            Command::ToggleLegend => self.legend_open = !self.legend_open,
+            Command::ToggleWaveform => self.waveform_open = !self.waveform_open,
+            Command::ZoomReset => self.camera.zoom = 1.0,
+            Command::SelectTool => self.set_tool(Tool::Select),
+            Command::WireTool => self.set_tool(Tool::Wire),
+            _ => {}
+        }
+    }
+
+    fn set_tool(&mut self, tool: Tool) {
+        if self.tool == tool {
+            return;
+        }
+        self.tool = tool;
+        self.wire_points.clear();
     }
 
     fn library_window(&mut self, ui: &mut egui::Ui) {
@@ -1485,6 +1621,28 @@ fn file_name(path: &std::path::Path) -> String {
         || "firmware".to_string(),
         |name| name.to_string_lossy().into_owned(),
     )
+}
+
+fn palette_list(
+    ui: &mut egui::Ui,
+    running: bool,
+    matches: &[Command],
+    selected: usize,
+    chosen: &mut Option<Command>,
+) {
+    egui::ScrollArea::vertical()
+        .max_height(320.0)
+        .show(ui, |ui| {
+            for (index, command) in matches.iter().enumerate() {
+                let active = index == selected;
+                if ui
+                    .selectable_label(active, command.label(running))
+                    .clicked()
+                {
+                    *chosen = Some(*command);
+                }
+            }
+        });
 }
 
 fn show_net_legend(ui: &mut egui::Ui) {
