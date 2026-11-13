@@ -75,7 +75,7 @@ Backlog eksekusi untuk GUI interaktif berbasis `egui`/`eframe`.
 - [x] G0-09 Kunci default routing, persilangan, platform, dan format simpan.
 - [x] G0-10 Perbarui `docs/02-architecture.md` untuk `sim-gui` dan daftar dependensi.
 - [x] G0-11 Kunci grid default 20 px, zoom preset dan halus.
-- [ ] G0-12 Kunci palet warna final untuk setiap kelas net.
+- [x] G0-12 Kunci palet warna final untuk setiap kelas net.
 - [ ] G0-13 Kunci field skema JSON dan aturan migrasi otomatis.
 - [ ] G0-14 Kunci signature trait komponen dan analisis.
 - [ ] G0-15 Kunci API probe analog read-only dan default N 100 cycle.
@@ -176,13 +176,13 @@ tanpa segmen diagonal, dan tanpa menembus komponen.
 
 - [x] G5-01 Implementasikan saran jalur L.
 - [x] G5-02 Dokumentasikan keputusan menunda auto-router penuh.
-- [ ] G5-03 Terapkan aturan persilangan tanpa junction.
+- [x] G5-03 Terapkan aturan persilangan tanpa junction.
 - [x] G5-04 Deteksi kelas net dan petakan ke warna.
 - [x] G5-05 Implementasikan label net saat hover, seleksi, atau zoom tinggi.
-- [ ] G5-06 Tambahkan legenda warna dan pola ramah buta warna.
-- [ ] G5-07 Test routing, warna, label, dan aturan persilangan.
+- [x] G5-06 Tambahkan legenda warna dan pola ramah buta warna.
+- [x] G5-07 Test routing, warna, label, dan aturan persilangan.
 - [ ] G5-08 Implementasikan override warna per net.
-- [ ] G5-09 Kunci palet warna final dan target kontras WCAG AA.
+- [x] G5-09 Kunci palet warna final dan target kontras WCAG AA.
 - [ ] G5-10 Implementasikan ruler grid dan probe tegangan.
 - [x] G5-11 Implementasikan saran jalur Z.
 

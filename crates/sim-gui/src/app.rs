@@ -2114,11 +2114,23 @@ fn palette_list(
 fn show_net_legend(ui: &mut egui::Ui) {
     for class in NetClass::ALL {
         ui.horizontal(|ui| {
-            let (rect, _) = ui.allocate_exact_size(egui::vec2(20.0, 8.0), egui::Sense::hover());
-            ui.painter().rect_filled(rect, 2.0, scene::net_color(class));
+            legend_swatch(ui, class);
             ui.label(class.label());
         });
     }
+}
+
+fn legend_swatch(ui: &mut egui::Ui, class: NetClass) {
+    let (rect, _) = ui.allocate_exact_size(egui::vec2(28.0, 8.0), egui::Sense::hover());
+    let y = rect.center().y;
+    let points = [egui::pos2(rect.left(), y), egui::pos2(rect.right(), y)];
+    let stroke = egui::Stroke::new(2.0, scene::net_color(class));
+    if let Some((dash, gap)) = scene::wire_dash(class) {
+        ui.painter()
+            .extend(egui::Shape::dashed_line(&points, stroke, dash, gap));
+        return;
+    }
+    ui.painter().line_segment(points, stroke);
 }
 
 fn show_uart_contents(ui: &mut egui::Ui, log: &UartLog, clear: &mut bool) {

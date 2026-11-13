@@ -19,6 +19,13 @@ const GHOST_OK: egui::Color32 = egui::Color32::from_rgb(60, 210, 130);
 const GHOST_BAD: egui::Color32 = egui::Color32::from_rgb(230, 80, 80);
 const PREVIEW_BAD: egui::Color32 = egui::Color32::from_rgb(240, 90, 90);
 
+#[derive(Clone, Copy)]
+struct WireStyle {
+    color: egui::Color32,
+    width: f32,
+    dash: Option<(f32, f32)>,
+}
+
 /// Immutable scene used by the canvas renderer.
 #[derive(Clone, Copy)]
 pub struct Scene<'a> {
@@ -239,8 +246,12 @@ fn draw_wire(
         let halo = SELECTED_STROKE.gamma_multiply(0.6);
         draw_polyline(painter, rect, camera, &wire.points, halo, 6.0);
     }
-    let color = net_color(wire.class);
-    draw_polyline(painter, rect, camera, &wire.points, color, 2.0);
+    let style = WireStyle {
+        color: net_color(wire.class),
+        width: 2.0,
+        dash: wire_dash(wire.class),
+    };
+    draw_patterned_polyline(painter, rect, camera, &wire.points, style);
 }
 
 fn draw_junctions(
@@ -267,8 +278,12 @@ fn draw_wire_preview(
     if scene.wire_preview.is_empty() {
         return;
     }
-    let color = net_color(scene.wire_class).gamma_multiply(0.8);
-    draw_polyline(painter, rect, camera, scene.wire_preview, color, 2.0);
+    let mut style = WireStyle {
+        color: net_color(scene.wire_class).gamma_multiply(0.8),
+        width: 2.0,
+        dash: wire_dash(scene.wire_class),
+    };
+    draw_patterned_polyline(painter, rect, camera, scene.wire_preview, style);
     let Some(hover) = scene.wire_hover else {
         return;
     };
@@ -278,12 +293,10 @@ fn draw_wire_preview(
     if last == hover {
         return;
     }
-    let color = if scene.document.can_add_segment(scene.library, last, hover) {
-        color
-    } else {
-        PREVIEW_BAD
-    };
-    draw_segment(painter, rect, camera, last, hover, color, 2.0);
+    if !scene.document.can_add_segment(scene.library, last, hover) {
+        style.color = PREVIEW_BAD;
+    }
+    draw_patterned_segment(painter, rect, camera, last, hover, style);
 }
 
 fn draw_polyline(
@@ -296,6 +309,65 @@ fn draw_polyline(
 ) {
     for segment in points.windows(2) {
         draw_segment(painter, rect, camera, segment[0], segment[1], color, width);
+    }
+}
+
+fn draw_patterned_polyline(
+    painter: &egui::Painter,
+    rect: egui::Rect,
+    camera: &crate::canvas::GridCamera,
+    points: &[GridPos],
+    style: WireStyle,
+) {
+    for segment in points.windows(2) {
+        draw_patterned_segment(painter, rect, camera, segment[0], segment[1], style);
+    }
+}
+
+fn draw_patterned_segment(
+    painter: &egui::Painter,
+    rect: egui::Rect,
+    camera: &crate::canvas::GridCamera,
+    start: GridPos,
+    end: GridPos,
+    style: WireStyle,
+) {
+    let Some((dash_length, gap_length)) = style.dash else {
+        draw_segment(painter, rect, camera, start, end, style.color, style.width);
+        return;
+    };
+    let [start, end] = screen_segment(rect, camera, start, end);
+    painter.extend(egui::Shape::dashed_line(
+        &[start, end],
+        egui::Stroke::new(style.width, style.color),
+        dash_length,
+        gap_length,
+    ));
+}
+
+fn screen_segment(
+    rect: egui::Rect,
+    camera: &crate::canvas::GridCamera,
+    start: GridPos,
+    end: GridPos,
+) -> [egui::Pos2; 2] {
+    [
+        screen_pos(rect, camera, start),
+        screen_pos(rect, camera, end),
+    ]
+}
+
+pub(crate) fn wire_dash(class: NetClass) -> Option<(f32, f32)> {
+    match class {
+        NetClass::Power | NetClass::Ground | NetClass::Digital => None,
+        NetClass::Analog => Some((6.0, 4.0)),
+        NetClass::Clock => Some((10.0, 3.0)),
+        NetClass::Uart => Some((2.0, 3.0)),
+        NetClass::Spi => Some((8.0, 3.0)),
+        NetClass::I2c => Some((4.0, 4.0)),
+        NetClass::Pwm => Some((12.0, 3.0)),
+        NetClass::Reset => Some((3.0, 5.0)),
+        NetClass::User => Some((5.0, 5.0)),
     }
 }
 
@@ -705,6 +777,28 @@ mod tests {
                 assert_ne!(color, other);
             }
         }
+    }
+
+    #[test]
+    fn net_colors_meet_wcag_aa_on_canvas() {
+        let background = luminance(eframe::egui::Color32::from_rgb(18, 22, 26));
+        for class in NetClass::ALL {
+            let foreground = luminance(net_color(class));
+            let ratio = (foreground.max(background) + 0.05) / (foreground.min(background) + 0.05);
+            assert!(ratio >= 4.5, "{} contrast {ratio:.2}", class.label());
+        }
+    }
+
+    fn luminance(color: eframe::egui::Color32) -> f64 {
+        0.2126 * channel(color.r()) + 0.7152 * channel(color.g()) + 0.0722 * channel(color.b())
+    }
+
+    fn channel(value: u8) -> f64 {
+        let value = f64::from(value) / 255.0;
+        if value <= 0.04045 {
+            return value / 12.92;
+        }
+        ((value + 0.055) / 1.055).powf(2.4)
     }
 
     #[test]

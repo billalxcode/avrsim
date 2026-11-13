@@ -460,6 +460,7 @@ impl Document {
             return false;
         };
         !edges.iter().any(|edge| self.edge_occupied(*edge, None))
+            && !self.segment_crosses_wire(start, end, None)
     }
 
     /// Returns true when a point is a pin or an existing wire vertex.
@@ -780,6 +781,12 @@ impl Document {
         if edges.iter().any(|edge| self.edge_occupied(*edge, ignore)) {
             return false;
         }
+        if points
+            .windows(2)
+            .any(|segment| self.segment_crosses_wire(segment[0], segment[1], ignore))
+        {
+            return false;
+        }
         !self.path_blocked(library, points)
     }
 
@@ -791,6 +798,17 @@ impl Document {
             wire.points
                 .windows(2)
                 .any(|segment| segment_edges(segment[0], segment[1]).contains(&edge))
+        })
+    }
+
+    fn segment_crosses_wire(&self, start: GridPos, end: GridPos, ignore: Option<WireId>) -> bool {
+        self.wires.iter().any(|wire| {
+            if Some(wire.id) == ignore {
+                return false;
+            }
+            wire.points
+                .windows(2)
+                .any(|segment| crossing_point(start, end, segment[0], segment[1]).is_some())
         })
     }
 
@@ -1002,6 +1020,37 @@ fn segment_edges(start: GridPos, end: GridPos) -> Vec<GridEdge> {
         .collect()
 }
 
+fn crossing_point(
+    first: GridPos,
+    second: GridPos,
+    other_first: GridPos,
+    other_second: GridPos,
+) -> Option<GridPos> {
+    let point = if first.y == second.y && other_first.x == other_second.x {
+        GridPos::new(other_first.x, first.y)
+    } else if first.x == second.x && other_first.y == other_second.y {
+        GridPos::new(first.x, other_first.y)
+    } else {
+        return None;
+    };
+    if !on_segment(first, second, point) || !on_segment(other_first, other_second, point) {
+        return None;
+    }
+    let first_endpoint = point == first || point == second;
+    let second_endpoint = point == other_first || point == other_second;
+    if first_endpoint && second_endpoint {
+        return None;
+    }
+    Some(point)
+}
+
+fn on_segment(start: GridPos, end: GridPos, point: GridPos) -> bool {
+    point.x >= start.x.min(end.x)
+        && point.x <= start.x.max(end.x)
+        && point.y >= start.y.min(end.y)
+        && point.y <= start.y.max(end.y)
+}
+
 fn segment_distance(point: [f32; 2], start: GridPos, end: GridPos) -> f32 {
     let x = point[0];
     let y = point[1];
@@ -1139,6 +1188,24 @@ mod tests {
         assert!(document.components_in_rect(LIBRARY, partial).is_empty());
         let full = super::GridRect::from_corners(GridPos::new(0, 0), GridPos::new(4, 2));
         assert_eq!(document.components_in_rect(LIBRARY, full), vec![id]);
+    }
+
+    #[test]
+    fn rejects_crossing_without_junction() {
+        let library = library::builtin();
+        let resistor = library::find("resistor").expect("resistor");
+        let mut document = Document::new();
+        document.add(resistor, GridPos::new(0, 0), Rotation::Deg0, Mirror::None);
+        document.add(resistor, GridPos::new(10, 0), Rotation::Deg0, Mirror::None);
+        document
+            .add_wire(
+                library,
+                vec![GridPos::new(4, 1), GridPos::new(10, 1)],
+                NetClass::Digital,
+            )
+            .expect("wire");
+        assert!(!document.can_add_segment(library, GridPos::new(7, 0), GridPos::new(7, 2)));
+        assert!(document.can_add_segment(library, GridPos::new(4, 1), GridPos::new(4, 3)));
     }
 
     #[test]
