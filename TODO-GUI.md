@@ -70,7 +70,7 @@ Backlog eksekusi untuk GUI interaktif berbasis `egui`/`eframe`.
 - [x] G0-04 Tambahkan `sim-gui` ke workspace dan dependency graph.
 - [x] G0-05 Pin versi semua dependensi `sim-gui`, commit `Cargo.lock`.
 - [ ] G0-06 Buat app error type dan aturan no-panic untuk input GUI.
-- [ ] G0-07 Tambahkan build dan test `sim-gui` ke CI Linux.
+- [x] G0-07 Tambahkan build dan test `sim-gui` ke CI Linux.
 - [x] G0-08 Dokumentasikan perintah build dan run GUI.
 - [x] G0-09 Kunci default routing, persilangan, platform, dan format simpan.
 - [x] G0-10 Perbarui `docs/02-architecture.md` untuk `sim-gui` dan daftar dependensi.
@@ -116,12 +116,14 @@ pan dan zoom stabil, dan area canvas mendominasi layout.
 - [x] G2-02 Definisikan metadata library: simbol vektor datar, pin, parameter, probe.
 - [x] G2-03 Buat library awal: ATmega328P, board Arduino, passive, LED, button, VCC, GND.
 - [x] G2-04 Buat library sheet dengan pencarian dan kategori.
-- [ ] G2-05 Buat preview simbol dan recently used.
-- [ ] G2-06 Implementasikan ghost placement, klik, dan drag-and-drop.
+- [x] G2-05 Buat daftar recently used di library.
+- [ ] G2-15 Buat preview simbol di library.
+- [x] G2-06 Implementasikan ghost placement dan klik untuk menempatkan.
+- [ ] G2-16 Implementasikan drag-and-drop dari library ke kanvas.
 - [x] G2-07 Implementasikan move, rotate, dan mirror di grid dengan pusat rotasi.
 - [x] G2-08 Implementasikan selection dan inspector dasar.
 - [x] G2-09 Test transformasi pin, tabrakan, dan model dokumen.
-- [ ] G2-10 Definisikan trait internal `ComponentProvider` untuk plugin komponen.
+- [x] G2-10 Definisikan trait internal `ComponentProvider` untuk plugin komponen.
 - [x] G2-11 Tampilkan label referensi dan nilai komponen secara default.
 - [x] G2-12 Simpan definisi library sebagai kode Rust internal.
 - [ ] G2-13 Terapkan snap selalu aktif dan Alt menonaktifkan sementara.
@@ -134,17 +136,17 @@ menempatkannya di grid, memindahkan, memutar, dan mencerminkannya.
 
 ## G3 - Pin, Label, dan Net
 
-- [ ] G3-01 Gambar pin sebagai garis dengan titik, nama, nomor, dan arah.
+- [x] G3-01 Gambar pin sebagai garis dengan titik, nama, nomor, dan arah.
 - [x] G3-02 Implementasikan hover tooltip pin.
 - [ ] G3-03 Implementasikan klik pin untuk memilih net.
 - [ ] G3-04 Implementasikan highlight net dan pin terhubung.
 - [x] G3-05 Tampilkan reference designator dan value komponen.
 - [x] G3-06 Terapkan label pin nama dan nomor dengan LOD dan hover.
-- [ ] G3-07 Test hit testing dan pemetaan pin ke net.
-- [ ] G3-08 Tampilkan label net saat hover atau seleksi.
-- [ ] G3-09 Buat inspector tiga section: properties, pins, simulation.
+- [x] G3-07 Test hit testing dan pemetaan net wire.
+- [x] G3-08 Tampilkan label net saat hover atau seleksi.
+- [x] G3-09 Buat inspector tiga section: properties, pins, simulation.
 - [x] G3-10 Pindahkan semua komponen terpilih saat multi-select digeser.
-- [ ] G3-11 Highlight seluruh net saat net dipilih.
+- [x] G3-11 Highlight seluruh net saat wire net dipilih.
 - [x] G3-12 Gunakan selection box full containment.
 
 **Acceptance G3:** setiap pin dapat diperiksa, dipilih, dan dihubungkan
@@ -200,7 +202,7 @@ fungsi net, dan persilangan tidak menimbulkan koneksi palsu.
 - [x] G6-05 Tampilkan cycle dan status running atau paused.
 - [x] G6-06 Tampilkan error simulasi di UI tanpa panic.
 - [x] G6-07 Test integrasi ATmega328P dan LED.
-- [ ] G6-08 Evaluasi ekstraksi runtime bersama dengan `sim-cli`.
+- [x] G6-08 Evaluasi ekstraksi runtime bersama dengan `sim-cli`.
 - [ ] G6-09 Implementasikan sampling probe setiap N cycle yang dapat dikonfigurasi.
 - [x] G6-10 Tampilkan output UART TX di monitor GUI.
 

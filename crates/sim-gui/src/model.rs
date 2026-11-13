@@ -529,6 +529,52 @@ impl Document {
             .collect()
     }
 
+    /// Returns all wires transitively connected to a wire.
+    #[must_use]
+    pub fn net_wires(&self, id: WireId) -> BTreeSet<WireId> {
+        let mut net = BTreeSet::new();
+        if !self.wires.iter().any(|wire| wire.id == id) {
+            return net;
+        }
+        net.insert(id);
+        loop {
+            let points: BTreeSet<_> = self
+                .wires
+                .iter()
+                .filter(|wire| net.contains(&wire.id))
+                .flat_map(|wire| wire.points.iter().copied())
+                .collect();
+            let before = net.len();
+            for wire in &self.wires {
+                if wire.points.iter().any(|point| points.contains(point)) {
+                    net.insert(wire.id);
+                }
+            }
+            if net.len() == before {
+                return net;
+            }
+        }
+    }
+
+    /// Returns a wire connected to a pin at a grid point.
+    #[must_use]
+    pub fn pin_wire_at(&self, library: &[ComponentDefinition], point: GridPos) -> Option<WireId> {
+        self.components.iter().find_map(|instance| {
+            let definition = find_definition(library, instance.definition)?;
+            let is_pin = definition
+                .pins
+                .iter()
+                .any(|pin| world_pin(instance, definition, pin) == point);
+            if !is_pin {
+                return None;
+            }
+            self.wires
+                .iter()
+                .find(|wire| wire.points.contains(&point))
+                .map(|wire| wire.id)
+        })
+    }
+
     /// Returns the outer bounds of all components and wires.
     #[must_use]
     pub fn bounds(&self, library: &[ComponentDefinition]) -> Option<(GridPos, GridPos)> {
@@ -1138,7 +1184,7 @@ fn segment_step(start: GridPos, end: GridPos, step: i32) -> GridPos {
 mod tests {
     use super::{
         ComponentDefinition, Document, GridPos, GridSize, Mirror, NetClass, PinDefinition,
-        Rotation, SymbolKind, body_size, world_pin,
+        Rotation, SymbolKind, Wire, WireId, body_size, world_pin,
     };
     use crate::library;
 
@@ -1284,6 +1330,49 @@ mod tests {
         assert!(document.component_has_wire(library, first));
         assert!(document.component_has_wire(library, second));
         assert!(!document.component_has_wire(library, third));
+    }
+
+    #[test]
+    fn pin_wire_lookup_finds_connected_wire() {
+        let library = library::builtin();
+        let resistor = library::find("resistor").expect("resistor");
+        let mut document = Document::new();
+        document.add(resistor, GridPos::new(0, 0), Rotation::Deg0, Mirror::None);
+        document.add(resistor, GridPos::new(6, 0), Rotation::Deg0, Mirror::None);
+        let wire = document
+            .add_wire(
+                library,
+                vec![GridPos::new(4, 1), GridPos::new(6, 1)],
+                NetClass::Digital,
+            )
+            .expect("wire");
+        assert_eq!(
+            document.pin_wire_at(library, GridPos::new(4, 1)),
+            Some(wire)
+        );
+        assert_eq!(document.pin_wire_at(library, GridPos::new(1, 1)), None);
+    }
+
+    #[test]
+    fn net_wires_follow_shared_vertices() {
+        let wires = vec![
+            test_wire(1, GridPos::new(0, 0), GridPos::new(2, 0), NetClass::Digital),
+            test_wire(2, GridPos::new(2, 0), GridPos::new(4, 0), NetClass::Digital),
+            test_wire(3, GridPos::new(10, 0), GridPos::new(12, 0), NetClass::Power),
+        ];
+        let document = Document::restore(Vec::new(), wires);
+        let net = document.net_wires(WireId(1));
+        assert!(net.contains(&WireId(1)));
+        assert!(net.contains(&WireId(2)));
+        assert!(!net.contains(&WireId(3)));
+    }
+
+    fn test_wire(id: u32, start: GridPos, end: GridPos, class: NetClass) -> Wire {
+        Wire {
+            id: WireId(id),
+            points: vec![start, end],
+            class,
+        }
     }
 
     #[test]

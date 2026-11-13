@@ -12,6 +12,7 @@ mod log;
 mod model;
 mod palette;
 mod persist;
+mod provider;
 mod scene;
 mod selection;
 mod sim;

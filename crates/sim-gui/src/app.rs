@@ -14,6 +14,7 @@ use crate::model::{
 };
 use crate::palette::{self, Command};
 use crate::persist;
+use crate::provider::{BuiltinComponents, ComponentProvider};
 use crate::scene::{self, Scene};
 use crate::selection::Selection;
 use crate::sim::{self, Event, Sample, SimHandle, Status, Waveform};
@@ -127,6 +128,7 @@ pub struct GuiApp {
     pointer_world: Option<egui::Pos2>,
     initialized: bool,
     library: &'static [ComponentDefinition],
+    recent_components: Vec<&'static ComponentDefinition>,
     document: Document,
     selection: Selection,
     clipboard: Clipboard,
@@ -177,7 +179,7 @@ impl GuiApp {
         configure_style(context);
         let (config_path, config) = load_config();
         Self {
-            library: library::builtin(),
+            library: BuiltinComponents.definitions(),
             document: Document::new(),
             grid_visible: true,
             inspector_open: true,
@@ -864,6 +866,10 @@ impl GuiApp {
 
     fn select_at(&mut self, world: egui::Pos2, additive: bool) {
         let point = world_to_grid(world);
+        if let Some(id) = self.document.pin_wire_at(self.library, point) {
+            self.select_wire_net(id, additive);
+            return;
+        }
         if let Some(id) = self.document.hit_test(self.library, point) {
             if additive {
                 self.selection.toggle_component(id);
@@ -873,16 +879,21 @@ impl GuiApp {
             return;
         }
         if let Some(id) = self.document.wire_at([world.x, world.y], 0.35) {
-            if additive {
-                self.selection.toggle_wire(id);
-            } else {
-                self.selection.select_wire(id);
-            }
+            self.select_wire_net(id, additive);
             return;
         }
         if !additive {
             self.selection.clear();
         }
+    }
+
+    fn select_wire_net(&mut self, id: WireId, additive: bool) {
+        if additive {
+            self.selection.toggle_wire(id);
+            return;
+        }
+        let net = self.document.net_wires(id);
+        self.selection.apply([], net, false);
     }
 
     fn open_context_menu(&mut self, state: &canvas::CanvasState) {
@@ -895,6 +906,12 @@ impl GuiApp {
 
     fn select_context_target(&mut self, world: egui::Pos2) {
         let point = world_to_grid(world);
+        if let Some(id) = self.document.pin_wire_at(self.library, point) {
+            if !self.selection.contains_wire(id) {
+                self.select_wire_net(id, false);
+            }
+            return;
+        }
         if let Some(id) = self.document.hit_test(self.library, point) {
             if !self.selection.contains_component(id) {
                 self.selection.select_component(id);
@@ -903,7 +920,7 @@ impl GuiApp {
         }
         if let Some(id) = self.document.wire_at([world.x, world.y], 0.35) {
             if !self.selection.contains_wire(id) {
-                self.selection.select_wire(id);
+                self.select_wire_net(id, false);
             }
             return;
         }
@@ -1133,6 +1150,14 @@ impl GuiApp {
         self.selection.select_component(id);
         self.placing = None;
         self.mark_dirty();
+        self.remember_component(definition);
+    }
+
+    fn remember_component(&mut self, definition: &'static ComponentDefinition) {
+        self.recent_components
+            .retain(|item| item.id != definition.id);
+        self.recent_components.insert(0, definition);
+        self.recent_components.truncate(5);
     }
 
     fn handle_wire(&mut self, state: canvas::CanvasState) {
@@ -1548,9 +1573,14 @@ impl GuiApp {
             .open(&mut open)
             .default_width(300.0)
             .show(ui.ctx(), |ui| {
+                if let Some(definition) = self.recent_buttons(ui) {
+                    chosen = Some(definition);
+                }
                 self.library_filters(ui, &mut search, &mut category);
                 ui.separator();
-                chosen = library_list(ui, self.library, &search, category);
+                if chosen.is_none() {
+                    chosen = library_list(ui, self.library, &search, category);
+                }
             });
         self.library_open = open;
         self.search = search;
@@ -1559,6 +1589,23 @@ impl GuiApp {
             self.placing = Some(definition);
             self.library_open = false;
         }
+    }
+
+    fn recent_buttons(&self, ui: &mut egui::Ui) -> Option<&'static ComponentDefinition> {
+        if self.recent_components.is_empty() {
+            return None;
+        }
+        ui.label("Recent");
+        let mut chosen = None;
+        ui.horizontal_wrapped(|ui| {
+            for definition in &self.recent_components {
+                if ui.button(definition.name).clicked() {
+                    chosen = Some(*definition);
+                }
+            }
+        });
+        ui.separator();
+        chosen
     }
 
     fn library_filters(
@@ -2074,6 +2121,22 @@ fn show_component_info(
         component.rotation.label(),
         component.mirror.label()
     ));
+    ui.separator();
+    show_component_pins(ui, definition);
+    show_component_simulation(ui);
+}
+
+fn show_component_simulation(ui: &mut egui::Ui) {
+    ui.separator();
+    ui.label("Simulation");
+    ui.label("Global PB5/LED graph");
+}
+
+fn show_component_pins(ui: &mut egui::Ui, definition: &ComponentDefinition) {
+    ui.label("Pins");
+    for pin in definition.pins {
+        ui.label(format!("{} ({})", pin.name, pin.number));
+    }
 }
 
 fn show_component_actions(ui: &mut egui::Ui, action: &mut Option<InspectorAction>) {
@@ -2776,6 +2839,19 @@ mod tests {
             first,
             second,
         )
+    }
+
+    #[test]
+    fn recent_components_are_bounded_and_deduplicated() {
+        let definitions = crate::library::builtin();
+        let mut app = GuiApp::default();
+        for definition in definitions.iter().take(6) {
+            app.remember_component(definition);
+        }
+        assert_eq!(app.recent_components.len(), 5);
+        assert_eq!(app.recent_components[0].id, definitions[5].id);
+        app.remember_component(&definitions[0]);
+        assert_eq!(app.recent_components[0].id, definitions[0].id);
     }
 
     #[test]

@@ -77,12 +77,6 @@ impl Selection {
         self.components.insert(id);
     }
 
-    /// Replaces the selection with one wire.
-    pub fn select_wire(&mut self, id: WireId) {
-        self.clear();
-        self.wires.insert(id);
-    }
-
     /// Adds or removes a component.
     pub fn toggle_component(&mut self, id: ComponentId) {
         if !self.components.remove(&id) {
@@ -126,7 +120,7 @@ mod tests {
     fn single_selection_clears_other_kind() {
         let mut selection = Selection::default();
         selection.add_component(ComponentId(1));
-        selection.select_wire(WireId(2));
+        selection.apply([], [WireId(2)], false);
         assert!(!selection.contains_component(ComponentId(1)));
         assert_eq!(selection.single_wire(), Some(WireId(2)));
         selection.select_component(ComponentId(3));

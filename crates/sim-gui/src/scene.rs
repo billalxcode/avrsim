@@ -377,6 +377,7 @@ fn draw_wire(
     if selected {
         let halo = SELECTED_STROKE.gamma_multiply(0.6);
         draw_polyline(painter, rect, camera, &wire.points, halo, 6.0);
+        draw_wire_ends(painter, rect, camera, wire);
     }
     let style = WireStyle {
         color: net_color(wire.class),
@@ -384,6 +385,21 @@ fn draw_wire(
         dash: wire_dash(wire.class),
     };
     draw_patterned_polyline(painter, rect, camera, &wire.points, style);
+}
+
+fn draw_wire_ends(
+    painter: &egui::Painter,
+    rect: egui::Rect,
+    camera: &crate::canvas::GridCamera,
+    wire: &crate::model::Wire,
+) {
+    for point in [wire.points.first(), wire.points.last()]
+        .into_iter()
+        .flatten()
+    {
+        let screen = screen_pos(rect, camera, *point);
+        painter.circle_stroke(screen, 5.0, egui::Stroke::new(1.5, SELECTED_STROKE));
+    }
 }
 
 fn draw_junctions(
@@ -740,10 +756,17 @@ fn draw_pin_label(
     painter.text(
         position + offset,
         pin_anchor(direction),
-        pin.name,
+        pin_label_text(pin),
         egui::FontId::monospace(9.0),
         TEXT_COLOR,
     );
+}
+
+fn pin_label_text(pin: &crate::model::PinDefinition) -> String {
+    if pin.name == pin.number {
+        return pin.name.to_string();
+    }
+    format!("{}/{}", pin.name, pin.number)
 }
 
 fn pin_anchor(direction: GridPos) -> egui::Align2 {
@@ -888,7 +911,7 @@ pub fn placement_position(
 #[cfg(test)]
 mod tests {
     use super::{
-        minimap_map, net_color, pin_tooltip, placement_position, segment_visible,
+        minimap_map, net_color, pin_label_text, pin_tooltip, placement_position, segment_visible,
         show_component_labels, show_wire_label, wire_midpoint,
     };
     use crate::library;
@@ -909,6 +932,7 @@ mod tests {
             offset: GridPos::new(0, 1),
         };
         assert_eq!(pin_tooltip(&pin, GridPos::new(-1, 0)), "A (1) left");
+        assert_eq!(pin_label_text(&pin), "A/1");
     }
 
     #[test]

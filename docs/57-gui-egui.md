@@ -13,7 +13,8 @@ deteksi perubahan file eksternal, label net, legenda warna, command
 palette, multi-select, selection box, copy/paste/duplicate, rotate/mirror
 grup, context menu, monitor UART TX, pola garis net, toast, konfirmasi
 hapus, export PNG, minimap, log panel, tooltip pin, tema terang,
-simulasi PB5, dan graph digital PB5/LED dengan cursor juga sudah ada. Probe generik, UART input ke
+recently used, net highlight, simulasi PB5, dan graph digital PB5/LED
+dengan cursor juga sudah ada. Probe generik, UART input ke
 simulasi, dan grafik analog belum ada. Dependensi
 GUI yang disetujui hanya untuk crate `sim-gui`: `egui`, `eframe`,
 `serde`, `serde_json`, `rfd`, dan `png`. `egui_plot`,
@@ -519,6 +520,8 @@ sim-gui (binary embed-emu-gui)
 Aturan:
 
 - `sim-gui` adalah adapter/composition.
+- Runtime GUI tetap di `sim-gui`; ekstraksi ke crate bersama ditunda
+  karena monitor CLI sinkron dan worker GUI memakai batch serta channel.
 - Tidak ada crate simulasi yang bergantung pada `sim-gui`.
 - Model dokumen tidak memakai tipe egui.
 - Rendering egui hanya ada di layer UI.
