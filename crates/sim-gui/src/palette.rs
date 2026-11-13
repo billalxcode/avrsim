@@ -24,11 +24,19 @@ pub enum Command {
     ZoomReset,
     SelectTool,
     WireTool,
+    AlignLeft,
+    AlignRight,
+    AlignTop,
+    AlignBottom,
+    AlignCenterX,
+    AlignCenterY,
+    DistributeHorizontal,
+    DistributeVertical,
 }
 
 impl Command {
     /// All commands shown by the palette.
-    pub const ALL: [Self; 21] = [
+    pub const ALL: [Self; 29] = [
         Self::Save,
         Self::Open,
         Self::LoadHex,
@@ -50,6 +58,14 @@ impl Command {
         Self::ZoomReset,
         Self::SelectTool,
         Self::WireTool,
+        Self::AlignLeft,
+        Self::AlignRight,
+        Self::AlignTop,
+        Self::AlignBottom,
+        Self::AlignCenterX,
+        Self::AlignCenterY,
+        Self::DistributeHorizontal,
+        Self::DistributeVertical,
     ];
 
     /// Returns the display label for the current simulation state.
@@ -100,6 +116,20 @@ impl Command {
             Self::ZoomReset => "Reset zoom",
             Self::SelectTool => "Select tool",
             Self::WireTool => "Wire tool",
+            _ => self.align_label(),
+        }
+    }
+
+    const fn align_label(self) -> &'static str {
+        match self {
+            Self::AlignLeft => "Align left",
+            Self::AlignRight => "Align right",
+            Self::AlignTop => "Align top",
+            Self::AlignBottom => "Align bottom",
+            Self::AlignCenterX => "Align center horizontally",
+            Self::AlignCenterY => "Align center vertically",
+            Self::DistributeHorizontal => "Distribute horizontally",
+            Self::DistributeVertical => "Distribute vertically",
             _ => "Unknown command",
         }
     }

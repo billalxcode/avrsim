@@ -405,7 +405,7 @@ Aturan:
 - Klik memilih satu objek.
 - Shift-click menambah atau mengurangi seleksi.
 - Drag kosong membuat selection box.
-- Selection box memilih objek yang bersinggungan dengan kotak.
+- Selection box memilih objek yang seluruhnya berada di dalam kotak.
 - Multi-select dapat dipindahkan, dirotasi, dan dimirror bersama.
 - Klik net memilih seluruh net dan menghighlight semua pin serta kabel.
 - Hapus satu objek langsung; komponen dengan kabel atau seleksi besar

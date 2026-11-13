@@ -4,6 +4,7 @@ use crate::canvas::{self, GridCamera};
 use crate::clipboard::{self, Clipboard};
 use crate::config;
 use crate::history::History;
+use crate::layout::{self, Align, Distribute};
 use crate::library;
 use crate::model::{
     Category, ComponentDefinition, ComponentId, ComponentInstance, Document, GridPos, GridRect,
@@ -112,6 +113,7 @@ struct SceneConfig<'a> {
 #[derive(Default)]
 pub struct GuiApp {
     camera: GridCamera,
+    canvas_rect: Option<egui::Rect>,
     grid_visible: bool,
     tool: Tool,
     pointer_world: Option<egui::Pos2>,
@@ -183,8 +185,19 @@ impl eframe::App for GuiApp {
         self.status_bar(ui);
         let state = self.canvas(ui);
         self.pointer_world = state.pointer_world;
+        self.canvas_rect = Some(state.rect);
         self.handle_canvas(state);
         self.handle_keys(ui);
+        self.windows(ui);
+    }
+
+    fn on_exit(&mut self) {
+        let _ = self.flush_autosave();
+    }
+}
+
+impl GuiApp {
+    fn windows(&mut self, ui: &mut egui::Ui) {
         self.library_window(ui);
         self.inspector_window(ui);
         self.legend_window(ui);
@@ -194,13 +207,6 @@ impl eframe::App for GuiApp {
         self.command_palette(ui);
         self.conflict_modal(ui);
     }
-
-    fn on_exit(&mut self) {
-        let _ = self.flush_autosave();
-    }
-}
-
-impl GuiApp {
     fn toolbar(&mut self, ui: &mut egui::Ui) {
         egui::Panel::top("toolbar").show(ui, |ui| {
             ui.horizontal(|ui| {
@@ -591,9 +597,7 @@ impl GuiApp {
     }
 
     fn toolbar_view(&mut self, ui: &mut egui::Ui) {
-        if ui.button("100%").clicked() {
-            self.camera.zoom = 1.0;
-        }
+        self.zoom_controls(ui);
         ui.checkbox(&mut self.grid_visible, "Grid");
         ui.separator();
         if self.tool == Tool::Wire {
@@ -601,6 +605,38 @@ impl GuiApp {
         } else {
             self.placement_controls(ui);
         }
+    }
+
+    fn zoom_controls(&mut self, ui: &mut egui::Ui) {
+        egui::ComboBox::from_id_salt("zoom_preset")
+            .selected_text(format!("{:.0}%", self.camera.zoom * 100.0))
+            .show_ui(ui, |ui| {
+                for zoom in [0.5, 1.0, 2.0] {
+                    ui.selectable_value(
+                        &mut self.camera.zoom,
+                        zoom,
+                        format!("{:.0}%", zoom * 100.0),
+                    );
+                }
+            });
+        if ui.button("Fit").clicked() {
+            self.fit_content(false);
+        }
+        if ui.button("Fit Sel").clicked() {
+            self.fit_content(true);
+        }
+    }
+
+    fn fit_content(&mut self, selection_only: bool) {
+        let Some(rect) = self.canvas_rect else {
+            return;
+        };
+        let selection = selection_only.then_some(&self.selection);
+        let Some((min, max)) = content_bounds(&self.document, self.library, selection) else {
+            return;
+        };
+        self.camera
+            .fit_world(rect, grid_pos_f(min), grid_pos_f(max), 24.0);
     }
 
     fn wire_controls(&mut self, ui: &mut egui::Ui) {
@@ -1163,6 +1199,35 @@ impl GuiApp {
         }
     }
 
+    fn align_selection(&mut self, align: Align) {
+        let moves = layout::align_moves(&self.document, self.library, &self.selection, align);
+        self.apply_layout_moves(moves);
+    }
+
+    fn distribute_selection(&mut self, axis: Distribute) {
+        let moves = layout::distribute_moves(&self.document, self.library, &self.selection, axis);
+        self.apply_layout_moves(moves);
+    }
+
+    fn apply_layout_moves(&mut self, mut moves: Vec<(ComponentId, GridPos)>) {
+        moves.retain(|(id, position)| {
+            self.document
+                .component(*id)
+                .is_some_and(|component| component.position != *position)
+        });
+        if moves.is_empty() {
+            return;
+        }
+        let before = self.document.clone();
+        if self.document.move_components(self.library, &moves) {
+            self.history.record(&before);
+            self.mark_dirty();
+            self.message = "Layout applied".to_string();
+            return;
+        }
+        self.message = "Layout blocked by overlap".to_string();
+    }
+
     fn legend_window(&mut self, ui: &mut egui::Ui) {
         if !self.legend_open {
             return;
@@ -1306,9 +1371,28 @@ impl GuiApp {
 
     fn run_command(&mut self, command: Command) {
         self.palette.close();
-        if !self.run_edit_command(command) {
-            self.run_view_command(command);
+        if self.run_edit_command(command) {
+            return;
         }
+        if self.run_layout_command(command) {
+            return;
+        }
+        self.run_view_command(command);
+    }
+
+    fn run_layout_command(&mut self, command: Command) -> bool {
+        match command {
+            Command::AlignLeft => self.align_selection(Align::Left),
+            Command::AlignRight => self.align_selection(Align::Right),
+            Command::AlignTop => self.align_selection(Align::Top),
+            Command::AlignBottom => self.align_selection(Align::Bottom),
+            Command::AlignCenterX => self.align_selection(Align::CenterX),
+            Command::AlignCenterY => self.align_selection(Align::CenterY),
+            Command::DistributeHorizontal => self.distribute_selection(Distribute::Horizontal),
+            Command::DistributeVertical => self.distribute_selection(Distribute::Vertical),
+            _ => return false,
+        }
+        true
     }
 
     fn run_edit_command(&mut self, command: Command) -> bool {
@@ -1682,6 +1766,8 @@ impl GuiApp {
         ui.label(format!("Zoom {:.0}%", self.camera.zoom * 100.0));
         ui.separator();
         ui.label(format!("Grid {:.0}px", self.camera.cell_px));
+        ui.separator();
+        ui.label("Snap grid");
     }
 
     fn edit_status(&self, ui: &mut egui::Ui) {
@@ -2227,6 +2313,70 @@ fn world_to_grid(position: egui::Pos2) -> GridPos {
     GridPos::new(position.x.round() as i32, position.y.round() as i32)
 }
 
+fn grid_pos_f(position: GridPos) -> egui::Pos2 {
+    egui::pos2(position.x as f32, position.y as f32)
+}
+
+fn content_bounds(
+    document: &Document,
+    definitions: &[ComponentDefinition],
+    selection: Option<&Selection>,
+) -> Option<(GridPos, GridPos)> {
+    let mut min = None;
+    let mut max = None;
+    include_components(document, definitions, selection, &mut min, &mut max);
+    include_wires(document, selection, &mut min, &mut max);
+    Some((min?, max?))
+}
+
+fn include_components(
+    document: &Document,
+    definitions: &[ComponentDefinition],
+    selection: Option<&Selection>,
+    min: &mut Option<GridPos>,
+    max: &mut Option<GridPos>,
+) {
+    for instance in document.components() {
+        if selection.is_some_and(|selection| !selection.contains_component(instance.id)) {
+            continue;
+        }
+        let Some(definition) = definitions
+            .iter()
+            .find(|definition| definition.id == instance.definition)
+        else {
+            continue;
+        };
+        let bounds = instance.bounds(definition);
+        update_bounds(min, max, bounds.min);
+        update_bounds(min, max, GridPos::new(bounds.max_x(), bounds.max_y()));
+    }
+}
+
+fn include_wires(
+    document: &Document,
+    selection: Option<&Selection>,
+    min: &mut Option<GridPos>,
+    max: &mut Option<GridPos>,
+) {
+    for wire in document.wires() {
+        if selection.is_some_and(|selection| !selection.contains_wire(wire.id)) {
+            continue;
+        }
+        for point in &wire.points {
+            update_bounds(min, max, *point);
+        }
+    }
+}
+
+fn update_bounds(min: &mut Option<GridPos>, max: &mut Option<GridPos>, point: GridPos) {
+    let low = min.get_or_insert(point);
+    low.x = low.x.min(point.x);
+    low.y = low.y.min(point.y);
+    let high = max.get_or_insert(point);
+    high.x = high.x.max(point.x);
+    high.y = high.y.max(point.y);
+}
+
 fn move_segment(points: &mut [GridPos], index: usize, target: GridPos) -> bool {
     let Some(&end) = points.get(index + 1) else {
         return false;
@@ -2287,8 +2437,8 @@ fn without_repeats(start: GridPos, path: Vec<GridPos>) -> Vec<GridPos> {
 #[cfg(test)]
 mod tests {
     use super::{
-        AUTOSAVE_DELAY, ConflictAction, GuiApp, WATCH_INTERVAL, cycle_at_x, file_stamp, l_route,
-        move_segment, watch_remaining, z_route,
+        AUTOSAVE_DELAY, ConflictAction, GuiApp, WATCH_INTERVAL, content_bounds, cycle_at_x,
+        file_stamp, l_route, move_segment, watch_remaining, z_route,
     };
     use crate::canvas::GridCamera;
     use crate::model::{
@@ -2445,6 +2595,17 @@ mod tests {
             first,
             second,
         )
+    }
+
+    #[test]
+    fn content_bounds_cover_components() {
+        let library = crate::library::builtin();
+        let resistor = crate::library::find("resistor").expect("resistor");
+        let mut document = Document::new();
+        document.add(resistor, GridPos::new(0, 0), Rotation::Deg0, Mirror::None);
+        document.add(resistor, GridPos::new(6, 0), Rotation::Deg0, Mirror::None);
+        let bounds = content_bounds(&document, library, None).expect("bounds");
+        assert_eq!(bounds, (GridPos::new(0, 0), GridPos::new(10, 2)));
     }
 
     #[test]

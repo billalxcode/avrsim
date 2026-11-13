@@ -5,6 +5,7 @@ mod canvas;
 mod clipboard;
 mod config;
 mod history;
+mod layout;
 mod library;
 mod model;
 mod palette;

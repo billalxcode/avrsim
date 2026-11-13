@@ -500,7 +500,7 @@ impl Document {
         best.map(|(_, id)| id)
     }
 
-    /// Returns components intersecting a selection rectangle.
+    /// Returns components fully contained in a selection rectangle.
     #[must_use]
     pub fn components_in_rect(
         &self,
@@ -511,22 +511,19 @@ impl Document {
             .iter()
             .filter_map(|instance| {
                 let definition = find_definition(library, instance.definition)?;
-                rect.intersects(instance.bounds(definition))
-                    .then_some(instance.id)
+                let bounds = instance.bounds(definition);
+                let max = GridPos::new(bounds.max_x(), bounds.max_y());
+                (rect.contains(bounds.min) && rect.contains(max)).then_some(instance.id)
             })
             .collect()
     }
 
-    /// Returns wires crossing a selection rectangle.
+    /// Returns wires fully contained in a selection rectangle.
     #[must_use]
     pub fn wires_in_rect(&self, rect: GridRect) -> Vec<WireId> {
         self.wires
             .iter()
-            .filter(|wire| {
-                wire.points
-                    .windows(2)
-                    .any(|segment| segment_in_rect(segment, rect))
-            })
+            .filter(|wire| wire.points.iter().all(|point| rect.contains(*point)))
             .map(|wire| wire.id)
             .collect()
     }
@@ -1005,16 +1002,6 @@ fn segment_edges(start: GridPos, end: GridPos) -> Vec<GridEdge> {
         .collect()
 }
 
-fn segment_in_rect(segment: &[GridPos], rect: GridRect) -> bool {
-    let first = segment[0];
-    let second = segment[1];
-    let min_x = first.x.min(second.x);
-    let max_x = first.x.max(second.x);
-    let min_y = first.y.min(second.y);
-    let max_y = first.y.max(second.y);
-    min_x <= rect.max_x() && rect.min.x <= max_x && min_y <= rect.max_y() && rect.min.y <= max_y
-}
-
 fn segment_distance(point: [f32; 2], start: GridPos, end: GridPos) -> f32 {
     let x = point[0];
     let y = point[1];
@@ -1137,9 +1124,21 @@ mod tests {
             )
             .expect("wire");
         let rect = super::GridRect::from_corners(GridPos::new(-1, -1), GridPos::new(10, 3));
-        let components = document.components_in_rect(library, rect);
-        assert_eq!(components, vec![first, second]);
+        assert_eq!(
+            document.components_in_rect(library, rect),
+            vec![first, second]
+        );
         assert_eq!(document.wires_in_rect(rect), vec![wire]);
+    }
+
+    #[test]
+    fn selection_rect_requires_full_containment() {
+        let mut document = Document::new();
+        let id = document.add(&RESISTOR, GridPos::new(0, 0), Rotation::Deg0, Mirror::None);
+        let partial = super::GridRect::from_corners(GridPos::new(1, 0), GridPos::new(3, 2));
+        assert!(document.components_in_rect(LIBRARY, partial).is_empty());
+        let full = super::GridRect::from_corners(GridPos::new(0, 0), GridPos::new(4, 2));
+        assert_eq!(document.components_in_rect(LIBRARY, full), vec![id]);
     }
 
     #[test]

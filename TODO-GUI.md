@@ -73,7 +73,7 @@ Backlog eksekusi untuk GUI interaktif berbasis `egui`/`eframe`.
 - [ ] G0-07 Tambahkan build dan test `sim-gui` ke CI Linux.
 - [x] G0-08 Dokumentasikan perintah build dan run GUI.
 - [x] G0-09 Kunci default routing, persilangan, platform, dan format simpan.
-- [ ] G0-10 Perbarui `docs/02-architecture.md` untuk `sim-gui` dan daftar dependensi.
+- [x] G0-10 Perbarui `docs/02-architecture.md` untuk `sim-gui` dan daftar dependensi.
 - [x] G0-11 Kunci grid default 20 px, zoom preset dan halus.
 - [ ] G0-12 Kunci palet warna final untuk setiap kelas net.
 - [ ] G0-13 Kunci field skema JSON dan aturan migrasi otomatis.
@@ -91,14 +91,14 @@ membangun crate, dan tidak ada dependensi eksternal di luar daftar
 
 - [x] G1-01 Buat app shell dengan central panel, toolbar, dan status bar.
 - [x] G1-02 Implementasikan kamera world ke screen dan screen ke world.
-- [ ] G1-03 Implementasikan pan, zoom preset, zoom halus, fit all, dan fit selection.
+- [x] G1-03 Implementasikan pan, zoom preset, zoom halus, fit all, dan fit selection.
 - [x] G1-04 Gambar grid minor 20 px, grid major, sumbu X/Y, dan titik grid.
 - [ ] G1-05 Terapkan level of detail grid dan label.
-- [ ] G1-06 Buat layout canvas 90 persen dengan sheet overlay.
-- [ ] G1-07 Implementasikan culling grid dan objek di luar viewport.
-- [ ] G1-08 Tampilkan koordinat grid dan status snap di status bar.
+- [x] G1-06 Buat layout canvas dominan dengan sheet overlay.
+- [x] G1-07 Implementasikan culling grid dan objek di luar viewport.
+- [x] G1-08 Tampilkan koordinat grid dan status snap di status bar.
 - [ ] G1-09 Tambahkan tema gelap, terang, high-DPI, dan aksen cyan.
-- [ ] G1-10 Test transformasi, zoom, snap, dan culling.
+- [x] G1-10 Test transformasi, zoom, snap, dan culling.
 - [ ] G1-11 Implementasikan minimap opsional di kanan bawah.
 - [ ] G1-12 Terapkan latar dark dotted dan toolbar ikon serta teks.
 - [x] G1-13 Tampilkan koordinat, zoom, seleksi, sim time, dan FPS di status bar.
@@ -112,7 +112,7 @@ pan dan zoom stabil, dan area canvas mendominasi layout.
 
 ## G2 - Model Dokumen dan Library
 
-- [ ] G2-01 Definisikan tipe dokumen: komponen, pin, kabel, net, junction.
+- [x] G2-01 Definisikan tipe dokumen: komponen, pin, kabel, net, junction.
 - [x] G2-02 Definisikan metadata library: simbol vektor datar, pin, parameter, probe.
 - [x] G2-03 Buat library awal: ATmega328P, board Arduino, passive, LED, button, VCC, GND.
 - [x] G2-04 Buat library sheet dengan pencarian dan kategori.
@@ -138,14 +138,14 @@ menempatkannya di grid, memindahkan, memutar, dan mencerminkannya.
 - [ ] G3-02 Implementasikan hover tooltip pin.
 - [ ] G3-03 Implementasikan klik pin untuk memilih net.
 - [ ] G3-04 Implementasikan highlight net dan pin terhubung.
-- [ ] G3-05 Tampilkan reference designator dan value komponen.
+- [x] G3-05 Tampilkan reference designator dan value komponen.
 - [ ] G3-06 Terapkan label pin nama dan nomor dengan LOD dan hover.
 - [ ] G3-07 Test hit testing dan pemetaan pin ke net.
 - [ ] G3-08 Tampilkan label net saat hover atau seleksi.
 - [ ] G3-09 Buat inspector tiga section: properties, pins, simulation.
-- [ ] G3-10 Pindahkan semua objek terpilih saat multi-select digeser.
+- [x] G3-10 Pindahkan semua komponen terpilih saat multi-select digeser.
 - [ ] G3-11 Highlight seluruh net saat net dipilih.
-- [ ] G3-12 Gunakan selection box full containment.
+- [x] G3-12 Gunakan selection box full containment.
 
 **Acceptance G3:** setiap pin dapat diperiksa, dipilih, dan dihubungkan
 ke net dengan umpan balik visual yang jelas.
@@ -238,7 +238,7 @@ melihat sinyal digital dan analog, serta memeriksa nilai pada cursor.
 - [x] G8-01 Implementasikan undo/redo berbasis snapshot.
 - [x] G8-02 Implementasikan multi-select, shift-click, dan selection box.
 - [x] G8-03 Implementasikan copy, paste, dan duplicate.
-- [ ] G8-04 Implementasikan align dan distribute.
+- [x] G8-04 Implementasikan align dan distribute.
 - [x] G8-05 Implementasikan format `.emu.json` versi 1 dengan pretty print 2 spasi.
 - [x] G8-06 Implementasikan load, validasi, dan round-trip.
 - [x] G8-07 Implementasikan autosave debounce 2 detik, backup, 10 recent files, dan `rfd`.

@@ -124,6 +124,10 @@ fn draw_components(
         let Some(definition) = library::find(instance.definition) else {
             continue;
         };
+        let body = component_rect(rect, camera, instance, definition);
+        if !rect.intersects(body) {
+            continue;
+        }
         let selected = scene.selection.contains_component(instance.id);
         draw_component(painter, rect, camera, definition, instance, selected);
     }
@@ -176,10 +180,16 @@ fn draw_wires(
     let mut wires: Vec<_> = document.wires().iter().collect();
     wires.sort_by_key(|wire| wire.id);
     for wire in &wires {
+        if !wire_visible(rect, camera, wire) {
+            continue;
+        }
         let selected = selection.contains_wire(wire.id);
         draw_wire(painter, rect, camera, wire, selected);
     }
     for wire in &wires {
+        if !wire_visible(rect, camera, wire) {
+            continue;
+        }
         let selected = selection.contains_wire(wire.id);
         if show_wire_label(selected, hovered == Some(wire.id), camera.zoom) {
             draw_net_label(painter, rect, camera, wire);
@@ -240,7 +250,11 @@ fn draw_junctions(
     document: &Document,
 ) {
     for point in document.junctions() {
-        painter.circle_filled(screen_pos(rect, camera, point), 3.2, JUNCTION_COLOR);
+        let screen = screen_pos(rect, camera, point);
+        if !rect.contains(screen) {
+            continue;
+        }
+        painter.circle_filled(screen, 3.2, JUNCTION_COLOR);
     }
 }
 
@@ -600,6 +614,27 @@ fn screen_pos(
     camera.world_to_screen(rect, egui::pos2(position.x as f32, position.y as f32))
 }
 
+fn wire_visible(
+    rect: egui::Rect,
+    camera: &crate::canvas::GridCamera,
+    wire: &crate::model::Wire,
+) -> bool {
+    wire.points
+        .windows(2)
+        .any(|segment| segment_visible(rect, camera, segment[0], segment[1]))
+}
+
+fn segment_visible(
+    rect: egui::Rect,
+    camera: &crate::canvas::GridCamera,
+    start: GridPos,
+    end: GridPos,
+) -> bool {
+    let start = screen_pos(rect, camera, start);
+    let end = screen_pos(rect, camera, end);
+    egui::Rect::from_two_pos(start, end).intersects(rect)
+}
+
 /// Centers a component on the hovered grid point.
 #[must_use]
 pub fn placement_position(
@@ -613,9 +648,30 @@ pub fn placement_position(
 
 #[cfg(test)]
 mod tests {
-    use super::{net_color, placement_position, show_wire_label, wire_midpoint};
+    use super::{net_color, placement_position, segment_visible, show_wire_label, wire_midpoint};
     use crate::library;
     use crate::model::{GridPos, NetClass, Rotation, Wire, WireId};
+
+    #[test]
+    fn segment_visibility_rejects_offscreen_wires() {
+        let camera = crate::canvas::GridCamera::default();
+        let rect = eframe::egui::Rect::from_min_size(
+            eframe::egui::pos2(0.0, 0.0),
+            eframe::egui::vec2(200.0, 200.0),
+        );
+        assert!(segment_visible(
+            rect,
+            &camera,
+            GridPos::new(0, 0),
+            GridPos::new(2, 0)
+        ));
+        assert!(!segment_visible(
+            rect,
+            &camera,
+            GridPos::new(100, 0),
+            GridPos::new(102, 0)
+        ));
+    }
 
     #[test]
     fn wire_label_visible_on_hover_selection_or_zoom() {

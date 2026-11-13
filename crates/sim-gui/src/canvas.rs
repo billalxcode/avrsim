@@ -55,6 +55,18 @@ impl GridCamera {
         self.pan += cursor - screen;
     }
 
+    /// Fits a world-space box into the canvas with padding.
+    pub fn fit_world(&mut self, rect: egui::Rect, min: egui::Pos2, max: egui::Pos2, padding: f32) {
+        let size = (max - min).max(egui::vec2(1.0, 1.0));
+        let available =
+            (rect.size() - egui::vec2(padding * 2.0, padding * 2.0)).max(egui::vec2(1.0, 1.0));
+        let zoom_x = available.x / (size.x * self.cell_px);
+        let zoom_y = available.y / (size.y * self.cell_px);
+        self.zoom = zoom_x.min(zoom_y).clamp(0.25, 4.0);
+        let center = ((min.to_vec2() + max.to_vec2()) * 0.5).to_pos2();
+        self.pan = rect.size() * 0.5 - center.to_vec2() * self.scale();
+    }
+
     fn visible_range(&self, rect: egui::Rect, step: i32) -> GridRange {
         let min = self.screen_to_world(rect, rect.min);
         let max = self.screen_to_world(rect, rect.max);
@@ -77,8 +89,10 @@ struct GridRange {
 }
 
 /// Result of one canvas frame.
-#[derive(Clone, Copy, Debug, Default)]
+#[derive(Clone, Copy, Debug)]
 pub struct CanvasState {
+    /// Canvas rectangle in screen space.
+    pub rect: egui::Rect,
     /// Pointer position in world grid space.
     pub pointer_world: Option<egui::Pos2>,
     /// True when the primary button was clicked on the canvas.
@@ -101,6 +115,25 @@ pub struct CanvasState {
     pub multi_select: bool,
     /// Position of a secondary click.
     pub context_click: Option<ContextClick>,
+}
+
+impl Default for CanvasState {
+    fn default() -> Self {
+        Self {
+            rect: egui::Rect::NOTHING,
+            pointer_world: None,
+            clicked: false,
+            click_world: None,
+            secondary_clicked: false,
+            double_clicked: false,
+            drag_started: false,
+            dragged: false,
+            drag_stopped: false,
+            space_down: false,
+            multi_select: false,
+            context_click: None,
+        }
+    }
 }
 
 /// Screen and world position of a context click.
@@ -141,19 +174,31 @@ fn canvas_state(
     pointer_world: Option<egui::Pos2>,
     space_down: bool,
 ) -> CanvasState {
-    CanvasState {
+    let mut state = CanvasState {
+        rect,
         pointer_world,
-        clicked: response.clicked(),
-        click_world: click_world(response, rect, camera),
-        secondary_clicked: response.secondary_clicked(),
-        double_clicked: response.double_clicked(),
-        drag_started: response.drag_started_by(egui::PointerButton::Primary),
-        dragged: response.dragged_by(egui::PointerButton::Primary),
-        drag_stopped: response.drag_stopped_by(egui::PointerButton::Primary),
         space_down,
-        multi_select: multi_select(response),
-        context_click: context_click(response, rect, camera),
-    }
+        ..CanvasState::default()
+    };
+    fill_interaction(&mut state, response, rect, camera);
+    state
+}
+
+fn fill_interaction(
+    state: &mut CanvasState,
+    response: &egui::Response,
+    rect: egui::Rect,
+    camera: &GridCamera,
+) {
+    state.clicked = response.clicked();
+    state.click_world = click_world(response, rect, camera);
+    state.secondary_clicked = response.secondary_clicked();
+    state.double_clicked = response.double_clicked();
+    state.drag_started = response.drag_started_by(egui::PointerButton::Primary);
+    state.dragged = response.dragged_by(egui::PointerButton::Primary);
+    state.drag_stopped = response.drag_stopped_by(egui::PointerButton::Primary);
+    state.multi_select = multi_select(response);
+    state.context_click = context_click(response, rect, camera);
 }
 
 fn context_click(
@@ -367,6 +412,24 @@ mod tests {
         let after = camera.screen_to_world(rect(), cursor);
         assert!((before.x - after.x).abs() < 1e-5);
         assert!((before.y - after.y).abs() < 1e-5);
+    }
+
+    #[test]
+    fn fit_world_centers_and_scales() {
+        let mut camera = crate::canvas::GridCamera::default();
+        let rect = eframe::egui::Rect::from_min_size(
+            eframe::egui::pos2(0.0, 0.0),
+            eframe::egui::vec2(200.0, 100.0),
+        );
+        camera.fit_world(
+            rect,
+            eframe::egui::pos2(0.0, 0.0),
+            eframe::egui::pos2(10.0, 10.0),
+            0.0,
+        );
+        assert!((camera.zoom - 0.5).abs() < 1e-6);
+        let center = camera.world_to_screen(rect, eframe::egui::pos2(5.0, 5.0));
+        assert!((center - rect.center()).length() < 1e-4);
     }
 
     #[test]
