@@ -11,9 +11,9 @@ selection wire, delete wire, segment drag, saran jalur L, saran jalur Z, save/lo
 JSON, undo/redo, autosave, backup, recent files, konfigurasi XDG,
 deteksi perubahan file eksternal, label net, legenda warna, command
 palette, multi-select, selection box, copy/paste/duplicate, rotate/mirror
-grup, context menu, monitor UART TX, simulasi PB5, dan waveform digital
-awal juga sudah ada. Probe generik, UART input ke simulasi, dan grafik
-analog belum ada. Dependensi
+grup, context menu, monitor UART TX, simulasi PB5, dan graph digital
+PB5/LED dengan cursor juga sudah ada. Probe generik, UART input ke
+simulasi, dan grafik analog belum ada. Dependensi
 GUI yang disetujui hanya untuk crate `sim-gui`: `egui`, `eframe`,
 `serde`, `serde_json`, `rfd`, dan `png`. `egui_plot`,
 `libloading`, dan crate lain tidak diizinkan tanpa keputusan baru.
@@ -481,6 +481,7 @@ menyusul setelah alur dasar stabil.
 ### 10.2 Tampilan
 
 - Satu grafik dapat memuat maksimal 8 series.
+- Implementasi saat ini: lane PB5 dan LED dengan cursor cycle di floating window.
 - Sumbu X memakai waktu simulasi.
 - Warna series mengikuti warna net atau pin.
 - Digital ditampilkan sebagai lane logika.

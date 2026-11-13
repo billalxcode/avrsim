@@ -214,7 +214,8 @@ dan dilangkah dari GUI.
 - [ ] G7-01 Definisikan model probe dan ring buffer 10 detik.
 - [ ] G7-02 Implementasikan decimation min/max.
 - [ ] G7-03 Buat widget plot analog internal.
-- [x] G7-04 Buat widget waveform digital PB5.
+- [x] G7-04 Buat widget waveform digital PB5 dan LED.
+- [x] G7-16 Tampilkan cursor cycle pada graph digital.
 - [x] G7-05 Dokumentasikan keputusan menunda decode bus.
 - [ ] G7-06 Buat graph drawer, tab, dan floating window.
 - [ ] G7-07 Tambahkan aksi add graph dari pin atau komponen.

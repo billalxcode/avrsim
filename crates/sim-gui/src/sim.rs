@@ -17,13 +17,38 @@ const WAVE_LIMIT: usize = 2048;
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct Sample {
     pub cycle: u64,
+    pub pb5_high: bool,
     pub led_on: bool,
+}
+
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+struct SampleState {
+    pb5_high: bool,
+    led_on: bool,
+}
+
+impl SampleState {
+    fn of(machine: &SimMachine) -> Self {
+        Self {
+            pb5_high: machine.pb5_high,
+            led_on: machine.led_on,
+        }
+    }
+
+    const fn sample(self, cycle: u64) -> Sample {
+        Sample {
+            cycle,
+            pb5_high: self.pb5_high,
+            led_on: self.led_on,
+        }
+    }
 }
 
 /// Current simulation status.
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
 pub struct Status {
     pub cycles: u64,
+    pub pb5_high: bool,
     pub led_on: bool,
     pub running: bool,
     pub loaded: bool,
@@ -65,6 +90,19 @@ impl Waveform {
             return (start, start + 1);
         }
         (start, end)
+    }
+
+    /// Returns PB5 and LED states at a cycle.
+    #[must_use]
+    pub fn state_at(&self, cycle: u64) -> (bool, bool) {
+        let mut state = (false, false);
+        for sample in &self.samples {
+            if sample.cycle > cycle {
+                break;
+            }
+            state = (sample.pb5_high, sample.led_on);
+        }
+        state
     }
 }
 
@@ -201,6 +239,7 @@ struct SimMachine {
     board: Board,
     config: PinElectricalConfig,
     led_on: bool,
+    pb5_high: bool,
     uart_bytes: Vec<u8>,
 }
 
@@ -212,6 +251,7 @@ impl SimMachine {
             board: Board::new(),
             config: PinElectricalConfig::default(),
             led_on: false,
+            pb5_high: false,
             uart_bytes: Vec::new(),
         })
     }
@@ -233,6 +273,7 @@ impl SimMachine {
             .map_err(|error| error.to_string())?;
         self.board.set_pb5_voltage(state.voltage);
         self.led_on = self.board.led().is_on();
+        self.pb5_high = state.voltage >= self.config.input_threshold;
         Ok(())
     }
 
@@ -250,6 +291,7 @@ impl SimMachine {
         self.cpu.reset().map_err(|error| error.to_string())?;
         self.board.set_pb5(false);
         self.led_on = false;
+        self.pb5_high = false;
         self.uart_bytes.clear();
         Ok(())
     }
@@ -262,26 +304,18 @@ impl SimMachine {
 fn worker(commands: Receiver<Command>, events: Sender<Event>) {
     let mut machine = None;
     let mut running = false;
-    let mut last_led = false;
+    let mut last = SampleState::default();
     loop {
         if running {
-            step_chunk(&mut machine, &mut running, &mut last_led, &events);
-            if !drain_commands(
-                &commands,
-                &mut machine,
-                &mut running,
-                &mut last_led,
-                &events,
-            ) {
+            step_chunk(&mut machine, &mut running, &mut last, &events);
+            if !drain_commands(&commands, &mut machine, &mut running, &mut last, &events) {
                 break;
             }
             continue;
         }
         match commands.recv_timeout(Duration::from_millis(POLL_MS)) {
             Ok(Command::Shutdown) => break,
-            Ok(command) => {
-                handle_command(command, &mut machine, &mut running, &mut last_led, &events)
-            }
+            Ok(command) => handle_command(command, &mut machine, &mut running, &mut last, &events),
             Err(RecvTimeoutError::Timeout) => {}
             Err(RecvTimeoutError::Disconnected) => break,
         }
@@ -292,13 +326,13 @@ fn drain_commands(
     commands: &Receiver<Command>,
     machine: &mut Option<SimMachine>,
     running: &mut bool,
-    last_led: &mut bool,
+    last: &mut SampleState,
     events: &Sender<Event>,
 ) -> bool {
     loop {
         match commands.try_recv() {
             Ok(Command::Shutdown) => return false,
-            Ok(command) => handle_command(command, machine, running, last_led, events),
+            Ok(command) => handle_command(command, machine, running, last, events),
             Err(TryRecvError::Empty) => return true,
             Err(TryRecvError::Disconnected) => return false,
         }
@@ -309,11 +343,11 @@ fn handle_command(
     command: Command,
     machine: &mut Option<SimMachine>,
     running: &mut bool,
-    last_led: &mut bool,
+    last: &mut SampleState,
     events: &Sender<Event>,
 ) {
     match command {
-        Command::Load(words) => load_machine(words, machine, running, last_led, events),
+        Command::Load(words) => load_machine(words, machine, running, last, events),
         Command::Run => {
             *running = machine.is_some();
             send_status(machine, *running, events);
@@ -322,8 +356,8 @@ fn handle_command(
             *running = false;
             send_status(machine, false, events);
         }
-        Command::Step => step_once(machine, running, last_led, events),
-        Command::Reset => reset_machine(machine, running, last_led, events),
+        Command::Step => step_once(machine, running, last, events),
+        Command::Reset => reset_machine(machine, running, last, events),
         Command::Shutdown => {}
     }
 }
@@ -332,16 +366,16 @@ fn load_machine(
     words: Vec<u16>,
     machine: &mut Option<SimMachine>,
     running: &mut bool,
-    last_led: &mut bool,
+    last: &mut SampleState,
     events: &Sender<Event>,
 ) {
     *running = false;
     match SimMachine::new(words) {
         Ok(next) => {
-            *last_led = next.led_on;
+            *last = SampleState::of(&next);
             *machine = Some(next);
             let _ = events.send(Event::UartCleared);
-            send_sample(0, *last_led, events);
+            send_sample(0, *last, events);
         }
         Err(error) => {
             *machine = None;
@@ -354,17 +388,17 @@ fn load_machine(
 fn step_once(
     machine: &mut Option<SimMachine>,
     running: &mut bool,
-    last_led: &mut bool,
+    last: &mut SampleState,
     events: &Sender<Event>,
 ) {
     *running = false;
     if let Some(machine) = machine {
         match machine.step() {
             Ok(true) => {
-                let led = machine.led_on;
-                if led != *last_led {
-                    send_sample(machine.cycles(), led, events);
-                    *last_led = led;
+                let state = SampleState::of(machine);
+                if state != *last {
+                    send_sample(machine.cycles(), state, events);
+                    *last = state;
                 }
             }
             Ok(false) => {}
@@ -380,16 +414,16 @@ fn step_once(
 fn reset_machine(
     machine: &mut Option<SimMachine>,
     running: &mut bool,
-    last_led: &mut bool,
+    last: &mut SampleState,
     events: &Sender<Event>,
 ) {
     *running = false;
     if let Some(machine) = machine {
         match machine.reset() {
             Ok(()) => {
-                *last_led = false;
+                *last = SampleState::default();
                 let _ = events.send(Event::UartCleared);
-                send_sample(0, false, events);
+                send_sample(0, *last, events);
             }
             Err(error) => {
                 let _ = events.send(Event::Error(error));
@@ -402,7 +436,7 @@ fn reset_machine(
 fn step_chunk(
     machine: &mut Option<SimMachine>,
     running: &mut bool,
-    last_led: &mut bool,
+    last: &mut SampleState,
     events: &Sender<Event>,
 ) {
     let Some(current) = machine.as_mut() else {
@@ -422,9 +456,10 @@ fn step_chunk(
                 break;
             }
         }
-        if current.led_on != *last_led {
-            *last_led = current.led_on;
-            send_sample(current.cycles(), current.led_on, events);
+        let state = SampleState::of(current);
+        if state != *last {
+            *last = state;
+            send_sample(current.cycles(), state, events);
         }
     }
     send_uart(current, events);
@@ -442,6 +477,7 @@ fn send_status(machine: &Option<SimMachine>, running: bool, events: &Sender<Even
     let status = match machine {
         Some(machine) => Status {
             cycles: machine.cycles(),
+            pb5_high: machine.pb5_high,
             led_on: machine.led_on,
             running,
             loaded: true,
@@ -451,8 +487,8 @@ fn send_status(machine: &Option<SimMachine>, running: bool, events: &Sender<Even
     let _ = events.send(Event::Status(status));
 }
 
-fn send_sample(cycle: u64, led_on: bool, events: &Sender<Event>) {
-    let _ = events.send(Event::Sample(Sample { cycle, led_on }));
+fn send_sample(cycle: u64, state: SampleState, events: &Sender<Event>) {
+    let _ = events.send(Event::Sample(state.sample(cycle)));
 }
 
 #[cfg(test)]
@@ -532,14 +568,19 @@ mod tests {
         let mut waveform = Waveform::default();
         waveform.push(Sample {
             cycle: 10,
+            pb5_high: true,
             led_on: true,
         });
         waveform.push(Sample {
             cycle: 40,
+            pb5_high: false,
             led_on: false,
         });
         assert_eq!(waveform.span(100), (10, 100));
         assert_eq!(waveform.span(20), (10, 40));
+        assert_eq!(waveform.state_at(0), (false, false));
+        assert_eq!(waveform.state_at(10), (true, true));
+        assert_eq!(waveform.state_at(40), (false, false));
     }
 
     #[test]
@@ -548,6 +589,7 @@ mod tests {
         for cycle in 0..super::WAVE_LIMIT as u64 + 5 {
             waveform.push(Sample {
                 cycle,
+                pb5_high: cycle % 2 == 0,
                 led_on: cycle % 2 == 0,
             });
         }
