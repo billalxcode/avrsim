@@ -4,7 +4,7 @@
 yang memodelkan transistor, gerbang CMOS, CPU AVR, peripheral, dan board,
 serta mampu menjalankan firmware AVR.
 
-> **Status v0.1:** 608 test lulus, 8 crate, crate simulasi zero external
+> **Status v0.1:** 610 test lulus, 8 crate, crate simulasi zero external
 > dependency; dependensi GUI dibatasi pada daftar yang disetujui di
 > `AGENTS.md`.
 > Tag `v0.1` tersedia. Archive Linux ada di
@@ -147,7 +147,7 @@ Dokumen yang sering dipakai:
 
 Sudah:
 
-- 608 test workspace.
+- 610 test workspace.
 - fmt, clippy, test, dan build release lulus.
 - Paket Linux dapat dibuat.
 - Determinisme Linux diuji.

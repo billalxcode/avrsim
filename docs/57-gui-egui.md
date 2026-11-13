@@ -7,7 +7,7 @@ penempatan komponen, probing, dan pengujian simulasi.
 shell, canvas, grid, pan, zoom, status bar, dan test kamera. Library
 komponen awal, placement ghost, selection, drag move, rotate, mirror,
 inspector dasar, wire ortogonal, junction otomatis, warna net,
-selection wire, delete wire, segment drag, saran jalur L, save/load
+selection wire, delete wire, segment drag, saran jalur L, saran jalur Z, save/load
 JSON, undo/redo, autosave, backup, recent files, konfigurasi XDG,
 deteksi perubahan file eksternal, simulasi PB5, dan waveform digital
 awal juga sudah ada. Probe generik, UART di GUI, dan grafik analog

@@ -184,7 +184,7 @@ tanpa segmen diagonal, dan tanpa menembus komponen.
 - [ ] G5-08 Implementasikan override warna per net.
 - [ ] G5-09 Kunci palet warna final dan target kontras WCAG AA.
 - [ ] G5-10 Implementasikan ruler grid dan probe tegangan.
-- [ ] G5-11 Implementasikan saran jalur Z.
+- [x] G5-11 Implementasikan saran jalur Z.
 
 **Acceptance G5:** kabel mengikuti jalur grid yang tersedia, warna sesuai
 fungsi net, dan persilangan tidak menimbulkan koneksi palsu.

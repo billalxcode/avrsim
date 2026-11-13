@@ -128,7 +128,7 @@ Perintah:
 ./scripts/package.sh
 ```
 
-Total test workspace: 608.
+Total test workspace: 610.
 
 ---
 

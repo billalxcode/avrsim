@@ -589,9 +589,27 @@ impl GuiApp {
         if ui.button("L-V").clicked() {
             self.apply_l_route(false);
         }
+        if ui.button("Z-H").clicked() {
+            self.apply_z_route(true);
+        }
+        if ui.button("Z-V").clicked() {
+            self.apply_z_route(false);
+        }
     }
 
     fn apply_l_route(&mut self, horizontal_first: bool) {
+        self.apply_route(l_route, horizontal_first);
+    }
+
+    fn apply_z_route(&mut self, horizontal_first: bool) {
+        self.apply_route(z_route, horizontal_first);
+    }
+
+    fn apply_route(
+        &mut self,
+        build: fn(GridPos, GridPos, bool) -> Vec<GridPos>,
+        horizontal_first: bool,
+    ) {
         let Some(&last) = self.wire_points.last() else {
             return;
         };
@@ -599,7 +617,7 @@ impl GuiApp {
             return;
         };
         let target = world_to_grid(world);
-        let path = l_route(last, target, horizontal_first);
+        let path = build(last, target, horizontal_first);
         let mut current = last;
         for &point in &path {
             if !self.document.can_add_segment(self.library, current, point) {
@@ -1537,11 +1555,38 @@ fn l_route(last: GridPos, target: GridPos, horizontal_first: bool) -> Vec<GridPo
     vec![corner, target]
 }
 
+fn z_route(last: GridPos, target: GridPos, horizontal_first: bool) -> Vec<GridPos> {
+    if last == target || last.x == target.x || last.y == target.y {
+        return l_route(last, target, horizontal_first);
+    }
+    let path = if horizontal_first {
+        let middle = GridPos::new((last.x + target.x) / 2, last.y);
+        vec![middle, GridPos::new(middle.x, target.y), target]
+    } else {
+        let middle = GridPos::new(last.x, (last.y + target.y) / 2);
+        vec![middle, GridPos::new(target.x, middle.y), target]
+    };
+    without_repeats(last, path)
+}
+
+fn without_repeats(start: GridPos, path: Vec<GridPos>) -> Vec<GridPos> {
+    let mut result = Vec::new();
+    let mut previous = start;
+    for point in path {
+        if point == previous {
+            continue;
+        }
+        result.push(point);
+        previous = point;
+    }
+    result
+}
+
 #[cfg(test)]
 mod tests {
     use super::{
         AUTOSAVE_DELAY, ConflictAction, GuiApp, WATCH_INTERVAL, file_stamp, l_route, move_segment,
-        watch_remaining,
+        watch_remaining, z_route,
     };
     use crate::canvas::GridCamera;
     use crate::model::{Document, GridPos, Mirror, Rotation};
@@ -1761,6 +1806,31 @@ mod tests {
             vec![GridPos::new(4, 0)]
         );
         assert!(l_route(GridPos::new(0, 0), GridPos::new(0, 0), true).is_empty());
+    }
+
+    #[test]
+    fn z_route_adds_two_corners() {
+        let route = z_route(GridPos::new(0, 0), GridPos::new(6, 4), true);
+        assert_eq!(
+            route,
+            vec![GridPos::new(3, 0), GridPos::new(3, 4), GridPos::new(6, 4)]
+        );
+        let route = z_route(GridPos::new(0, 0), GridPos::new(6, 4), false);
+        assert_eq!(
+            route,
+            vec![GridPos::new(0, 2), GridPos::new(6, 2), GridPos::new(6, 4)]
+        );
+    }
+
+    #[test]
+    fn z_route_simplifies_short_and_aligned() {
+        let route = z_route(GridPos::new(0, 0), GridPos::new(1, 2), true);
+        assert_eq!(route, vec![GridPos::new(0, 2), GridPos::new(1, 2)]);
+        assert_eq!(
+            z_route(GridPos::new(0, 0), GridPos::new(4, 0), true),
+            vec![GridPos::new(4, 0)]
+        );
+        assert!(z_route(GridPos::new(0, 0), GridPos::new(0, 0), false).is_empty());
     }
 
     #[test]
