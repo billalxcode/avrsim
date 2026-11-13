@@ -4,6 +4,7 @@ mod app;
 mod canvas;
 mod clipboard;
 mod config;
+mod export;
 mod history;
 mod layout;
 mod library;

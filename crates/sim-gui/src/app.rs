@@ -3,6 +3,7 @@
 use crate::canvas::{self, GridCamera};
 use crate::clipboard::{self, Clipboard};
 use crate::config;
+use crate::export;
 use crate::history::History;
 use crate::layout::{self, Align, Distribute};
 use crate::library;
@@ -19,6 +20,7 @@ use crate::uart::UartLog;
 use eframe::egui;
 use std::collections::VecDeque;
 use std::path::{Path, PathBuf};
+use std::sync::{Arc, Mutex};
 use std::time::{Duration, Instant, SystemTime};
 
 const AUTOSAVE_DELAY: Duration = Duration::from_secs(2);
@@ -156,6 +158,7 @@ pub struct GuiApp {
     uart_open: bool,
     config: config::AppConfig,
     config_path: Option<PathBuf>,
+    png_result: Arc<Mutex<Option<Result<(), String>>>>,
     dirty: bool,
     last_edit: Option<Instant>,
     file_stamp: Option<FileStamp>,
@@ -186,6 +189,7 @@ impl eframe::App for GuiApp {
         self.poll_sim();
         self.watch_file(ui.ctx());
         self.autosave(ui.ctx());
+        self.poll_png();
         self.update_toast();
         self.toolbar(ui);
         self.status_bar(ui);
@@ -263,6 +267,9 @@ impl GuiApp {
         }
         if ui.button("Save").clicked() {
             self.save_project();
+        }
+        if ui.button("PNG").clicked() {
+            self.export_png(ui.ctx());
         }
         self.recent_menu(ui);
     }
@@ -380,6 +387,44 @@ impl GuiApp {
         if let Err(error) = config::save(path, &self.config) {
             self.message = error;
         }
+    }
+
+    fn export_png(&mut self, ctx: &egui::Context) {
+        let Some(canvas) = self.canvas_rect else {
+            self.message = "Canvas is not ready".to_string();
+            return;
+        };
+        let Some(path) = rfd::FileDialog::new()
+            .add_filter("PNG image", &["png"])
+            .set_file_name("schematic.png")
+            .save_file()
+        else {
+            self.message = "PNG export cancelled".to_string();
+            return;
+        };
+        let screen = ctx.content_rect();
+        let slot = self.png_result.clone();
+        let callback = egui::ScreenshotCallback::new(move |image| {
+            let result = export::save_crop(&path, &image, canvas, screen);
+            if let Ok(mut slot) = slot.lock() {
+                *slot = Some(result);
+            }
+        });
+        ctx.send_viewport_cmd(egui::ViewportCommand::Screenshot(callback));
+        self.message = "Exporting PNG".to_string();
+    }
+
+    fn poll_png(&mut self) {
+        let Ok(mut slot) = self.png_result.lock() else {
+            return;
+        };
+        let Some(result) = slot.take() else {
+            return;
+        };
+        self.message = match result {
+            Ok(()) => "PNG saved".to_string(),
+            Err(error) => error,
+        };
     }
 
     fn update_toast(&mut self) {

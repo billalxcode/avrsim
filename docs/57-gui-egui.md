@@ -12,8 +12,8 @@ JSON, undo/redo, autosave, backup, recent files, konfigurasi XDG,
 deteksi perubahan file eksternal, label net, legenda warna, command
 palette, multi-select, selection box, copy/paste/duplicate, rotate/mirror
 grup, context menu, monitor UART TX, pola garis net, toast, konfirmasi
-hapus, simulasi PB5, dan graph digital PB5/LED dengan cursor juga sudah
-ada. Probe generik, UART input ke
+hapus, export PNG, simulasi PB5, dan graph digital PB5/LED dengan cursor
+juga sudah ada. Probe generik, UART input ke
 simulasi, dan grafik analog belum ada. Dependensi
 GUI yang disetujui hanya untuk crate `sim-gui`: `egui`, `eframe`,
 `serde`, `serde_json`, `rfd`, dan `png`. `egui_plot`,

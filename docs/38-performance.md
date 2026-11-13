@@ -132,8 +132,8 @@ Angka ini bukan jaminan untuk mesin lain.
 
 Total test `sim-core`: 62.
 Total test `sim-cli`: 26.
-Total test `sim-gui`: 94.
-Total workspace: 648.
+Total test `sim-gui`: 97.
+Total workspace: 651.
 
 ---
 
