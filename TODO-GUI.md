@@ -193,13 +193,13 @@ fungsi net, dan persilangan tidak menimbulkan koneksi palsu.
 
 ## G6 - Integrasi Simulasi
 
-- [ ] G6-01 Buat `SimSession` untuk CPU dan board.
-- [ ] G6-02 Implementasikan run, pause, step, dan reset.
-- [ ] G6-03 Terapkan budget 100.000 cycle per frame.
-- [ ] G6-04 Sampel pin digital dan state board.
-- [ ] G6-05 Tampilkan simulation time, cycle, dan status tertinggal.
-- [ ] G6-06 Tampilkan error simulasi di UI tanpa panic.
-- [ ] G6-07 Test integrasi ATmega328P dan LED.
+- [x] G6-01 Buat `SimMachine` untuk CPU dan board.
+- [x] G6-02 Implementasikan run, pause, step, dan reset.
+- [x] G6-03 Terapkan batch 100 instruksi per iterasi worker.
+- [x] G6-04 Sampel pin PB5 dan state LED board.
+- [x] G6-05 Tampilkan cycle dan status running atau paused.
+- [x] G6-06 Tampilkan error simulasi di UI tanpa panic.
+- [x] G6-07 Test integrasi ATmega328P dan LED.
 - [ ] G6-08 Evaluasi ekstraksi runtime bersama dengan `sim-cli`.
 - [ ] G6-09 Implementasikan sampling probe setiap N cycle yang dapat dikonfigurasi.
 
@@ -213,7 +213,7 @@ dan dilangkah dari GUI.
 - [ ] G7-01 Definisikan model probe dan ring buffer 10 detik.
 - [ ] G7-02 Implementasikan decimation min/max.
 - [ ] G7-03 Buat widget plot analog internal.
-- [ ] G7-04 Buat widget waveform digital.
+- [x] G7-04 Buat widget waveform digital PB5.
 - [x] G7-05 Dokumentasikan keputusan menunda decode bus.
 - [ ] G7-06 Buat graph drawer, tab, dan floating window.
 - [ ] G7-07 Tambahkan aksi add graph dari pin atau komponen.
@@ -223,7 +223,7 @@ dan dilangkah dari GUI.
 - [ ] G7-11 Batasi grafik maksimal 8 series.
 - [ ] G7-12 Implementasikan cursor, zoom, pan, autoscale, dan legend toggle.
 - [ ] G7-13 Gunakan default sampling setiap 100 cycle, dapat dikonfigurasi per probe.
-- [ ] G7-14 Gunakan waktu simulasi sebagai sumbu X.
+- [x] G7-14 Gunakan waktu simulasi sebagai sumbu X.
 - [ ] G7-15 Warna series mengikuti warna net atau pin.
 
 **Acceptance G7:** pengguna dapat membuka grafik per pin atau komponen,

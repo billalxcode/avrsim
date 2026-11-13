@@ -46,6 +46,15 @@ impl HexImage {
         &self.bytes
     }
 
+    /// Returns little-endian instruction words.
+    #[must_use]
+    pub fn words(&self) -> Vec<u16> {
+        self.bytes
+            .chunks_exact(2)
+            .map(|pair| u16::from_le_bytes([pair[0], pair[1]]))
+            .collect()
+    }
+
     /// Loads Intel HEX text.
     pub fn load(&mut self, text: &str) -> Result<usize, String> {
         let mut base = 0u32;
@@ -164,6 +173,15 @@ mod tests {
             .expect("hex");
         assert_eq!(count, 4);
         assert_eq!(&image.bytes()[..4], &[1, 2, 3, 4]);
+    }
+
+    #[test]
+    fn converts_bytes_to_little_endian_words() {
+        let mut image = HexImage::new(4);
+        image
+            .load(":0400000001020304F2\n:00000001FF\n")
+            .expect("hex");
+        assert_eq!(image.words(), vec![0x0201, 0x0403]);
     }
 
     #[test]

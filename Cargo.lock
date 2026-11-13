@@ -2988,6 +2988,8 @@ dependencies = [
  "rfd",
  "serde",
  "serde_json",
+ "sim-avr",
+ "sim-board",
 ]
 
 [[package]]

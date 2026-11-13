@@ -8,7 +8,8 @@ shell, canvas, grid, pan, zoom, status bar, dan test kamera. Library
 komponen awal, placement ghost, selection, drag move, rotate, mirror,
 inspector dasar, wire ortogonal, junction otomatis, warna net,
 selection wire, delete wire, segment drag, saran jalur L, save/load
-JSON, dan undo/redo juga sudah ada. Simulasi dan grafik belum ada. Dependensi GUI yang disetujui
+JSON, undo/redo, simulasi PB5, dan waveform digital awal juga sudah
+ada. Probe generik, UART di GUI, dan grafik analog belum ada. Dependensi GUI yang disetujui
 hanya untuk crate `sim-gui`: `egui`, `eframe`, `serde`, `serde_json`,
 `rfd`, dan `png`. `egui_plot`, `libloading`, dan crate lain tidak
 diizinkan tanpa keputusan baru.
@@ -67,7 +68,7 @@ Keputusan yang sudah dikunci:
 - Warna kabel mengikuti kelas net dan dapat dioverride.
 - Grafik digital dan analog.
 - Drawer dan floating window untuk grafik.
-- Simulasi pada UI thread dengan budget per frame.
+- Simulasi pada worker thread dengan batch kecil dan channel.
 - Run, pause, step, reset.
 - Ring buffer grafik 10 detik.
 - JSON untuk format proyek.
@@ -423,17 +424,18 @@ Aturan:
 
 ### 9.1 Kontrol
 
-- Run, pause, step one instruction, step one cycle, reset.
-- Simulation time dan cycle count terlihat di toolbar.
+- Run, pause, step one instruction, reset.
+- Simulation time dan cycle count terlihat di status bar.
 - Speed target dalam cycle per frame, bukan klaim real-time.
 - Status menunjukkan apakah simulasi tertinggal dari target.
 
 ### 9.2 Sinkronisasi
 
-- Untuk MVP, simulation berjalan di UI thread dengan budget 100.000
-  cycle per frame.
-- Jika budget habis, frame berikutnya melanjutkan.
-- Background thread dan channel adalah optimasi lanjutan.
+- Worker berjalan di background thread dan berkomunikasi lewat channel.
+- Worker mengeksekusi batch 100 instruksi, lalu memeriksa command
+  dengan timeout 2 ms agar GUI tetap responsif.
+- GUI mengambil event status dan sampel sekali per frame.
+- Reset mengosongkan cycle, LED, dan waveform.
 - GUI tidak boleh memakai wall-clock sebagai bagian dari model simulasi.
 
 ### 9.3 Sumber data

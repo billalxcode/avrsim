@@ -7,6 +7,7 @@ mod library;
 mod model;
 mod persist;
 mod scene;
+mod sim;
 
 use app::GuiApp;
 

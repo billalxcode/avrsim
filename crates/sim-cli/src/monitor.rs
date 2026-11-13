@@ -20,12 +20,7 @@ impl Monitor {
     pub fn from_hex(text: &str) -> Result<Self, String> {
         let mut image = HexImage::new(0x8000);
         image.load(text)?;
-        let program = image
-            .bytes()
-            .chunks_exact(2)
-            .map(|pair| u16::from_le_bytes([pair[0], pair[1]]))
-            .collect();
-        Self::new(program)
+        Self::new(image.words())
     }
 
     /// Executes one instruction.

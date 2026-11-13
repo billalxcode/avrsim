@@ -9,7 +9,9 @@ use crate::model::{
 };
 use crate::persist;
 use crate::scene::{self, Scene};
+use crate::sim::{self, Event, Sample, SimHandle, Status, Waveform};
 use eframe::egui;
+use std::collections::VecDeque;
 use std::path::PathBuf;
 
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
@@ -39,6 +41,14 @@ enum InspectorAction {
     Rotate,
     Mirror,
     Delete,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+enum SimAction {
+    Run,
+    Pause,
+    Step,
+    Reset,
 }
 
 #[derive(Clone, Copy, Debug)]
@@ -90,6 +100,10 @@ pub struct GuiApp {
     message: String,
     history: History,
     drag_history_pending: bool,
+    sim: Option<SimHandle>,
+    sim_status: Status,
+    waveform: Waveform,
+    waveform_open: bool,
 }
 
 impl GuiApp {
@@ -106,6 +120,7 @@ impl GuiApp {
             document: Document::new(),
             grid_visible: true,
             inspector_open: true,
+            sim: Some(SimHandle::spawn()),
             ..Self::default()
         }
     }
@@ -113,6 +128,7 @@ impl GuiApp {
 
 impl eframe::App for GuiApp {
     fn ui(&mut self, ui: &mut egui::Ui, _frame: &mut eframe::Frame) {
+        self.poll_sim();
         self.toolbar(ui);
         self.status_bar(ui);
         let state = self.canvas(ui);
@@ -121,6 +137,7 @@ impl eframe::App for GuiApp {
         self.handle_keys(ui);
         self.library_window(ui);
         self.inspector_window(ui);
+        self.waveform_window(ui);
     }
 }
 
@@ -131,6 +148,10 @@ impl GuiApp {
                 self.toolbar_tools(ui);
                 ui.separator();
                 self.toolbar_view(ui);
+                if !self.message.is_empty() {
+                    ui.separator();
+                    ui.label(&self.message);
+                }
             });
         });
     }
@@ -140,6 +161,8 @@ impl GuiApp {
         ui.separator();
         self.file_buttons(ui);
         self.edit_buttons(ui);
+        ui.separator();
+        self.sim_buttons(ui);
         ui.separator();
         self.tool_buttons(ui);
         ui.separator();
@@ -168,8 +191,31 @@ impl GuiApp {
         if ui.button("Save").clicked() {
             self.save_project();
         }
-        if !self.message.is_empty() {
-            ui.label(&self.message);
+    }
+
+    fn sim_buttons(&mut self, ui: &mut egui::Ui) {
+        if ui.button("Load HEX").clicked() {
+            self.open_hex();
+        }
+        let loaded = self.sim_status.loaded;
+        let running = self.sim_status.running;
+        let run_label = if running { "Pause" } else { "Run" };
+        let run = ui
+            .add_enabled(loaded, egui::Button::new(run_label))
+            .clicked();
+        let step = ui
+            .add_enabled(loaded && !running, egui::Button::new("Step"))
+            .clicked();
+        let reset = ui.add_enabled(loaded, egui::Button::new("Reset")).clicked();
+        ui.checkbox(&mut self.waveform_open, "Wave");
+        if run {
+            self.toggle_run();
+        }
+        if step {
+            self.send_sim(SimAction::Step);
+        }
+        if reset {
+            self.send_sim(SimAction::Reset);
         }
     }
 
@@ -216,6 +262,79 @@ impl GuiApp {
         self.initialized = true;
         self.current_path = Some(path);
         self.message = "Loaded".to_string();
+    }
+
+    fn open_hex(&mut self) {
+        let Some(path) = pick_hex() else {
+            self.message = "HEX open cancelled".to_string();
+            return;
+        };
+        let name = file_name(&path);
+        match sim::load_hex(&path) {
+            Ok(words) => self.start_firmware(words, name),
+            Err(error) => self.message = error,
+        }
+    }
+
+    fn start_firmware(&mut self, words: Vec<u16>, name: String) {
+        let Some(sim) = self.sim.as_ref() else {
+            self.message = "Simulation unavailable".to_string();
+            return;
+        };
+        match sim.load(words) {
+            Ok(()) => {
+                self.waveform.clear();
+                self.waveform_open = true;
+                self.message = format!("Firmware {name}");
+            }
+            Err(error) => self.message = error,
+        }
+    }
+
+    fn toggle_run(&mut self) {
+        let action = if self.sim_status.running {
+            SimAction::Pause
+        } else {
+            SimAction::Run
+        };
+        self.send_sim(action);
+    }
+
+    fn send_sim(&mut self, action: SimAction) {
+        let Some(sim) = self.sim.as_ref() else {
+            self.message = "Simulation unavailable".to_string();
+            return;
+        };
+        let result = match action {
+            SimAction::Run => sim.run(),
+            SimAction::Pause => sim.pause(),
+            SimAction::Step => sim.step(),
+            SimAction::Reset => sim.reset(),
+        };
+        if let Err(error) = result {
+            self.message = error;
+        }
+        if action == SimAction::Reset {
+            self.waveform.clear();
+        }
+    }
+
+    fn poll_sim(&mut self) {
+        let events = self.sim.as_ref().map(SimHandle::poll).unwrap_or_default();
+        for event in events {
+            self.apply_sim_event(event);
+        }
+    }
+
+    fn apply_sim_event(&mut self, event: Event) {
+        match event {
+            Event::Status(status) => self.sim_status = status,
+            Event::Sample(sample) => self.waveform.push(sample),
+            Event::Error(error) => {
+                self.sim_status.running = false;
+                self.message = error;
+            }
+        }
     }
 
     fn tool_buttons(&mut self, ui: &mut egui::Ui) {
@@ -311,9 +430,7 @@ impl GuiApp {
             if ui.button("Cancel").clicked() {
                 self.placing = None;
             }
-            return;
         }
-        ui.label("Run: idle");
     }
 
     fn canvas(&mut self, ui: &mut egui::Ui) -> canvas::CanvasState {
@@ -732,6 +849,22 @@ impl GuiApp {
         }
     }
 
+    fn waveform_window(&mut self, ui: &mut egui::Ui) {
+        if !self.waveform_open {
+            return;
+        }
+        let mut open = self.waveform_open;
+        let cycles = self.sim_status.cycles;
+        let led_on = self.sim_status.led_on;
+        egui::Window::new("PB5 waveform")
+            .open(&mut open)
+            .default_size([520.0, 190.0])
+            .show(ui.ctx(), |ui| {
+                show_waveform(ui, &self.waveform, cycles, led_on);
+            });
+        self.waveform_open = open;
+    }
+
     fn inspector_contents(&self, ui: &mut egui::Ui, action: &mut Option<InspectorAction>) {
         if let Some(id) = self.selected_wire {
             self.wire_inspector(ui, action, id);
@@ -828,23 +961,60 @@ impl GuiApp {
 
     fn status_contents(&self, ui: &mut egui::Ui) {
         ui.horizontal(|ui| {
-            ui.label(self.pointer_text());
+            self.view_status(ui);
             ui.separator();
-            ui.label(format!("Zoom {:.0}%", self.camera.zoom * 100.0));
+            self.edit_status(ui);
             ui.separator();
-            ui.label(format!("Grid {:.0}px", self.camera.cell_px));
-            ui.separator();
-            ui.label(format!("Tool: {}", self.tool.label()));
-            ui.separator();
-            let selection = usize::from(self.selected.is_some() || self.selected_wire.is_some());
-            ui.label(format!("Sel {selection}"));
-            ui.separator();
-            ui.label(format!("Parts {}", self.document.components().len()));
-            ui.separator();
-            ui.label("Sim 0 cycles");
+            self.sim_status_labels(ui);
             ui.separator();
             ui.label(self.fps_text(ui));
         });
+    }
+
+    fn view_status(&self, ui: &mut egui::Ui) {
+        ui.label(self.pointer_text());
+        ui.separator();
+        ui.label(format!("Zoom {:.0}%", self.camera.zoom * 100.0));
+        ui.separator();
+        ui.label(format!("Grid {:.0}px", self.camera.cell_px));
+    }
+
+    fn edit_status(&self, ui: &mut egui::Ui) {
+        ui.label(format!("Tool: {}", self.tool.label()));
+        ui.separator();
+        let selection = usize::from(self.selected.is_some() || self.selected_wire.is_some());
+        ui.label(format!("Sel {selection}"));
+        ui.separator();
+        ui.label(format!("Parts {}", self.document.components().len()));
+    }
+
+    fn sim_status_labels(&self, ui: &mut egui::Ui) {
+        ui.label(self.sim_text());
+        ui.separator();
+        ui.label(self.led_text());
+    }
+
+    fn sim_text(&self) -> String {
+        if !self.sim_status.loaded {
+            return "Sim idle".to_string();
+        }
+        let state = if self.sim_status.running {
+            "running"
+        } else {
+            "paused"
+        };
+        format!("Sim {} cycles ({state})", self.sim_status.cycles)
+    }
+
+    fn led_text(&self) -> String {
+        if !self.sim_status.loaded {
+            return "PB5 -".to_string();
+        }
+        if self.sim_status.led_on {
+            "PB5 on".to_string()
+        } else {
+            "PB5 off".to_string()
+        }
     }
 
     fn pointer_text(&self) -> String {
@@ -969,6 +1139,77 @@ fn library_list<'a>(
         }
     }
     None
+}
+
+fn pick_hex() -> Option<PathBuf> {
+    rfd::FileDialog::new()
+        .add_filter("Intel HEX", &["hex", "ihx"])
+        .pick_file()
+}
+
+fn file_name(path: &std::path::Path) -> String {
+    path.file_name().map_or_else(
+        || "firmware".to_string(),
+        |name| name.to_string_lossy().into_owned(),
+    )
+}
+
+fn show_waveform(ui: &mut egui::Ui, waveform: &Waveform, current: u64, led_on: bool) {
+    let span = waveform.span(current);
+    let state = if led_on { "high" } else { "low" };
+    ui.label(format!("PB5 {state}  cycles {} to {}", span.0, span.1));
+    let width = ui.available_width().max(200.0);
+    let (response, painter) = ui.allocate_painter(egui::vec2(width, 110.0), egui::Sense::hover());
+    paint_waveform(&painter, response.rect, waveform, span);
+}
+
+fn paint_waveform(
+    painter: &egui::Painter,
+    rect: egui::Rect,
+    waveform: &Waveform,
+    span: (u64, u64),
+) {
+    painter.rect_filled(rect, 4.0, egui::Color32::from_rgb(18, 22, 26));
+    let plot = rect.shrink2(egui::vec2(30.0, 12.0));
+    paint_waveform_labels(painter, rect, plot);
+    let points = waveform_points(plot, waveform.samples(), span);
+    if points.is_empty() {
+        return;
+    }
+    let accent = egui::Color32::from_rgb(0, 190, 210);
+    painter.add(egui::Shape::line(points, egui::Stroke::new(1.5, accent)));
+}
+
+fn paint_waveform_labels(painter: &egui::Painter, rect: egui::Rect, plot: egui::Rect) {
+    let dim = egui::Color32::from_rgb(150, 160, 170);
+    let font = egui::FontId::monospace(10.0);
+    let high = egui::pos2(rect.left() + 6.0, plot.top());
+    let low = egui::pos2(rect.left() + 6.0, plot.bottom());
+    painter.text(high, egui::Align2::LEFT_TOP, "1", font.clone(), dim);
+    painter.text(low, egui::Align2::LEFT_BOTTOM, "0", font, dim);
+}
+
+fn waveform_points(
+    plot: egui::Rect,
+    samples: &VecDeque<Sample>,
+    span: (u64, u64),
+) -> Vec<egui::Pos2> {
+    let Some(first) = samples.front() else {
+        return Vec::new();
+    };
+    let width = span.1.saturating_sub(span.0).max(1) as f32;
+    let x = |cycle: u64| plot.left() + (cycle.saturating_sub(span.0) as f32 / width) * plot.width();
+    let y = |on: bool| if on { plot.top() } else { plot.bottom() };
+    let mut points = vec![egui::pos2(plot.left(), y(first.led_on))];
+    let mut previous = first;
+    for sample in samples.iter().skip(1) {
+        let px = x(sample.cycle);
+        points.push(egui::pos2(px, y(previous.led_on)));
+        points.push(egui::pos2(px, y(sample.led_on)));
+        previous = sample;
+    }
+    points.push(egui::pos2(plot.right(), y(previous.led_on)));
+    points
 }
 
 fn world_to_grid(position: egui::Pos2) -> GridPos {

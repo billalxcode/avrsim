@@ -1,4 +1,4 @@
-# 02 — Arsitektur
+# 02 - Arsitektur
 
 Dokumen ini menjelaskan struktur software, model waktu, netlist, API, dan aturan determinisme.
 
@@ -10,7 +10,7 @@ Dokumen ini menjelaskan struktur software, model waktu, netlist, API, dan aturan
 2. **Device tidak mengetahui analisis**; device hanya melakukan stamping.
 3. **Netlist adalah pusat**, bukan MCU.
 4. **Hierarchy untuk desain, flatten untuk solver.**
-5. **Zero external dependency**; hanya `std` dan crate internal.
+5. **Zero external dependency untuk crate simulasi**; hanya `sim-gui` yang boleh memakai `egui`, `eframe`, `serde`, `serde_json`, `rfd`, dan `png`.
 6. **Determinisme dulu**, optimasi kemudian.
 7. **Setiap lapisan dapat diuji sendiri.**
 
@@ -20,22 +20,23 @@ Dokumen ini menjelaskan struktur software, model waktu, netlist, API, dan aturan
 
 ```
 embed-emulation/
-├── Cargo.toml                  # workspace, tanpa dependensi eksternal
-├── rust-toolchain.toml
-├── LICENSE
-├── README.md
-├── TODO.md
-├── docs/
-├── crates/
-│   ├── sim-core/
-│   ├── sim-device/
-│   ├── sim-analysis/
-│   ├── sim-cells/
-│   ├── sim-avr/
-│   ├── sim-board/
-│   └── sim-cli/
-├── examples/
-└── firmware/
+|-- Cargo.toml                  # workspace; dependensi eksternal hanya di sim-gui
+|-- rust-toolchain.toml
+|-- LICENSE
+|-- README.md
+|-- TODO.md
+|-- docs/
+|-- crates/
+|   |-- sim-core/
+|   |-- sim-device/
+|   |-- sim-analysis/
+|   |-- sim-cells/
+|   |-- sim-avr/
+|   |-- sim-board/
+|   |-- sim-cli/
+|   `-- sim-gui/
+|-- examples/
+`-- firmware/
 ```
 
 ### 2.1 Tanggung Jawab Crate
@@ -49,25 +50,35 @@ embed-emulation/
 | `sim-avr` | CPU struktural, ISA, register, peripheral | Board |
 | `sim-board` | Board netlist, LED, tombol, UART host | Detail CPU |
 | `sim-cli` | Argumen, orkestrasi, output, monitor | Implementasi internal device |
+| `sim-gui` | UI egui, canvas, persistence, worker simulasi | Implementasi internal device dan solver |
 
 ### 2.2 Dependency Graph
 
 ```
 sim-cli
-  ├── sim-board
-  │     ├── sim-avr
-  │     │     ├── sim-cells
-  │     │     │     ├── sim-device
-  │     │     │     │     └── sim-core
-  │     │     │     └── sim-core
-  │     │     └── sim-core
-  │     └── sim-device / sim-core
-  └── sim-analysis
-        ├── sim-device
-        └── sim-core
+  |-- sim-board
+  |     |-- sim-avr
+  |     |     |-- sim-cells
+  |     |     |     |-- sim-device
+  |     |     |     |     `-- sim-core
+  |     |     |     `-- sim-core
+  |     |     `-- sim-core
+  |     `-- sim-device / sim-core
+  `-- sim-analysis
+        |-- sim-device
+        `-- sim-core
+
+sim-gui
+  |-- sim-board
+  |-- sim-avr
+  |-- sim-analysis
+  |-- sim-device
+  `-- sim-core
 ```
 
-Tidak ada panah ke luar workspace. Tidak ada crate eksternal.
+Tidak ada crate simulasi yang bergantung pada crate GUI atau ke luar
+workspace. Hanya `sim-gui` yang memakai dependensi eksternal yang
+disetujui.
 
 ---
 
@@ -76,7 +87,7 @@ Tidak ada panah ke luar workspace. Tidak ada crate eksternal.
 ### 3.1 Time Base
 
 - Waktu digital: **integer pikodetik** (`u64` atau `i64`).
-- 16 MHz → periode 62.500 ps.
+- 16 MHz -> periode 62.500 ps.
 - Waktu analog: `f64` detik, diturunkan dari waktu global.
 - Tidak ada `Instant`, `SystemTime`, atau wall-clock di dalam simulasi.
 
@@ -85,16 +96,16 @@ Tidak ada panah ke luar workspace. Tidak ada crate eksternal.
 - 16 MHz dapat direpresentasikan tepat.
 - Resolusi cukup untuk delay gerbang CMOS.
 - Tidak ada drift floating-point pada event scheduling.
-- Rentang `u64` pikodetik ≈ 213 hari simulasi; cukup untuk offline.
+- Rentang `u64` pikodetik ~ 213 hari simulasi; cukup untuk offline.
 
 ### 3.3 Sinkronisasi Domain
 
 ```
 Global time (ps)
-      │
-      ├── Digital events (integer ps)
-      ├── CPU cycles (integer ps)
-      └── Analog steps (f64 seconds, quantized to ps)
+      |
+      |-- Digital events (integer ps)
+      |-- CPU cycles (integer ps)
+      `-- Analog steps (f64 seconds, quantized to ps)
 ```
 
 Aturan:
@@ -206,16 +217,16 @@ Builder dan macro menghasilkan struktur netlist yang sama. Tidak ada logika ters
 2. Flatten
 3. Validasi
 4. Pilih analisis
-   ├── DC operating point
-   ├── DC sweep
-   ├── Transient
-   ├── AC
-   └── Noise / distortion / sensitivity
+   |-- DC operating point
+   |-- DC sweep
+   |-- Transient
+   |-- AC
+   `-- Noise / distortion / sensitivity
 5. Untuk setiap titik:
-   ├── Stamp device
-   ├── Solve linear system (LU)
-   ├── Newton iteration sampai konvergen
-   └── Simpan hasil
+   |-- Stamp device
+   |-- Solve linear system (LU)
+   |-- Newton iteration sampai konvergen
+   `-- Simpan hasil
 6. Output CSV/VCD
 ```
 
@@ -411,11 +422,11 @@ Monitor:
 
 | Batas | Struktural | Behavioral |
 |---|---|---|
-| Register file ↔ SRAM | Register file | SRAM/flash |
-| CPU ↔ memory bus | CPU, decoder, control | Array memori |
-| MCU ↔ host UART | Pin MCU | Host endpoint |
-| Digital ↔ analog | Pin electrical model | — |
-| Board ↔ PCB | Komponen | Parasitik PCB (tidak dimodelkan) |
+| Register file <-> SRAM | Register file | SRAM/flash |
+| CPU <-> memory bus | CPU, decoder, control | Array memori |
+| MCU <-> host UART | Pin MCU | Host endpoint |
+| Digital <-> analog | Pin electrical model | - |
+| Board <-> PCB | Komponen | Parasitik PCB (tidak dimodelkan) |
 
 Setiap batas harus memiliki kontrak yang jelas dan test tersendiri.
 
