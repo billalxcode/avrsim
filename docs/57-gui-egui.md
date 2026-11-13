@@ -309,6 +309,7 @@ Setiap instance memiliki:
 
 - Manual: klik pin, klik titik grid, klik titik grid berikutnya,
   double-click atau Enter untuk selesai, Esc untuk batal.
+- Klik pin tujuan kedua menyelesaikan kabel secara otomatis.
 - L-route: pilih dua titik, sistem menawarkan jalur L.
 - Z-route: pilih dua titik, sistem menawarkan jalur Z.
 - Auto-route sederhana ditunda sampai setelah MVP.

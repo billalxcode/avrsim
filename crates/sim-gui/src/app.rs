@@ -1194,6 +1194,9 @@ impl GuiApp {
             return;
         }
         self.wire_points.push(point);
+        if self.document.snap_pin(self.library, point).is_some() {
+            self.finish_wire();
+        }
     }
 
     fn finish_wire(&mut self) {
@@ -2920,6 +2923,25 @@ mod tests {
             app.wire_points,
             vec![GridPos::new(4, 1), GridPos::new(8, 1)]
         );
+    }
+
+    #[test]
+    fn wire_tool_finishes_at_second_pin() {
+        let library = crate::library::builtin();
+        let resistor = crate::library::find("resistor").expect("resistor");
+        let mut document = Document::new();
+        document.add(resistor, GridPos::new(0, 0), Rotation::Deg0, Mirror::None);
+        document.add(resistor, GridPos::new(6, 0), Rotation::Deg0, Mirror::None);
+        let mut app = GuiApp {
+            library,
+            document,
+            tool: crate::app::Tool::Wire,
+            wire_points: vec![GridPos::new(4, 1)],
+            ..GuiApp::default()
+        };
+        app.handle_canvas(click_state(6.0, 1.0));
+        assert_eq!(app.document.wires().len(), 1);
+        assert!(app.wire_points.is_empty());
     }
 
     #[test]
