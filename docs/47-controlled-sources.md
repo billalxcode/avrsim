@@ -73,7 +73,7 @@ baris output dan kolom kontrol.
   output `1 V`.
 
 Total test `sim-analysis`: 108.
-Total workspace: 630.
+Total workspace: 632.
 
 ---
 

@@ -242,6 +242,7 @@ melihat sinyal digital dan analog, serta memeriksa nilai pada cursor.
 - [x] G8-07 Implementasikan autosave debounce 2 detik, backup, 10 recent files, dan `rfd`.
 - [x] G8-08 Implementasikan command palette Ctrl+K.
 - [ ] G8-20 Implementasikan context menu lengkap.
+- [x] G8-21 Implementasikan rotate dan mirror untuk seluruh seleksi.
 - [x] G8-09 Test undo/redo dan persistence.
 - [x] G8-10 Kelompokkan undo per aksi drag atau klik.
 - [x] G8-11 Simpan konfigurasi aplikasi di XDG config.

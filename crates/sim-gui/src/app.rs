@@ -1086,15 +1086,12 @@ impl GuiApp {
             self.placement_rotation = self.placement_rotation.next();
             return;
         }
-        let Some(id) = self.selection.single_component() else {
+        let ids: Vec<_> = self.selection.components().iter().copied().collect();
+        if ids.is_empty() {
             return;
-        };
-        let Some(component) = self.document.component(id) else {
-            return;
-        };
-        let rotation = component.rotation.next();
+        }
         let before = self.document.clone();
-        if self.document.set_rotation(self.library, id, rotation) {
+        if self.document.rotate_components(self.library, &ids) {
             self.history.record(&before);
             self.mark_dirty();
         }
@@ -1105,15 +1102,12 @@ impl GuiApp {
             self.placement_mirror = self.placement_mirror.next();
             return;
         }
-        let Some(id) = self.selection.single_component() else {
+        let ids: Vec<_> = self.selection.components().iter().copied().collect();
+        if ids.is_empty() {
             return;
-        };
-        let Some(component) = self.document.component(id) else {
-            return;
-        };
-        let mirror = component.mirror.next();
+        }
         let before = self.document.clone();
-        if self.document.set_mirror(self.library, id, mirror) {
+        if self.document.mirror_components(self.library, &ids) {
             self.history.record(&before);
             self.mark_dirty();
         }
@@ -1398,9 +1392,7 @@ impl GuiApp {
             self.selection.components().len(),
             self.selection.wires().len()
         ));
-        if ui.button("Delete").clicked() {
-            *action = Some(InspectorAction::Delete);
-        }
+        show_component_actions(ui, action);
     }
 
     fn wire_inspector(&self, ui: &mut egui::Ui, action: &mut Option<InspectorAction>, id: WireId) {

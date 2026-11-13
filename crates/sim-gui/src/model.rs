@@ -364,13 +364,6 @@ impl ComponentInstance {
     }
 }
 
-struct TransformTarget<'a> {
-    definition: &'a ComponentDefinition,
-    position: GridPos,
-    rotation: Rotation,
-    mirror: Mirror,
-}
-
 /// Schematic document containing components and wires.
 #[derive(Clone, Default)]
 pub struct Document {
@@ -635,9 +628,9 @@ impl Document {
         definition: &ComponentDefinition,
         position: GridPos,
         rotation: Rotation,
-        mirror: Mirror,
+        _mirror: Mirror,
     ) -> bool {
-        !self.overlaps(library, definition, position, rotation, mirror, None)
+        !self.overlaps(library, definition, position, rotation)
     }
 
     /// Moves several components atomically when every target is free.
@@ -683,24 +676,53 @@ impl Document {
             })
     }
 
-    /// Rotates a component when the target does not overlap.
-    pub fn set_rotation(
+    /// Rotates several components atomically when every result is free.
+    pub fn rotate_components(
         &mut self,
         library: &[ComponentDefinition],
-        id: ComponentId,
-        rotation: Rotation,
+        ids: &[ComponentId],
     ) -> bool {
-        self.update_transform(library, id, rotation, None)
+        self.update_transforms(library, ids, |instance| {
+            instance.rotation = instance.rotation.next();
+        })
     }
 
-    /// Mirrors a component when the target does not overlap.
-    pub fn set_mirror(
+    /// Mirrors several components atomically when every result is free.
+    pub fn mirror_components(
         &mut self,
         library: &[ComponentDefinition],
-        id: ComponentId,
-        mirror: Mirror,
+        ids: &[ComponentId],
     ) -> bool {
-        self.update_transform(library, id, Rotation::Deg0, Some(mirror))
+        self.update_transforms(library, ids, |instance| {
+            instance.mirror = instance.mirror.next();
+        })
+    }
+
+    fn update_transforms(
+        &mut self,
+        library: &[ComponentDefinition],
+        ids: &[ComponentId],
+        update: impl Fn(&mut ComponentInstance),
+    ) -> bool {
+        let unique: BTreeSet<_> = ids.iter().copied().collect();
+        if unique.len() != ids.len() {
+            return false;
+        }
+        let mut candidate = self.clone();
+        for &id in ids {
+            let Some(instance) = candidate.component_mut(id) else {
+                return false;
+            };
+            update(instance);
+        }
+        if !unique
+            .iter()
+            .all(|id| candidate.position_valid(library, *id))
+        {
+            return false;
+        }
+        *self = candidate;
+        true
     }
 
     /// Returns the topmost component at a grid point.
@@ -715,80 +737,15 @@ impl Document {
         })
     }
 
-    fn update_transform(
-        &mut self,
-        library: &[ComponentDefinition],
-        id: ComponentId,
-        rotation: Rotation,
-        mirror: Option<Mirror>,
-    ) -> bool {
-        let Some(target) = self.transform_target(library, id, rotation, mirror) else {
-            return false;
-        };
-        if !self.transform_allowed(library, &target, id) {
-            return false;
-        }
-        self.apply_transform(id, target.rotation, target.mirror)
-    }
-
-    fn transform_allowed(
-        &self,
-        library: &[ComponentDefinition],
-        target: &TransformTarget<'_>,
-        id: ComponentId,
-    ) -> bool {
-        !self.overlaps(
-            library,
-            target.definition,
-            target.position,
-            target.rotation,
-            target.mirror,
-            Some(id),
-        )
-    }
-
-    fn transform_target<'a>(
-        &'a self,
-        library: &'a [ComponentDefinition],
-        id: ComponentId,
-        rotation: Rotation,
-        mirror: Option<Mirror>,
-    ) -> Option<TransformTarget<'a>> {
-        let instance = self.component(id)?;
-        let definition = find_definition(library, instance.definition)?;
-        let next_rotation = mirror.map_or(rotation, |_| instance.rotation);
-        Some(TransformTarget {
-            definition,
-            position: instance.position,
-            rotation: next_rotation,
-            mirror: mirror.unwrap_or(instance.mirror),
-        })
-    }
-
-    fn apply_transform(&mut self, id: ComponentId, rotation: Rotation, mirror: Mirror) -> bool {
-        let Some(instance) = self.component_mut(id) else {
-            return false;
-        };
-        instance.rotation = rotation;
-        instance.mirror = mirror;
-        true
-    }
-
     fn overlaps(
         &self,
         library: &[ComponentDefinition],
         definition: &ComponentDefinition,
         position: GridPos,
         rotation: Rotation,
-        mirror: Mirror,
-        ignore: Option<ComponentId>,
     ) -> bool {
-        let _ = mirror;
         let candidate = GridRect::new(position, body_size(definition, rotation));
         self.components.iter().any(|instance| {
-            if Some(instance.id) == ignore {
-                return false;
-            }
             let Some(existing) = find_definition(library, instance.definition) else {
                 return false;
             };
@@ -1202,6 +1159,44 @@ mod tests {
         assert_eq!(
             document.component(first).expect("first").position,
             GridPos::new(0, 4)
+        );
+    }
+
+    #[test]
+    fn rotate_and_mirror_apply_to_group() {
+        let mut document = Document::new();
+        let first = document.add(&RESISTOR, GridPos::new(0, 0), Rotation::Deg0, Mirror::None);
+        let second = document.add(&RESISTOR, GridPos::new(5, 0), Rotation::Deg0, Mirror::None);
+        assert!(document.rotate_components(LIBRARY, &[first, second]));
+        assert_eq!(
+            document.component(first).expect("first").rotation,
+            Rotation::Deg90
+        );
+        assert_eq!(
+            document.component(second).expect("second").rotation,
+            Rotation::Deg90
+        );
+        assert!(document.mirror_components(LIBRARY, &[first, second]));
+        assert_eq!(
+            document.component(first).expect("first").mirror,
+            Mirror::Horizontal
+        );
+    }
+
+    #[test]
+    fn rotate_group_rolls_back_on_collision() {
+        let mut document = Document::new();
+        let first = document.add(&RESISTOR, GridPos::new(0, 0), Rotation::Deg0, Mirror::None);
+        let second = document.add(&RESISTOR, GridPos::new(6, 0), Rotation::Deg0, Mirror::None);
+        document.add(&RESISTOR, GridPos::new(1, 3), Rotation::Deg0, Mirror::None);
+        assert!(!document.rotate_components(LIBRARY, &[first, second]));
+        assert_eq!(
+            document.component(first).expect("first").rotation,
+            Rotation::Deg0
+        );
+        assert_eq!(
+            document.component(second).expect("second").rotation,
+            Rotation::Deg0
         );
     }
 
