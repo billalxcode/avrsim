@@ -260,7 +260,15 @@ fn draw_components(
             continue;
         }
         let selected = scene.selection.contains_component(instance.id);
-        draw_component(painter, rect, camera, definition, instance, selected);
+        draw_component(
+            painter,
+            rect,
+            camera,
+            definition,
+            instance,
+            selected,
+            scene.hover,
+        );
     }
 }
 
@@ -532,12 +540,19 @@ fn draw_component(
     definition: &ComponentDefinition,
     instance: &crate::model::ComponentInstance,
     selected: bool,
+    hover: Option<GridPos>,
 ) {
     let body = component_rect(rect, camera, instance, definition);
     draw_body(painter, body, component_stroke(selected));
     draw_symbol(painter, body, definition.symbol);
-    draw_pins(painter, rect, camera, definition, instance);
-    draw_labels(painter, body, instance);
+    draw_pins(painter, rect, camera, definition, instance, hover);
+    if show_component_labels(selected, camera.zoom) {
+        draw_labels(painter, body, instance);
+    }
+}
+
+fn show_component_labels(selected: bool, zoom: f32) -> bool {
+    selected || zoom >= 0.7
 }
 
 fn component_stroke(selected: bool) -> egui::Stroke {
@@ -650,10 +665,10 @@ fn draw_pins(
     camera: &crate::canvas::GridCamera,
     definition: &ComponentDefinition,
     instance: &crate::model::ComponentInstance,
+    hover: Option<GridPos>,
 ) {
-    let stroke = egui::Stroke::new(1.5, PIN_COLOR);
     for pin in definition.pins {
-        draw_pin(painter, rect, camera, definition, instance, pin, stroke);
+        draw_pin(painter, rect, camera, definition, instance, pin, hover);
     }
 }
 
@@ -664,17 +679,45 @@ fn draw_pin(
     definition: &ComponentDefinition,
     instance: &crate::model::ComponentInstance,
     pin: &crate::model::PinDefinition,
-    stroke: egui::Stroke,
+    hover: Option<GridPos>,
 ) {
     let world = world_pin(instance, definition, pin);
     let screen = screen_pos(rect, camera, world);
     let direction = pin_direction(definition, pin, instance.rotation, instance.mirror);
     let stub = pin_stub(rect, camera, world, direction);
-    painter.line_segment([screen, stub], stroke);
+    painter.line_segment([screen, stub], egui::Stroke::new(1.5, PIN_COLOR));
     painter.circle_filled(stub, 2.0, PIN_COLOR);
     if camera.zoom >= 0.75 {
         draw_pin_label(painter, stub, pin, direction);
     }
+    if hover == Some(world) {
+        draw_pin_tooltip(painter, stub, pin, direction);
+    }
+}
+
+fn draw_pin_tooltip(
+    painter: &egui::Painter,
+    position: egui::Pos2,
+    pin: &crate::model::PinDefinition,
+    direction: GridPos,
+) {
+    let text = pin_tooltip(pin, direction);
+    let pos = position + egui::vec2(8.0, -22.0);
+    let galley = painter.layout_no_wrap(text, egui::FontId::monospace(10.0), TEXT_COLOR);
+    let background = egui::Rect::from_min_size(pos, galley.size()).expand(3.0);
+    painter.rect_filled(background, 3.0, egui::Color32::from_black_alpha(210));
+    painter.galley(pos, galley, TEXT_COLOR);
+}
+
+fn pin_tooltip(pin: &crate::model::PinDefinition, direction: GridPos) -> String {
+    let side = match (direction.x, direction.y) {
+        (-1, 0) => "left",
+        (1, 0) => "right",
+        (0, -1) => "up",
+        (0, 1) => "down",
+        _ => "pin",
+    };
+    format!("{} ({}) {side}", pin.name, pin.number)
 }
 
 fn pin_stub(
@@ -845,10 +888,28 @@ pub fn placement_position(
 #[cfg(test)]
 mod tests {
     use super::{
-        minimap_map, net_color, placement_position, segment_visible, show_wire_label, wire_midpoint,
+        minimap_map, net_color, pin_tooltip, placement_position, segment_visible,
+        show_component_labels, show_wire_label, wire_midpoint,
     };
     use crate::library;
     use crate::model::{GridPos, NetClass, Rotation, Wire, WireId};
+
+    #[test]
+    fn component_labels_use_lod_except_selection() {
+        assert!(show_component_labels(true, 0.4));
+        assert!(show_component_labels(false, 0.7));
+        assert!(!show_component_labels(false, 0.69));
+    }
+
+    #[test]
+    fn pin_tooltip_reports_name_and_side() {
+        let pin = crate::model::PinDefinition {
+            name: "A",
+            number: "1",
+            offset: GridPos::new(0, 1),
+        };
+        assert_eq!(pin_tooltip(&pin, GridPos::new(-1, 0)), "A (1) left");
+    }
 
     #[test]
     fn minimap_centers_world_bounds() {

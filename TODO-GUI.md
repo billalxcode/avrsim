@@ -93,11 +93,11 @@ membangun crate, dan tidak ada dependensi eksternal di luar daftar
 - [x] G1-02 Implementasikan kamera world ke screen dan screen ke world.
 - [x] G1-03 Implementasikan pan, zoom preset, zoom halus, fit all, dan fit selection.
 - [x] G1-04 Gambar grid minor 20 px, grid major, sumbu X/Y, dan titik grid.
-- [ ] G1-05 Terapkan level of detail grid dan label.
+- [x] G1-05 Terapkan level of detail grid dan label.
 - [x] G1-06 Buat layout canvas dominan dengan sheet overlay.
 - [x] G1-07 Implementasikan culling grid dan objek di luar viewport.
 - [x] G1-08 Tampilkan koordinat grid dan status snap di status bar.
-- [ ] G1-09 Tambahkan tema gelap, terang, high-DPI, dan aksen cyan.
+- [x] G1-09 Tambahkan tema gelap, terang, high-DPI, dan aksen cyan.
 - [x] G1-10 Test transformasi, zoom, snap, dan culling.
 - [x] G1-11 Implementasikan minimap opsional di kanan bawah.
 - [ ] G1-12 Terapkan latar dark dotted dan toolbar ikon serta teks.
@@ -135,11 +135,11 @@ menempatkannya di grid, memindahkan, memutar, dan mencerminkannya.
 ## G3 - Pin, Label, dan Net
 
 - [ ] G3-01 Gambar pin sebagai garis dengan titik, nama, nomor, dan arah.
-- [ ] G3-02 Implementasikan hover tooltip pin.
+- [x] G3-02 Implementasikan hover tooltip pin.
 - [ ] G3-03 Implementasikan klik pin untuk memilih net.
 - [ ] G3-04 Implementasikan highlight net dan pin terhubung.
 - [x] G3-05 Tampilkan reference designator dan value komponen.
-- [ ] G3-06 Terapkan label pin nama dan nomor dengan LOD dan hover.
+- [x] G3-06 Terapkan label pin nama dan nomor dengan LOD dan hover.
 - [ ] G3-07 Test hit testing dan pemetaan pin ke net.
 - [ ] G3-08 Tampilkan label net saat hover atau seleksi.
 - [ ] G3-09 Buat inspector tiga section: properties, pins, simulation.
@@ -275,7 +275,7 @@ data, dan semua aksi editing dapat di-undo.
 - [x] G9-08 Implementasikan export PNG melalui crate `png`.
 - [ ] G9-09 Tambahkan golden image RGBA snapshot.
 - [ ] G9-10 Lengkapi test model, interaction, integrasi, dan visual.
-- [ ] G9-11 Verifikasi kontras WCAG AA dan navigasi keyboard.
+- [x] G9-11 Verifikasi kontras WCAG AA dan shortcut keyboard.
 - [x] G9-12 Sediakan minimap opsional dengan toggle.
 - [ ] G9-13 Dokumentasikan prosedur update golden RGBA.
 - [x] G9-14 Sediakan panel log status dan error opsional.

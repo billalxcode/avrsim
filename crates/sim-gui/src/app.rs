@@ -122,6 +122,7 @@ pub struct GuiApp {
     canvas_rect: Option<egui::Rect>,
     grid_visible: bool,
     minimap_open: bool,
+    light_theme: bool,
     tool: Tool,
     pointer_world: Option<egui::Pos2>,
     initialized: bool,
@@ -689,6 +690,13 @@ impl GuiApp {
         self.zoom_controls(ui);
         ui.checkbox(&mut self.grid_visible, "Grid");
         ui.checkbox(&mut self.minimap_open, "Mini");
+        if ui.checkbox(&mut self.light_theme, "Light").changed() {
+            ui.ctx().set_theme(if self.light_theme {
+                egui::ThemePreference::Light
+            } else {
+                egui::ThemePreference::Dark
+            });
+        }
         ui.separator();
         if self.tool == Tool::Wire {
             self.wire_controls(ui);
