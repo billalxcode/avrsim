@@ -2,8 +2,9 @@
 
 Pintu masuk dokumentasi `embed-emulation` versi 0.1.0.
 
-**Status saat ini:** 553 test lulus, 7 crate, nol dependensi eksternal Rust,
-tag `v0.1` tersedia.
+**Status saat ini:** 553 test lulus, 7 crate, crate simulasi zero external
+dependency Rust. `egui`/`eframe` disetujui hanya untuk `sim-gui`.
+Tag `v0.1` tersedia.
 
 ---
 
@@ -15,6 +16,7 @@ tag `v0.1` tersedia.
 | Memahami arsitektur | [Visi](00-vision.md), [Keputusan](01-decisions.md), [Arsitektur](02-architecture.md) |
 | Berkontribusi | [AGENTS.md](../AGENTS.md), [TODO.md](../TODO.md), [Verifikasi](07-verification.md) |
 | Memeriksa fidelity | [Fidelity](24-fidelity.md), [Verifikasi](07-verification.md) |
+| Merencanakan GUI | [Desain GUI](57-gui-egui.md), [Backlog GUI](../TODO-GUI.md) |
 | Melihat isi rilis | [Release notes](53-release-notes.md) |
 | Melihat contoh kode | [Examples](../examples/README.md) |
 
@@ -61,6 +63,7 @@ Setiap dokumen muncul satu kali pada peta ini.
 | 43 | [Panduan pengguna](43-user-guide.md) | Build, CLI, library, analisis, firmware, troubleshooting |
 | 55 | [Virtual USB serial](55-usb-virtual-serial.md) | Riset CDC ACM, dummy_hcd, USB/IP, Windows/macOS |
 | 56 | [Tutorial USB aman](56-usb-safe-tutorial.md) | Urutan start, upload, stop, dan pemulihan device busy |
+| 57 | [GUI egui](57-gui-egui.md) | Desain canvas CAD, grid, wire, probe, dan grafik |
 
 ### 3.2 Fondasi
 

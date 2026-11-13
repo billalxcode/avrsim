@@ -4,7 +4,8 @@
 yang memodelkan transistor, gerbang CMOS, CPU AVR, peripheral, dan board,
 serta mampu menjalankan firmware AVR.
 
-> **Status v0.1:** 553 test lulus, 7 crate, nol dependensi eksternal Rust.
+> **Status v0.1:** 553 test lulus, 7 crate, crate simulasi zero external
+> dependency; `egui`/`eframe` disetujui hanya untuk `sim-gui`.
 > Tag `v0.1` tersedia. Archive Linux ada di
 > `dist/embed-emu-x86_64-unknown-linux-gnu.tar.gz`.
 
@@ -135,7 +136,9 @@ Dokumen yang sering dipakai:
 | [`docs/24-fidelity.md`](docs/24-fidelity.md) | Akurasi dan batasan model |
 | [`docs/29-ac.md`](docs/29-ac.md) | AC small-signal |
 | [`docs/53-release-notes.md`](docs/53-release-notes.md) | Isi rilis v0.1 |
+| [`docs/57-gui-egui.md`](docs/57-gui-egui.md) | Desain GUI egui dan kanvas CAD |
 | [`TODO.md`](TODO.md) | Pekerjaan yang tersisa |
+| [`TODO-GUI.md`](TODO-GUI.md) | Backlog GUI egui |
 
 ---
 

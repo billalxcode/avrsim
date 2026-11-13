@@ -19,7 +19,7 @@ Baca file ini sebelum mengubah kode, dokumen, atau konfigurasi.
 
 ## 2. Aturan Tidak Bisa Dinegosiasikan
 
-1. Zero external dependency. Hanya Rust standard library dan crate internal workspace.
+1. Zero external dependency untuk semua crate, dengan pengecualian `sim-gui` yang boleh memakai `egui` dan `eframe`. `egui_plot`, `serde`, `rfd`, dan crate eksternal lain tidak diizinkan tanpa keputusan baru.
 2. Tidak ada `unsafe`.
 3. Semua teks baru atau yang diubah harus ASCII.
 4. Tidak ada em dash, en dash, kutip melengkung, elipsis Unicode, panah Unicode, atau bullet Unicode.
@@ -116,6 +116,13 @@ sim-cli
   `-- sim-analysis
       +-- sim-device
       `-- sim-core
+
+sim-gui
+  +-- sim-board
+  +-- sim-avr
+  +-- sim-analysis
+  +-- sim-device
+  `-- sim-core
 ```
 
 Aturan:
@@ -127,7 +134,9 @@ Aturan:
 - `sim-avr` hanya bergantung pada `sim-core`, `sim-device`, dan `sim-cells`.
 - `sim-board` hanya bergantung pada `sim-core`, `sim-device`, dan `sim-avr`.
 - `sim-cli` adalah adapter dan komposisi.
-- Tidak ada crate yang bergantung pada `sim-cli`.
+- `sim-gui` adalah adapter dan komposisi.
+- `sim-gui` boleh memakai `egui` dan `eframe`; crate lain tidak boleh.
+- Tidak ada crate yang bergantung pada `sim-cli` atau `sim-gui`.
 - Tidak ada siklus.
 - `main.rs` tidak berisi logika simulasi.
 - `sim-core` tidak memakai `println!`, filesystem, atau wall-clock.
@@ -172,7 +181,7 @@ Jika boundary perlu diubah, jelaskan alasan dan dampaknya sebelum menulis kode.
 - Gunakan guard clause.
 - Jaga fungsi maksimal 20 baris.
 - Reuse fungsi yang ada.
-- Jangan menambah dependensi eksternal.
+- Jangan menambah dependensi eksternal di luar `egui`/`eframe` pada `sim-gui`.
 - Jangan memakai `unsafe`.
 
 ### Langkah 6 - Verifikasi
@@ -210,7 +219,7 @@ Berhenti dan tanya jika:
 
 - Permintaan bertentangan dengan aturan di file ini.
 - Perubahan akan melanggar boundary crate.
-- Perlu menambah dependensi eksternal.
+- Perlu menambah dependensi eksternal di luar pengecualian `sim-gui`.
 - Perlu mengubah API publik tanpa migrasi.
 - Perilaku saat ini tidak dipahami dan belum ada test.
 - Fungsi yang akan diubah sudah lebih dari 20 baris dan pemecahannya tidak jelas.
@@ -230,7 +239,7 @@ Jangan menebak. Jangan mengarang. Jangan memaksa.
 - [ ] Setiap fungsi maksimal 20 baris.
 - [ ] Fungsi existing sudah dicari dan digunakan ulang.
 - [ ] Tidak ada duplikasi fungsi.
-- [ ] Tidak ada dependensi eksternal.
+- [ ] Tidak ada dependensi eksternal selain `egui`/`eframe` di `sim-gui`.
 - [ ] Tidak ada `unsafe`.
 - [ ] ASCII-only untuk file yang diubah.
 - [ ] `fmt`, `clippy`, dan `test` lulus.
@@ -379,7 +388,7 @@ Jangan menulis "kode ini buruk" tanpa alasan dan solusi.
 
 ## 13. Larangan
 
-- Jangan menambah crate eksternal.
+- Jangan menambah crate eksternal selain `egui`/`eframe` di `sim-gui`.
 - Jangan memakai `unsafe`.
 - Jangan memakai wall-clock di simulation.
 - Jangan memakai `println!` di core.
@@ -399,6 +408,8 @@ Jangan menulis "kode ini buruk" tanpa alasan dan solusi.
 
 - `README.md` - ikhtisar proyek.
 - `TODO.md` - task list dan milestone.
+- `TODO-GUI.md` - backlog GUI egui.
+- `docs/57-gui-egui.md` - desain GUI egui.
 - `docs/00-vision.md` - visi dan batasan.
 - `docs/01-decisions.md` - decision log.
 - `docs/02-architecture.md` - arsitektur.

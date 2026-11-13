@@ -2,7 +2,7 @@
 
 Daftar tugas lengkap dari hal terkecil sampai rilis. Setiap item harus kecil, dapat diuji, dan tidak menambah dependensi eksternal.
 
-> **Status:** P0 fondasi selesai. P8 selesai penuh. P9 sebagian besar selesai; ELF loader, simbol, ELF ke HEX, dan UART end-to-end selesai. P10 sparse, adaptive step, trapezoidal/Gear, AC linear, noise termal, distorsi kuasi-statis, sensitivitas numerik, suhu device, process corner, BJT, JFET, transmission line, determinisme Linux, fidelity matrix, batasan model, profiling, dan optimasi selesai. Golden suite dan determinisme macOS/Windows belum. P4 harness ngspice dan golden data belum karena ngspice tidak tersedia. P5 characterization, switching, input capacitance, drive strength, dan osilasi ring oscillator selesai; perbandingan ngspice belum. P11 user guide, contoh runnable, workflow CI, dan notices selesai; eksekusi GitHub Actions, tag, dan publikasi belum; packaging dan release notes siap. X-03 panic audit selesai; builder sel mencatat error dan melaporkannya di build. P3 body effect, gmb, Meyer capacitance, overlap, diode nonideal, BJT, JFET, transmission line, VCVS, VCCS, CCVS, CCCS, dan switch selesai; breakdown dan model termal lanjutan belum. P12 selesai: adaptive initial state, Newton transient, dan AC nonlinier. P13 selesai: kapasitansi diode dan MOSFET pada AC; kapasitansi BJT dan JFET belum. P14 selesai: AC controlled sources dan switch. P15 selesai: kapasitansi BJT dan JFET pada AC/transient. P16 selesai: virtual serial upload STK500 via socat. P17 selesai: UART0 register map, TX/RX, dan interrupt otomatis ke serial monitor. P18 riset selesai: virtual USB serial. P19 virtual USB berjalan: bridge C++, ConfigFS ACM, /dev/ttyACM0, STK500v1, upload avrdude, dan sketsa Arduino core `Serial.println("Hello World")` berhasil; verifikasi GUI Arduino IDE dan cleanup gadget belum.
+> **Status:** P0 fondasi selesai. P8 selesai penuh. P9 sebagian besar selesai; ELF loader, simbol, ELF ke HEX, dan UART end-to-end selesai. P10 sparse, adaptive step, trapezoidal/Gear, AC linear, noise termal, distorsi kuasi-statis, sensitivitas numerik, suhu device, process corner, BJT, JFET, transmission line, determinisme Linux, fidelity matrix, batasan model, profiling, dan optimasi selesai. Golden suite dan determinisme macOS/Windows belum. P4 harness ngspice dan golden data belum karena ngspice tidak tersedia. P5 characterization, switching, input capacitance, drive strength, dan osilasi ring oscillator selesai; perbandingan ngspice belum. P11 user guide, contoh runnable, workflow CI, dan notices selesai; eksekusi GitHub Actions, tag, dan publikasi belum; packaging dan release notes siap. X-03 panic audit selesai; builder sel mencatat error dan melaporkannya di build. P3 body effect, gmb, Meyer capacitance, overlap, diode nonideal, BJT, JFET, transmission line, VCVS, VCCS, CCVS, CCCS, dan switch selesai; breakdown dan model termal lanjutan belum. P12 selesai: adaptive initial state, Newton transient, dan AC nonlinier. P13 selesai: kapasitansi diode dan MOSFET pada AC; kapasitansi BJT dan JFET belum. P14 selesai: AC controlled sources dan switch. P15 selesai: kapasitansi BJT dan JFET pada AC/transient. P16 selesai: virtual serial upload STK500 via socat. P17 selesai: UART0 register map, TX/RX, dan interrupt otomatis ke serial monitor. P18 riset selesai: virtual USB serial. P19 virtual USB berjalan: bridge C++, ConfigFS ACM, /dev/ttyACM0, STK500v1, upload avrdude, dan sketsa Arduino core `Serial.println("Hello World")` berhasil; verifikasi GUI Arduino IDE dan cleanup gadget belum. P20 desain GUI egui selesai; implementasi belum; `egui`/`eframe` disetujui hanya untuk `sim-gui`.
 > **Aturan:** satu item selesai = kode + test + dokumentasi singkat.
 
 ---
@@ -867,12 +867,33 @@ dikembangkan ke Windows/macOS.
 
 ---
 
+## P20 - GUI egui
+
+Desain: [`docs/57-gui-egui.md`](docs/57-gui-egui.md).
+Backlog detail: [`TODO-GUI.md`](TODO-GUI.md).
+
+- [x] P20-01 Setujui pengecualian `egui`/`eframe` untuk `sim-gui`.
+- [x] P20-02 Tulis desain canvas, grid, wire, probe, dan grafik.
+- [x] P20-03 Tulis backlog GUI bertahap G0 sampai G10.
+- [ ] P20-04 Buat crate `sim-gui` dan app shell egui.
+- [ ] P20-05 Implementasikan kanvas grid 90 persen dan navigasi.
+- [ ] P20-06 Implementasikan library, penempatan, dan editing komponen.
+- [ ] P20-07 Implementasikan kabel ortogonal, junction, dan warna net.
+- [ ] P20-08 Integrasikan simulasi, probe, dan grafik per komponen.
+- [ ] P20-09 Implementasikan undo/redo, save/load, dan performa.
+- [ ] P20-10 Uji GUI Linux dan siapkan paket preview.
+
+**Exit P20:** GUI Linux dapat menempatkan komponen, menghubungkan pin,
+menjalankan simulasi, menampilkan grafik, dan menyimpan proyek.
+
+---
+
 ## Cross-Cutting Tasks
 
 - [x] X-01 Pastikan setiap crate punya dokumentasi modul.
 - [x] X-02 Pastikan setiap error punya pesan jelas.
 - [x] X-03 Pastikan tidak ada panic pada input pengguna.
-- [x] X-04 Pastikan tidak ada dependensi eksternal.
+- [x] X-04 Pastikan dependensi eksternal hanya `egui`/`eframe` di `sim-gui`.
 - [x] X-05 Jalankan fmt sebelum commit.
 - [x] X-06 Jalankan clippy sebelum commit.
 - [x] X-07 Jalankan test sebelum commit.
@@ -907,6 +928,7 @@ dikembangkan ke Windows/macOS.
 | M8 | P10-01 ... P10-28 |
 | M9 | P11-01 ... P11-17 |
 | M10 | P12-01 ... P12-26 |
+| M11 | P20-01 ... P20-10, G0 ... G10 |
 
 ---
 
@@ -931,7 +953,7 @@ Sebuah task dianggap selesai jika:
 
 - [x] Kode ditulis.
 - [x] Test ditulis dan lulus.
-- [x] Tidak ada dependensi eksternal.
+- [x] Tidak ada dependensi eksternal selain `egui`/`eframe` di `sim-gui`.
 - [x] Dokumentasi diperbarui.
 - [x] `cargo fmt` bersih.
 - [x] `cargo clippy` bersih.
