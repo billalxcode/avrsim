@@ -297,7 +297,7 @@ keyboard, dan tidak ada panic pada input tidak valid.
 - [ ] G10-03 Verifikasi build macOS (perlu native runner).
 - [x] G10-04 Buat contoh proyek: LED blink dan UART hello.
 - [x] G10-05 Perbarui README, docs, dan TODO.
-- [ ] G10-06 Tag preview GUI.
+- [x] G10-06 Tag preview GUI.
 
 **Acceptance G10:** binary GUI dapat dijalankan di Linux, contoh proyek
 terbuka, dan dokumentasi instalasi tersedia.
