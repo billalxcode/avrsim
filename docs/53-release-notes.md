@@ -31,6 +31,9 @@ Tag `v0.1` tersedia; publikasi biner dan GitHub release belum.
 - JFET Shichman-Hodges N/P.
 - VCVS, VCCS, CCVS, CCCS, dan voltage-controlled switch.
 - Transmission line lossless.
+- Katalog 500 model generik dengan 57 kelas dan pemetaan ke device solver
+  yang sudah ada. Kelas behavioral memiliki metadata dan smoke response;
+  solver penuhnya bertahap.
 
 ---
 
