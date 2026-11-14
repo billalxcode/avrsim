@@ -3,7 +3,9 @@
 #[path = "catalog_data.rs"]
 mod catalog_data;
 
-use sim_core::DeviceKind;
+use crate::model::{DeviceModel, model_from_instance};
+use sim_core::{CircuitBuilder, DeviceId, DeviceInstance, DeviceKind, NodeId, SimError};
+use std::collections::BTreeMap;
 
 /// Top-level component family.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord)]
@@ -45,6 +47,7 @@ pub enum ModelClass {
     DigitalSource,
     Battery,
     Diode,
+    DiodeArray,
     Led,
     Photodiode,
     Optocoupler,
@@ -121,6 +124,150 @@ impl std::error::Error for CatalogError {}
 #[must_use]
 pub fn catalog() -> &'static [ComponentSpec] {
     catalog_data::CATALOG
+}
+
+/// Request to instantiate a catalog entry into a concrete device.
+#[derive(Clone, Debug)]
+pub struct ComponentRequest {
+    pub entry: &'static str,
+    pub name: String,
+    pub device_id: DeviceId,
+    pub pins: Vec<NodeId>,
+    pub parameters: BTreeMap<String, f64>,
+}
+
+impl ComponentRequest {
+    /// Creates a request with default parameters.
+    #[must_use]
+    pub fn new(
+        entry: &'static str,
+        name: impl Into<String>,
+        device_id: DeviceId,
+        pins: Vec<NodeId>,
+    ) -> Self {
+        Self {
+            entry,
+            name: name.into(),
+            device_id,
+            pins,
+            parameters: BTreeMap::new(),
+        }
+    }
+
+    /// Adds or replaces a parameter override.
+    #[must_use]
+    pub fn with_parameter(mut self, name: impl Into<String>, value: f64) -> Self {
+        self.parameters.insert(name.into(), value);
+        self
+    }
+}
+
+/// Registry that resolves catalog entries to solver models and circuits.
+#[derive(Clone, Debug)]
+pub struct ComponentRegistry {
+    index: BTreeMap<&'static str, &'static ComponentSpec>,
+}
+
+impl Default for ComponentRegistry {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
+impl ComponentRegistry {
+    /// Builds a registry from the static catalog.
+    #[must_use]
+    pub fn new() -> Self {
+        let index = catalog().iter().map(|spec| (spec.id, spec)).collect();
+        Self { index }
+    }
+
+    /// Returns all catalog entries.
+    #[must_use]
+    pub fn entries(&self) -> &'static [ComponentSpec] {
+        catalog()
+    }
+
+    /// Finds one entry by ID.
+    #[must_use]
+    pub fn find(&self, id: &str) -> Option<&'static ComponentSpec> {
+        self.index.get(id).copied()
+    }
+
+    /// Returns true when the entry has a solver-backed model.
+    #[must_use]
+    pub fn is_solver_backed(&self, id: &str) -> bool {
+        self.find(id).is_some_and(|spec| spec.device.is_some())
+    }
+
+    /// Instantiates a solver-backed entry with default and override parameters.
+    pub fn instantiate(&self, request: &ComponentRequest) -> Result<DeviceInstance, SimError> {
+        let spec = self.require(request.entry)?;
+        let device = self.require_device(spec)?;
+        if request.pins.len() != usize::from(spec.pins) {
+            return Err(SimError::InvalidNetlist(format!(
+                "{} requires {} pins",
+                spec.name, spec.pins
+            )));
+        }
+        let parameters = parameters_for(spec, &request.parameters);
+        Ok(DeviceInstance::new(
+            request.device_id,
+            request.name.clone(),
+            device,
+            request.pins.clone(),
+            parameters,
+        ))
+    }
+
+    /// Builds the solver model for one instantiated entry.
+    pub fn model(
+        &self,
+        entry: &str,
+        instance: &DeviceInstance,
+    ) -> Result<Box<dyn DeviceModel>, SimError> {
+        let spec = self.require(entry)?;
+        self.require_device(spec)?;
+        model_from_instance(instance)
+    }
+
+    /// Adds an entry directly to a circuit builder.
+    pub fn add_to(
+        &self,
+        builder: &mut CircuitBuilder,
+        request: &ComponentRequest,
+    ) -> Result<DeviceId, SimError> {
+        let spec = self.require(request.entry)?;
+        let device = self.require_device(spec)?;
+        let parameters = parameters_for(spec, &request.parameters);
+        builder.device(
+            request.name.clone(),
+            device,
+            request.pins.clone(),
+            parameters,
+        )
+    }
+
+    fn require(&self, id: &str) -> Result<&'static ComponentSpec, SimError> {
+        self.find(id)
+            .ok_or_else(|| SimError::InvalidNetlist(format!("unknown component: {id}")))
+    }
+
+    fn require_device(&self, spec: &ComponentSpec) -> Result<DeviceKind, SimError> {
+        spec.device
+            .clone()
+            .ok_or_else(|| SimError::UnsupportedDevice(spec.name.to_string()))
+    }
+}
+
+fn parameters_for(
+    spec: &ComponentSpec,
+    overrides: &BTreeMap<String, f64>,
+) -> BTreeMap<String, f64> {
+    let mut parameters = BTreeMap::new();
+    parameters.insert(spec.parameter.to_string(), spec.default);
+    parameters.extend(overrides.iter().map(|(name, value)| (name.clone(), *value)));
+    parameters
 }
 
 impl Family {
@@ -210,7 +357,9 @@ impl ModelClass {
 
     const fn semiconductor_family(self) -> Option<Family> {
         match self {
-            Self::Diode | Self::Led | Self::Photodiode | Self::Optocoupler => Some(Family::Diode),
+            Self::Diode | Self::DiodeArray | Self::Led | Self::Photodiode | Self::Optocoupler => {
+                Some(Family::Diode)
+            }
             Self::Bjt | Self::Jfet | Self::Mosfet | Self::OtherTransistor => {
                 Some(Family::Transistor)
             }
@@ -310,6 +459,7 @@ impl ModelClass {
         matches!(
             self,
             Self::Diode
+                | Self::DiodeArray
                 | Self::Led
                 | Self::Photodiode
                 | Self::Optocoupler
@@ -408,6 +558,7 @@ impl ModelClass {
     const fn diode_principle(self) -> &'static str {
         match self {
             Self::Diode => "Shockley junction with forward and reverse regions.",
+            Self::DiodeArray => "Multiple diodes or a bridge in one package.",
             Self::Led => "Diode with radiative recombination and forward voltage.",
             Self::Photodiode => "Photoelectric current proportional to incident light.",
             _ => "Optical isolation between input and output.",
@@ -633,7 +784,8 @@ impl ComponentSpec {
 
 #[cfg(test)]
 mod tests {
-    use super::{Family, catalog};
+    use super::{ComponentRegistry, ComponentRequest, Family, catalog};
+    use sim_core::{CircuitBuilder, Device, DeviceId, NodeId};
     use std::collections::BTreeSet;
 
     #[test]
@@ -668,7 +820,7 @@ mod tests {
     #[test]
     fn all_classes_have_entries() {
         let classes: BTreeSet<_> = catalog().iter().map(|entry| entry.class).collect();
-        assert_eq!(classes.len(), 57);
+        assert_eq!(classes.len(), 58);
     }
 
     #[test]
@@ -768,6 +920,7 @@ mod tests {
                 | sim_core::DeviceKind::Cccs
                 | sim_core::DeviceKind::Ccvs
                 | sim_core::DeviceKind::Switch
+                | sim_core::DeviceKind::IdealSwitch
                 | sim_core::DeviceKind::TransmissionLine
         )
     }
@@ -831,5 +984,83 @@ mod tests {
             assert!(!entry.class.principle().is_empty(), "{}", entry.id);
             assert!(!entry.class.family().source().is_empty(), "{}", entry.id);
         }
+    }
+
+    #[test]
+    fn registry_indexes_every_entry() {
+        let registry = ComponentRegistry::new();
+        for entry in catalog() {
+            assert!(registry.find(entry.id).is_some(), "{}", entry.id);
+        }
+        assert!(registry.find("missing.entry").is_none());
+    }
+
+    #[test]
+    fn registry_instantiates_and_models_solver_entries() {
+        let registry = ComponentRegistry::new();
+        for spec in catalog() {
+            if spec.device.is_none() {
+                continue;
+            }
+            let pins = vec![NodeId::GROUND; usize::from(spec.pins)];
+            let request = ComponentRequest::new(spec.id, spec.name, DeviceId::new(0), pins);
+            let instance = registry
+                .instantiate(&request)
+                .unwrap_or_else(|error| panic!("{}: {error}", spec.id));
+            assert_eq!(instance.kind(), spec.device.as_ref().expect("device"));
+            assert!(
+                registry.model(spec.id, &instance).is_ok(),
+                "model {}",
+                spec.id
+            );
+        }
+    }
+
+    #[test]
+    fn registry_rejects_behavioral_model() {
+        let registry = ComponentRegistry::new();
+        let entry = catalog()
+            .iter()
+            .find(|spec| spec.device.is_none())
+            .expect("behavioral entry");
+        let pins = vec![NodeId::GROUND; usize::from(entry.pins)];
+        let request = ComponentRequest::new(entry.id, entry.name, DeviceId::new(0), pins);
+        assert!(registry.instantiate(&request).is_err());
+        assert!(!registry.is_solver_backed(entry.id));
+    }
+
+    #[test]
+    fn registry_builds_voltage_divider() {
+        let registry = ComponentRegistry::new();
+        let mut builder = CircuitBuilder::new();
+        let vcc = builder.node("vcc").expect("vcc");
+        let out = builder.node("out").expect("out");
+        let ground = builder.ground();
+        let source = ComponentRequest::new(
+            "source.independent.dc_voltage_source",
+            "V1",
+            DeviceId::new(0),
+            vec![vcc, ground],
+        )
+        .with_parameter("voltage", 5.0);
+        registry.add_to(&mut builder, &source).expect("source");
+        let top = ComponentRequest::new(
+            "passive.resistor.ideal_resistor",
+            "R1",
+            DeviceId::new(0),
+            vec![vcc, out],
+        )
+        .with_parameter("resistance", 1000.0);
+        registry.add_to(&mut builder, &top).expect("top");
+        let bottom = ComponentRequest::new(
+            "passive.resistor.ideal_resistor",
+            "R2",
+            DeviceId::new(0),
+            vec![out, ground],
+        )
+        .with_parameter("resistance", 1000.0);
+        registry.add_to(&mut builder, &bottom).expect("bottom");
+        let circuit = builder.build().expect("circuit");
+        assert_eq!(circuit.devices().len(), 3);
     }
 }

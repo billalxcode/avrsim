@@ -304,7 +304,19 @@ Katalog 500 entri sudah ada di `crates/sim-device/src/catalog.rs` dan
 `crates/sim-device/src/catalog_data.rs`. File data dihasilkan oleh
 `scripts/gen_component_catalog.py`.
 
-Test katalog mencakup:
+Jumlah saat ini:
+
+- 500 entri katalog.
+- 58 model class.
+- 145 entri solver-backed dengan `DeviceKind`.
+- 355 entri behavioral dengan metadata dan smoke response.
+
+Registry `ComponentRegistry` memetakan entry ke `DeviceInstance` dan
+`DeviceModel`. Registry memvalidasi ID, jumlah pin, parameter default, dan
+model solver. `ComponentRegistry::add_to` dapat langsung menambah device
+ke `CircuitBuilder`.
+
+Test katalog dan emulasi mencakup:
 
 - Jumlah tepat 500 entri.
 - ID unik dan slug ASCII.
@@ -312,11 +324,12 @@ Test katalog mencakup:
 - Validasi setiap entri.
 - Prinsip dan sumber non-empty.
 - Pemetaan entry analog ke `DeviceKind`.
-- Smoke response finite untuk semua kelas.
+- Instansiasi dan pembentukan model untuk semua entry solver-backed.
+- Voltage divider melalui registry menghasilkan 2.5 V.
+- Saklar ideal melalui registry mengubah tegangan node.
 
-Entry analog yang memiliki `device` dapat memakai model solver yang sudah
-ada. Entry behavioral masih berupa metadata dan smoke response; model
-solver penuh untuk keluarga tersebut ada di backlog `TODO-COMPONENTS.md`.
+Entry behavioral masih berupa metadata dan smoke response; model solver
+penuh untuk keluarga tersebut ada di backlog `TODO-COMPONENTS.md`.
 
 ## 10. Batasan
 

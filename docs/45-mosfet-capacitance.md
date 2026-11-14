@@ -83,8 +83,8 @@ Analisis:
   gate mendekati `3.1 V` setelah `1 us`.
 
 Total test `sim-device`: 48.
-Total test `sim-analysis`: 108.
-Total workspace: 717.
+Total test `sim-analysis`: 110 (108 unit + 2 integration).
+Total workspace: 728.
 
 ---
 

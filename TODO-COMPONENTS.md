@@ -78,6 +78,8 @@ Batch yang gagal salah satu syarat tetap berstatus `tested`, bukan
 - [x] C1-14 Uji jumlah 500, ID unik, slug ASCII, dan family count.
 - [x] C1-15 Uji validasi setiap entri dan smoke response finite.
 - [x] C1-16 Petakan entry analog ke `DeviceKind` yang sudah didukung.
+- [x] C1-19 Buat `ComponentRegistry` dan `ComponentRequest`.
+- [x] C1-20 Uji emulasi voltage divider dan saklar ideal melalui registry.
 - [ ] C1-17 Implementasikan solver penuh untuk keluarga behavioral.
 - [ ] C1-18 Tambah reference vector dan cross-check ngspice per model.
 

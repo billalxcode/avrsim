@@ -30,8 +30,9 @@ Tag `v0.1` tersedia; publikasi biner dan GitHub release belum.
 - BJT Ebers-Moll NPN/PNP.
 - JFET Shichman-Hodges N/P.
 - VCVS, VCCS, CCVS, CCCS, dan voltage-controlled switch.
+- Ideal switch dua terminal untuk registry dan emulasi saklar.
 - Transmission line lossless.
-- Katalog 500 model generik dengan 57 kelas dan pemetaan ke device solver
+- Katalog 500 model generik dengan 58 kelas dan pemetaan ke device solver
   yang sudah ada. Kelas behavioral memiliki metadata dan smoke response;
   solver penuhnya bertahap.
 
@@ -131,7 +132,7 @@ Perintah:
 ./scripts/package.sh
 ```
 
-Total test workspace: 717.
+Total test workspace: 728.
 
 Golden GUI headless 320 x 240 RGBA lulus di Linux. Cross-check build
 Windows dan macOS lulus:

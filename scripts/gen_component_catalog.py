@@ -123,7 +123,7 @@ add("diode.tvs", "Diode", "Diode", 2, "breakdown_voltage", 6.0, "V", [
     "TVS diode", "ESD protection diode", "bidirectional TVS",
     "snapback ESD device", "tuning varactor", "PIN limiter diode",
 ])
-add("diode.bridge", "Diode", "Diode", 4, "forward_voltage", 0.7, "V", [
+add("diode.bridge", "DiodeArray", None, 4, "forward_voltage", 0.7, "V", [
     "diode bridge", "dual diode", "diode array", "Schottky bridge",
 ])
 add("diode.other", "Diode", "Diode", 2, "forward_voltage", 0.7, "V", [
@@ -181,7 +181,7 @@ add("protection.breaker", "Protection", None, 2, "trip_current", 10.0, "A", [
     "spark gap", "crowbar", "circuit breaker", "surge arrester",
 ])
 
-add("switch.mechanical", "Switch", "Switch", 2, "on_resistance", 0.1, "ohm", [
+add("switch.mechanical", "Switch", "IdealSwitch", 2, "ron", 0.1, "ohm", [
     "SPST switch", "SPDT switch", "DPST switch", "DPDT switch", "pushbutton",
     "toggle switch", "DIP switch", "reed switch",
 ])
@@ -428,7 +428,23 @@ for group in groups:
                 "Cccs": "Cccs",
                 "Ccvs": "Ccvs",
             }.get(device, cls)
+        param = group["param"]
         default = group["default"]
+        unit = group["unit"]
+        if cls == "CurrentSource":
+            param, default, unit = "current", 1e-3, "A"
+        elif cls == "TransmissionLine":
+            param = "z0"
+        elif cls == "Diode":
+            param = "is"
+        elif cls == "Bjt":
+            param = "bf"
+        elif cls == "Jfet":
+            param = "vto"
+        elif cls == "Mosfet":
+            param = "vto"
+        elif cls in ("Led", "Photodiode"):
+            param, default, unit = "is", 1e-12, "A"
         default_text = f"{default:.12g}"
         if default_text == "0":
             default_text = "0.0"
@@ -440,9 +456,9 @@ for group in groups:
             "class": cls,
             "device": device_expr,
             "pins": group["pins"],
-            "param": group["param"],
+            "param": param,
             "default": default_text,
-            "unit": group["unit"],
+            "unit": unit,
         })
 
 if len(entries) != 500:

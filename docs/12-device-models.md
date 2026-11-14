@@ -3,7 +3,7 @@
 Katalog device yang tersedia di `sim-device` dan parameter utamanya.
 
 **Status:** seluruh device inti, device nonlinier, controlled source, switch,
-dan transmission line sudah diimplementasikan. Total test `sim-device`: 63.
+dan transmission line sudah diimplementasikan. Total test `sim-device`: 72.
 
 ---
 
@@ -15,6 +15,24 @@ menjadi registry untuk Python builder dan pemetaan ke solver.
 
 Detail taksonomi, akurasi, dan status ada di
 `docs/60-component-catalog.md` dan `TODO-COMPONENTS.md`.
+
+Registry:
+
+```rust
+let registry = ComponentRegistry::new();
+let request = ComponentRequest::new(
+    "passive.resistor.ideal_resistor",
+    "R1",
+    DeviceId::new(0),
+    vec![a, b],
+)
+.with_parameter("resistance", 1000.0);
+registry.add_to(&mut builder, &request)?;
+```
+
+Registry memvalidasi pin, parameter default, dan pemetaan ke
+`DeviceKind`. Test emulasi membangun voltage divider dan saklar ideal
+melalui registry, lalu menjalankan analisis DC.
 
 ---
 
@@ -67,6 +85,7 @@ pub fn model_from_instance(
 | CCCS | 4 | Linear current gain | [48](48-cccs-switch.md) |
 | CCVS | 4 | Linear transresistance | [49](49-ccvs.md) |
 | Switch | 4 | Smooth on/off conductance | [48](48-cccs-switch.md) |
+| IdealSwitch | 2 | Fixed on/off conductance | - |
 
 ---
 
@@ -237,6 +256,9 @@ P-JFET memakai transformasi tanda. Kapasitansi `cgs` dan `cgd` konstan.
 | Switch | `roff` | 1e9 ohm |
 | Switch | `vth` | 2.5 V |
 | Switch | `width` | 0.1 V |
+| IdealSwitch | `ron` | 0.01 ohm |
+| IdealSwitch | `roff` | 1e12 ohm |
+| IdealSwitch | `closed` | 0 |
 
 CCVS memakai dua branch: sense branch dan output branch.
 

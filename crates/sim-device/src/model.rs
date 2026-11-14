@@ -7,7 +7,7 @@ use crate::jfet::JfetModel;
 use crate::mosfet::MosfetModel;
 use crate::passive::{CapacitorModel, InductorModel, ResistorModel};
 use crate::source::{CurrentSourceModel, PulseSourceModel, VoltageSourceModel};
-use crate::switch::SwitchModel;
+use crate::switch::{IdealSwitchModel, SwitchModel};
 use crate::transmission::TransmissionLineModel;
 use sim_core::{
     BOLTZMANN, Device, DeviceId, DeviceInstance, DeviceKind, ELEMENTARY_CHARGE, MnaContext,
@@ -84,6 +84,7 @@ fn passive_model(instance: &DeviceInstance) -> Result<Option<Box<dyn DeviceModel
         DeviceKind::Cccs => Box::new(CccsModel::from_instance(instance)?),
         DeviceKind::Ccvs => Box::new(CcvsModel::from_instance(instance)?),
         DeviceKind::Switch => Box::new(SwitchModel::from_instance(instance)?),
+        DeviceKind::IdealSwitch => Box::new(IdealSwitchModel::from_instance(instance)?),
         DeviceKind::TransmissionLine => Box::new(TransmissionLineModel::from_instance(instance)?),
         _ => return Ok(None),
     };

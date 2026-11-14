@@ -29,6 +29,8 @@ pub enum DeviceKind {
     Ccvs,
     /// A voltage-controlled switch.
     Switch,
+    /// A two-terminal ideal switch.
+    IdealSwitch,
     /// An N-channel MOSFET.
     Nmos,
     /// A P-channel MOSFET.
@@ -72,6 +74,7 @@ impl DeviceKind {
             Self::Cccs => "cccs",
             Self::Ccvs => "ccvs",
             Self::Switch => "switch",
+            Self::IdealSwitch => "ideal_switch",
             other => other.analog_name(),
         }
     }
