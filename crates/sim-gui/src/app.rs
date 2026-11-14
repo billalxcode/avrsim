@@ -1603,6 +1603,7 @@ impl GuiApp {
         let mut search = self.search.clone();
         let mut category = self.category;
         let mut chosen = None;
+        let mut hovered = None;
         egui::Window::new("Library")
             .open(&mut open)
             .default_width(300.0)
@@ -1613,7 +1614,10 @@ impl GuiApp {
                 self.library_filters(ui, &mut search, &mut category);
                 ui.separator();
                 if chosen.is_none() {
-                    chosen = library_list(ui, self.library, &search, category);
+                    chosen = library_list(ui, self.library, &search, category, &mut hovered);
+                }
+                if let Some(definition) = hovered {
+                    library_preview(ui, definition);
                 }
             });
         self.library_open = open;
@@ -2218,8 +2222,9 @@ impl GuiApp {
             return "PB5 -".to_string();
         }
         format!(
-            "PB5 {}  LED {}",
+            "PB5 {} {} mV  LED {}",
             high_low(self.sim_status.pb5_high),
+            self.sim_status.pb5_millivolts,
             on_off(self.sim_status.led_on)
         )
     }
@@ -2419,6 +2424,7 @@ fn library_list<'a>(
     library: &'a [ComponentDefinition],
     search: &str,
     category: Option<Category>,
+    hovered: &mut Option<&'a ComponentDefinition>,
 ) -> Option<&'a ComponentDefinition> {
     let needle = search.to_lowercase();
     for definition in library {
@@ -2429,11 +2435,31 @@ fn library_list<'a>(
             continue;
         }
         let text = format!("{}  {}", definition.name, definition.default_value);
-        if ui.selectable_label(false, text).clicked() {
+        let response = ui.selectable_label(false, text);
+        if response.hovered() {
+            *hovered = Some(definition);
+        }
+        if response.clicked() {
             return Some(definition);
         }
     }
     None
+}
+
+fn library_preview(ui: &mut egui::Ui, definition: &ComponentDefinition) {
+    ui.separator();
+    let (rect, _) = ui.allocate_exact_size(
+        egui::vec2(ui.available_width().max(180.0), 96.0),
+        egui::Sense::hover(),
+    );
+    ui.painter()
+        .rect_filled(rect, 4.0, egui::Color32::from_rgb(22, 26, 32));
+    scene::draw_library_preview(ui.painter(), rect.shrink(8.0), definition);
+    ui.label(format!(
+        "{}  {} pins",
+        definition.default_value,
+        definition.pins.len()
+    ));
 }
 
 fn file_stamp(path: &Path) -> Option<FileStamp> {

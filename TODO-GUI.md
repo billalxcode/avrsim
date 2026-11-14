@@ -119,7 +119,7 @@ pan dan zoom stabil, dan area canvas mendominasi layout.
 - [x] G2-03 Buat library awal: ATmega328P, board Arduino, passive, LED, button, VCC, GND.
 - [x] G2-04 Buat library sheet dengan pencarian dan kategori.
 - [x] G2-05 Buat daftar recently used di library.
-- [ ] G2-15 Buat preview simbol di library.
+- [x] G2-15 Buat preview simbol di library.
 - [x] G2-06 Implementasikan ghost placement dan klik untuk menempatkan.
 - [ ] G2-16 Implementasikan drag-and-drop dari library ke kanvas.
 - [x] G2-07 Implementasikan move, rotate, dan mirror di grid dengan pusat rotasi.
@@ -187,7 +187,7 @@ tanpa segmen diagonal, dan tanpa menembus komponen.
 - [x] G5-07 Test routing, warna, label, dan aturan persilangan.
 - [x] G5-08 Implementasikan override warna per wire.
 - [x] G5-09 Kunci palet warna final dan target kontras WCAG AA.
-- [ ] G5-10 Implementasikan ruler grid dan probe tegangan.
+- [x] G5-10 Implementasikan ruler grid dan probe tegangan PB5.
 - [x] G5-11 Implementasikan saran jalur Z.
 
 **Acceptance G5:** kabel mengikuti jalur grid yang tersedia, warna sesuai

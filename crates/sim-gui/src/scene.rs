@@ -563,6 +563,29 @@ pub(crate) fn net_color(class: NetClass) -> egui::Color32 {
     }
 }
 
+pub(crate) fn draw_library_preview(
+    painter: &egui::Painter,
+    area: egui::Rect,
+    definition: &ComponentDefinition,
+) {
+    let body = preview_rect(area, definition);
+    draw_body(painter, body, egui::Stroke::new(1.0, BODY_STROKE));
+    draw_symbol(painter, body, definition.symbol);
+}
+
+pub(crate) fn preview_rect(area: egui::Rect, definition: &ComponentDefinition) -> egui::Rect {
+    let width = definition.size.width as f32 + 2.0;
+    let height = definition.size.height as f32 + 2.0;
+    let scale = (area.width() / width)
+        .min(area.height() / height)
+        .clamp(1.0, 24.0);
+    let size = egui::vec2(
+        definition.size.width as f32 * scale,
+        definition.size.height as f32 * scale,
+    );
+    egui::Rect::from_center_size(area.center(), size)
+}
+
 fn draw_component(
     painter: &egui::Painter,
     rect: egui::Rect,
@@ -925,8 +948,8 @@ pub fn placement_position(
 #[cfg(test)]
 mod tests {
     use super::{
-        minimap_map, net_color, pin_label_text, pin_tooltip, placement_position, segment_visible,
-        show_component_labels, show_wire_label, wire_midpoint,
+        minimap_map, net_color, pin_label_text, pin_tooltip, placement_position, preview_rect,
+        segment_visible, show_component_labels, show_wire_label, wire_midpoint,
     };
     use crate::library;
     use crate::model::{Document, GridPos, Mirror, NetClass, Rotation, Wire, WireId};
@@ -948,6 +971,18 @@ mod tests {
         };
         assert_eq!(pin_tooltip(&pin, GridPos::new(-1, 0)), "A (1) left");
         assert_eq!(pin_label_text(&pin), "A/1");
+    }
+
+    #[test]
+    fn preview_rect_fits_library_area() {
+        let definition = library::find("resistor").expect("resistor");
+        let area = eframe::egui::Rect::from_min_size(
+            eframe::egui::pos2(0.0, 0.0),
+            eframe::egui::vec2(100.0, 60.0),
+        );
+        let body = preview_rect(area, definition);
+        assert!(area.contains_rect(body));
+        assert!((body.width() / body.height() - 2.0).abs() < 0.01);
     }
 
     #[test]

@@ -43,7 +43,7 @@ cargo build --workspace --release
 - Toolbar atas: file, undo/redo, simulasi, tool, sheet, dan zoom.
 - Kanvas tengah: grid, komponen, kabel, dan minimap opsional.
 - Status bar bawah: koordinat, zoom, grid, snap, tool, seleksi, parts,
-  cycle, PB5, LED, dan FPS.
+  cycle, PB5 high/low dan tegangan mV, LED, dan FPS.
 - Library, Inspector, Legend, Digital graph, UART monitor, Log, dan
   Command palette tampil sebagai floating window.
 - Toast singkat muncul di bawah tengah untuk status terbaru.
@@ -85,7 +85,8 @@ cargo build --workspace --release
 4. Gerakkan pointer di kanvas.
 5. Klik untuk menempatkan.
 6. Tekan `R` atau `M` sebelum menempatkan untuk transform.
-7. Escape membatalkan placement.
+7. Preview simbol muncul di bawah daftar library saat item di-hover.
+8. Escape membatalkan placement.
 
 Komponen tidak boleh saling menimpa. Selalu snap ke grid.
 

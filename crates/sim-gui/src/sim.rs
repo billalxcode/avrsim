@@ -49,6 +49,7 @@ impl SampleState {
 pub struct Status {
     pub cycles: u64,
     pub pb5_high: bool,
+    pub pb5_millivolts: i32,
     pub led_on: bool,
     pub running: bool,
     pub loaded: bool,
@@ -246,6 +247,7 @@ struct SimMachine {
     config: PinElectricalConfig,
     led_on: bool,
     pb5_high: bool,
+    pb5_millivolts: i32,
     uart_bytes: Vec<u8>,
     uart_rx: VecDeque<u8>,
 }
@@ -259,6 +261,7 @@ impl SimMachine {
             config: PinElectricalConfig::default(),
             led_on: false,
             pb5_high: false,
+            pb5_millivolts: 0,
             uart_bytes: Vec::new(),
             uart_rx: VecDeque::new(),
         })
@@ -283,6 +286,7 @@ impl SimMachine {
         self.board.set_pb5_voltage(state.voltage);
         self.led_on = self.board.led().is_on();
         self.pb5_high = state.voltage >= self.config.input_threshold;
+        self.pb5_millivolts = (state.voltage * 1000.0).round() as i32;
         Ok(())
     }
 
@@ -316,6 +320,7 @@ impl SimMachine {
         self.board.set_pb5(false);
         self.led_on = false;
         self.pb5_high = false;
+        self.pb5_millivolts = 0;
         self.uart_bytes.clear();
         self.uart_rx.clear();
         Ok(())
@@ -510,6 +515,7 @@ fn send_status(machine: &Option<SimMachine>, running: bool, events: &Sender<Even
         Some(machine) => Status {
             cycles: machine.cycles(),
             pb5_high: machine.pb5_high,
+            pb5_millivolts: machine.pb5_millivolts,
             led_on: machine.led_on,
             running,
             loaded: true,
@@ -586,13 +592,16 @@ mod tests {
     fn blink_program_toggles_board_led() {
         let mut machine = SimMachine::new(blink_program()).expect("machine");
         let mut seen = false;
+        let mut high_voltage = false;
         for _ in 0..5000 {
             if !machine.step().expect("step") {
                 break;
             }
             seen |= machine.led_on;
+            high_voltage |= machine.led_on && machine.pb5_millivolts > 0;
         }
         assert!(seen);
+        assert!(high_voltage);
     }
 
     #[test]
