@@ -203,6 +203,10 @@ impl ProbeSet {
     /// Appends one sample to every probe from a read-only provider.
     pub fn sample_from(&mut self, provider: &dyn AnalysisProvider, cycle: u64) {
         for probe in &mut self.probes {
+            let every = probe.spec.sampling.every_cycles.max(1);
+            if cycle % every != 0 {
+                continue;
+            }
             let Some(value) = source_value(provider, probe.spec.source, cycle) else {
                 continue;
             };
@@ -402,8 +406,19 @@ mod tests {
     fn probe_set_samples_from_provider() {
         let mut set = ProbeSet::default();
         assert!(set.add(spec(100)));
-        set.sample_from(&CycleProvider, 42);
-        assert_eq!(set.probes()[0].latest(), Some(point(42, 42.0)));
+        set.sample_from(&CycleProvider, 100);
+        assert_eq!(set.probes()[0].latest(), Some(point(100, 100.0)));
+    }
+
+    #[test]
+    fn probe_set_filters_per_probe_sampling() {
+        let mut set = ProbeSet::default();
+        assert!(set.add(spec(10)));
+        assert!(set.add(spec(20)));
+        set.sample_from(&CycleProvider, 10);
+        set.sample_from(&CycleProvider, 20);
+        assert_eq!(set.probes()[0].samples().len(), 2);
+        assert_eq!(set.probes()[1].samples().len(), 1);
     }
 
     #[test]

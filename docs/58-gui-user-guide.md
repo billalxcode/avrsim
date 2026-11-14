@@ -173,8 +173,10 @@ mengubah zoom, drag menggeser window, dan wheel di atas plot juga
 mengubah zoom. Cursor menampilkan cycle dan nilai terdekat.
 
 Probe memakai API read-only dan buffer 10 detik. Default sampling adalah
-setiap 100 cycle; nilai dapat diubah per probe melalui `Sampling`. Maksimal
-8 series per plot. Warna series mengikuti warna pin atau net.
+setiap 100 cycle. Combo `N` mengatur laju sampling global worker; model
+probe menyimpan `Sampling` per probe dan menyaring sample sesuai nilai
+tersebut. Maksimal 8 series per plot. Warna series mengikuti warna pin
+atau net.
 
 Monitor UART menampilkan byte TX sebagai UTF-8 lossy, dengan buffer 16 KiB
 dan auto-scroll. Isi kolom input dan klik `Send` atau tekan Enter untuk
