@@ -10,7 +10,7 @@ berikutnya.
 Proyek sudah berada pada tahap implementasi matang:
 
 - 8 crate Rust.
-- 700 test.
+- 702 test.
 - Nol dependensi Rust eksternal di crate simulasi; `sim-gui` memakai
   daftar dependensi yang disetujui.
 - Dokumentasi lengkap di `docs/`.
@@ -179,7 +179,7 @@ Urutan pekerjaan:
 
 ## 6. Kriteria Keberhasilan
 
-- 700 test lama tetap lulus.
+- 702 test lama tetap lulus.
 - Test baru untuk setiap perilaku.
 - Tidak ada dependensi eksternal.
 - Tidak ada `unsafe`.

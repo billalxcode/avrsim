@@ -279,7 +279,7 @@ data, dan semua aksi editing dapat di-undo.
 - [x] G9-06 Tambahkan interaction test dengan `egui::Context`.
 - [x] G9-07 Tulis user guide GUI dan screenshot.
 - [x] G9-08 Implementasikan export PNG melalui crate `png`.
-- [ ] G9-09 Tambahkan golden image RGBA snapshot. (blocked: butuh renderer headless)
+- [x] G9-09 Tambahkan golden image RGBA snapshot.
 - [x] G9-10 Lengkapi test model, interaction, integrasi, dan visual.
 - [x] G9-11 Verifikasi kontras WCAG AA dan shortcut keyboard.
 - [x] G9-12 Sediakan minimap opsional dengan toggle.
@@ -321,7 +321,7 @@ Selesai dan teruji:
 - Spatial hash untuk hit testing kabel, benchmark 500 komponen dan 2000
   segmen, culling tanpa alokasi daftar wire per frame.
 - Keyboard nudge dengan panah dan Shift, focus ring canvas, toolbar ikon
-  ASCII, dan app error type.
+  ASCII, app error type, dan golden RGBA headless 320 x 240.
 - Undo/redo, JSON, autosave, backup, recent files, XDG config, prompt
   reload, command palette, context menu, toast, log, PNG export.
 - CI workspace Linux, paket Linux, desktop entry, contoh proyek, panduan
@@ -332,8 +332,8 @@ Tertunda karena batas teknis atau lingkungan:
 - Probe net generik: skematik GUI belum memiliki netlist elektrik yang
   terhubung ke solver analog. Probe PB5 dan arus LED sudah berjalan
   melalui API read-only.
-- Golden image RGBA memerlukan renderer headless yang stabil. Prosedur
-  update sudah didokumentasikan di `docs/59-gui-golden.md`.
+- Golden image RGBA sudah berjalan headless; prosedur update ada di
+  `docs/59-gui-golden.md`.
 - Build Windows dan macOS belum dijalankan pada native runner.
 - Alt menonaktifkan snap belum dapat diterapkan karena model dokumen
   memakai grid integer; semua posisi tetap snap ke grid.

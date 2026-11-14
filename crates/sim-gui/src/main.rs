@@ -6,6 +6,8 @@ mod clipboard;
 mod config;
 mod error;
 mod export;
+#[cfg(test)]
+mod golden;
 mod history;
 mod layout;
 mod library;

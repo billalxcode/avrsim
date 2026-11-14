@@ -21,8 +21,9 @@ read-only, spatial hash hit testing, app error type, toolbar ikon ASCII,
 simulasi PB5, graph digital PB5/LED dengan cursor, dan UART RX dari GUI
 juga sudah ada.
 Probe net generik memerlukan integrasi netlist; probe PB5 dan arus LED
-sudah berjalan melalui API read-only. Golden RGBA
-belum ada; prosedur ada di `docs/59-gui-golden.md`. Dependensi
+sudah berjalan melalui API read-only. Golden RGBA headless sudah ada
+dengan snapshot 320 x 240 dan prosedur di `docs/59-gui-golden.md`.
+Dependensi
 GUI yang disetujui hanya untuk crate `sim-gui`: `egui`, `eframe`,
 `serde`, `serde_json`, `rfd`, dan `png`. `egui_plot`,
 `libloading`, dan crate lain tidak diizinkan tanpa keputusan baru.

@@ -304,7 +304,8 @@ Modal konflik muncul. Pilih:
 - Clipboard hanya in-memory.
 - Wire tidak ikut berubah saat grup komponen ditransformasi.
 - Build Windows dan macOS belum diverifikasi.
-- Golden image RGBA belum ada; prosedur update ada di `docs/59`.
+- Golden image RGBA headless tersedia di Linux dengan renderer perangkat
+  lunak; prosedur update ada di `docs/59`.
 
 ---
 
