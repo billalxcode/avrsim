@@ -12,6 +12,7 @@ Golden RGBA sudah tersedia dan berjalan headless di test Linux:
 - Scene: resistor, LED, label, dan teks tetap pada tema gelap.
 - Golden: `crates/sim-gui/tests/golden/scene-320x240.rgba`.
 - Perbandingan: byte RGBA exact, tanpa toleransi.
+- Diagnostik: piksel, channel, dan nilai byte pertama yang berbeda.
 - Determinisme: test merender dua kali dan memastikan hasil identik.
 
 Renderer memakai `egui::Context::tessellate` untuk menghasilkan triangle

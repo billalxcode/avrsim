@@ -321,12 +321,38 @@ mod tests {
             return;
         }
         let expected = std::fs::read(&path).expect("read golden");
-        assert_eq!(image.len(), expected.len(), "golden size mismatch");
-        let diff = image
+        assert_snapshot(&image, &expected);
+    }
+
+    fn assert_snapshot(actual: &[u8], expected: &[u8]) {
+        assert_eq!(
+            actual.len(),
+            super::WIDTH * super::HEIGHT * 4,
+            "render size"
+        );
+        assert_eq!(actual.len(), expected.len(), "golden size mismatch");
+        let Some((index, left, right)) = first_difference(actual, expected) else {
+            return;
+        };
+        panic_mismatch(index, left, right);
+    }
+
+    fn first_difference(actual: &[u8], expected: &[u8]) -> Option<(usize, u8, u8)> {
+        actual
             .iter()
             .zip(expected.iter())
-            .filter(|(left, right)| left != right)
-            .count();
-        assert_eq!(diff, 0, "golden mismatch: {diff} bytes");
+            .enumerate()
+            .find(|(_, (left, right))| left != right)
+            .map(|(index, (left, right))| (index, *left, *right))
+    }
+
+    fn panic_mismatch(index: usize, left: u8, right: u8) -> ! {
+        let pixel = index / 4;
+        let x = pixel % super::WIDTH;
+        let y = pixel / super::WIDTH;
+        panic!(
+            "golden mismatch at pixel ({x}, {y}) channel {}: {left} != {right}",
+            index % 4
+        );
     }
 }
