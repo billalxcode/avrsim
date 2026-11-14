@@ -337,8 +337,8 @@ Tertunda karena batas teknis atau lingkungan:
 - Build Windows dan macOS belum dijalankan pada native runner.
 - Alt menonaktifkan snap belum dapat diterapkan karena model dokumen
   memakai grid integer; semua posisi tetap snap ke grid.
-- Beberapa fungsi lama di `sim-gui` masih lebih dari 20 baris dan perlu
-  refactor terpisah tanpa mencampurnya dengan fitur.
+- Semua fungsi `sim-gui` sudah maksimal 20 baris setelah refactor
+  terpisah.
 
 ---
 
@@ -355,13 +355,13 @@ Tertunda karena batas teknis atau lingkungan:
 
 ## Definition of Done GUI
 
-- [ ] Perubahan sesuai task.
-- [ ] Test model atau interaction ditambahkan.
-- [ ] Tidak ada dependensi eksternal di luar daftar `sim-gui`.
-- [ ] Tidak ada `unsafe`.
-- [ ] Setiap fungsi maksimal 20 baris.
-- [ ] Guard clause dipakai.
-- [ ] ASCII-only.
-- [ ] fmt, clippy, dan test lulus.
-- [ ] Dokumentasi diperbarui.
-- [ ] Commit memakai conventional commit.
+- [x] Perubahan sesuai task.
+- [x] Test model atau interaction ditambahkan.
+- [x] Tidak ada dependensi eksternal di luar daftar `sim-gui`.
+- [x] Tidak ada `unsafe`.
+- [x] Setiap fungsi maksimal 20 baris.
+- [x] Guard clause dipakai.
+- [x] ASCII-only.
+- [x] fmt, clippy, dan test lulus.
+- [x] Dokumentasi diperbarui.
+- [x] Commit memakai conventional commit.

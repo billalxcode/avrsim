@@ -145,23 +145,50 @@ fn paste_components(
 ) -> Result<Vec<ComponentId>, String> {
     let mut ids = Vec::new();
     for clip in components {
-        let Some(definition) = library.iter().find(|item| item.id == clip.definition) else {
-            return Err(format!("Unknown component: {}", clip.definition));
-        };
-        let position = clip.position.offset(offset);
-        if !document.can_place(library, definition, position, clip.rotation, clip.mirror) {
-            return Err("Paste blocked by overlap".to_string());
-        }
-        let id = document.add_with_value(
-            definition,
-            position,
-            clip.rotation,
-            clip.mirror,
-            &clip.value,
-        );
-        ids.push(id);
+        ids.push(paste_component(document, library, clip, offset)?);
     }
     Ok(ids)
+}
+
+fn paste_component(
+    document: &mut Document,
+    library: &[ComponentDefinition],
+    clip: &ClipComponent,
+    offset: GridPos,
+) -> Result<ComponentId, String> {
+    let definition = clip_definition(library, clip)?;
+    let position = clip.position.offset(offset);
+    ensure_placeable(document, library, definition, position, clip)?;
+    Ok(document.add_with_value(
+        definition,
+        position,
+        clip.rotation,
+        clip.mirror,
+        &clip.value,
+    ))
+}
+
+fn clip_definition<'a>(
+    library: &'a [ComponentDefinition],
+    clip: &ClipComponent,
+) -> Result<&'a ComponentDefinition, String> {
+    library
+        .iter()
+        .find(|item| item.id == clip.definition)
+        .ok_or_else(|| format!("Unknown component: {}", clip.definition))
+}
+
+fn ensure_placeable(
+    document: &Document,
+    library: &[ComponentDefinition],
+    definition: &ComponentDefinition,
+    position: GridPos,
+    clip: &ClipComponent,
+) -> Result<(), String> {
+    if document.can_place(library, definition, position, clip.rotation, clip.mirror) {
+        return Ok(());
+    }
+    Err("Paste blocked by overlap".to_string())
 }
 
 fn paste_wires(

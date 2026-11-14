@@ -67,6 +67,10 @@ pub fn distribute_moves(
         return Vec::new();
     }
     sort_by_axis(&mut bounds, axis);
+    distribute_bounds(&bounds, axis)
+}
+
+fn distribute_bounds(bounds: &[Bounds], axis: Distribute) -> Vec<(ComponentId, GridPos)> {
     let first = center(&bounds[0].rect, axis);
     let last = center(&bounds[bounds.len() - 1].rect, axis);
     let step = (last - first) / (bounds.len() as i32 - 1);

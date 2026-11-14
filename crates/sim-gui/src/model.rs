@@ -328,6 +328,16 @@ pub struct Wire {
     pub label: Option<String>,
 }
 
+fn new_wire(id: WireId, points: Vec<GridPos>, class: NetClass) -> Wire {
+    Wire {
+        id,
+        points,
+        class,
+        color_override: None,
+        label: None,
+    }
+}
+
 #[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
 struct GridEdge {
     first: GridPos,
@@ -429,13 +439,7 @@ impl Document {
         }
         let id = WireId(self.next_wire_id);
         self.next_wire_id += 1;
-        let wire = Wire {
-            id,
-            points,
-            class,
-            color_override: None,
-            label: None,
-        };
+        let wire = new_wire(id, points, class);
         self.wire_index.insert(&wire);
         self.wires.push(wire);
         Some(id)
@@ -592,23 +596,27 @@ impl Document {
             return net;
         }
         net.insert(id);
-        loop {
-            let points: BTreeSet<_> = self
-                .wires
-                .iter()
-                .filter(|wire| net.contains(&wire.id))
-                .flat_map(|wire| wire.points.iter().copied())
-                .collect();
-            let before = net.len();
-            for wire in &self.wires {
-                if wire.points.iter().any(|point| points.contains(point)) {
-                    net.insert(wire.id);
-                }
-            }
-            if net.len() == before {
-                return net;
+        while self.expand_net(&mut net) {}
+        net
+    }
+
+    fn expand_net(&self, net: &mut BTreeSet<WireId>) -> bool {
+        let points = self.net_points(net);
+        let before = net.len();
+        for wire in &self.wires {
+            if wire.points.iter().any(|point| points.contains(point)) {
+                net.insert(wire.id);
             }
         }
+        net.len() != before
+    }
+
+    fn net_points(&self, net: &BTreeSet<WireId>) -> BTreeSet<GridPos> {
+        self.wires
+            .iter()
+            .filter(|wire| net.contains(&wire.id))
+            .flat_map(|wire| wire.points.iter().copied())
+            .collect()
     }
 
     /// Returns a wire connected to a pin at a grid point.
@@ -783,16 +791,23 @@ impl Document {
             return false;
         }
         let mut candidate = self.clone();
-        for &(id, position) in moves {
-            let Some(instance) = candidate.component_mut(id) else {
-                return false;
-            };
-            instance.position = position;
+        if !candidate.apply_moves(moves) {
+            return false;
         }
         if !ids.iter().all(|id| candidate.position_valid(library, *id)) {
             return false;
         }
         *self = candidate;
+        true
+    }
+
+    fn apply_moves(&mut self, moves: &[(ComponentId, GridPos)]) -> bool {
+        for &(id, position) in moves {
+            let Some(instance) = self.component_mut(id) else {
+                return false;
+            };
+            instance.position = position;
+        }
         true
     }
 
@@ -847,20 +862,44 @@ impl Document {
         if unique.len() != ids.len() {
             return false;
         }
+        let Some(candidate) = self.transformed_candidate(library, ids, &unique, update) else {
+            return false;
+        };
+        *self = candidate;
+        true
+    }
+
+    fn transformed_candidate(
+        &self,
+        library: &[ComponentDefinition],
+        ids: &[ComponentId],
+        unique: &BTreeSet<ComponentId>,
+        update: impl Fn(&mut ComponentInstance),
+    ) -> Option<Document> {
         let mut candidate = self.clone();
-        for &id in ids {
-            let Some(instance) = candidate.component_mut(id) else {
-                return false;
-            };
-            update(instance);
+        if !candidate.apply_transforms(ids, update) {
+            return None;
         }
         if !unique
             .iter()
             .all(|id| candidate.position_valid(library, *id))
         {
-            return false;
+            return None;
         }
-        *self = candidate;
+        Some(candidate)
+    }
+
+    fn apply_transforms(
+        &mut self,
+        ids: &[ComponentId],
+        update: impl Fn(&mut ComponentInstance),
+    ) -> bool {
+        for &id in ids {
+            let Some(instance) = self.component_mut(id) else {
+                return false;
+            };
+            update(instance);
+        }
         true
     }
 
@@ -919,31 +958,43 @@ impl Document {
         points: &[GridPos],
         ignore: Option<WireId>,
     ) -> bool {
-        let Some(&first) = points.first() else {
-            return false;
-        };
-        let Some(&last) = points.last() else {
-            return false;
-        };
-        if points.len() < 2 || !self.is_connection_point_excluding(library, first, ignore) {
-            return false;
-        }
-        if !self.is_connection_point_excluding(library, last, ignore) {
+        if !self.valid_wire_ends(library, points, ignore) {
             return false;
         }
         let Some(edges) = wire_edges(points) else {
             return false;
         };
-        if edges.iter().any(|edge| self.edge_occupied(*edge, ignore)) {
+        if !self.free_edges(&edges, ignore) {
             return false;
         }
-        if points
-            .windows(2)
-            .any(|segment| self.segment_crosses_wire(segment[0], segment[1], ignore))
-        {
+        if self.crosses_wire(points, ignore) {
             return false;
         }
         !self.path_blocked(library, points)
+    }
+
+    fn valid_wire_ends(
+        &self,
+        library: &[ComponentDefinition],
+        points: &[GridPos],
+        ignore: Option<WireId>,
+    ) -> bool {
+        let (Some(&first), Some(&last)) = (points.first(), points.last()) else {
+            return false;
+        };
+        points.len() >= 2
+            && self.is_connection_point_excluding(library, first, ignore)
+            && self.is_connection_point_excluding(library, last, ignore)
+    }
+
+    fn free_edges(&self, edges: &BTreeSet<GridEdge>, ignore: Option<WireId>) -> bool {
+        !edges.iter().any(|edge| self.edge_occupied(*edge, ignore))
+    }
+
+    fn crosses_wire(&self, points: &[GridPos], ignore: Option<WireId>) -> bool {
+        points
+            .windows(2)
+            .any(|segment| self.segment_crosses_wire(segment[0], segment[1], ignore))
     }
 
     fn edge_occupied(&self, edge: GridEdge, ignore: Option<WireId>) -> bool {
@@ -1191,13 +1242,7 @@ fn crossing_point(
     other_first: GridPos,
     other_second: GridPos,
 ) -> Option<GridPos> {
-    let point = if first.y == second.y && other_first.x == other_second.x {
-        GridPos::new(other_first.x, first.y)
-    } else if first.x == second.x && other_first.y == other_second.y {
-        GridPos::new(first.x, other_first.y)
-    } else {
-        return None;
-    };
+    let point = crossing_candidate(first, second, other_first, other_second)?;
     if !on_segment(first, second, point) || !on_segment(other_first, other_second, point) {
         return None;
     }
@@ -1207,6 +1252,21 @@ fn crossing_point(
         return None;
     }
     Some(point)
+}
+
+fn crossing_candidate(
+    first: GridPos,
+    second: GridPos,
+    other_first: GridPos,
+    other_second: GridPos,
+) -> Option<GridPos> {
+    if first.y == second.y && other_first.x == other_second.x {
+        return Some(GridPos::new(other_first.x, first.y));
+    }
+    if first.x == second.x && other_first.y == other_second.y {
+        return Some(GridPos::new(first.x, other_first.y));
+    }
+    None
 }
 
 fn on_segment(start: GridPos, end: GridPos, point: GridPos) -> bool {

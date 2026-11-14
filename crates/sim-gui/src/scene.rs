@@ -138,10 +138,24 @@ fn draw_minimap(
     if rect.width() < 360.0 || rect.height() < 260.0 {
         return;
     }
-    let area = egui::Rect::from_min_size(
+    let area = minimap_area(rect);
+    paint_minimap_frame(painter, area);
+    let Some(map) = minimap_for(area, scene) else {
+        return;
+    };
+    draw_minimap_wires(painter, map, scene.document);
+    draw_minimap_components(painter, map, scene.document, scene.library);
+    draw_minimap_viewport(painter, map, rect, camera);
+}
+
+fn minimap_area(rect: egui::Rect) -> egui::Rect {
+    egui::Rect::from_min_size(
         egui::pos2(rect.right() - 172.0, rect.bottom() - 122.0),
         egui::vec2(160.0, 110.0),
-    );
+    )
+}
+
+fn paint_minimap_frame(painter: &egui::Painter, area: egui::Rect) {
     painter.rect_filled(area, 4.0, egui::Color32::from_black_alpha(205));
     painter.rect_stroke(
         area,
@@ -149,15 +163,11 @@ fn draw_minimap(
         egui::Stroke::new(1.0, JUNCTION_COLOR),
         egui::StrokeKind::Middle,
     );
-    let Some((min, max)) = scene.document.bounds(scene.library) else {
-        return;
-    };
-    let Some(map) = minimap_map(area, min, max) else {
-        return;
-    };
-    draw_minimap_wires(painter, map, scene.document);
-    draw_minimap_components(painter, map, scene.document, scene.library);
-    draw_minimap_viewport(painter, map, rect, camera);
+}
+
+fn minimap_for(area: egui::Rect, scene: &Scene<'_>) -> Option<MinimapMap> {
+    let (min, max) = scene.document.bounds(scene.library)?;
+    minimap_map(area, min, max)
 }
 
 fn minimap_map(area: egui::Rect, min: GridPos, max: GridPos) -> Option<MinimapMap> {
@@ -812,10 +822,22 @@ fn draw_pin(
     let stub = pin_stub(rect, camera, world, direction);
     painter.line_segment([screen, stub], egui::Stroke::new(1.5, PIN_COLOR));
     painter.circle_filled(stub, 2.0, PIN_COLOR);
-    if camera.zoom >= 0.75 {
+    let hovered = hover == Some(world) || hover == Some(world.offset(direction));
+    draw_pin_details(painter, stub, pin, direction, camera.zoom, hovered);
+}
+
+fn draw_pin_details(
+    painter: &egui::Painter,
+    stub: egui::Pos2,
+    pin: &crate::model::PinDefinition,
+    direction: GridPos,
+    zoom: f32,
+    hovered: bool,
+) {
+    if zoom >= 0.75 {
         draw_pin_label(painter, stub, pin, direction);
     }
-    if hover == Some(world) || hover == Some(world.offset(direction)) {
+    if hovered {
         draw_pin_tooltip(painter, stub, pin, direction);
     }
 }

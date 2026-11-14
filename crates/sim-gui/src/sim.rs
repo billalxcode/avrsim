@@ -481,18 +481,25 @@ fn load_machine(
 ) {
     *running = false;
     match SimMachine::new(words) {
-        Ok(next) => {
-            *last = SampleState::of(&next);
-            *machine = Some(next);
-            let _ = events.send(Event::UartCleared);
-            send_sample(0, *last, events);
-        }
+        Ok(next) => install_machine(next, machine, last, events),
         Err(error) => {
             *machine = None;
             let _ = events.send(Event::Error(error));
         }
     }
     send_status(machine, false, events);
+}
+
+fn install_machine(
+    next: SimMachine,
+    machine: &mut Option<SimMachine>,
+    last: &mut SampleState,
+    events: &Sender<Event>,
+) {
+    *last = SampleState::of(&next);
+    *machine = Some(next);
+    let _ = events.send(Event::UartCleared);
+    send_sample(0, *last, events);
 }
 
 fn step_once(
@@ -503,22 +510,29 @@ fn step_once(
 ) {
     *running = false;
     if let Some(machine) = machine {
-        match machine.step() {
-            Ok(true) => {
-                let state = SampleState::of(machine);
-                if state != *last {
-                    send_sample(machine.cycles(), state, events);
-                    *last = state;
-                }
-            }
-            Ok(false) => {}
-            Err(error) => {
-                let _ = events.send(Event::Error(error));
-            }
-        }
+        handle_step(machine, last, events);
         send_uart(machine, events);
     }
     send_status(machine, false, events);
+}
+
+fn handle_step(machine: &mut SimMachine, last: &mut SampleState, events: &Sender<Event>) {
+    match machine.step() {
+        Ok(true) => record_step(machine, last, events),
+        Ok(false) => {}
+        Err(error) => {
+            let _ = events.send(Event::Error(error));
+        }
+    }
+}
+
+fn record_step(machine: &SimMachine, last: &mut SampleState, events: &Sender<Event>) {
+    let state = SampleState::of(machine);
+    if state == *last {
+        return;
+    }
+    *last = state;
+    send_sample(machine.cycles(), state, events);
 }
 
 fn reset_machine(
@@ -529,18 +543,22 @@ fn reset_machine(
 ) {
     *running = false;
     if let Some(machine) = machine {
-        match machine.reset() {
-            Ok(()) => {
-                *last = SampleState::default();
-                let _ = events.send(Event::UartCleared);
-                send_sample(0, *last, events);
-            }
-            Err(error) => {
-                let _ = events.send(Event::Error(error));
-            }
-        }
+        reset_current(machine, last, events);
     }
     send_status(machine, false, events);
+}
+
+fn reset_current(machine: &mut SimMachine, last: &mut SampleState, events: &Sender<Event>) {
+    match machine.reset() {
+        Ok(()) => {
+            *last = SampleState::default();
+            let _ = events.send(Event::UartCleared);
+            send_sample(0, *last, events);
+        }
+        Err(error) => {
+            let _ = events.send(Event::Error(error));
+        }
+    }
 }
 
 fn step_chunk(state: &mut WorkerState, events: &Sender<Event>) {

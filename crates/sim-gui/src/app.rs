@@ -158,6 +158,14 @@ struct SceneState {
     flow_phase: Option<f32>,
 }
 
+struct LibraryState {
+    search: String,
+    category: Option<Category>,
+    chosen: Option<&'static ComponentDefinition>,
+    hovered: Option<&'static ComponentDefinition>,
+    dragged: Option<&'static ComponentDefinition>,
+}
+
 #[derive(Default)]
 pub struct GuiApp {
     camera: GridCamera,
@@ -512,22 +520,12 @@ impl GuiApp {
             self.message = "Canvas is not ready".to_string();
             return;
         };
-        let Some(path) = rfd::FileDialog::new()
-            .add_filter("PNG image", &["png"])
-            .set_file_name("schematic.png")
-            .save_file()
-        else {
+        let Some(path) = select_export_path() else {
             self.message = "PNG export cancelled".to_string();
             return;
         };
         let screen = ctx.content_rect();
-        let slot = self.png_result.clone();
-        let callback = egui::ScreenshotCallback::new(move |image| {
-            let result = export::save_crop(&path, &image, canvas, screen);
-            if let Ok(mut slot) = slot.lock() {
-                *slot = Some(result);
-            }
-        });
+        let callback = png_callback(screen, path, canvas, self.png_result.clone());
         ctx.send_viewport_cmd(egui::ViewportCommand::Screenshot(callback));
         self.message = "Exporting PNG".to_string();
     }
@@ -742,21 +740,19 @@ impl GuiApp {
             self.message = "Simulation unavailable".to_string();
             return;
         };
-        let result = match action {
-            SimAction::Run => sim.run(),
-            SimAction::Pause => sim.pause(),
-            SimAction::Step => sim.step(),
-            SimAction::Reset => sim.reset(),
-        };
-        if let Err(error) = result {
+        if let Err(error) = sim_command(sim, action) {
             self.message = error;
         }
         if action == SimAction::Reset {
-            self.waveform.clear();
-            self.probes.clear_samples();
-            self.uart.clear();
-            self.uart_input.clear();
+            self.clear_sim_history();
         }
+    }
+
+    fn clear_sim_history(&mut self) {
+        self.waveform.clear();
+        self.probes.clear_samples();
+        self.uart.clear();
+        self.uart_input.clear();
     }
 
     fn poll_sim(&mut self) {
@@ -923,22 +919,28 @@ impl GuiApp {
         build: fn(GridPos, GridPos, bool) -> Vec<GridPos>,
         horizontal_first: bool,
     ) {
-        let Some(&last) = self.wire_points.last() else {
+        let Some(path) = self.route_path(build, horizontal_first) else {
             return;
         };
-        let Some(world) = self.pointer_world else {
-            return;
-        };
-        let target = world_to_grid(world);
+        self.wire_points.extend(path);
+    }
+
+    fn route_path(
+        &self,
+        build: fn(GridPos, GridPos, bool) -> Vec<GridPos>,
+        horizontal_first: bool,
+    ) -> Option<Vec<GridPos>> {
+        let last = *self.wire_points.last()?;
+        let target = world_to_grid(self.pointer_world?);
         let path = build(last, target, horizontal_first);
         let mut current = last;
         for &point in &path {
             if !self.document.can_add_segment(self.library, current, point) {
-                return;
+                return None;
             }
             current = point;
         }
-        self.wire_points.extend(path);
+        Some(path)
     }
 
     fn placement_controls(&mut self, ui: &mut egui::Ui) {
@@ -1015,25 +1017,46 @@ impl GuiApp {
 
     fn select_at(&mut self, world: egui::Pos2, additive: bool) {
         let point = world_to_grid(world);
-        if let Some(id) = self.document.pin_wire_at(self.library, point) {
-            self.select_wire_net(id, additive);
+        if self.select_pin_at(point, additive) {
             return;
         }
-        if let Some(id) = self.document.hit_test(self.library, point) {
-            if additive {
-                self.selection.toggle_component(id);
-            } else {
-                self.selection.select_component(id);
-            }
+        if self.select_component_at(point, additive) {
             return;
         }
-        if let Some(id) = self.document.wire_at([world.x, world.y], 0.35) {
-            self.select_wire_net(id, additive);
+        if self.select_wire_at(world, additive) {
             return;
         }
         if !additive {
             self.selection.clear();
         }
+    }
+
+    fn select_pin_at(&mut self, point: GridPos, additive: bool) -> bool {
+        let Some(id) = self.document.pin_wire_at(self.library, point) else {
+            return false;
+        };
+        self.select_wire_net(id, additive);
+        true
+    }
+
+    fn select_component_at(&mut self, point: GridPos, additive: bool) -> bool {
+        let Some(id) = self.document.hit_test(self.library, point) else {
+            return false;
+        };
+        if additive {
+            self.selection.toggle_component(id);
+        } else {
+            self.selection.select_component(id);
+        }
+        true
+    }
+
+    fn select_wire_at(&mut self, world: egui::Pos2, additive: bool) -> bool {
+        let Some(id) = self.document.wire_at([world.x, world.y], 0.35) else {
+            return false;
+        };
+        self.select_wire_net(id, additive);
+        true
     }
 
     fn select_wire_net(&mut self, id: WireId, additive: bool) {
@@ -1055,25 +1078,46 @@ impl GuiApp {
 
     fn select_context_target(&mut self, world: egui::Pos2) {
         let point = world_to_grid(world);
-        if let Some(id) = self.document.pin_wire_at(self.library, point) {
-            if !self.selection.contains_wire(id) {
-                self.select_wire_net(id, false);
-            }
+        if self.context_pin(point) {
             return;
         }
-        if let Some(id) = self.document.hit_test(self.library, point) {
-            if !self.selection.contains_component(id) {
-                self.selection.select_component(id);
-            }
+        if self.context_component(point) {
             return;
         }
-        if let Some(id) = self.document.wire_at([world.x, world.y], 0.35) {
-            if !self.selection.contains_wire(id) {
-                self.select_wire_net(id, false);
-            }
+        if self.context_wire(world) {
             return;
         }
         self.selection.clear();
+    }
+
+    fn context_pin(&mut self, point: GridPos) -> bool {
+        let Some(id) = self.document.pin_wire_at(self.library, point) else {
+            return false;
+        };
+        if !self.selection.contains_wire(id) {
+            self.select_wire_net(id, false);
+        }
+        true
+    }
+
+    fn context_component(&mut self, point: GridPos) -> bool {
+        let Some(id) = self.document.hit_test(self.library, point) else {
+            return false;
+        };
+        if !self.selection.contains_component(id) {
+            self.selection.select_component(id);
+        }
+        true
+    }
+
+    fn context_wire(&mut self, world: egui::Pos2) -> bool {
+        let Some(id) = self.document.wire_at([world.x, world.y], 0.35) else {
+            return false;
+        };
+        if !self.selection.contains_wire(id) {
+            self.select_wire_net(id, false);
+        }
+        true
     }
 
     fn begin_drag(&mut self, state: &canvas::CanvasState) {
@@ -1158,6 +1202,10 @@ impl GuiApp {
         if self.update_box(state) {
             return;
         }
+        self.move_dragged(state);
+    }
+
+    fn move_dragged(&mut self, state: &canvas::CanvasState) {
         let Some(moves) = self.drag_moves(state) else {
             return;
         };
@@ -1216,17 +1264,16 @@ impl GuiApp {
         let Some(world) = state.pointer_world else {
             return true;
         };
-        let Some(mut points) = self
-            .document
-            .wires()
-            .iter()
-            .find(|wire| wire.id == drag.wire)
-            .map(|wire| wire.points.clone())
-        else {
-            return true;
+        self.update_segment(drag, world);
+        true
+    }
+
+    fn update_segment(&mut self, drag: SegmentDrag, world: egui::Pos2) {
+        let Some(mut points) = self.segment_points(drag) else {
+            return;
         };
         if !move_segment(&mut points, drag.index, world_to_grid(world)) {
-            return true;
+            return;
         }
         let before = self.document.clone();
         if self
@@ -1235,7 +1282,14 @@ impl GuiApp {
         {
             self.record_drag(&before);
         }
-        true
+    }
+
+    fn segment_points(&self, drag: SegmentDrag) -> Option<Vec<GridPos>> {
+        self.document
+            .wires()
+            .iter()
+            .find(|wire| wire.id == drag.wire)
+            .map(|wire| wire.points.clone())
     }
 
     fn end_drag(&mut self, state: &canvas::CanvasState) {
@@ -1283,17 +1337,31 @@ impl GuiApp {
         let Some(definition) = self.placing else {
             return;
         };
+        let Some(position) = self.placement_target(definition, world) else {
+            return;
+        };
+        self.commit_placement(definition, position);
+    }
+
+    fn placement_target(
+        &self,
+        definition: &ComponentDefinition,
+        world: egui::Pos2,
+    ) -> Option<GridPos> {
         let position =
             scene::placement_position(definition, world_to_grid(world), self.placement_rotation);
-        if !self.document.can_place(
-            self.library,
-            definition,
-            position,
-            self.placement_rotation,
-            self.placement_mirror,
-        ) {
-            return;
-        }
+        self.document
+            .can_place(
+                self.library,
+                definition,
+                position,
+                self.placement_rotation,
+                self.placement_mirror,
+            )
+            .then_some(position)
+    }
+
+    fn commit_placement(&mut self, definition: &'static ComponentDefinition, position: GridPos) {
         self.push_undo();
         let id = self.document.add(
             definition,
@@ -1441,20 +1509,28 @@ impl GuiApp {
     }
 
     fn handle_edit_keys(&mut self, ui: &egui::Ui) {
+        self.handle_transform_keys(ui);
+        self.handle_wire_keys(ui);
+        if ui.input(|input| input.key_pressed(egui::Key::Delete)) {
+            self.delete_selection();
+        }
+    }
+
+    fn handle_transform_keys(&mut self, ui: &egui::Ui) {
         if ui.input(|input| input.key_pressed(egui::Key::R)) {
             self.rotate();
         }
         if ui.input(|input| input.key_pressed(egui::Key::M)) {
             self.mirror();
         }
+    }
+
+    fn handle_wire_keys(&mut self, ui: &egui::Ui) {
         if ui.input(|input| input.key_pressed(egui::Key::Enter)) && self.tool == Tool::Wire {
             self.finish_wire();
         }
         if ui.input(|input| input.key_pressed(egui::Key::Backspace)) && self.tool == Tool::Wire {
             self.wire_points.pop();
-        }
-        if ui.input(|input| input.key_pressed(egui::Key::Delete)) {
-            self.delete_selection();
         }
         if ui.input(|input| input.key_pressed(egui::Key::Escape)) {
             self.placing = None;
@@ -1584,27 +1660,28 @@ impl GuiApp {
             self.context_menu = None;
             return;
         }
-        let (action, response) = show_context_area(
-            ui.ctx(),
-            position,
-            &self.selection,
-            self.clipboard.is_empty(),
-            self.context_net_state(),
-        );
-        let close = action.is_none()
-            && ui.input(|input| {
-                input.key_pressed(egui::Key::Escape)
-                    || (!input.pointer.secondary_clicked()
-                        && input.pointer.any_click()
-                        && !response.contains_pointer())
-            });
-        if close {
+        let (action, response) = self.context_area(ui, position);
+        if context_closes(ui, &response, action.is_some()) {
             self.context_menu = None;
         }
         if let Some(action) = action {
             self.context_menu = None;
             self.run_context_action(action);
         }
+    }
+
+    fn context_area(
+        &self,
+        ui: &egui::Ui,
+        position: egui::Pos2,
+    ) -> (Option<ContextAction>, egui::Response) {
+        show_context_area(
+            ui.ctx(),
+            position,
+            &self.selection,
+            self.clipboard.is_empty(),
+            self.context_net_state(),
+        )
     }
 
     fn run_context_action(&mut self, action: ContextAction) {
@@ -1646,8 +1723,7 @@ impl GuiApp {
             self.palette.close();
             return;
         }
-        let running = self.sim_status.running;
-        let matches = palette::matching(&self.palette.query, running);
+        let (running, matches) = self.palette_state();
         let mut chosen = None;
         let response = egui::Modal::new(egui::Id::unique("command-palette")).show(ui.ctx(), |ui| {
             self.palette_contents(ui, running, &matches, &mut chosen);
@@ -1658,6 +1734,12 @@ impl GuiApp {
         if let Some(command) = chosen {
             self.run_command(command);
         }
+    }
+
+    fn palette_state(&self) -> (bool, Vec<Command>) {
+        let running = self.sim_status.running;
+        let matches = palette::matching(&self.palette.query, running);
+        (running, matches)
     }
 
     fn palette_contents(
@@ -1783,37 +1865,53 @@ impl GuiApp {
 
     fn library_window(&mut self, ui: &mut egui::Ui) {
         let mut open = self.library_open;
-        let mut search = self.search.clone();
-        let mut category = self.category;
-        let mut chosen = None;
-        let mut hovered = None;
-        let mut dragged = None;
-        egui::Window::new("Library")
-            .open(&mut open)
-            .default_width(300.0)
-            .show(ui.ctx(), |ui| {
-                if let Some(definition) = self.recent_buttons(ui) {
-                    chosen = Some(definition);
-                }
-                self.library_filters(ui, &mut search, &mut category);
-                ui.separator();
-                if chosen.is_none() {
-                    chosen = library_list(
-                        ui,
-                        self.library,
-                        &search,
-                        category,
-                        &mut hovered,
-                        &mut dragged,
-                    );
-                }
-                if let Some(definition) = hovered {
-                    library_preview(ui, definition);
-                }
-            });
+        let mut state = LibraryState {
+            search: self.search.clone(),
+            category: self.category,
+            chosen: None,
+            hovered: None,
+            dragged: None,
+        };
+        self.show_library(ui, &mut open, &mut state);
         self.library_open = open;
-        self.search = search;
-        self.category = category;
+        self.search = state.search;
+        self.category = state.category;
+        self.finish_library_choice(state.dragged, state.chosen);
+    }
+
+    fn show_library(&self, ui: &mut egui::Ui, open: &mut bool, state: &mut LibraryState) {
+        egui::Window::new("Library")
+            .open(open)
+            .default_width(300.0)
+            .show(ui.ctx(), |ui| self.library_contents(ui, state));
+    }
+
+    fn library_contents(&self, ui: &mut egui::Ui, state: &mut LibraryState) {
+        if let Some(definition) = self.recent_buttons(ui) {
+            state.chosen = Some(definition);
+        }
+        self.library_filters(ui, &mut state.search, &mut state.category);
+        ui.separator();
+        if state.chosen.is_none() {
+            state.chosen = library_list(
+                ui,
+                self.library,
+                &state.search,
+                state.category,
+                &mut state.hovered,
+                &mut state.dragged,
+            );
+        }
+        if let Some(definition) = state.hovered {
+            library_preview(ui, definition);
+        }
+    }
+
+    fn finish_library_choice(
+        &mut self,
+        dragged: Option<&'static ComponentDefinition>,
+        chosen: Option<&'static ComponentDefinition>,
+    ) {
         if let Some(definition) = dragged {
             self.placing = Some(definition);
             self.drag_place = true;
@@ -1850,19 +1948,7 @@ impl GuiApp {
         category: &mut Option<Category>,
     ) {
         ui.text_edit_singleline(search);
-        ui.horizontal_wrapped(|ui| {
-            if ui.selectable_label(category.is_none(), "All").clicked() {
-                *category = None;
-            }
-            for value in Category::ALL {
-                if ui
-                    .selectable_label(*category == Some(value), value.label())
-                    .clicked()
-                {
-                    *category = Some(value);
-                }
-            }
-        });
+        ui.horizontal_wrapped(|ui| category_buttons(ui, category));
     }
 
     fn inspector_window(&mut self, ui: &mut egui::Ui) {
@@ -1890,16 +1976,7 @@ impl GuiApp {
             .open(&mut open)
             .default_size([460.0, 220.0])
             .show(ui.ctx(), |ui| {
-                if ui.button("Clear").clicked() {
-                    clear = true;
-                }
-                egui::ScrollArea::vertical()
-                    .stick_to_bottom(true)
-                    .show(ui, |ui| {
-                        for entry in self.log.entries() {
-                            ui.monospace(entry);
-                        }
-                    });
+                show_log_contents(ui, &self.log, &mut clear);
             });
         self.log_open = open;
         if clear {
@@ -1912,21 +1989,24 @@ impl GuiApp {
             return;
         }
         let mut open = self.uart_open;
-        let mut clear = false;
-        let mut send = false;
+        let mut actions = (false, false);
         let mut input = self.uart_input.clone();
         egui::Window::new("UART monitor")
             .open(&mut open)
             .default_size([420.0, 260.0])
             .show(ui.ctx(), |ui| {
-                show_uart_contents(ui, &self.uart, &mut input, &mut clear, &mut send);
+                show_uart_contents(ui, &self.uart, &mut input, &mut actions.0, &mut actions.1);
             });
         self.uart_open = open;
+        self.finish_uart(input, actions);
+    }
+
+    fn finish_uart(&mut self, input: String, actions: (bool, bool)) {
         self.uart_input = input;
-        if clear {
+        if actions.0 {
             self.uart.clear();
         }
-        if send {
+        if actions.1 {
             self.send_uart_input();
         }
     }
@@ -1986,19 +2066,14 @@ impl GuiApp {
             return;
         }
         let mut action = None;
+        let count = self.selection.len();
         egui::Modal::new(egui::Id::unique("delete-confirm")).show(ui.ctx(), |ui| {
-            ui.set_width(320.0);
-            ui.heading("Delete selection?");
-            ui.label(format!("{} items will be removed.", self.selection.len()));
-            ui.horizontal(|ui| {
-                if ui.button("Delete").clicked() {
-                    action = Some(true);
-                }
-                if ui.button("Cancel").clicked() {
-                    action = Some(false);
-                }
-            });
+            delete_dialog(ui, count, &mut action);
         });
+        self.apply_delete_action(action);
+    }
+
+    fn apply_delete_action(&mut self, action: Option<bool>) {
         match action {
             Some(true) => {
                 self.pending_delete = false;
@@ -2343,20 +2418,20 @@ impl GuiApp {
             return;
         }
         let before = self.document.clone();
-        let mut changed = false;
-        for id in ids {
-            changed |= self.document.set_wire_color(id, color);
-        }
-        if !changed {
+        if !self.apply_wire_color(&ids, color) {
             return;
         }
         self.history.record(&before);
         self.mark_dirty();
-        self.message = if color.is_some() {
-            "Wire color updated".to_string()
-        } else {
-            "Wire color reset".to_string()
-        };
+        self.message = wire_color_message(color.is_some());
+    }
+
+    fn apply_wire_color(&mut self, ids: &[WireId], color: Option<[u8; 3]>) -> bool {
+        let mut changed = false;
+        for &id in ids {
+            changed |= self.document.set_wire_color(id, color);
+        }
+        changed
     }
 
     fn set_wire_class(&mut self, class: NetClass) {
@@ -2621,6 +2696,20 @@ fn normalize_label(label: String) -> Option<String> {
     Some(trimmed.to_string())
 }
 
+fn category_buttons(ui: &mut egui::Ui, category: &mut Option<Category>) {
+    if ui.selectable_label(category.is_none(), "All").clicked() {
+        *category = None;
+    }
+    for value in Category::ALL {
+        if ui
+            .selectable_label(*category == Some(value), value.label())
+            .clicked()
+        {
+            *category = Some(value);
+        }
+    }
+}
+
 fn library_list<'a>(
     ui: &mut egui::Ui,
     library: &'a [ComponentDefinition],
@@ -2631,27 +2720,44 @@ fn library_list<'a>(
 ) -> Option<&'a ComponentDefinition> {
     let needle = search.to_lowercase();
     for definition in library {
-        if category.is_some_and(|value| value != definition.category) {
+        if !library_matches(definition, &needle, category) {
             continue;
         }
-        if !needle.is_empty() && !definition.name.to_lowercase().contains(&needle) {
-            continue;
-        }
-        let text = format!("{}  {}", definition.name, definition.default_value);
-        let response = ui
-            .selectable_label(false, text)
-            .interact(egui::Sense::click_and_drag());
-        if response.hovered() {
-            *hovered = Some(definition);
-        }
-        if response.drag_started() {
-            *dragged = Some(definition);
-        }
-        if response.clicked() {
+        if library_item(ui, definition, hovered, dragged) {
             return Some(definition);
         }
     }
     None
+}
+
+fn library_matches(
+    definition: &ComponentDefinition,
+    needle: &str,
+    category: Option<Category>,
+) -> bool {
+    if category.is_some_and(|value| value != definition.category) {
+        return false;
+    }
+    needle.is_empty() || definition.name.to_lowercase().contains(needle)
+}
+
+fn library_item<'a>(
+    ui: &mut egui::Ui,
+    definition: &'a ComponentDefinition,
+    hovered: &mut Option<&'a ComponentDefinition>,
+    dragged: &mut Option<&'a ComponentDefinition>,
+) -> bool {
+    let text = format!("{}  {}", definition.name, definition.default_value);
+    let response = ui
+        .selectable_label(false, text)
+        .interact(egui::Sense::click_and_drag());
+    if response.hovered() {
+        *hovered = Some(definition);
+    }
+    if response.drag_started() {
+        *dragged = Some(definition);
+    }
+    response.clicked()
 }
 
 fn library_preview(ui: &mut egui::Ui, definition: &ComponentDefinition) {
@@ -2682,6 +2788,33 @@ fn watch_remaining(last: Option<Instant>, now: Instant) -> Duration {
     last.map_or(Duration::ZERO, |last| {
         WATCH_INTERVAL.saturating_sub(now.saturating_duration_since(last))
     })
+}
+
+fn show_log_contents(ui: &mut egui::Ui, log: &Log, clear: &mut bool) {
+    if ui.button("Clear").clicked() {
+        *clear = true;
+    }
+    egui::ScrollArea::vertical()
+        .stick_to_bottom(true)
+        .show(ui, |ui| {
+            for entry in log.entries() {
+                ui.monospace(entry);
+            }
+        });
+}
+
+fn delete_dialog(ui: &mut egui::Ui, count: usize, action: &mut Option<bool>) {
+    ui.set_width(320.0);
+    ui.heading("Delete selection?");
+    ui.label(format!("{count} items will be removed."));
+    ui.horizontal(|ui| {
+        if ui.button("Delete").clicked() {
+            *action = Some(true);
+        }
+        if ui.button("Cancel").clicked() {
+            *action = Some(false);
+        }
+    });
 }
 
 fn conflict_contents(ui: &mut egui::Ui, path: &Path, action: &mut Option<ConflictAction>) {
@@ -2725,6 +2858,36 @@ fn select_save_path() -> Option<PathBuf> {
         .save_file()
 }
 
+fn select_export_path() -> Option<PathBuf> {
+    rfd::FileDialog::new()
+        .add_filter("PNG image", &["png"])
+        .set_file_name("schematic.png")
+        .save_file()
+}
+
+fn png_callback(
+    screen: egui::Rect,
+    path: PathBuf,
+    canvas: egui::Rect,
+    slot: Arc<Mutex<Option<Result<(), String>>>>,
+) -> egui::ScreenshotCallback {
+    egui::ScreenshotCallback::new(move |image| {
+        let result = export::save_crop(&path, &image, canvas, screen);
+        if let Ok(mut slot) = slot.lock() {
+            *slot = Some(result);
+        }
+    })
+}
+
+fn sim_command(sim: &SimHandle, action: SimAction) -> Result<(), String> {
+    match action {
+        SimAction::Run => sim.run(),
+        SimAction::Pause => sim.pause(),
+        SimAction::Step => sim.step(),
+        SimAction::Reset => sim.reset(),
+    }
+}
+
 fn pick_hex() -> Option<PathBuf> {
     rfd::FileDialog::new()
         .add_filter("Intel HEX", &["hex", "ihx"])
@@ -2736,6 +2899,18 @@ fn file_name(path: &std::path::Path) -> String {
         || "firmware".to_string(),
         |name| name.to_string_lossy().into_owned(),
     )
+}
+
+fn context_closes(ui: &egui::Ui, response: &egui::Response, has_action: bool) -> bool {
+    if has_action {
+        return false;
+    }
+    ui.input(|input| {
+        input.key_pressed(egui::Key::Escape)
+            || (!input.pointer.secondary_clicked()
+                && input.pointer.any_click()
+                && !response.contains_pointer())
+    })
 }
 
 fn show_context_area(
@@ -2835,22 +3010,23 @@ fn context_class_combo(
     action: &mut Option<ContextAction>,
 ) {
     let mut choice = current;
-    let text = current.map_or_else(
-        || "Net class: mixed".to_string(),
-        |class| format!("Net class: {}", class.label()),
-    );
     egui::ComboBox::from_id_salt("context_net_class")
-        .selected_text(text)
+        .selected_text(class_combo_text(current))
         .show_ui(ui, |ui| {
             for class in NetClass::ALL {
                 ui.selectable_value(&mut choice, Some(class), class.label());
             }
         });
-    if choice != current {
-        if let Some(class) = choice {
-            *action = Some(ContextAction::SetClass(class));
-        }
+    if let Some(class) = choice.filter(|value| Some(*value) != current) {
+        *action = Some(ContextAction::SetClass(class));
     }
+}
+
+fn class_combo_text(current: Option<NetClass>) -> String {
+    current.map_or_else(
+        || "Net class: mixed".to_string(),
+        |class| format!("Net class: {}", class.label()),
+    )
 }
 
 fn context_edit_buttons(
@@ -2929,14 +3105,16 @@ fn palette_list(
         .show(ui, |ui| {
             for (index, command) in matches.iter().enumerate() {
                 let active = index == selected;
-                if ui
-                    .selectable_label(active, command.label(running))
-                    .clicked()
-                {
+                if palette_row(ui, *command, active, running) {
                     *chosen = Some(*command);
                 }
             }
         });
+}
+
+fn palette_row(ui: &mut egui::Ui, command: Command, active: bool, running: bool) -> bool {
+    ui.selectable_label(active, command.label(running))
+        .clicked()
 }
 
 fn show_net_legend(ui: &mut egui::Ui) {
@@ -2968,12 +3146,23 @@ fn show_uart_contents(
     clear: &mut bool,
     send: &mut bool,
 ) {
+    show_uart_toolbar(ui, log.len(), clear);
+    show_uart_input(ui, input, send);
+    egui::ScrollArea::vertical()
+        .stick_to_bottom(true)
+        .show(ui, |ui| show_uart_text(ui, log.text()));
+}
+
+fn show_uart_toolbar(ui: &mut egui::Ui, len: usize, clear: &mut bool) {
     ui.horizontal(|ui| {
         if ui.button("Clear").clicked() {
             *clear = true;
         }
-        ui.label(format!("{} bytes", log.len()));
+        ui.label(format!("{len} bytes"));
     });
+}
+
+fn show_uart_input(ui: &mut egui::Ui, input: &mut String, send: &mut bool) {
     ui.horizontal(|ui| {
         let response = ui.text_edit_singleline(input);
         let enter = response.lost_focus() && ui.input(|state| state.key_pressed(egui::Key::Enter));
@@ -2981,11 +3170,6 @@ fn show_uart_contents(
             *send = true;
         }
     });
-    egui::ScrollArea::vertical()
-        .stick_to_bottom(true)
-        .show(ui, |ui| {
-            show_uart_text(ui, log.text());
-        });
 }
 
 fn show_uart_text(ui: &mut egui::Ui, text: &str) {
@@ -3474,23 +3658,66 @@ fn signal_points(
     let Some(first) = samples.front() else {
         return Vec::new();
     };
-    let width = span.1.saturating_sub(span.0).max(1) as f32;
-    let x = |cycle: u64| row.left() + (cycle.saturating_sub(span.0) as f32 / width) * row.width();
-    let y = |on: bool| if on { row.top() } else { row.bottom() };
-    let mut points = vec![egui::pos2(row.left(), y(value(first)))];
+    let map = SignalMap::new(row, span);
+    let mut points = vec![egui::pos2(row.left(), map.y(value(first)))];
     let mut previous = first;
     for sample in samples.iter().skip(1) {
-        let px = x(sample.cycle);
-        points.push(egui::pos2(px, y(value(previous))));
-        points.push(egui::pos2(px, y(value(sample))));
+        map.transition(&mut points, previous, sample, value);
         previous = sample;
     }
-    points.push(egui::pos2(row.right(), y(value(previous))));
+    points.push(egui::pos2(row.right(), map.y(value(previous))));
     points
+}
+
+struct SignalMap {
+    row: egui::Rect,
+    start: u64,
+    width: f32,
+}
+
+impl SignalMap {
+    fn new(row: egui::Rect, span: (u64, u64)) -> Self {
+        Self {
+            row,
+            start: span.0,
+            width: span.1.saturating_sub(span.0).max(1) as f32,
+        }
+    }
+
+    fn x(&self, cycle: u64) -> f32 {
+        self.row.left() + (cycle.saturating_sub(self.start) as f32 / self.width) * self.row.width()
+    }
+
+    fn y(&self, on: bool) -> f32 {
+        if on {
+            self.row.top()
+        } else {
+            self.row.bottom()
+        }
+    }
+
+    fn transition(
+        &self,
+        points: &mut Vec<egui::Pos2>,
+        previous: &Sample,
+        sample: &Sample,
+        value: fn(&Sample) -> bool,
+    ) {
+        let x = self.x(sample.cycle);
+        points.push(egui::pos2(x, self.y(value(previous))));
+        points.push(egui::pos2(x, self.y(value(sample))));
+    }
 }
 
 fn world_to_grid(position: egui::Pos2) -> GridPos {
     GridPos::new(position.x.round() as i32, position.y.round() as i32)
+}
+
+fn wire_color_message(has_color: bool) -> String {
+    if has_color {
+        return "Wire color updated".to_string();
+    }
+    "Wire color reset".to_string()
 }
 
 fn icon_button(icon: &str, label: &str) -> egui::Button<'static> {
@@ -3607,16 +3834,22 @@ fn include_components(
         if selection.is_some_and(|selection| !selection.contains_component(instance.id)) {
             continue;
         }
-        let Some(definition) = definitions
-            .iter()
-            .find(|definition| definition.id == instance.definition)
-        else {
+        let Some(bounds) = instance_bounds(definitions, instance) else {
             continue;
         };
-        let bounds = instance.bounds(definition);
         crate::model::extend_bounds(min, max, bounds.min);
         crate::model::extend_bounds(min, max, GridPos::new(bounds.max_x(), bounds.max_y()));
     }
+}
+
+fn instance_bounds(
+    definitions: &[ComponentDefinition],
+    instance: &ComponentInstance,
+) -> Option<GridRect> {
+    let definition = definitions
+        .iter()
+        .find(|definition| definition.id == instance.definition)?;
+    Some(instance.bounds(definition))
 }
 
 fn include_wires(
