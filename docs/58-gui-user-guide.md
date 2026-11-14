@@ -4,9 +4,9 @@ Dokumen ini menjelaskan cara memakai GUI `embed-emu-gui` untuk menggambar
 skematik, menjalankan firmware AVR, memantau UART, dan mengekspor gambar.
 
 **Status:** GUI Linux sudah dapat dipakai untuk editing dasar, simulasi
-PB5, monitor UART TX, graph digital, graph analog PB5, probe read-only
-default 100 cycle, dan persistence proyek. Probe net generik dan branch
-current menunggu integrasi netlist; input UART RX sudah ada.
+PB5, monitor UART TX, graph digital, graph analog PB5/LED, probe read-only
+default 100 cycle, dan persistence proyek. Probe net generik menunggu
+integrasi netlist; input UART RX sudah ada.
 
 ---
 

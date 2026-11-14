@@ -316,6 +316,12 @@ Selesai dan teruji:
   highlight, aturan persilangan.
 - Simulasi PB5/LED, run, pause, step, reset, UART TX, graph digital,
   cursor cycle.
+- Probe read-only PB5 dan arus LED, buffer 10 detik, decimation min/max,
+  sampling N cycle, graph analog dua sumbu, maksimal 8 series.
+- Spatial hash untuk hit testing kabel, benchmark 500 komponen dan 2000
+  segmen, culling tanpa alokasi daftar wire per frame.
+- Keyboard nudge dengan panah dan Shift, focus ring canvas, toolbar ikon
+  ASCII, dan app error type.
 - Undo/redo, JSON, autosave, backup, recent files, XDG config, prompt
   reload, command palette, context menu, toast, log, PNG export.
 - CI workspace Linux, paket Linux, desktop entry, contoh proyek, panduan
