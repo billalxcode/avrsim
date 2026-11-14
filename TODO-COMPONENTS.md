@@ -28,8 +28,8 @@ Urutan yang disarankan:
 
 ## 2. Keputusan yang Harus Disetujui
 
-- [x] C0-01 Setujui bahwa 500 entri berarti 500 model kelistrikan, bukan
-  500 part number.
+- [x] C0-01 Setujui bahwa 500 entri berarti 500 definisi model generik,
+  bukan 500 part number.
 - [x] C0-02 Setujui tingkat model T0 sampai T5 di `docs/60`.
 - [x] C0-03 Setujui toleransi referensi per tingkat model.
 - [x] C0-04 Setujui schema katalog dan status draft sampai verified.

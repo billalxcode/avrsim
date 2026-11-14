@@ -15,8 +15,10 @@ Menyediakan katalog komponen yang:
 - Dapat diekspor ke Python builder.
 - Tidak menambah dependensi eksternal Rust.
 
-Target angka: 500 entri katalog. Satu entri adalah satu model kelistrikan
-yang dapat dipakai, bukan sekadar satu simbol GUI.
+Target angka: 500 entri katalog. Satu entri adalah satu definisi model
+generik, bukan sekadar satu simbol GUI. Status solver ditentukan oleh field
+`device`: entry solver-backed dapat memakai model MNA yang ada, entry
+behavioral baru memiliki metadata dan smoke response.
 
 ## 2. Keputusan Akurasi
 
