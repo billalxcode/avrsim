@@ -14,8 +14,8 @@ palette, multi-select, selection box, copy/paste/duplicate, rotate/mirror
 grup, context menu, monitor UART TX, pola garis net, toast, konfirmasi
 hapus, export PNG, minimap, log panel, tooltip pin, tema terang,
 recently used, net highlight, override warna wire, label net kustom,
-migrasi JSON v1, simulasi PB5, dan graph digital PB5/LED dengan cursor
-juga sudah ada. Probe generik, UART input ke
+migrasi JSON v1, simulasi PB5, graph digital PB5/LED dengan cursor, dan
+UART RX dari GUI juga sudah ada. Probe generik, UART input ke
 simulasi, dan grafik analog belum ada. Dependensi
 GUI yang disetujui hanya untuk crate `sim-gui`: `egui`, `eframe`,
 `serde`, `serde_json`, `rfd`, dan `png`. `egui_plot`,
@@ -443,7 +443,8 @@ Aturan:
 ### 9.1 Kontrol
 
 - Run, pause, step one instruction, reset.
-- Monitor UART menampilkan byte TX dari CPU, buffer 16 KiB, dan auto-scroll.
+- Monitor UART menampilkan byte TX dari CPU, buffer 16 KiB, auto-scroll,
+  dan input RX ke CPU.
 - Simulation time dan cycle count terlihat di status bar.
 - Speed target dalam cycle per frame, bukan klaim real-time.
 - Status menunjukkan apakah simulasi tertinggal dari target.

@@ -207,6 +207,7 @@ fungsi net, dan persilangan tidak menimbulkan koneksi palsu.
 - [x] G6-08 Evaluasi ekstraksi runtime bersama dengan `sim-cli`.
 - [ ] G6-09 Implementasikan sampling probe setiap N cycle yang dapat dikonfigurasi.
 - [x] G6-10 Tampilkan output UART TX di monitor GUI.
+- [x] G6-11 Implementasikan input UART RX dari GUI.
 
 **Acceptance G6:** sketsa blink dan UART hello dapat dijalankan, dijeda,
 dan dilangkah dari GUI.

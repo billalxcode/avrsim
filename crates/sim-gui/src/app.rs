@@ -184,6 +184,7 @@ pub struct GuiApp {
     waveform: Waveform,
     waveform_open: bool,
     uart: UartLog,
+    uart_input: String,
     uart_open: bool,
     config: config::AppConfig,
     config_path: Option<PathBuf>,
@@ -628,6 +629,7 @@ impl GuiApp {
             Ok(()) => {
                 self.waveform.clear();
                 self.uart.clear();
+                self.uart_input.clear();
                 self.waveform_open = true;
                 self.message = format!("Firmware {name}");
             }
@@ -661,6 +663,7 @@ impl GuiApp {
         if action == SimAction::Reset {
             self.waveform.clear();
             self.uart.clear();
+            self.uart_input.clear();
         }
     }
 
@@ -1709,15 +1712,39 @@ impl GuiApp {
         }
         let mut open = self.uart_open;
         let mut clear = false;
+        let mut send = false;
+        let mut input = self.uart_input.clone();
         egui::Window::new("UART monitor")
             .open(&mut open)
-            .default_size([420.0, 220.0])
+            .default_size([420.0, 260.0])
             .show(ui.ctx(), |ui| {
-                show_uart_contents(ui, &self.uart, &mut clear);
+                show_uart_contents(ui, &self.uart, &mut input, &mut clear, &mut send);
             });
         self.uart_open = open;
+        self.uart_input = input;
         if clear {
             self.uart.clear();
+        }
+        if send {
+            self.send_uart_input();
+        }
+    }
+
+    fn send_uart_input(&mut self) {
+        if self.uart_input.is_empty() {
+            return;
+        }
+        let data = self.uart_input.as_bytes().to_vec();
+        let Some(sim) = self.sim.as_ref() else {
+            self.message = "Simulation unavailable".to_string();
+            return;
+        };
+        match sim.send_uart(data) {
+            Ok(()) => {
+                self.uart_input.clear();
+                self.message = "UART RX sent".to_string();
+            }
+            Err(error) => self.message = error,
         }
     }
 
@@ -2694,12 +2721,25 @@ fn legend_swatch(ui: &mut egui::Ui, class: NetClass) {
     ui.painter().line_segment(points, stroke);
 }
 
-fn show_uart_contents(ui: &mut egui::Ui, log: &UartLog, clear: &mut bool) {
+fn show_uart_contents(
+    ui: &mut egui::Ui,
+    log: &UartLog,
+    input: &mut String,
+    clear: &mut bool,
+    send: &mut bool,
+) {
     ui.horizontal(|ui| {
         if ui.button("Clear").clicked() {
             *clear = true;
         }
         ui.label(format!("{} bytes", log.len()));
+    });
+    ui.horizontal(|ui| {
+        let response = ui.text_edit_singleline(input);
+        let enter = response.lost_focus() && ui.input(|state| state.key_pressed(egui::Key::Enter));
+        if ui.button("Send").clicked() || enter {
+            *send = true;
+        }
     });
     egui::ScrollArea::vertical()
         .stick_to_bottom(true)

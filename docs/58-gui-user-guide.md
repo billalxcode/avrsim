@@ -156,7 +156,8 @@ Graph digital menampilkan lane PB5 dan LED pada sumbu cycle. Arahkan
 pointer ke graph untuk melihat cursor dan nilai pada cycle tersebut.
 
 Monitor UART menampilkan byte TX sebagai UTF-8 lossy, dengan buffer 16 KiB
-dan auto-scroll.
+dan auto-scroll. Isi kolom input dan klik `Send` atau tekan Enter untuk
+mengirim byte RX ke firmware.
 
 Simulasi berjalan di worker thread. Batch 100 instruksi memberi
 kesempatan GUI memproses input dan event.

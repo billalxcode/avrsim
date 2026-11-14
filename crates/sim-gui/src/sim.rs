@@ -113,6 +113,7 @@ pub enum Command {
     Pause,
     Step,
     Reset,
+    Uart(Vec<u8>),
     Shutdown,
 }
 
@@ -184,6 +185,11 @@ impl SimHandle {
         self.send(Command::Reset)
     }
 
+    /// Queues bytes for the simulated UART receiver.
+    pub fn send_uart(&self, data: Vec<u8>) -> Result<(), String> {
+        self.send(Command::Uart(data))
+    }
+
     /// Drains pending events.
     #[must_use]
     pub fn poll(&self) -> Vec<Event> {
@@ -241,6 +247,7 @@ struct SimMachine {
     led_on: bool,
     pb5_high: bool,
     uart_bytes: Vec<u8>,
+    uart_rx: VecDeque<u8>,
 }
 
 impl SimMachine {
@@ -253,10 +260,12 @@ impl SimMachine {
             led_on: false,
             pb5_high: false,
             uart_bytes: Vec::new(),
+            uart_rx: VecDeque::new(),
         })
     }
 
     fn step(&mut self) -> Result<bool, String> {
+        self.pump_uart_rx();
         let trace = self.cpu.step().map_err(|error| error.to_string())?;
         if trace.is_none() {
             return Ok(false);
@@ -277,6 +286,21 @@ impl SimMachine {
         Ok(())
     }
 
+    fn queue_uart(&mut self, data: &[u8]) {
+        let space = 4096usize.saturating_sub(self.uart_rx.len());
+        self.uart_rx.extend(data.iter().take(space).copied());
+    }
+
+    fn pump_uart_rx(&mut self) {
+        if self.cpu.uart().rx_ready() {
+            return;
+        }
+        let Some(byte) = self.uart_rx.pop_front() else {
+            return;
+        };
+        self.cpu.uart().receive(byte);
+    }
+
     fn update_uart(&mut self) {
         while let Some(byte) = self.cpu.uart().take_tx_byte() {
             self.uart_bytes.push(byte);
@@ -293,6 +317,7 @@ impl SimMachine {
         self.led_on = false;
         self.pb5_high = false;
         self.uart_bytes.clear();
+        self.uart_rx.clear();
         Ok(())
     }
 
@@ -358,7 +383,14 @@ fn handle_command(
         }
         Command::Step => step_once(machine, running, last, events),
         Command::Reset => reset_machine(machine, running, last, events),
+        Command::Uart(data) => queue_uart(machine, data),
         Command::Shutdown => {}
+    }
+}
+
+fn queue_uart(machine: &mut Option<SimMachine>, data: Vec<u8>) {
+    if let Some(machine) = machine {
+        machine.queue_uart(&data);
     }
 }
 
@@ -510,6 +542,17 @@ mod tests {
         machine.update_uart();
         assert_eq!(machine.take_uart(), vec![b'A']);
         assert!(machine.take_uart().is_empty());
+    }
+
+    #[test]
+    fn uart_rx_bytes_are_delivered() {
+        let mut machine = SimMachine::new(blink_program()).expect("machine");
+        machine.queue_uart(b"Hi");
+        machine.pump_uart_rx();
+        assert!(machine.cpu.uart().rx_ready());
+        assert_eq!(machine.cpu.uart().read_rx(), b'H');
+        machine.pump_uart_rx();
+        assert_eq!(machine.cpu.uart().read_rx(), b'i');
     }
 
     #[test]
