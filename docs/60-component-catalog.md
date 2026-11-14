@@ -308,8 +308,8 @@ Jumlah saat ini:
 
 - 500 entri katalog.
 - 58 model class.
-- 177 entri solver-backed dengan `DeviceKind`.
-- 323 entri behavioral dengan metadata dan smoke response.
+- 183 entri solver-backed dengan `DeviceKind`.
+- 317 entri behavioral dengan metadata dan smoke response.
 
 Registry `ComponentRegistry` memetakan entry ke `DeviceInstance` dan
 `DeviceModel`. Registry memvalidasi ID, jumlah pin, parameter default, dan
@@ -328,6 +328,7 @@ Test katalog dan emulasi mencakup:
 - Voltage divider melalui registry menghasilkan 2.5 V.
 - Saklar ideal melalui registry mengubah tegangan node.
 - Op-amp follower melalui registry mengikuti tegangan input.
+- Comparator melalui registry saturasi ke rel atas dan bawah.
 
 Entry behavioral masih berupa metadata dan smoke response; model solver
 penuh untuk keluarga tersebut ada di backlog `TODO-COMPONENTS.md`.

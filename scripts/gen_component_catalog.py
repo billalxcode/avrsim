@@ -205,7 +205,7 @@ add("analog.opamp", "OpAmp", "OpAmp", 5, "gain", 100000.0, "ratio", [
     "chopper op-amp", "current feedback op-amp", "instrumentation op-amp",
     "isolation op-amp", "audio op-amp",
 ])
-add("analog.comparator", "Comparator", None, 5, "gain", 100000.0, "ratio", [
+add("analog.comparator", "Comparator", "Comparator", 5, "gain", 10000.0, "ratio", [
     "comparator", "open collector comparator", "push-pull comparator",
     "window comparator", "hysteresis comparator", "high speed comparator",
 ])

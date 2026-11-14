@@ -33,6 +33,8 @@ pub enum DeviceKind {
     IdealSwitch,
     /// A five-terminal operational amplifier.
     OpAmp,
+    /// A five-terminal comparator with saturated output.
+    Comparator,
     /// An N-channel MOSFET.
     Nmos,
     /// A P-channel MOSFET.
@@ -78,6 +80,7 @@ impl DeviceKind {
             Self::Switch => "switch",
             Self::IdealSwitch => "ideal_switch",
             Self::OpAmp => "opamp",
+            Self::Comparator => "comparator",
             other => other.analog_name(),
         }
     }

@@ -125,6 +125,7 @@ fn is_nonlinear(kind: &DeviceKind) -> bool {
             | DeviceKind::Pnp
             | DeviceKind::JfetN
             | DeviceKind::JfetP
+            | DeviceKind::Comparator
     )
 }
 
@@ -171,6 +172,7 @@ fn branch_slots(kind: &DeviceKind) -> usize {
         | DeviceKind::Vcvs
         | DeviceKind::Cccs
         | DeviceKind::OpAmp
+        | DeviceKind::Comparator
         | DeviceKind::Inductor => 1,
         _ => 0,
     }

@@ -84,5 +84,5 @@ dalam satu langkah.
 - AC menolak sumber pulsa.
 
 Total test `sim-device`: 48.
-Total test `sim-analysis`: 111 (108 unit + 3 integration).
-Total workspace: 734.
+Total test `sim-analysis`: 112 (108 unit + 4 integration).
+Total workspace: 738.

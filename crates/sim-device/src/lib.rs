@@ -4,6 +4,7 @@
 
 mod bjt;
 mod catalog;
+mod comparator;
 mod controlled;
 mod diode;
 mod jfet;
@@ -19,6 +20,7 @@ pub use bjt::{BjtModel, bjt_capacitances};
 pub use catalog::{
     CatalogError, ComponentRegistry, ComponentRequest, ComponentSpec, Family, ModelClass, catalog,
 };
+pub use comparator::ComparatorModel;
 pub use controlled::{CccsModel, CcvsModel, VccsModel, VcvsModel};
 pub use diode::{DiodeModel, diode_capacitance};
 pub use jfet::{JfetModel, jfet_capacitances};

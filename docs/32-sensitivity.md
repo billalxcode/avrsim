@@ -62,8 +62,8 @@ Validasi:
 - Device atau parameter tidak dikenal ditolak.
 - Node tidak dikenal ditolak.
 
-Total test `sim-analysis`: 111 (108 unit + 3 integration).
-Total workspace: 734.
+Total test `sim-analysis`: 112 (108 unit + 4 integration).
+Total workspace: 738.
 
 ---
 

@@ -8,6 +8,7 @@ const SOURCE: &str = "source.independent.dc_voltage_source";
 const RESISTOR: &str = "passive.resistor.ideal_resistor";
 const SWITCH: &str = "switch.mechanical.spst_switch";
 const OPAMP: &str = "analog.opamp.ideal_opamp";
+const COMPARATOR: &str = "analog.comparator.comparator";
 
 fn add_source(
     registry: &ComponentRegistry,
@@ -63,6 +64,16 @@ fn add_opamp(
     registry.add_to(builder, &request).expect("opamp");
 }
 
+fn add_comparator(
+    registry: &ComponentRegistry,
+    builder: &mut CircuitBuilder,
+    name: &str,
+    pins: [NodeId; 5],
+) {
+    let request = ComponentRequest::new(COMPARATOR, name, DeviceId::new(0), pins.to_vec());
+    registry.add_to(builder, &request).expect("comparator");
+}
+
 fn dc_voltage(circuit: &Circuit, name: &str) -> f64 {
     let result = dc_operating_point(circuit, &DcConfig::default()).expect("dc");
     let node = circuit.node_by_name(name).expect("node").id();
@@ -107,6 +118,26 @@ fn follower_circuit() -> Circuit {
     builder.build().expect("circuit")
 }
 
+fn comparator_circuit(input_voltage: f64) -> Circuit {
+    let registry = ComponentRegistry::new();
+    let mut builder = CircuitBuilder::new();
+    let input = builder.node("input").expect("input");
+    let reference = builder.node("reference").expect("reference");
+    let supply = builder.node("supply").expect("supply");
+    let output = builder.node("output").expect("output");
+    let ground = builder.ground();
+    add_source(&registry, &mut builder, "VIN", input, ground, input_voltage);
+    add_source(&registry, &mut builder, "VREF", reference, ground, 2.5);
+    add_source(&registry, &mut builder, "VCC", supply, ground, 5.0);
+    add_comparator(
+        &registry,
+        &mut builder,
+        "CMP",
+        [input, reference, supply, ground, output],
+    );
+    builder.build().expect("circuit")
+}
+
 #[test]
 fn registry_voltage_divider_reaches_half_supply() {
     let circuit = divider_circuit();
@@ -126,4 +157,12 @@ fn registry_ideal_switch_changes_node_voltage() {
 fn registry_opamp_follower_tracks_input() {
     let voltage = dc_voltage(&follower_circuit(), "output");
     assert!((voltage - 2.5).abs() < 1e-3, "voltage {voltage}");
+}
+
+#[test]
+fn registry_comparator_saturates_both_ways() {
+    let high = dc_voltage(&comparator_circuit(3.0), "output");
+    let low = dc_voltage(&comparator_circuit(2.0), "output");
+    assert!(high > 4.9, "high {high}");
+    assert!(low < 0.1, "low {low}");
 }

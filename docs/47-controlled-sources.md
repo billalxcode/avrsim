@@ -72,8 +72,8 @@ baris output dan kolom kontrol.
 - VCCS dengan kontrol `1 V`, `gm = 1 mS`, dan load `1 kOhm` menghasilkan
   output `1 V`.
 
-Total test `sim-analysis`: 111 (108 unit + 3 integration).
-Total workspace: 734.
+Total test `sim-analysis`: 112 (108 unit + 4 integration).
+Total workspace: 738.
 
 ---
 

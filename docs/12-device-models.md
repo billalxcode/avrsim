@@ -3,7 +3,7 @@
 Katalog device yang tersedia di `sim-device` dan parameter utamanya.
 
 **Status:** seluruh device inti, device nonlinier, controlled source, switch,
-dan transmission line sudah diimplementasikan. Total test `sim-device`: 74.
+dan transmission line sudah diimplementasikan. Total test `sim-device`: 77.
 
 ---
 
@@ -87,6 +87,7 @@ pub fn model_from_instance(
 | Switch | 4 | Smooth on/off conductance | [48](48-cccs-switch.md) |
 | IdealSwitch | 2 | Fixed on/off conductance | - |
 | OpAmp | 5 | Linear high-gain VCVS macromodel | - |
+| Comparator | 5 | Saturating nonlinear comparator | - |
 
 ---
 
@@ -261,6 +262,7 @@ P-JFET memakai transformasi tanda. Kapasitansi `cgs` dan `cgd` konstan.
 | IdealSwitch | `roff` | 1e12 ohm |
 | IdealSwitch | `closed` | 0 |
 | OpAmp | `gain` | 1e5 |
+| Comparator | `gain` | 1e4 |
 
 CCVS memakai dua branch: sense branch dan output branch.
 

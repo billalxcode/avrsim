@@ -1,6 +1,7 @@
 //! Device model API and factory.
 
 use crate::bjt::BjtModel;
+use crate::comparator::ComparatorModel;
 use crate::controlled::{CccsModel, CcvsModel, VccsModel, VcvsModel};
 use crate::diode::DiodeModel;
 use crate::jfet::JfetModel;
@@ -98,6 +99,7 @@ fn active_model(instance: &DeviceInstance) -> Result<Option<Box<dyn DeviceModel>
         DeviceKind::Npn | DeviceKind::Pnp => Box::new(BjtModel::from_instance(instance)?),
         DeviceKind::JfetN | DeviceKind::JfetP => Box::new(JfetModel::from_instance(instance)?),
         DeviceKind::OpAmp => Box::new(OpAmpModel::from_instance(instance)?),
+        DeviceKind::Comparator => Box::new(ComparatorModel::from_instance(instance)?),
         DeviceKind::Diode => Box::new(DiodeModel::from_instance(instance)?),
         _ => return Ok(None),
     };

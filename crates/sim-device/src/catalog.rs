@@ -482,7 +482,7 @@ impl ModelClass {
     const fn requires_analog_device(self) -> bool {
         matches!(
             self,
-            Self::OpAmp | Self::VoltageReference | Self::PowerSwitch
+            Self::OpAmp | Self::Comparator | Self::VoltageReference | Self::PowerSwitch
         )
     }
 
@@ -945,6 +945,7 @@ mod tests {
                 | sim_core::DeviceKind::JfetP
                 | sim_core::DeviceKind::Diode
                 | sim_core::DeviceKind::OpAmp
+                | sim_core::DeviceKind::Comparator
         )
     }
 
