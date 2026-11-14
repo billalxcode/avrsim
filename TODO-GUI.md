@@ -322,6 +322,8 @@ Selesai dan teruji:
   segmen, culling tanpa alokasi daftar wire per frame.
 - Keyboard nudge dengan panah dan Shift, focus ring canvas, toolbar ikon
   ASCII, app error type, dan golden RGBA headless 320 x 240.
+- Semua fungsi `sim-gui` sudah maksimal 20 baris setelah refactor
+  terpisah.
 - Undo/redo, JSON, autosave, backup, recent files, XDG config, prompt
   reload, command palette, context menu, toast, log, PNG export.
 - CI workspace Linux, paket Linux, desktop entry, contoh proyek, panduan
@@ -332,13 +334,9 @@ Tertunda karena batas teknis atau lingkungan:
 - Probe net generik: skematik GUI belum memiliki netlist elektrik yang
   terhubung ke solver analog. Probe PB5 dan arus LED sudah berjalan
   melalui API read-only.
-- Golden image RGBA sudah berjalan headless; prosedur update ada di
-  `docs/59-gui-golden.md`.
 - Build Windows dan macOS belum dijalankan pada native runner.
 - Alt menonaktifkan snap belum dapat diterapkan karena model dokumen
   memakai grid integer; semua posisi tetap snap ke grid.
-- Semua fungsi `sim-gui` sudah maksimal 20 baris setelah refactor
-  terpisah.
 
 ---
 
