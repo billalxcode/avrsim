@@ -1,7 +1,9 @@
 # TODO - Komponen 500
 
 Status: katalog 500 entri sudah diimplementasikan di `sim-device`.
-Model solver penuh per keluarga behavioral masih bertahap.
+Registry-backed emulation tersedia untuk 145 entri. Sebanyak 355 entri
+behavioral masih menunggu model solver dan belum dapat disimulasikan
+sebagai device MNA.
 
 Tujuan: membangun katalog 500 model komponen yang terverifikasi, dapat
 diekspor ke Python builder, dan diuji dengan unit test ketat.
