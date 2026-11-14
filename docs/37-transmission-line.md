@@ -74,7 +74,7 @@ Syarat:
 - AC menolak transmission line.
 
 Total test `sim-analysis`: 108.
-Total workspace: 702.
+Total workspace: 717.
 
 ---
 

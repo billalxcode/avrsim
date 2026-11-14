@@ -3,7 +3,18 @@
 Katalog device yang tersedia di `sim-device` dan parameter utamanya.
 
 **Status:** seluruh device inti, device nonlinier, controlled source, switch,
-dan transmission line sudah diimplementasikan. Total test `sim-device`: 48.
+dan transmission line sudah diimplementasikan. Total test `sim-device`: 63.
+
+---
+
+## 1a. Katalog generik 500
+
+`sim-device` juga menyediakan katalog 500 model generik melalui
+`catalog()`, `ComponentSpec`, `Family`, dan `ModelClass`. Katalog ini
+menjadi registry untuk Python builder dan pemetaan ke solver.
+
+Detail taksonomi, akurasi, dan status ada di
+`docs/60-component-catalog.md` dan `TODO-COMPONENTS.md`.
 
 ---
 

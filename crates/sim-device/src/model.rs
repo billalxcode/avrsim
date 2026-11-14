@@ -60,27 +60,45 @@ pub trait DeviceModel {
 
 /// Builds a model from a structural device instance.
 pub fn model_from_instance(instance: &DeviceInstance) -> Result<Box<dyn DeviceModel>, SimError> {
-    match instance.kind() {
-        DeviceKind::Resistor => Ok(Box::new(ResistorModel::from_instance(instance)?)),
-        DeviceKind::Capacitor => Ok(Box::new(CapacitorModel::from_instance(instance)?)),
-        DeviceKind::Inductor => Ok(Box::new(InductorModel::from_instance(instance)?)),
-        DeviceKind::VoltageSource => Ok(Box::new(VoltageSourceModel::from_instance(instance)?)),
-        DeviceKind::PulseVoltageSource => Ok(Box::new(PulseSourceModel::from_instance(instance)?)),
-        DeviceKind::CurrentSource => Ok(Box::new(CurrentSourceModel::from_instance(instance)?)),
-        DeviceKind::Vcvs => Ok(Box::new(VcvsModel::from_instance(instance)?)),
-        DeviceKind::Vccs => Ok(Box::new(VccsModel::from_instance(instance)?)),
-        DeviceKind::Cccs => Ok(Box::new(CccsModel::from_instance(instance)?)),
-        DeviceKind::Ccvs => Ok(Box::new(CcvsModel::from_instance(instance)?)),
-        DeviceKind::Switch => Ok(Box::new(SwitchModel::from_instance(instance)?)),
-        DeviceKind::Nmos | DeviceKind::Pmos => Ok(Box::new(MosfetModel::from_instance(instance)?)),
-        DeviceKind::Npn | DeviceKind::Pnp => Ok(Box::new(BjtModel::from_instance(instance)?)),
-        DeviceKind::JfetN | DeviceKind::JfetP => Ok(Box::new(JfetModel::from_instance(instance)?)),
-        DeviceKind::TransmissionLine => {
-            Ok(Box::new(TransmissionLineModel::from_instance(instance)?))
-        }
-        DeviceKind::Diode => Ok(Box::new(DiodeModel::from_instance(instance)?)),
-        other => Err(SimError::UnsupportedDevice(other.name().to_string())),
+    if let Some(model) = passive_model(instance)? {
+        return Ok(model);
     }
+    if let Some(model) = active_model(instance)? {
+        return Ok(model);
+    }
+    Err(SimError::UnsupportedDevice(
+        instance.kind().name().to_string(),
+    ))
+}
+
+fn passive_model(instance: &DeviceInstance) -> Result<Option<Box<dyn DeviceModel>>, SimError> {
+    let model: Box<dyn DeviceModel> = match instance.kind() {
+        DeviceKind::Resistor => Box::new(ResistorModel::from_instance(instance)?),
+        DeviceKind::Capacitor => Box::new(CapacitorModel::from_instance(instance)?),
+        DeviceKind::Inductor => Box::new(InductorModel::from_instance(instance)?),
+        DeviceKind::VoltageSource => Box::new(VoltageSourceModel::from_instance(instance)?),
+        DeviceKind::PulseVoltageSource => Box::new(PulseSourceModel::from_instance(instance)?),
+        DeviceKind::CurrentSource => Box::new(CurrentSourceModel::from_instance(instance)?),
+        DeviceKind::Vcvs => Box::new(VcvsModel::from_instance(instance)?),
+        DeviceKind::Vccs => Box::new(VccsModel::from_instance(instance)?),
+        DeviceKind::Cccs => Box::new(CccsModel::from_instance(instance)?),
+        DeviceKind::Ccvs => Box::new(CcvsModel::from_instance(instance)?),
+        DeviceKind::Switch => Box::new(SwitchModel::from_instance(instance)?),
+        DeviceKind::TransmissionLine => Box::new(TransmissionLineModel::from_instance(instance)?),
+        _ => return Ok(None),
+    };
+    Ok(Some(model))
+}
+
+fn active_model(instance: &DeviceInstance) -> Result<Option<Box<dyn DeviceModel>>, SimError> {
+    let model: Box<dyn DeviceModel> = match instance.kind() {
+        DeviceKind::Nmos | DeviceKind::Pmos => Box::new(MosfetModel::from_instance(instance)?),
+        DeviceKind::Npn | DeviceKind::Pnp => Box::new(BjtModel::from_instance(instance)?),
+        DeviceKind::JfetN | DeviceKind::JfetP => Box::new(JfetModel::from_instance(instance)?),
+        DeviceKind::Diode => Box::new(DiodeModel::from_instance(instance)?),
+        _ => return Ok(None),
+    };
+    Ok(Some(model))
 }
 
 pub(crate) fn parameter(params: &BTreeMap<String, f64>, name: &str, default: f64) -> f64 {

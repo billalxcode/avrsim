@@ -3,6 +3,7 @@
 #![forbid(unsafe_code)]
 
 mod bjt;
+mod catalog;
 mod controlled;
 mod diode;
 mod jfet;
@@ -14,6 +15,7 @@ mod switch;
 mod transmission;
 
 pub use bjt::{BjtModel, bjt_capacitances};
+pub use catalog::{CatalogError, ComponentSpec, Family, ModelClass, catalog};
 pub use controlled::{CccsModel, CcvsModel, VccsModel, VcvsModel};
 pub use diode::{DiodeModel, diode_capacitance};
 pub use jfet::{JfetModel, jfet_capacitances};

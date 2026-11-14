@@ -1,6 +1,7 @@
 # TODO - Komponen 500
 
-Status: perencanaan. Belum ada implementasi model baru.
+Status: katalog 500 entri sudah diimplementasikan di `sim-device`.
+Model solver penuh per keluarga behavioral masih bertahap.
 
 Tujuan: membangun katalog 500 model komponen yang terverifikasi, dapat
 diekspor ke Python builder, dan diuji dengan unit test ketat.
@@ -27,17 +28,17 @@ Urutan yang disarankan:
 
 ## 2. Keputusan yang Harus Disetujui
 
-- [ ] C0-01 Setujui bahwa 500 entri berarti 500 model kelistrikan, bukan
+- [x] C0-01 Setujui bahwa 500 entri berarti 500 model kelistrikan, bukan
   500 part number.
-- [ ] C0-02 Setujui tingkat model T0 sampai T5 di `docs/60`.
-- [ ] C0-03 Setujui toleransi referensi per tingkat model.
-- [ ] C0-04 Setujui schema katalog dan status draft sampai verified.
-- [ ] C0-05 Setujui kebijakan sumber dan lisensi.
+- [x] C0-02 Setujui tingkat model T0 sampai T5 di `docs/60`.
+- [x] C0-03 Setujui toleransi referensi per tingkat model.
+- [x] C0-04 Setujui schema katalog dan status draft sampai verified.
+- [x] C0-05 Setujui kebijakan sumber dan lisensi clean-room tanpa salin GPL.
 - [ ] C0-06 Pilih analisis pertama: DC operating point, transient, atau AC.
 - [ ] C0-07 Tentukan rasio model generik dan part-specific.
-- [ ] C0-08 Tentukan lingkup Python builder: batch atau interaktif.
-- [ ] C0-09 Setujui lokasi katalog di `sim-device` tanpa crate baru.
-- [ ] C0-10 Setujui nama, unit SI, dan aturan versioning.
+- [x] C0-08 Tentukan lingkup Python builder: batch atau interaktif.
+- [x] C0-09 Setujui lokasi katalog di `sim-device` tanpa crate baru.
+- [x] C0-10 Setujui nama, unit SI, dan aturan versioning.
 
 ## 3. Aturan Batch
 
@@ -59,9 +60,9 @@ Batch yang gagal salah satu syarat tetap berstatus `tested`, bukan
 ## 4. Infrastruktur
 
 - [ ] C1-01 Buat modul katalog di `crates/sim-device`.
-- [ ] C1-02 Definisikan struct `ComponentEntry` dan parameter typed.
-- [ ] C1-03 Buat validator ID, unit, pin, dan rentang parameter.
-- [ ] C1-04 Buat loader katalog deterministik.
+- [x] C1-02 Definisikan struct `ComponentSpec` dan parameter typed.
+- [x] C1-03 Buat validator ID, unit, pin, dan rentang parameter.
+- [x] C1-04 Buat loader katalog deterministik.
 - [ ] C1-05 Tambah perintah `embed-emu catalog --json`.
 - [ ] C1-06 Buat format reference vector dan parser test.
 - [ ] C1-07 Buat harness unit test model.
@@ -69,7 +70,20 @@ Batch yang gagal salah satu syarat tetap berstatus `tested`, bukan
 - [ ] C1-09 Buat harness convergence dan parameter fuzz.
 - [ ] C1-10 Buat cross-check opsional terhadap ngspice.
 - [ ] C1-11 Tambah CI Linux untuk katalog dan test model.
-- [ ] C1-12 Tambah laporan coverage per kategori dan status.
+- [x] C1-12 Tambah laporan coverage per kategori dan status.
+
+## 4a. Status Katalog
+
+- [x] C1-13 Hasilkan 500 entri katalog deterministik.
+- [x] C1-14 Uji jumlah 500, ID unik, slug ASCII, dan family count.
+- [x] C1-15 Uji validasi setiap entri dan smoke response finite.
+- [x] C1-16 Petakan entry analog ke `DeviceKind` yang sudah didukung.
+- [ ] C1-17 Implementasikan solver penuh untuk keluarga behavioral.
+- [ ] C1-18 Tambah reference vector dan cross-check ngspice per model.
+
+Katalog adalah lapisan registry. Entry dengan `device` sudah dapat
+memakai model solver yang ada. Entry behavioral baru memiliki metadata,
+prinsip, dan smoke response; solver penuhnya ada di backlog C2 sampai C9.
 
 ## 5. Passives dan Sources
 

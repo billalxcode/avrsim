@@ -128,7 +128,7 @@ Perintah:
 ./scripts/package.sh
 ```
 
-Total test workspace: 702.
+Total test workspace: 717.
 
 Golden GUI headless 320 x 240 RGBA lulus di Linux. Cross-check build
 Windows dan macOS lulus:

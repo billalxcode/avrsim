@@ -273,7 +273,8 @@ Kebijakan:
 - Jangan menyalin model LTspice, PSpice, atau vendor yang melarang
   redistribusi.
 - Simpan URL, lisensi, tanggal akses, dan versi model.
-- Model GPL hanya boleh dipakai jika lisensi proyek mengizinkan.
+- Model GPL tidak disalin ke crate MIT. Implementasi generik dibuat ulang
+  dari persamaan publik dan datasheet, lalu dicatat sumbernya.
 - Symbol dan model elektrik adalah dua artefak terpisah.
 
 ## 8. Hubungan dengan Python Builder
@@ -295,7 +296,27 @@ embed-emu catalog --json
 Python memuat katalog itu agar daftar komponen, parameter, dan batas
 valid selalu sinkron.
 
-## 9. Batasan
+## 9. Status Implementasi
+
+Katalog 500 entri sudah ada di `crates/sim-device/src/catalog.rs` dan
+`crates/sim-device/src/catalog_data.rs`. File data dihasilkan oleh
+`scripts/gen_component_catalog.py`.
+
+Test katalog mencakup:
+
+- Jumlah tepat 500 entri.
+- ID unik dan slug ASCII.
+- Family count sesuai desain.
+- Validasi setiap entri.
+- Prinsip dan sumber non-empty.
+- Pemetaan entry analog ke `DeviceKind`.
+- Smoke response finite untuk semua kelas.
+
+Entry analog yang memiliki `device` dapat memakai model solver yang sudah
+ada. Entry behavioral masih berupa metadata dan smoke response; model
+solver penuh untuk keluarga tersebut ada di backlog `TODO-COMPONENTS.md`.
+
+## 10. Batasan
 
 - 500 entri adalah target jangka panjang, bukan satu sprint.
 - Tidak semua entri memerlukan model fisik penuh.
@@ -304,7 +325,7 @@ valid selalu sinkron.
 - Model RF memerlukan data S-parameter jika akurasi tinggi dibutuhkan.
 - Beberapa komponen elektromekanik memerlukan model multi-domain.
 
-## 10. Referensi Internal
+## 11. Referensi Internal
 
 - `TODO-COMPONENTS.md`: backlog dan status batch.
 - `docs/11-netlist.md`: format netlist.
