@@ -5,6 +5,7 @@ use crate::comparator::ComparatorModel;
 use crate::controlled::{CccsModel, CcvsModel, VccsModel, VcvsModel};
 use crate::diode::DiodeModel;
 use crate::jfet::JfetModel;
+use crate::logic::LogicGateModel;
 use crate::mosfet::MosfetModel;
 use crate::opamp::OpAmpModel;
 use crate::passive::{CapacitorModel, InductorModel, ResistorModel};
@@ -104,6 +105,7 @@ fn active_model(instance: &DeviceInstance) -> Result<Option<Box<dyn DeviceModel>
         DeviceKind::OpAmp => Box::new(OpAmpModel::from_instance(instance)?),
         DeviceKind::Comparator => Box::new(ComparatorModel::from_instance(instance)?),
         DeviceKind::Regulator => Box::new(RegulatorModel::from_instance(instance)?),
+        DeviceKind::LogicGate => Box::new(LogicGateModel::from_instance(instance)?),
         DeviceKind::Diode => Box::new(DiodeModel::from_instance(instance)?),
         _ => return Ok(None),
     };

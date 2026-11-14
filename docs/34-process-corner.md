@@ -69,8 +69,8 @@ Semua faktor harus finite dan lebih besar dari nol.
 - Faktor threshold `0.5` menurunkan tegangan diode-connected NMOS.
 - Faktor nol ditolak.
 
-Total test `sim-analysis`: 115 (108 unit + 7 integration).
-Total workspace: 747.
+Total test `sim-analysis`: 116 (108 unit + 8 integration).
+Total workspace: 751.
 
 ---
 

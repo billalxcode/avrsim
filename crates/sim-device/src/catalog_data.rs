@@ -13,6 +13,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "resistance",
         default: 1000.0,
         unit: "ohm",
+        variant: 0,
     },
     ComponentSpec {
         id: "passive.resistor.temperature_coefficient_resistor",
@@ -23,6 +24,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "resistance",
         default: 1000.0,
         unit: "ohm",
+        variant: 0,
     },
     ComponentSpec {
         id: "passive.resistor.potentiometer",
@@ -33,6 +35,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "resistance",
         default: 1000.0,
         unit: "ohm",
+        variant: 0,
     },
     ComponentSpec {
         id: "passive.resistor.digital_potentiometer",
@@ -43,6 +46,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "resistance",
         default: 1000.0,
         unit: "ohm",
+        variant: 0,
     },
     ComponentSpec {
         id: "passive.resistor.ntc_thermistor",
@@ -53,6 +57,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "resistance",
         default: 1000.0,
         unit: "ohm",
+        variant: 0,
     },
     ComponentSpec {
         id: "passive.resistor.ptc_thermistor",
@@ -63,6 +68,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "resistance",
         default: 1000.0,
         unit: "ohm",
+        variant: 0,
     },
     ComponentSpec {
         id: "passive.resistor.photoresistor",
@@ -73,6 +79,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "resistance",
         default: 1000.0,
         unit: "ohm",
+        variant: 0,
     },
     ComponentSpec {
         id: "passive.resistor.varistor",
@@ -83,6 +90,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "resistance",
         default: 1000.0,
         unit: "ohm",
+        variant: 0,
     },
     ComponentSpec {
         id: "passive.resistor.strain_gauge",
@@ -93,6 +101,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "resistance",
         default: 1000.0,
         unit: "ohm",
+        variant: 0,
     },
     ComponentSpec {
         id: "passive.resistor.memristor",
@@ -103,6 +112,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "resistance",
         default: 1000.0,
         unit: "ohm",
+        variant: 0,
     },
     ComponentSpec {
         id: "passive.resistor.fuse",
@@ -113,6 +123,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "resistance",
         default: 1000.0,
         unit: "ohm",
+        variant: 0,
     },
     ComponentSpec {
         id: "passive.resistor.ferrite_bead",
@@ -123,6 +134,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "resistance",
         default: 1000.0,
         unit: "ohm",
+        variant: 0,
     },
     ComponentSpec {
         id: "passive.capacitor.ideal_capacitor",
@@ -133,6 +145,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "capacitance",
         default: 1e-06,
         unit: "F",
+        variant: 0,
     },
     ComponentSpec {
         id: "passive.capacitor.c0g_ceramic_capacitor",
@@ -143,6 +156,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "capacitance",
         default: 1e-06,
         unit: "F",
+        variant: 0,
     },
     ComponentSpec {
         id: "passive.capacitor.x7r_ceramic_capacitor",
@@ -153,6 +167,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "capacitance",
         default: 1e-06,
         unit: "F",
+        variant: 0,
     },
     ComponentSpec {
         id: "passive.capacitor.electrolytic_capacitor",
@@ -163,6 +178,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "capacitance",
         default: 1e-06,
         unit: "F",
+        variant: 0,
     },
     ComponentSpec {
         id: "passive.capacitor.tantalum_capacitor",
@@ -173,6 +189,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "capacitance",
         default: 1e-06,
         unit: "F",
+        variant: 0,
     },
     ComponentSpec {
         id: "passive.capacitor.film_capacitor",
@@ -183,6 +200,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "capacitance",
         default: 1e-06,
         unit: "F",
+        variant: 0,
     },
     ComponentSpec {
         id: "passive.capacitor.variable_capacitor",
@@ -193,6 +211,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "capacitance",
         default: 1e-06,
         unit: "F",
+        variant: 0,
     },
     ComponentSpec {
         id: "passive.capacitor.trimmer_capacitor",
@@ -203,6 +222,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "capacitance",
         default: 1e-06,
         unit: "F",
+        variant: 0,
     },
     ComponentSpec {
         id: "passive.capacitor.supercapacitor",
@@ -213,6 +233,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "capacitance",
         default: 1e-06,
         unit: "F",
+        variant: 0,
     },
     ComponentSpec {
         id: "passive.capacitor.feedthrough_capacitor",
@@ -223,6 +244,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "capacitance",
         default: 1e-06,
         unit: "F",
+        variant: 0,
     },
     ComponentSpec {
         id: "passive.capacitor.capacitor_with_esr",
@@ -233,6 +255,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "capacitance",
         default: 1e-06,
         unit: "F",
+        variant: 0,
     },
     ComponentSpec {
         id: "passive.capacitor.capacitor_with_esl",
@@ -243,6 +266,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "capacitance",
         default: 1e-06,
         unit: "F",
+        variant: 0,
     },
     ComponentSpec {
         id: "passive.capacitor.voltage_dependent_capacitor",
@@ -253,6 +277,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "capacitance",
         default: 1e-06,
         unit: "F",
+        variant: 0,
     },
     ComponentSpec {
         id: "passive.inductor.ideal_inductor",
@@ -263,6 +288,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "inductance",
         default: 0.001,
         unit: "H",
+        variant: 0,
     },
     ComponentSpec {
         id: "passive.inductor.lossy_inductor",
@@ -273,6 +299,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "inductance",
         default: 0.001,
         unit: "H",
+        variant: 0,
     },
     ComponentSpec {
         id: "passive.inductor.saturable_inductor",
@@ -283,6 +310,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "inductance",
         default: 0.001,
         unit: "H",
+        variant: 0,
     },
     ComponentSpec {
         id: "passive.inductor.coupled_inductor",
@@ -293,6 +321,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "inductance",
         default: 0.001,
         unit: "H",
+        variant: 0,
     },
     ComponentSpec {
         id: "passive.inductor.air_core_inductor",
@@ -303,6 +332,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "inductance",
         default: 0.001,
         unit: "H",
+        variant: 0,
     },
     ComponentSpec {
         id: "passive.inductor.ferrite_core_inductor",
@@ -313,6 +343,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "inductance",
         default: 0.001,
         unit: "H",
+        variant: 0,
     },
     ComponentSpec {
         id: "passive.inductor.toroidal_inductor",
@@ -323,6 +354,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "inductance",
         default: 0.001,
         unit: "H",
+        variant: 0,
     },
     ComponentSpec {
         id: "passive.inductor.current_transformer",
@@ -333,6 +365,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "inductance",
         default: 0.001,
         unit: "H",
+        variant: 0,
     },
     ComponentSpec {
         id: "passive.inductor.flyback_transformer",
@@ -343,6 +376,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "inductance",
         default: 0.001,
         unit: "H",
+        variant: 0,
     },
     ComponentSpec {
         id: "passive.inductor.common_mode_choke",
@@ -353,6 +387,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "inductance",
         default: 0.001,
         unit: "H",
+        variant: 0,
     },
     ComponentSpec {
         id: "passive.transformer.ideal_transformer",
@@ -363,6 +398,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "turns_ratio",
         default: 1.0,
         unit: "ratio",
+        variant: 0,
     },
     ComponentSpec {
         id: "passive.transformer.center_tap_transformer",
@@ -373,6 +409,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "turns_ratio",
         default: 1.0,
         unit: "ratio",
+        variant: 0,
     },
     ComponentSpec {
         id: "passive.transformer.autotransformer",
@@ -383,6 +420,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "turns_ratio",
         default: 1.0,
         unit: "ratio",
+        variant: 0,
     },
     ComponentSpec {
         id: "passive.transformer.isolation_transformer",
@@ -393,6 +431,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "turns_ratio",
         default: 1.0,
         unit: "ratio",
+        variant: 0,
     },
     ComponentSpec {
         id: "passive.transformer.pulse_transformer",
@@ -403,6 +442,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "turns_ratio",
         default: 1.0,
         unit: "ratio",
+        variant: 0,
     },
     ComponentSpec {
         id: "passive.transformer.current_sense_transformer",
@@ -413,6 +453,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "turns_ratio",
         default: 1.0,
         unit: "ratio",
+        variant: 0,
     },
     ComponentSpec {
         id: "passive.crystal.quartz_crystal",
@@ -423,6 +464,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "frequency",
         default: 1000000.0,
         unit: "Hz",
+        variant: 0,
     },
     ComponentSpec {
         id: "passive.crystal.ceramic_resonator",
@@ -433,6 +475,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "frequency",
         default: 1000000.0,
         unit: "Hz",
+        variant: 0,
     },
     ComponentSpec {
         id: "passive.crystal.tuning_fork_crystal",
@@ -443,6 +486,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "frequency",
         default: 1000000.0,
         unit: "Hz",
+        variant: 0,
     },
     ComponentSpec {
         id: "passive.crystal.tcxo",
@@ -453,6 +497,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "frequency",
         default: 1000000.0,
         unit: "Hz",
+        variant: 0,
     },
     ComponentSpec {
         id: "passive.crystal.vcxo",
@@ -463,6 +508,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "frequency",
         default: 1000000.0,
         unit: "Hz",
+        variant: 0,
     },
     ComponentSpec {
         id: "passive.transmission_line.ideal_transmission_line",
@@ -473,6 +519,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "z0",
         default: 50.0,
         unit: "ohm",
+        variant: 0,
     },
     ComponentSpec {
         id: "passive.transmission_line.lossy_transmission_line",
@@ -483,6 +530,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "z0",
         default: 50.0,
         unit: "ohm",
+        variant: 0,
     },
     ComponentSpec {
         id: "passive.transmission_line.coaxial_line",
@@ -493,6 +541,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "z0",
         default: 50.0,
         unit: "ohm",
+        variant: 0,
     },
     ComponentSpec {
         id: "passive.transmission_line.microstrip_line",
@@ -503,6 +552,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "z0",
         default: 50.0,
         unit: "ohm",
+        variant: 0,
     },
     ComponentSpec {
         id: "passive.transmission_line.stripline",
@@ -513,6 +563,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "z0",
         default: 50.0,
         unit: "ohm",
+        variant: 0,
     },
     ComponentSpec {
         id: "passive.transmission_line.stub",
@@ -523,6 +574,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "z0",
         default: 50.0,
         unit: "ohm",
+        variant: 0,
     },
     ComponentSpec {
         id: "passive.transmission_line.attenuator",
@@ -533,6 +585,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "z0",
         default: 50.0,
         unit: "ohm",
+        variant: 0,
     },
     ComponentSpec {
         id: "passive.transmission_line.power_splitter",
@@ -543,6 +596,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "z0",
         default: 50.0,
         unit: "ohm",
+        variant: 0,
     },
     ComponentSpec {
         id: "passive.transmission_line.directional_coupler",
@@ -553,6 +607,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "z0",
         default: 50.0,
         unit: "ohm",
+        variant: 0,
     },
     ComponentSpec {
         id: "source.independent.dc_voltage_source",
@@ -563,6 +618,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "voltage",
         default: 5.0,
         unit: "V",
+        variant: 0,
     },
     ComponentSpec {
         id: "source.independent.dc_current_source",
@@ -573,6 +629,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "current",
         default: 0.001,
         unit: "A",
+        variant: 0,
     },
     ComponentSpec {
         id: "source.independent.ac_voltage_source",
@@ -583,6 +640,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "voltage",
         default: 5.0,
         unit: "V",
+        variant: 0,
     },
     ComponentSpec {
         id: "source.independent.ac_current_source",
@@ -593,6 +651,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "current",
         default: 0.001,
         unit: "A",
+        variant: 0,
     },
     ComponentSpec {
         id: "source.independent.sine_voltage_source",
@@ -603,6 +662,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "voltage",
         default: 5.0,
         unit: "V",
+        variant: 0,
     },
     ComponentSpec {
         id: "source.independent.sine_current_source",
@@ -613,6 +673,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "current",
         default: 0.001,
         unit: "A",
+        variant: 0,
     },
     ComponentSpec {
         id: "source.pulse.pulse_voltage_source",
@@ -623,6 +684,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "voltage",
         default: 5.0,
         unit: "V",
+        variant: 0,
     },
     ComponentSpec {
         id: "source.pulse.pwl_voltage_source",
@@ -633,6 +695,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "voltage",
         default: 5.0,
         unit: "V",
+        variant: 0,
     },
     ComponentSpec {
         id: "source.pulse.exponential_voltage_source",
@@ -643,6 +706,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "voltage",
         default: 5.0,
         unit: "V",
+        variant: 0,
     },
     ComponentSpec {
         id: "source.pulse.voltage_noise_source",
@@ -653,6 +717,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "voltage",
         default: 5.0,
         unit: "V",
+        variant: 0,
     },
     ComponentSpec {
         id: "source.pulse.current_noise_source",
@@ -663,6 +728,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "current",
         default: 0.001,
         unit: "A",
+        variant: 0,
     },
     ComponentSpec {
         id: "source.pulse.pulse_current_source",
@@ -673,6 +739,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "current",
         default: 0.001,
         unit: "A",
+        variant: 0,
     },
     ComponentSpec {
         id: "source.controlled.vcvs",
@@ -683,6 +750,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "gain",
         default: 1.0,
         unit: "ratio",
+        variant: 0,
     },
     ComponentSpec {
         id: "source.controlled.vccs",
@@ -693,6 +761,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "gain",
         default: 1.0,
         unit: "ratio",
+        variant: 0,
     },
     ComponentSpec {
         id: "source.controlled.cccs",
@@ -703,6 +772,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "gain",
         default: 1.0,
         unit: "ratio",
+        variant: 0,
     },
     ComponentSpec {
         id: "source.controlled.ccvs",
@@ -713,6 +783,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "gain",
         default: 1.0,
         unit: "ratio",
+        variant: 0,
     },
     ComponentSpec {
         id: "source.behavioral.behavioral_voltage_source",
@@ -723,6 +794,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "gain",
         default: 1.0,
         unit: "ratio",
+        variant: 0,
     },
     ComponentSpec {
         id: "source.behavioral.behavioral_current_source",
@@ -733,6 +805,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "gain",
         default: 1.0,
         unit: "ratio",
+        variant: 0,
     },
     ComponentSpec {
         id: "source.behavioral.polynomial_source",
@@ -743,6 +816,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "gain",
         default: 1.0,
         unit: "ratio",
+        variant: 0,
     },
     ComponentSpec {
         id: "source.behavioral.table_source",
@@ -753,6 +827,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "gain",
         default: 1.0,
         unit: "ratio",
+        variant: 0,
     },
     ComponentSpec {
         id: "source.digital.digital_clock_source",
@@ -763,6 +838,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "frequency",
         default: 1000.0,
         unit: "Hz",
+        variant: 0,
     },
     ComponentSpec {
         id: "source.digital.digital_pattern_source",
@@ -773,6 +849,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "frequency",
         default: 1000.0,
         unit: "Hz",
+        variant: 0,
     },
     ComponentSpec {
         id: "source.digital.prbs_source",
@@ -783,6 +860,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "frequency",
         default: 1000.0,
         unit: "Hz",
+        variant: 0,
     },
     ComponentSpec {
         id: "source.battery.battery",
@@ -793,6 +871,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "voltage",
         default: 1.5,
         unit: "V",
+        variant: 0,
     },
     ComponentSpec {
         id: "source.battery.solar_cell",
@@ -803,6 +882,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "voltage",
         default: 1.5,
         unit: "V",
+        variant: 0,
     },
     ComponentSpec {
         id: "diode.rectifier.rectifier_diode",
@@ -813,6 +893,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "is",
         default: 1e-12,
         unit: "A",
+        variant: 0,
     },
     ComponentSpec {
         id: "diode.rectifier.fast_rectifier_diode",
@@ -823,6 +904,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "is",
         default: 1e-12,
         unit: "A",
+        variant: 0,
     },
     ComponentSpec {
         id: "diode.rectifier.schottky_diode",
@@ -833,6 +915,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "is",
         default: 1e-12,
         unit: "A",
+        variant: 0,
     },
     ComponentSpec {
         id: "diode.rectifier.silicon_carbide_schottky_diode",
@@ -843,6 +926,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "is",
         default: 1e-12,
         unit: "A",
+        variant: 0,
     },
     ComponentSpec {
         id: "diode.rectifier.zener_diode",
@@ -853,6 +937,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "is",
         default: 1e-12,
         unit: "A",
+        variant: 0,
     },
     ComponentSpec {
         id: "diode.rectifier.avalanche_diode",
@@ -863,6 +948,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "is",
         default: 1e-12,
         unit: "A",
+        variant: 0,
     },
     ComponentSpec {
         id: "diode.rectifier.tunnel_diode",
@@ -873,6 +959,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "is",
         default: 1e-12,
         unit: "A",
+        variant: 0,
     },
     ComponentSpec {
         id: "diode.rectifier.pin_diode",
@@ -883,6 +970,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "is",
         default: 1e-12,
         unit: "A",
+        variant: 0,
     },
     ComponentSpec {
         id: "diode.rectifier.varactor_diode",
@@ -893,6 +981,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "is",
         default: 1e-12,
         unit: "A",
+        variant: 0,
     },
     ComponentSpec {
         id: "diode.rectifier.current_limiting_diode",
@@ -903,6 +992,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "is",
         default: 1e-12,
         unit: "A",
+        variant: 0,
     },
     ComponentSpec {
         id: "diode.led.red_led",
@@ -913,6 +1003,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "is",
         default: 1e-12,
         unit: "A",
+        variant: 0,
     },
     ComponentSpec {
         id: "diode.led.green_led",
@@ -923,6 +1014,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "is",
         default: 1e-12,
         unit: "A",
+        variant: 0,
     },
     ComponentSpec {
         id: "diode.led.blue_led",
@@ -933,6 +1025,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "is",
         default: 1e-12,
         unit: "A",
+        variant: 0,
     },
     ComponentSpec {
         id: "diode.led.white_led",
@@ -943,6 +1036,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "is",
         default: 1e-12,
         unit: "A",
+        variant: 0,
     },
     ComponentSpec {
         id: "diode.led.ir_led",
@@ -953,6 +1047,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "is",
         default: 1e-12,
         unit: "A",
+        variant: 0,
     },
     ComponentSpec {
         id: "diode.led.uv_led",
@@ -963,6 +1058,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "is",
         default: 1e-12,
         unit: "A",
+        variant: 0,
     },
     ComponentSpec {
         id: "diode.led.laser_diode",
@@ -973,6 +1069,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "is",
         default: 1e-12,
         unit: "A",
+        variant: 0,
     },
     ComponentSpec {
         id: "diode.led.led_array",
@@ -983,6 +1080,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "is",
         default: 1e-12,
         unit: "A",
+        variant: 0,
     },
     ComponentSpec {
         id: "diode.photo.photodiode",
@@ -993,6 +1091,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "is",
         default: 1e-12,
         unit: "A",
+        variant: 0,
     },
     ComponentSpec {
         id: "diode.photo.avalanche_photodiode",
@@ -1003,6 +1102,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "is",
         default: 1e-12,
         unit: "A",
+        variant: 0,
     },
     ComponentSpec {
         id: "diode.opto.phototransistor",
@@ -1013,6 +1113,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "current_transfer_ratio",
         default: 1.0,
         unit: "ratio",
+        variant: 0,
     },
     ComponentSpec {
         id: "diode.opto.photo_darlington",
@@ -1023,6 +1124,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "current_transfer_ratio",
         default: 1.0,
         unit: "ratio",
+        variant: 0,
     },
     ComponentSpec {
         id: "diode.opto.optocoupler",
@@ -1033,6 +1135,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "current_transfer_ratio",
         default: 1.0,
         unit: "ratio",
+        variant: 0,
     },
     ComponentSpec {
         id: "diode.opto.photovoltaic_isolator",
@@ -1043,6 +1146,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "current_transfer_ratio",
         default: 1.0,
         unit: "ratio",
+        variant: 0,
     },
     ComponentSpec {
         id: "diode.opto.slotted_optical_switch",
@@ -1053,6 +1157,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "current_transfer_ratio",
         default: 1.0,
         unit: "ratio",
+        variant: 0,
     },
     ComponentSpec {
         id: "diode.opto.reflective_optical_sensor",
@@ -1063,6 +1168,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "current_transfer_ratio",
         default: 1.0,
         unit: "ratio",
+        variant: 0,
     },
     ComponentSpec {
         id: "diode.tvs.tvs_diode",
@@ -1073,6 +1179,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "is",
         default: 6.0,
         unit: "V",
+        variant: 0,
     },
     ComponentSpec {
         id: "diode.tvs.esd_protection_diode",
@@ -1083,6 +1190,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "is",
         default: 6.0,
         unit: "V",
+        variant: 0,
     },
     ComponentSpec {
         id: "diode.tvs.bidirectional_tvs",
@@ -1093,6 +1201,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "is",
         default: 6.0,
         unit: "V",
+        variant: 0,
     },
     ComponentSpec {
         id: "diode.tvs.snapback_esd_device",
@@ -1103,6 +1212,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "is",
         default: 6.0,
         unit: "V",
+        variant: 0,
     },
     ComponentSpec {
         id: "diode.tvs.tuning_varactor",
@@ -1113,6 +1223,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "is",
         default: 6.0,
         unit: "V",
+        variant: 0,
     },
     ComponentSpec {
         id: "diode.tvs.pin_limiter_diode",
@@ -1123,6 +1234,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "is",
         default: 6.0,
         unit: "V",
+        variant: 0,
     },
     ComponentSpec {
         id: "diode.bridge.diode_bridge",
@@ -1133,6 +1245,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "forward_voltage",
         default: 0.7,
         unit: "V",
+        variant: 0,
     },
     ComponentSpec {
         id: "diode.bridge.dual_diode",
@@ -1143,6 +1256,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "forward_voltage",
         default: 0.7,
         unit: "V",
+        variant: 0,
     },
     ComponentSpec {
         id: "diode.bridge.diode_array",
@@ -1153,6 +1267,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "forward_voltage",
         default: 0.7,
         unit: "V",
+        variant: 0,
     },
     ComponentSpec {
         id: "diode.bridge.schottky_bridge",
@@ -1163,6 +1278,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "forward_voltage",
         default: 0.7,
         unit: "V",
+        variant: 0,
     },
     ComponentSpec {
         id: "diode.other.backward_diode",
@@ -1173,6 +1289,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "is",
         default: 0.7,
         unit: "V",
+        variant: 0,
     },
     ComponentSpec {
         id: "diode.other.gunn_diode",
@@ -1183,6 +1300,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "is",
         default: 0.7,
         unit: "V",
+        variant: 0,
     },
     ComponentSpec {
         id: "diode.other.impatt_diode",
@@ -1193,6 +1311,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "is",
         default: 0.7,
         unit: "V",
+        variant: 0,
     },
     ComponentSpec {
         id: "diode.other.step_recovery_diode",
@@ -1203,6 +1322,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "is",
         default: 0.7,
         unit: "V",
+        variant: 0,
     },
     ComponentSpec {
         id: "transistor.bjt_npn.npn_small_signal",
@@ -1213,6 +1333,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "bf",
         default: 100.0,
         unit: "ratio",
+        variant: 0,
     },
     ComponentSpec {
         id: "transistor.bjt_npn.npn_power",
@@ -1223,6 +1344,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "bf",
         default: 100.0,
         unit: "ratio",
+        variant: 0,
     },
     ComponentSpec {
         id: "transistor.bjt_npn.npn_rf",
@@ -1233,6 +1355,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "bf",
         default: 100.0,
         unit: "ratio",
+        variant: 0,
     },
     ComponentSpec {
         id: "transistor.bjt_npn.npn_switching",
@@ -1243,6 +1366,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "bf",
         default: 100.0,
         unit: "ratio",
+        variant: 0,
     },
     ComponentSpec {
         id: "transistor.bjt_npn.npn_darlington",
@@ -1253,6 +1377,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "bf",
         default: 100.0,
         unit: "ratio",
+        variant: 0,
     },
     ComponentSpec {
         id: "transistor.bjt_npn.npn_digital",
@@ -1263,6 +1388,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "bf",
         default: 100.0,
         unit: "ratio",
+        variant: 0,
     },
     ComponentSpec {
         id: "transistor.bjt_pnp.pnp_small_signal",
@@ -1273,6 +1399,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "bf",
         default: 100.0,
         unit: "ratio",
+        variant: 0,
     },
     ComponentSpec {
         id: "transistor.bjt_pnp.pnp_power",
@@ -1283,6 +1410,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "bf",
         default: 100.0,
         unit: "ratio",
+        variant: 0,
     },
     ComponentSpec {
         id: "transistor.bjt_pnp.pnp_rf",
@@ -1293,6 +1421,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "bf",
         default: 100.0,
         unit: "ratio",
+        variant: 0,
     },
     ComponentSpec {
         id: "transistor.bjt_pnp.pnp_switching",
@@ -1303,6 +1432,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "bf",
         default: 100.0,
         unit: "ratio",
+        variant: 0,
     },
     ComponentSpec {
         id: "transistor.bjt_pnp.pnp_darlington",
@@ -1313,6 +1443,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "bf",
         default: 100.0,
         unit: "ratio",
+        variant: 0,
     },
     ComponentSpec {
         id: "transistor.bjt_pnp.pnp_digital",
@@ -1323,6 +1454,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "bf",
         default: 100.0,
         unit: "ratio",
+        variant: 0,
     },
     ComponentSpec {
         id: "transistor.bjt_array.dual_npn",
@@ -1333,6 +1465,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "bf",
         default: 100.0,
         unit: "ratio",
+        variant: 0,
     },
     ComponentSpec {
         id: "transistor.bjt_array.dual_pnp",
@@ -1343,6 +1476,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "bf",
         default: 100.0,
         unit: "ratio",
+        variant: 0,
     },
     ComponentSpec {
         id: "transistor.bjt_array.npn_pnp_pair",
@@ -1353,6 +1487,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "bf",
         default: 100.0,
         unit: "ratio",
+        variant: 0,
     },
     ComponentSpec {
         id: "transistor.bjt_array.darlington_array",
@@ -1363,6 +1498,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "bf",
         default: 100.0,
         unit: "ratio",
+        variant: 0,
     },
     ComponentSpec {
         id: "transistor.bjt_array.sziklai_pair",
@@ -1373,6 +1509,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "bf",
         default: 100.0,
         unit: "ratio",
+        variant: 0,
     },
     ComponentSpec {
         id: "transistor.bjt_array.bias_resistor_transistor",
@@ -1383,6 +1520,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "bf",
         default: 100.0,
         unit: "ratio",
+        variant: 0,
     },
     ComponentSpec {
         id: "transistor.bjt_array.transistor_array_4x",
@@ -1393,6 +1531,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "bf",
         default: 100.0,
         unit: "ratio",
+        variant: 0,
     },
     ComponentSpec {
         id: "transistor.bjt_array.transistor_array_8x",
@@ -1403,6 +1542,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "bf",
         default: 100.0,
         unit: "ratio",
+        variant: 0,
     },
     ComponentSpec {
         id: "transistor.jfet_n.n_jfet",
@@ -1413,6 +1553,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "vto",
         default: -2.0,
         unit: "V",
+        variant: 0,
     },
     ComponentSpec {
         id: "transistor.jfet_n.n_jfet_switch",
@@ -1423,6 +1564,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "vto",
         default: -2.0,
         unit: "V",
+        variant: 0,
     },
     ComponentSpec {
         id: "transistor.jfet_n.dual_n_jfet",
@@ -1433,6 +1575,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "vto",
         default: -2.0,
         unit: "V",
+        variant: 0,
     },
     ComponentSpec {
         id: "transistor.jfet_n.n_jfet_rf",
@@ -1443,6 +1586,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "vto",
         default: -2.0,
         unit: "V",
+        variant: 0,
     },
     ComponentSpec {
         id: "transistor.jfet_p.p_jfet",
@@ -1453,6 +1597,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "vto",
         default: 2.0,
         unit: "V",
+        variant: 0,
     },
     ComponentSpec {
         id: "transistor.jfet_p.p_jfet_switch",
@@ -1463,6 +1608,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "vto",
         default: 2.0,
         unit: "V",
+        variant: 0,
     },
     ComponentSpec {
         id: "transistor.jfet_p.dual_p_jfet",
@@ -1473,6 +1619,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "vto",
         default: 2.0,
         unit: "V",
+        variant: 0,
     },
     ComponentSpec {
         id: "transistor.jfet_p.p_jfet_rf",
@@ -1483,6 +1630,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "vto",
         default: 2.0,
         unit: "V",
+        variant: 0,
     },
     ComponentSpec {
         id: "transistor.mosfet_n.n_mosfet_enhancement",
@@ -1493,6 +1641,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "vto",
         default: 2.0,
         unit: "V",
+        variant: 0,
     },
     ComponentSpec {
         id: "transistor.mosfet_n.n_mosfet_depletion",
@@ -1503,6 +1652,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "vto",
         default: 2.0,
         unit: "V",
+        variant: 0,
     },
     ComponentSpec {
         id: "transistor.mosfet_n.n_mosfet_body_diode",
@@ -1513,6 +1663,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "vto",
         default: 2.0,
         unit: "V",
+        variant: 0,
     },
     ComponentSpec {
         id: "transistor.mosfet_n.dual_n_mosfet",
@@ -1523,6 +1674,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "vto",
         default: 2.0,
         unit: "V",
+        variant: 0,
     },
     ComponentSpec {
         id: "transistor.mosfet_n.four_terminal_n_mosfet",
@@ -1533,6 +1685,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "vto",
         default: 2.0,
         unit: "V",
+        variant: 0,
     },
     ComponentSpec {
         id: "transistor.mosfet_n.n_mosfet_with_capacitance",
@@ -1543,6 +1696,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "vto",
         default: 2.0,
         unit: "V",
+        variant: 0,
     },
     ComponentSpec {
         id: "transistor.mosfet_n.n_mosfet_temperature_dependent",
@@ -1553,6 +1707,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "vto",
         default: 2.0,
         unit: "V",
+        variant: 0,
     },
     ComponentSpec {
         id: "transistor.mosfet_n.n_mosfet_power",
@@ -1563,6 +1718,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "vto",
         default: 2.0,
         unit: "V",
+        variant: 0,
     },
     ComponentSpec {
         id: "transistor.mosfet_p.p_mosfet_enhancement",
@@ -1573,6 +1729,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "vto",
         default: -2.0,
         unit: "V",
+        variant: 0,
     },
     ComponentSpec {
         id: "transistor.mosfet_p.p_mosfet_depletion",
@@ -1583,6 +1740,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "vto",
         default: -2.0,
         unit: "V",
+        variant: 0,
     },
     ComponentSpec {
         id: "transistor.mosfet_p.p_mosfet_body_diode",
@@ -1593,6 +1751,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "vto",
         default: -2.0,
         unit: "V",
+        variant: 0,
     },
     ComponentSpec {
         id: "transistor.mosfet_p.dual_p_mosfet",
@@ -1603,6 +1762,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "vto",
         default: -2.0,
         unit: "V",
+        variant: 0,
     },
     ComponentSpec {
         id: "transistor.mosfet_p.four_terminal_p_mosfet",
@@ -1613,6 +1773,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "vto",
         default: -2.0,
         unit: "V",
+        variant: 0,
     },
     ComponentSpec {
         id: "transistor.mosfet_p.p_mosfet_with_capacitance",
@@ -1623,6 +1784,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "vto",
         default: -2.0,
         unit: "V",
+        variant: 0,
     },
     ComponentSpec {
         id: "transistor.mosfet_p.p_mosfet_temperature_dependent",
@@ -1633,6 +1795,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "vto",
         default: -2.0,
         unit: "V",
+        variant: 0,
     },
     ComponentSpec {
         id: "transistor.power.power_n_mosfet",
@@ -1643,6 +1806,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "vto",
         default: 2.0,
         unit: "V",
+        variant: 0,
     },
     ComponentSpec {
         id: "transistor.power.power_p_mosfet",
@@ -1653,6 +1817,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "vto",
         default: 2.0,
         unit: "V",
+        variant: 0,
     },
     ComponentSpec {
         id: "transistor.power_semiconductor.igbt",
@@ -1663,6 +1828,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "threshold",
         default: 5.0,
         unit: "V",
+        variant: 0,
     },
     ComponentSpec {
         id: "transistor.power_semiconductor.igbt_with_diode",
@@ -1673,6 +1839,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "threshold",
         default: 5.0,
         unit: "V",
+        variant: 0,
     },
     ComponentSpec {
         id: "transistor.power_semiconductor.gan_hemt",
@@ -1683,6 +1850,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "threshold",
         default: 5.0,
         unit: "V",
+        variant: 0,
     },
     ComponentSpec {
         id: "transistor.power_semiconductor.sic_mosfet",
@@ -1693,6 +1861,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "threshold",
         default: 5.0,
         unit: "V",
+        variant: 0,
     },
     ComponentSpec {
         id: "transistor.power_semiconductor.sic_schottky_fet",
@@ -1703,6 +1872,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "threshold",
         default: 5.0,
         unit: "V",
+        variant: 0,
     },
     ComponentSpec {
         id: "transistor.power_semiconductor.cascode_gan",
@@ -1713,6 +1883,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "threshold",
         default: 5.0,
         unit: "V",
+        variant: 0,
     },
     ComponentSpec {
         id: "transistor.other.ujt",
@@ -1723,6 +1894,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "gain",
         default: 10.0,
         unit: "ratio",
+        variant: 0,
     },
     ComponentSpec {
         id: "transistor.other.put",
@@ -1733,6 +1905,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "gain",
         default: 10.0,
         unit: "ratio",
+        variant: 0,
     },
     ComponentSpec {
         id: "transistor.other.mesfet",
@@ -1743,6 +1916,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "gain",
         default: 10.0,
         unit: "ratio",
+        variant: 0,
     },
     ComponentSpec {
         id: "transistor.other.hemt",
@@ -1753,6 +1927,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "gain",
         default: 10.0,
         unit: "ratio",
+        variant: 0,
     },
     ComponentSpec {
         id: "protection.thyristor.scr",
@@ -1763,6 +1938,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "holding_current",
         default: 0.01,
         unit: "A",
+        variant: 0,
     },
     ComponentSpec {
         id: "protection.thyristor.triac",
@@ -1773,6 +1949,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "holding_current",
         default: 0.01,
         unit: "A",
+        variant: 0,
     },
     ComponentSpec {
         id: "protection.thyristor.diac",
@@ -1783,6 +1960,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "holding_current",
         default: 0.01,
         unit: "A",
+        variant: 0,
     },
     ComponentSpec {
         id: "protection.thyristor.gto",
@@ -1793,6 +1971,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "holding_current",
         default: 0.01,
         unit: "A",
+        variant: 0,
     },
     ComponentSpec {
         id: "protection.thyristor.mct",
@@ -1803,6 +1982,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "holding_current",
         default: 0.01,
         unit: "A",
+        variant: 0,
     },
     ComponentSpec {
         id: "protection.thyristor.scs",
@@ -1813,6 +1993,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "holding_current",
         default: 0.01,
         unit: "A",
+        variant: 0,
     },
     ComponentSpec {
         id: "protection.thyristor.lascr",
@@ -1823,6 +2004,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "holding_current",
         default: 0.01,
         unit: "A",
+        variant: 0,
     },
     ComponentSpec {
         id: "protection.thyristor.put_thyristor",
@@ -1833,6 +2015,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "holding_current",
         default: 0.01,
         unit: "A",
+        variant: 0,
     },
     ComponentSpec {
         id: "protection.device.fuse",
@@ -1843,6 +2026,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "trip_current",
         default: 1.0,
         unit: "A",
+        variant: 0,
     },
     ComponentSpec {
         id: "protection.device.resettable_ptc_fuse",
@@ -1853,6 +2037,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "trip_current",
         default: 1.0,
         unit: "A",
+        variant: 0,
     },
     ComponentSpec {
         id: "protection.device.tvs_diode",
@@ -1863,6 +2048,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "trip_current",
         default: 1.0,
         unit: "A",
+        variant: 0,
     },
     ComponentSpec {
         id: "protection.device.metal_oxide_varistor",
@@ -1873,6 +2059,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "trip_current",
         default: 1.0,
         unit: "A",
+        variant: 0,
     },
     ComponentSpec {
         id: "protection.device.polyfuse",
@@ -1883,6 +2070,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "trip_current",
         default: 1.0,
         unit: "A",
+        variant: 0,
     },
     ComponentSpec {
         id: "protection.device.thermal_fuse",
@@ -1893,6 +2081,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "trip_current",
         default: 1.0,
         unit: "A",
+        variant: 0,
     },
     ComponentSpec {
         id: "protection.breaker.spark_gap",
@@ -1903,6 +2092,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "trip_current",
         default: 10.0,
         unit: "A",
+        variant: 0,
     },
     ComponentSpec {
         id: "protection.breaker.crowbar",
@@ -1913,6 +2103,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "trip_current",
         default: 10.0,
         unit: "A",
+        variant: 0,
     },
     ComponentSpec {
         id: "protection.breaker.circuit_breaker",
@@ -1923,6 +2114,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "trip_current",
         default: 10.0,
         unit: "A",
+        variant: 0,
     },
     ComponentSpec {
         id: "protection.breaker.surge_arrester",
@@ -1933,6 +2125,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "trip_current",
         default: 10.0,
         unit: "A",
+        variant: 0,
     },
     ComponentSpec {
         id: "switch.mechanical.spst_switch",
@@ -1943,6 +2136,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "ron",
         default: 0.1,
         unit: "ohm",
+        variant: 0,
     },
     ComponentSpec {
         id: "switch.mechanical.spdt_switch",
@@ -1953,6 +2147,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "ron",
         default: 0.1,
         unit: "ohm",
+        variant: 0,
     },
     ComponentSpec {
         id: "switch.mechanical.dpst_switch",
@@ -1963,6 +2158,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "ron",
         default: 0.1,
         unit: "ohm",
+        variant: 0,
     },
     ComponentSpec {
         id: "switch.mechanical.dpdt_switch",
@@ -1973,6 +2169,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "ron",
         default: 0.1,
         unit: "ohm",
+        variant: 0,
     },
     ComponentSpec {
         id: "switch.mechanical.pushbutton",
@@ -1983,6 +2180,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "ron",
         default: 0.1,
         unit: "ohm",
+        variant: 0,
     },
     ComponentSpec {
         id: "switch.mechanical.toggle_switch",
@@ -1993,6 +2191,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "ron",
         default: 0.1,
         unit: "ohm",
+        variant: 0,
     },
     ComponentSpec {
         id: "switch.mechanical.dip_switch",
@@ -2003,6 +2202,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "ron",
         default: 0.1,
         unit: "ohm",
+        variant: 0,
     },
     ComponentSpec {
         id: "switch.mechanical.reed_switch",
@@ -2013,6 +2213,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "ron",
         default: 0.1,
         unit: "ohm",
+        variant: 0,
     },
     ComponentSpec {
         id: "switch.relay.electromechanical_relay",
@@ -2023,6 +2224,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "rcoil",
         default: 100.0,
         unit: "ohm",
+        variant: 0,
     },
     ComponentSpec {
         id: "switch.relay.latching_relay",
@@ -2033,6 +2235,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "rcoil",
         default: 100.0,
         unit: "ohm",
+        variant: 0,
     },
     ComponentSpec {
         id: "switch.relay.reed_relay",
@@ -2043,6 +2246,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "rcoil",
         default: 100.0,
         unit: "ohm",
+        variant: 0,
     },
     ComponentSpec {
         id: "switch.ssr.solid_state_relay",
@@ -2053,6 +2257,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "isolation_voltage",
         default: 2500.0,
         unit: "V",
+        variant: 0,
     },
     ComponentSpec {
         id: "switch.ssr.opto_mosfet_relay",
@@ -2063,6 +2268,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "isolation_voltage",
         default: 2500.0,
         unit: "V",
+        variant: 0,
     },
     ComponentSpec {
         id: "switch.ssr.triac_output_ssr",
@@ -2073,6 +2279,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "isolation_voltage",
         default: 2500.0,
         unit: "V",
+        variant: 0,
     },
     ComponentSpec {
         id: "switch.ssr.time_delay_relay",
@@ -2083,6 +2290,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "isolation_voltage",
         default: 2500.0,
         unit: "V",
+        variant: 0,
     },
     ComponentSpec {
         id: "switch.analog.analog_switch",
@@ -2093,6 +2301,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "ron",
         default: 1.0,
         unit: "ohm",
+        variant: 0,
     },
     ComponentSpec {
         id: "switch.analog.spdt_analog_switch",
@@ -2103,6 +2312,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "ron",
         default: 1.0,
         unit: "ohm",
+        variant: 0,
     },
     ComponentSpec {
         id: "switch.analog.4_to_1_analog_multiplexer",
@@ -2113,6 +2323,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "ron",
         default: 1.0,
         unit: "ohm",
+        variant: 0,
     },
     ComponentSpec {
         id: "switch.analog.8_to_1_analog_multiplexer",
@@ -2123,6 +2334,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "ron",
         default: 1.0,
         unit: "ohm",
+        variant: 0,
     },
     ComponentSpec {
         id: "switch.analog.analog_demultiplexer",
@@ -2133,6 +2345,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "ron",
         default: 1.0,
         unit: "ohm",
+        variant: 0,
     },
     ComponentSpec {
         id: "switch.connector.header_connector",
@@ -2143,6 +2356,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "voltage",
         default: 0.0,
         unit: "V",
+        variant: 0,
     },
     ComponentSpec {
         id: "switch.connector.terminal_block",
@@ -2153,6 +2367,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "voltage",
         default: 0.0,
         unit: "V",
+        variant: 0,
     },
     ComponentSpec {
         id: "switch.connector.jumper",
@@ -2163,6 +2378,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "voltage",
         default: 0.0,
         unit: "V",
+        variant: 0,
     },
     ComponentSpec {
         id: "switch.connector.test_point",
@@ -2173,6 +2389,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "voltage",
         default: 0.0,
         unit: "V",
+        variant: 0,
     },
     ComponentSpec {
         id: "switch.connector.ic_socket",
@@ -2183,6 +2400,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "voltage",
         default: 0.0,
         unit: "V",
+        variant: 0,
     },
     ComponentSpec {
         id: "analog.opamp.ideal_opamp",
@@ -2193,6 +2411,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "gain",
         default: 100000.0,
         unit: "ratio",
+        variant: 0,
     },
     ComponentSpec {
         id: "analog.opamp.single_opamp",
@@ -2203,6 +2422,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "gain",
         default: 100000.0,
         unit: "ratio",
+        variant: 0,
     },
     ComponentSpec {
         id: "analog.opamp.dual_opamp",
@@ -2213,6 +2433,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "gain",
         default: 100000.0,
         unit: "ratio",
+        variant: 0,
     },
     ComponentSpec {
         id: "analog.opamp.quad_opamp",
@@ -2223,6 +2444,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "gain",
         default: 100000.0,
         unit: "ratio",
+        variant: 0,
     },
     ComponentSpec {
         id: "analog.opamp.railtorail_opamp",
@@ -2233,6 +2455,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "gain",
         default: 100000.0,
         unit: "ratio",
+        variant: 0,
     },
     ComponentSpec {
         id: "analog.opamp.precision_opamp",
@@ -2243,6 +2466,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "gain",
         default: 100000.0,
         unit: "ratio",
+        variant: 0,
     },
     ComponentSpec {
         id: "analog.opamp.low_noise_opamp",
@@ -2253,6 +2477,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "gain",
         default: 100000.0,
         unit: "ratio",
+        variant: 0,
     },
     ComponentSpec {
         id: "analog.opamp.high_speed_opamp",
@@ -2263,6 +2488,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "gain",
         default: 100000.0,
         unit: "ratio",
+        variant: 0,
     },
     ComponentSpec {
         id: "analog.opamp.power_opamp",
@@ -2273,6 +2499,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "gain",
         default: 100000.0,
         unit: "ratio",
+        variant: 0,
     },
     ComponentSpec {
         id: "analog.opamp.fully_differential_opamp",
@@ -2283,6 +2510,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "gain",
         default: 100000.0,
         unit: "ratio",
+        variant: 0,
     },
     ComponentSpec {
         id: "analog.opamp.chopper_opamp",
@@ -2293,6 +2521,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "gain",
         default: 100000.0,
         unit: "ratio",
+        variant: 0,
     },
     ComponentSpec {
         id: "analog.opamp.current_feedback_opamp",
@@ -2303,6 +2532,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "gain",
         default: 100000.0,
         unit: "ratio",
+        variant: 0,
     },
     ComponentSpec {
         id: "analog.opamp.instrumentation_opamp",
@@ -2313,6 +2543,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "gain",
         default: 100000.0,
         unit: "ratio",
+        variant: 0,
     },
     ComponentSpec {
         id: "analog.opamp.isolation_opamp",
@@ -2323,6 +2554,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "gain",
         default: 100000.0,
         unit: "ratio",
+        variant: 0,
     },
     ComponentSpec {
         id: "analog.opamp.audio_opamp",
@@ -2333,6 +2565,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "gain",
         default: 100000.0,
         unit: "ratio",
+        variant: 0,
     },
     ComponentSpec {
         id: "analog.comparator.comparator",
@@ -2343,6 +2576,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "gain",
         default: 10000.0,
         unit: "ratio",
+        variant: 0,
     },
     ComponentSpec {
         id: "analog.comparator.open_collector_comparator",
@@ -2353,6 +2587,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "gain",
         default: 10000.0,
         unit: "ratio",
+        variant: 0,
     },
     ComponentSpec {
         id: "analog.comparator.pushpull_comparator",
@@ -2363,6 +2598,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "gain",
         default: 10000.0,
         unit: "ratio",
+        variant: 0,
     },
     ComponentSpec {
         id: "analog.comparator.window_comparator",
@@ -2373,6 +2609,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "gain",
         default: 10000.0,
         unit: "ratio",
+        variant: 0,
     },
     ComponentSpec {
         id: "analog.comparator.hysteresis_comparator",
@@ -2383,6 +2620,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "gain",
         default: 10000.0,
         unit: "ratio",
+        variant: 0,
     },
     ComponentSpec {
         id: "analog.comparator.high_speed_comparator",
@@ -2393,6 +2631,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "gain",
         default: 10000.0,
         unit: "ratio",
+        variant: 0,
     },
     ComponentSpec {
         id: "analog.instrumentation.instrumentation_amplifier",
@@ -2403,6 +2642,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "gain",
         default: 1.0,
         unit: "ratio",
+        variant: 0,
     },
     ComponentSpec {
         id: "analog.instrumentation.isolation_amplifier",
@@ -2413,6 +2653,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "gain",
         default: 1.0,
         unit: "ratio",
+        variant: 0,
     },
     ComponentSpec {
         id: "analog.instrumentation.current_sense_amplifier",
@@ -2423,6 +2664,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "gain",
         default: 1.0,
         unit: "ratio",
+        variant: 0,
     },
     ComponentSpec {
         id: "analog.instrumentation.difference_amplifier",
@@ -2433,6 +2675,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "gain",
         default: 1.0,
         unit: "ratio",
+        variant: 0,
     },
     ComponentSpec {
         id: "analog.instrumentation.programmable_gain_amplifier",
@@ -2443,6 +2686,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "gain",
         default: 1.0,
         unit: "ratio",
+        variant: 0,
     },
     ComponentSpec {
         id: "analog.ota.ota",
@@ -2453,6 +2697,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "gain",
         default: 1000.0,
         unit: "ratio",
+        variant: 0,
     },
     ComponentSpec {
         id: "analog.ota.norton_amplifier",
@@ -2463,6 +2708,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "gain",
         default: 1000.0,
         unit: "ratio",
+        variant: 0,
     },
     ComponentSpec {
         id: "analog.ota.audio_power_amplifier",
@@ -2473,6 +2719,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "gain",
         default: 1000.0,
         unit: "ratio",
+        variant: 0,
     },
     ComponentSpec {
         id: "analog.ota.video_amplifier",
@@ -2483,6 +2730,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "gain",
         default: 1000.0,
         unit: "ratio",
+        variant: 0,
     },
     ComponentSpec {
         id: "analog.ota.buffer_amplifier",
@@ -2493,6 +2741,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "gain",
         default: 1000.0,
         unit: "ratio",
+        variant: 0,
     },
     ComponentSpec {
         id: "analog.timer.555_timer",
@@ -2503,6 +2752,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "period",
         default: 0.001,
         unit: "s",
+        variant: 0,
     },
     ComponentSpec {
         id: "analog.timer.monostable_multivibrator",
@@ -2513,6 +2763,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "period",
         default: 0.001,
         unit: "s",
+        variant: 0,
     },
     ComponentSpec {
         id: "analog.timer.astable_multivibrator",
@@ -2523,6 +2774,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "period",
         default: 0.001,
         unit: "s",
+        variant: 0,
     },
     ComponentSpec {
         id: "analog.timer.voltage_controlled_oscillator",
@@ -2533,6 +2785,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "period",
         default: 0.001,
         unit: "s",
+        variant: 0,
     },
     ComponentSpec {
         id: "analog.timer.pll",
@@ -2543,6 +2796,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "period",
         default: 0.001,
         unit: "s",
+        variant: 0,
     },
     ComponentSpec {
         id: "analog.reference.shunt_voltage_reference",
@@ -2553,6 +2807,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "voltage",
         default: 2.5,
         unit: "V",
+        variant: 0,
     },
     ComponentSpec {
         id: "analog.reference.series_voltage_reference",
@@ -2563,6 +2818,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "voltage",
         default: 2.5,
         unit: "V",
+        variant: 0,
     },
     ComponentSpec {
         id: "analog.reference.bandgap_reference",
@@ -2573,6 +2829,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "voltage",
         default: 2.5,
         unit: "V",
+        variant: 0,
     },
     ComponentSpec {
         id: "analog.reference.current_reference",
@@ -2583,126 +2840,139 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "voltage",
         default: 2.5,
         unit: "V",
+        variant: 0,
     },
     ComponentSpec {
         id: "logic.gate.and_gate",
         name: "AND gate",
         class: ModelClass::LogicGate,
-        device: None,
-        pins: 3,
-        parameter: "propagation_delay",
-        default: 1e-08,
-        unit: "s",
+        device: Some(DeviceKind::LogicGate),
+        pins: 5,
+        parameter: "vth",
+        default: 2.5,
+        unit: "V",
+        variant: 0,
     },
     ComponentSpec {
         id: "logic.gate.or_gate",
         name: "OR gate",
         class: ModelClass::LogicGate,
-        device: None,
-        pins: 3,
-        parameter: "propagation_delay",
-        default: 1e-08,
-        unit: "s",
+        device: Some(DeviceKind::LogicGate),
+        pins: 5,
+        parameter: "vth",
+        default: 2.5,
+        unit: "V",
+        variant: 1,
     },
     ComponentSpec {
         id: "logic.gate.not_gate",
         name: "NOT gate",
         class: ModelClass::LogicGate,
-        device: None,
-        pins: 3,
-        parameter: "propagation_delay",
-        default: 1e-08,
-        unit: "s",
+        device: Some(DeviceKind::LogicGate),
+        pins: 5,
+        parameter: "vth",
+        default: 2.5,
+        unit: "V",
+        variant: 2,
     },
     ComponentSpec {
         id: "logic.gate.nand_gate",
         name: "NAND gate",
         class: ModelClass::LogicGate,
-        device: None,
-        pins: 3,
-        parameter: "propagation_delay",
-        default: 1e-08,
-        unit: "s",
+        device: Some(DeviceKind::LogicGate),
+        pins: 5,
+        parameter: "vth",
+        default: 2.5,
+        unit: "V",
+        variant: 3,
     },
     ComponentSpec {
         id: "logic.gate.nor_gate",
         name: "NOR gate",
         class: ModelClass::LogicGate,
-        device: None,
-        pins: 3,
-        parameter: "propagation_delay",
-        default: 1e-08,
-        unit: "s",
+        device: Some(DeviceKind::LogicGate),
+        pins: 5,
+        parameter: "vth",
+        default: 2.5,
+        unit: "V",
+        variant: 4,
     },
     ComponentSpec {
         id: "logic.gate.xor_gate",
         name: "XOR gate",
         class: ModelClass::LogicGate,
-        device: None,
-        pins: 3,
-        parameter: "propagation_delay",
-        default: 1e-08,
-        unit: "s",
+        device: Some(DeviceKind::LogicGate),
+        pins: 5,
+        parameter: "vth",
+        default: 2.5,
+        unit: "V",
+        variant: 5,
     },
     ComponentSpec {
         id: "logic.gate.xnor_gate",
         name: "XNOR gate",
         class: ModelClass::LogicGate,
-        device: None,
-        pins: 3,
-        parameter: "propagation_delay",
-        default: 1e-08,
-        unit: "s",
+        device: Some(DeviceKind::LogicGate),
+        pins: 5,
+        parameter: "vth",
+        default: 2.5,
+        unit: "V",
+        variant: 6,
     },
     ComponentSpec {
         id: "logic.gate.buffer",
         name: "buffer",
         class: ModelClass::LogicGate,
-        device: None,
-        pins: 3,
-        parameter: "propagation_delay",
-        default: 1e-08,
-        unit: "s",
+        device: Some(DeviceKind::LogicGate),
+        pins: 5,
+        parameter: "vth",
+        default: 2.5,
+        unit: "V",
+        variant: 7,
     },
     ComponentSpec {
         id: "logic.gate.schmitt_trigger",
         name: "Schmitt trigger",
         class: ModelClass::LogicGate,
-        device: None,
-        pins: 3,
-        parameter: "propagation_delay",
-        default: 1e-08,
-        unit: "s",
+        device: Some(DeviceKind::LogicGate),
+        pins: 5,
+        parameter: "vth",
+        default: 2.5,
+        unit: "V",
+        variant: 8,
     },
     ComponentSpec {
-        id: "logic.gate.open_drain_buffer",
+        id: "logic.gate_special.open_drain_buffer",
         name: "open drain buffer",
-        class: ModelClass::LogicGate,
+        class: ModelClass::LogicGateSpecial,
         device: None,
-        pins: 3,
+        pins: 4,
         parameter: "propagation_delay",
         default: 1e-08,
         unit: "s",
+        variant: 0,
     },
     ComponentSpec {
-        id: "logic.gate.tristate_buffer",
+        id: "logic.gate_special.tristate_buffer",
         name: "tri-state buffer",
-        class: ModelClass::LogicGate,
+        class: ModelClass::LogicGateSpecial,
         device: None,
-        pins: 3,
+        pins: 4,
         parameter: "propagation_delay",
         default: 1e-08,
         unit: "s",
+        variant: 0,
     },
     ComponentSpec {
-        id: "logic.gate.transmission_gate",
+        id: "logic.gate_special.transmission_gate",
         name: "transmission gate",
-        class: ModelClass::LogicGate,
+        class: ModelClass::LogicGateSpecial,
         device: None,
-        pins: 3,
+        pins: 4,
         parameter: "propagation_delay",
         default: 1e-08,
         unit: "s",
+        variant: 0,
     },
     ComponentSpec {
         id: "logic.flipflop.sr_latch",
@@ -2713,6 +2983,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "propagation_delay",
         default: 1e-08,
         unit: "s",
+        variant: 0,
     },
     ComponentSpec {
         id: "logic.flipflop.d_latch",
@@ -2723,6 +2994,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "propagation_delay",
         default: 1e-08,
         unit: "s",
+        variant: 0,
     },
     ComponentSpec {
         id: "logic.flipflop.d_flipflop",
@@ -2733,6 +3005,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "propagation_delay",
         default: 1e-08,
         unit: "s",
+        variant: 0,
     },
     ComponentSpec {
         id: "logic.flipflop.jk_flipflop",
@@ -2743,6 +3016,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "propagation_delay",
         default: 1e-08,
         unit: "s",
+        variant: 0,
     },
     ComponentSpec {
         id: "logic.flipflop.t_flipflop",
@@ -2753,6 +3027,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "propagation_delay",
         default: 1e-08,
         unit: "s",
+        variant: 0,
     },
     ComponentSpec {
         id: "logic.flipflop.edge_triggered_d_flipflop",
@@ -2763,6 +3038,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "propagation_delay",
         default: 1e-08,
         unit: "s",
+        variant: 0,
     },
     ComponentSpec {
         id: "logic.flipflop.master_slave_jk",
@@ -2773,6 +3049,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "propagation_delay",
         default: 1e-08,
         unit: "s",
+        variant: 0,
     },
     ComponentSpec {
         id: "logic.flipflop.dual_d_flipflop",
@@ -2783,6 +3060,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "propagation_delay",
         default: 1e-08,
         unit: "s",
+        variant: 0,
     },
     ComponentSpec {
         id: "logic.flipflop.quad_d_flipflop",
@@ -2793,6 +3071,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "propagation_delay",
         default: 1e-08,
         unit: "s",
+        variant: 0,
     },
     ComponentSpec {
         id: "logic.flipflop.octal_latch",
@@ -2803,6 +3082,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "propagation_delay",
         default: 1e-08,
         unit: "s",
+        variant: 0,
     },
     ComponentSpec {
         id: "logic.counter.4bit_counter",
@@ -2813,6 +3093,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "bits",
         default: 4.0,
         unit: "count",
+        variant: 0,
     },
     ComponentSpec {
         id: "logic.counter.8bit_counter",
@@ -2823,6 +3104,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "bits",
         default: 4.0,
         unit: "count",
+        variant: 0,
     },
     ComponentSpec {
         id: "logic.counter.decade_counter",
@@ -2833,6 +3115,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "bits",
         default: 4.0,
         unit: "count",
+        variant: 0,
     },
     ComponentSpec {
         id: "logic.counter.up_down_counter",
@@ -2843,6 +3126,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "bits",
         default: 4.0,
         unit: "count",
+        variant: 0,
     },
     ComponentSpec {
         id: "logic.counter.ripple_counter",
@@ -2853,6 +3137,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "bits",
         default: 4.0,
         unit: "count",
+        variant: 0,
     },
     ComponentSpec {
         id: "logic.counter.johnson_counter",
@@ -2863,6 +3148,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "bits",
         default: 4.0,
         unit: "count",
+        variant: 0,
     },
     ComponentSpec {
         id: "logic.counter.4bit_shift_register",
@@ -2873,6 +3159,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "bits",
         default: 4.0,
         unit: "count",
+        variant: 0,
     },
     ComponentSpec {
         id: "logic.counter.8bit_shift_register",
@@ -2883,6 +3170,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "bits",
         default: 4.0,
         unit: "count",
+        variant: 0,
     },
     ComponentSpec {
         id: "logic.counter.serial_in_parallel_out",
@@ -2893,6 +3181,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "bits",
         default: 4.0,
         unit: "count",
+        variant: 0,
     },
     ComponentSpec {
         id: "logic.counter.parallel_in_serial_out",
@@ -2903,6 +3192,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "bits",
         default: 4.0,
         unit: "count",
+        variant: 0,
     },
     ComponentSpec {
         id: "logic.mux.2_to_1_multiplexer",
@@ -2913,6 +3203,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "channels",
         default: 4.0,
         unit: "count",
+        variant: 0,
     },
     ComponentSpec {
         id: "logic.mux.4_to_1_multiplexer",
@@ -2923,6 +3214,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "channels",
         default: 4.0,
         unit: "count",
+        variant: 0,
     },
     ComponentSpec {
         id: "logic.mux.8_to_1_multiplexer",
@@ -2933,6 +3225,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "channels",
         default: 4.0,
         unit: "count",
+        variant: 0,
     },
     ComponentSpec {
         id: "logic.mux.1_to_2_demultiplexer",
@@ -2943,6 +3236,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "channels",
         default: 4.0,
         unit: "count",
+        variant: 0,
     },
     ComponentSpec {
         id: "logic.mux.2_to_4_decoder",
@@ -2953,6 +3247,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "channels",
         default: 4.0,
         unit: "count",
+        variant: 0,
     },
     ComponentSpec {
         id: "logic.mux.3_to_8_decoder",
@@ -2963,6 +3258,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "channels",
         default: 4.0,
         unit: "count",
+        variant: 0,
     },
     ComponentSpec {
         id: "logic.mux.8_to_3_encoder",
@@ -2973,6 +3269,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "channels",
         default: 4.0,
         unit: "count",
+        variant: 0,
     },
     ComponentSpec {
         id: "logic.mux.priority_encoder",
@@ -2983,6 +3280,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "channels",
         default: 4.0,
         unit: "count",
+        variant: 0,
     },
     ComponentSpec {
         id: "logic.adder.half_adder",
@@ -2993,6 +3291,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "bits",
         default: 4.0,
         unit: "count",
+        variant: 0,
     },
     ComponentSpec {
         id: "logic.adder.full_adder",
@@ -3003,6 +3302,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "bits",
         default: 4.0,
         unit: "count",
+        variant: 0,
     },
     ComponentSpec {
         id: "logic.adder.4bit_adder",
@@ -3013,6 +3313,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "bits",
         default: 4.0,
         unit: "count",
+        variant: 0,
     },
     ComponentSpec {
         id: "logic.adder.magnitude_comparator",
@@ -3023,6 +3324,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "bits",
         default: 4.0,
         unit: "count",
+        variant: 0,
     },
     ComponentSpec {
         id: "logic.adder.parity_generator",
@@ -3033,6 +3335,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "bits",
         default: 4.0,
         unit: "count",
+        variant: 0,
     },
     ComponentSpec {
         id: "logic.adder.parity_checker",
@@ -3043,6 +3346,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "bits",
         default: 4.0,
         unit: "count",
+        variant: 0,
     },
     ComponentSpec {
         id: "logic.adder.bus_buffer",
@@ -3053,6 +3357,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "bits",
         default: 4.0,
         unit: "count",
+        variant: 0,
     },
     ComponentSpec {
         id: "logic.adder.bidirectional_buffer",
@@ -3063,6 +3368,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "bits",
         default: 4.0,
         unit: "count",
+        variant: 0,
     },
     ComponentSpec {
         id: "logic.level.logic_level_shifter",
@@ -3073,6 +3379,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "voltage",
         default: 3.3,
         unit: "V",
+        variant: 0,
     },
     ComponentSpec {
         id: "logic.level.bidirectional_level_shifter",
@@ -3083,6 +3390,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "voltage",
         default: 3.3,
         unit: "V",
+        variant: 0,
     },
     ComponentSpec {
         id: "logic.level.open_drain_level_shifter",
@@ -3093,6 +3401,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "voltage",
         default: 3.3,
         unit: "V",
+        variant: 0,
     },
     ComponentSpec {
         id: "logic.level.line_driver",
@@ -3103,6 +3412,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "voltage",
         default: 3.3,
         unit: "V",
+        variant: 0,
     },
     ComponentSpec {
         id: "logic.level.line_receiver",
@@ -3113,6 +3423,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "voltage",
         default: 3.3,
         unit: "V",
+        variant: 0,
     },
     ComponentSpec {
         id: "logic.level.optocoupler_interface",
@@ -3123,6 +3434,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "voltage",
         default: 3.3,
         unit: "V",
+        variant: 0,
     },
     ComponentSpec {
         id: "logic.programmable.pal",
@@ -3133,6 +3445,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "macrocells",
         default: 16.0,
         unit: "count",
+        variant: 0,
     },
     ComponentSpec {
         id: "logic.programmable.gal",
@@ -3143,6 +3456,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "macrocells",
         default: 16.0,
         unit: "count",
+        variant: 0,
     },
     ComponentSpec {
         id: "logic.programmable.cpld",
@@ -3153,6 +3467,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "macrocells",
         default: 16.0,
         unit: "count",
+        variant: 0,
     },
     ComponentSpec {
         id: "logic.programmable.fpga_logic_block",
@@ -3163,6 +3478,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "macrocells",
         default: 16.0,
         unit: "count",
+        variant: 0,
     },
     ComponentSpec {
         id: "logic.programmable.finite_state_machine",
@@ -3173,6 +3489,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "macrocells",
         default: 16.0,
         unit: "count",
+        variant: 0,
     },
     ComponentSpec {
         id: "logic.programmable.lookup_table",
@@ -3183,6 +3500,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "macrocells",
         default: 16.0,
         unit: "count",
+        variant: 0,
     },
     ComponentSpec {
         id: "memory.device.sram_cell",
@@ -3193,6 +3511,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "capacity",
         default: 1024.0,
         unit: "bit",
+        variant: 0,
     },
     ComponentSpec {
         id: "memory.device.sram_array",
@@ -3203,6 +3522,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "capacity",
         default: 1024.0,
         unit: "bit",
+        variant: 0,
     },
     ComponentSpec {
         id: "memory.device.dram_cell",
@@ -3213,6 +3533,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "capacity",
         default: 1024.0,
         unit: "bit",
+        variant: 0,
     },
     ComponentSpec {
         id: "memory.device.rom",
@@ -3223,6 +3544,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "capacity",
         default: 1024.0,
         unit: "bit",
+        variant: 0,
     },
     ComponentSpec {
         id: "memory.device.prom",
@@ -3233,6 +3555,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "capacity",
         default: 1024.0,
         unit: "bit",
+        variant: 0,
     },
     ComponentSpec {
         id: "memory.device.eeprom",
@@ -3243,6 +3566,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "capacity",
         default: 1024.0,
         unit: "bit",
+        variant: 0,
     },
     ComponentSpec {
         id: "memory.device.flash",
@@ -3253,6 +3577,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "capacity",
         default: 1024.0,
         unit: "bit",
+        variant: 0,
     },
     ComponentSpec {
         id: "memory.device.fram",
@@ -3263,6 +3588,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "capacity",
         default: 1024.0,
         unit: "bit",
+        variant: 0,
     },
     ComponentSpec {
         id: "memory.device.mram",
@@ -3273,6 +3599,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "capacity",
         default: 1024.0,
         unit: "bit",
+        variant: 0,
     },
     ComponentSpec {
         id: "memory.device.nvram",
@@ -3283,6 +3610,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "capacity",
         default: 1024.0,
         unit: "bit",
+        variant: 0,
     },
     ComponentSpec {
         id: "memory.device.memory_controller",
@@ -3293,6 +3621,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "capacity",
         default: 1024.0,
         unit: "bit",
+        variant: 0,
     },
     ComponentSpec {
         id: "memory.device.spi_flash",
@@ -3303,6 +3632,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "capacity",
         default: 1024.0,
         unit: "bit",
+        variant: 0,
     },
     ComponentSpec {
         id: "memory.device.i2c_eeprom",
@@ -3313,6 +3643,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "capacity",
         default: 1024.0,
         unit: "bit",
+        variant: 0,
     },
     ComponentSpec {
         id: "memory.device.sd_card",
@@ -3323,6 +3654,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "capacity",
         default: 1024.0,
         unit: "bit",
+        variant: 0,
     },
     ComponentSpec {
         id: "memory.device.memory_module",
@@ -3333,6 +3665,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "capacity",
         default: 1024.0,
         unit: "bit",
+        variant: 0,
     },
     ComponentSpec {
         id: "mcu.core8.avr_mcu",
@@ -3343,6 +3676,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "clock",
         default: 16000000.0,
         unit: "Hz",
+        variant: 0,
     },
     ComponentSpec {
         id: "mcu.core8.atmega328p",
@@ -3353,6 +3687,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "clock",
         default: 16000000.0,
         unit: "Hz",
+        variant: 0,
     },
     ComponentSpec {
         id: "mcu.core8.pic_mcu",
@@ -3363,6 +3698,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "clock",
         default: 16000000.0,
         unit: "Hz",
+        variant: 0,
     },
     ComponentSpec {
         id: "mcu.core8.8051_mcu",
@@ -3373,6 +3709,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "clock",
         default: 16000000.0,
         unit: "Hz",
+        variant: 0,
     },
     ComponentSpec {
         id: "mcu.core8.avr_peripheral_block",
@@ -3383,6 +3720,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "clock",
         default: 16000000.0,
         unit: "Hz",
+        variant: 0,
     },
     ComponentSpec {
         id: "mcu.core32.arm_cortexm",
@@ -3393,6 +3731,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "clock",
         default: 48000000.0,
         unit: "Hz",
+        variant: 0,
     },
     ComponentSpec {
         id: "mcu.core32.riscv_mcu",
@@ -3403,6 +3742,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "clock",
         default: 48000000.0,
         unit: "Hz",
+        variant: 0,
     },
     ComponentSpec {
         id: "mcu.core32.esp32",
@@ -3413,6 +3753,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "clock",
         default: 48000000.0,
         unit: "Hz",
+        variant: 0,
     },
     ComponentSpec {
         id: "mcu.core32.stm32",
@@ -3423,6 +3764,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "clock",
         default: 48000000.0,
         unit: "Hz",
+        variant: 0,
     },
     ComponentSpec {
         id: "mcu.core32.rp2040",
@@ -3433,6 +3775,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "clock",
         default: 48000000.0,
         unit: "Hz",
+        variant: 0,
     },
     ComponentSpec {
         id: "mcu.core32.generic_32bit_mcu",
@@ -3443,6 +3786,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "clock",
         default: 48000000.0,
         unit: "Hz",
+        variant: 0,
     },
     ComponentSpec {
         id: "mcu.converter.sar_adc",
@@ -3453,6 +3797,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "resolution",
         default: 10.0,
         unit: "bit",
+        variant: 0,
     },
     ComponentSpec {
         id: "mcu.converter.deltasigma_adc",
@@ -3463,6 +3808,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "resolution",
         default: 10.0,
         unit: "bit",
+        variant: 0,
     },
     ComponentSpec {
         id: "mcu.converter.flash_adc",
@@ -3473,6 +3819,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "resolution",
         default: 10.0,
         unit: "bit",
+        variant: 0,
     },
     ComponentSpec {
         id: "mcu.converter.r2r_dac",
@@ -3483,6 +3830,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "resolution",
         default: 10.0,
         unit: "bit",
+        variant: 0,
     },
     ComponentSpec {
         id: "mcu.converter.pwm_generator",
@@ -3493,6 +3841,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "resolution",
         default: 10.0,
         unit: "bit",
+        variant: 0,
     },
     ComponentSpec {
         id: "mcu.serial.uart",
@@ -3503,6 +3852,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "baud",
         default: 9600.0,
         unit: "baud",
+        variant: 0,
     },
     ComponentSpec {
         id: "mcu.serial.spi",
@@ -3513,6 +3863,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "baud",
         default: 9600.0,
         unit: "baud",
+        variant: 0,
     },
     ComponentSpec {
         id: "mcu.serial.i2c",
@@ -3523,6 +3874,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "baud",
         default: 9600.0,
         unit: "baud",
+        variant: 0,
     },
     ComponentSpec {
         id: "mcu.serial.can",
@@ -3533,6 +3885,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "baud",
         default: 9600.0,
         unit: "baud",
+        variant: 0,
     },
     ComponentSpec {
         id: "mcu.serial.usb",
@@ -3543,6 +3896,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "baud",
         default: 9600.0,
         unit: "baud",
+        variant: 0,
     },
     ComponentSpec {
         id: "mcu.serial.ethernet",
@@ -3553,6 +3907,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "baud",
         default: 9600.0,
         unit: "baud",
+        variant: 0,
     },
     ComponentSpec {
         id: "mcu.timer.timer",
@@ -3563,6 +3918,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "period",
         default: 0.001,
         unit: "s",
+        variant: 0,
     },
     ComponentSpec {
         id: "mcu.timer.rtc",
@@ -3573,6 +3929,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "period",
         default: 0.001,
         unit: "s",
+        variant: 0,
     },
     ComponentSpec {
         id: "mcu.timer.watchdog",
@@ -3583,6 +3940,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "period",
         default: 0.001,
         unit: "s",
+        variant: 0,
     },
     ComponentSpec {
         id: "power.linear.linear_regulator",
@@ -3593,6 +3951,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "output_voltage",
         default: 5.0,
         unit: "V",
+        variant: 0,
     },
     ComponentSpec {
         id: "power.linear.ldo",
@@ -3603,6 +3962,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "output_voltage",
         default: 5.0,
         unit: "V",
+        variant: 0,
     },
     ComponentSpec {
         id: "power.linear.adjustable_linear_regulator",
@@ -3613,6 +3973,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "output_voltage",
         default: 5.0,
         unit: "V",
+        variant: 0,
     },
     ComponentSpec {
         id: "power.linear.negative_linear_regulator",
@@ -3623,6 +3984,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "output_voltage",
         default: 5.0,
         unit: "V",
+        variant: 0,
     },
     ComponentSpec {
         id: "power.linear.current_regulator",
@@ -3633,6 +3995,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "output_voltage",
         default: 5.0,
         unit: "V",
+        variant: 0,
     },
     ComponentSpec {
         id: "power.linear.shunt_regulator",
@@ -3643,6 +4006,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "output_voltage",
         default: 5.0,
         unit: "V",
+        variant: 0,
     },
     ComponentSpec {
         id: "power.dcdc.buck_converter",
@@ -3653,6 +4017,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "output_voltage",
         default: 5.0,
         unit: "V",
+        variant: 0,
     },
     ComponentSpec {
         id: "power.dcdc.boost_converter",
@@ -3663,6 +4028,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "output_voltage",
         default: 5.0,
         unit: "V",
+        variant: 0,
     },
     ComponentSpec {
         id: "power.dcdc.buckboost_converter",
@@ -3673,6 +4039,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "output_voltage",
         default: 5.0,
         unit: "V",
+        variant: 0,
     },
     ComponentSpec {
         id: "power.dcdc.cuk_converter",
@@ -3683,6 +4050,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "output_voltage",
         default: 5.0,
         unit: "V",
+        variant: 0,
     },
     ComponentSpec {
         id: "power.dcdc.sepic_converter",
@@ -3693,6 +4061,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "output_voltage",
         default: 5.0,
         unit: "V",
+        variant: 0,
     },
     ComponentSpec {
         id: "power.dcdc.flyback_converter",
@@ -3703,6 +4072,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "output_voltage",
         default: 5.0,
         unit: "V",
+        variant: 0,
     },
     ComponentSpec {
         id: "power.dcdc.forward_converter",
@@ -3713,6 +4083,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "output_voltage",
         default: 5.0,
         unit: "V",
+        variant: 0,
     },
     ComponentSpec {
         id: "power.dcdc.pushpull_converter",
@@ -3723,6 +4094,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "output_voltage",
         default: 5.0,
         unit: "V",
+        variant: 0,
     },
     ComponentSpec {
         id: "power.charge.charge_pump",
@@ -3733,6 +4105,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "output_voltage",
         default: 5.0,
         unit: "V",
+        variant: 0,
     },
     ComponentSpec {
         id: "power.charge.inverting_charge_pump",
@@ -3743,6 +4116,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "output_voltage",
         default: 5.0,
         unit: "V",
+        variant: 0,
     },
     ComponentSpec {
         id: "power.charge.linear_charger",
@@ -3753,6 +4127,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "output_voltage",
         default: 5.0,
         unit: "V",
+        variant: 0,
     },
     ComponentSpec {
         id: "power.charge.switching_charger",
@@ -3763,6 +4138,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "output_voltage",
         default: 5.0,
         unit: "V",
+        variant: 0,
     },
     ComponentSpec {
         id: "power.charge.solar_charger",
@@ -3773,6 +4149,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "output_voltage",
         default: 5.0,
         unit: "V",
+        variant: 0,
     },
     ComponentSpec {
         id: "power.supervisor.voltage_reference",
@@ -3783,6 +4160,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "threshold",
         default: 2.5,
         unit: "V",
+        variant: 0,
     },
     ComponentSpec {
         id: "power.supervisor.current_reference",
@@ -3793,6 +4171,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "threshold",
         default: 2.5,
         unit: "V",
+        variant: 0,
     },
     ComponentSpec {
         id: "power.supervisor.voltage_supervisor",
@@ -3803,6 +4182,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "threshold",
         default: 2.5,
         unit: "V",
+        variant: 0,
     },
     ComponentSpec {
         id: "power.supervisor.reset_supervisor",
@@ -3813,6 +4193,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "threshold",
         default: 2.5,
         unit: "V",
+        variant: 0,
     },
     ComponentSpec {
         id: "power.supervisor.power_monitor",
@@ -3823,6 +4204,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "threshold",
         default: 2.5,
         unit: "V",
+        variant: 0,
     },
     ComponentSpec {
         id: "power.switch.ideal_diode",
@@ -3833,6 +4215,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "ron",
         default: 0.05,
         unit: "ohm",
+        variant: 0,
     },
     ComponentSpec {
         id: "power.switch.oring_controller",
@@ -3843,6 +4226,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "ron",
         default: 0.05,
         unit: "ohm",
+        variant: 0,
     },
     ComponentSpec {
         id: "power.switch.load_switch",
@@ -3853,6 +4237,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "ron",
         default: 0.05,
         unit: "ohm",
+        variant: 0,
     },
     ComponentSpec {
         id: "power.motor.hbridge",
@@ -3863,6 +4248,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "current",
         default: 1.0,
         unit: "A",
+        variant: 0,
     },
     ComponentSpec {
         id: "power.motor.halfbridge",
@@ -3873,6 +4259,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "current",
         default: 1.0,
         unit: "A",
+        variant: 0,
     },
     ComponentSpec {
         id: "power.motor.stepper_driver",
@@ -3883,6 +4270,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "current",
         default: 1.0,
         unit: "A",
+        variant: 0,
     },
     ComponentSpec {
         id: "sensor.temperature.ntc_thermistor_sensor",
@@ -3893,6 +4281,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "sensitivity",
         default: 0.01,
         unit: "ratio",
+        variant: 0,
     },
     ComponentSpec {
         id: "sensor.temperature.ptc_thermistor_sensor",
@@ -3903,6 +4292,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "sensitivity",
         default: 0.01,
         unit: "ratio",
+        variant: 0,
     },
     ComponentSpec {
         id: "sensor.temperature.rtd",
@@ -3913,6 +4303,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "sensitivity",
         default: 0.01,
         unit: "ratio",
+        variant: 0,
     },
     ComponentSpec {
         id: "sensor.temperature.thermocouple",
@@ -3923,6 +4314,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "sensitivity",
         default: 0.01,
         unit: "ratio",
+        variant: 0,
     },
     ComponentSpec {
         id: "sensor.temperature.semiconductor_temperature_sensor",
@@ -3933,6 +4325,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "sensitivity",
         default: 0.01,
         unit: "ratio",
+        variant: 0,
     },
     ComponentSpec {
         id: "sensor.temperature.thermal_switch",
@@ -3943,6 +4336,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "sensitivity",
         default: 0.01,
         unit: "ratio",
+        variant: 0,
     },
     ComponentSpec {
         id: "sensor.light.photoresistor",
@@ -3953,6 +4347,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "sensitivity",
         default: 1.0,
         unit: "ratio",
+        variant: 0,
     },
     ComponentSpec {
         id: "sensor.light.photodiode_sensor",
@@ -3963,6 +4358,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "sensitivity",
         default: 1.0,
         unit: "ratio",
+        variant: 0,
     },
     ComponentSpec {
         id: "sensor.light.phototransistor_sensor",
@@ -3973,6 +4369,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "sensitivity",
         default: 1.0,
         unit: "ratio",
+        variant: 0,
     },
     ComponentSpec {
         id: "sensor.light.ambient_light_sensor",
@@ -3983,6 +4380,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "sensitivity",
         default: 1.0,
         unit: "ratio",
+        variant: 0,
     },
     ComponentSpec {
         id: "sensor.light.color_sensor",
@@ -3993,6 +4391,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "sensitivity",
         default: 1.0,
         unit: "ratio",
+        variant: 0,
     },
     ComponentSpec {
         id: "sensor.magnetic.hall_sensor",
@@ -4003,6 +4402,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "sensitivity",
         default: 1.0,
         unit: "ratio",
+        variant: 0,
     },
     ComponentSpec {
         id: "sensor.magnetic.linear_hall_sensor",
@@ -4013,6 +4413,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "sensitivity",
         default: 1.0,
         unit: "ratio",
+        variant: 0,
     },
     ComponentSpec {
         id: "sensor.magnetic.reed_switch_sensor",
@@ -4023,6 +4424,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "sensitivity",
         default: 1.0,
         unit: "ratio",
+        variant: 0,
     },
     ComponentSpec {
         id: "sensor.magnetic.magnetoresistive_sensor",
@@ -4033,6 +4435,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "sensitivity",
         default: 1.0,
         unit: "ratio",
+        variant: 0,
     },
     ComponentSpec {
         id: "sensor.magnetic.fluxgate_sensor",
@@ -4043,6 +4446,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "sensitivity",
         default: 1.0,
         unit: "ratio",
+        variant: 0,
     },
     ComponentSpec {
         id: "sensor.motion.accelerometer",
@@ -4053,6 +4457,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "sensitivity",
         default: 1.0,
         unit: "ratio",
+        variant: 0,
     },
     ComponentSpec {
         id: "sensor.motion.gyroscope",
@@ -4063,6 +4468,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "sensitivity",
         default: 1.0,
         unit: "ratio",
+        variant: 0,
     },
     ComponentSpec {
         id: "sensor.motion.imu",
@@ -4073,6 +4479,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "sensitivity",
         default: 1.0,
         unit: "ratio",
+        variant: 0,
     },
     ComponentSpec {
         id: "sensor.motion.tilt_sensor",
@@ -4083,6 +4490,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "sensitivity",
         default: 1.0,
         unit: "ratio",
+        variant: 0,
     },
     ComponentSpec {
         id: "sensor.motion.vibration_sensor",
@@ -4093,6 +4501,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "sensitivity",
         default: 1.0,
         unit: "ratio",
+        variant: 0,
     },
     ComponentSpec {
         id: "sensor.pressure.strain_gauge_sensor",
@@ -4103,6 +4512,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "sensitivity",
         default: 1.0,
         unit: "ratio",
+        variant: 0,
     },
     ComponentSpec {
         id: "sensor.pressure.load_cell",
@@ -4113,6 +4523,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "sensitivity",
         default: 1.0,
         unit: "ratio",
+        variant: 0,
     },
     ComponentSpec {
         id: "sensor.pressure.pressure_sensor",
@@ -4123,6 +4534,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "sensitivity",
         default: 1.0,
         unit: "ratio",
+        variant: 0,
     },
     ComponentSpec {
         id: "sensor.pressure.force_sensor",
@@ -4133,6 +4545,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "sensitivity",
         default: 1.0,
         unit: "ratio",
+        variant: 0,
     },
     ComponentSpec {
         id: "sensor.humidity.humidity_sensor",
@@ -4143,6 +4556,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "sensitivity",
         default: 1.0,
         unit: "ratio",
+        variant: 0,
     },
     ComponentSpec {
         id: "sensor.humidity.gas_sensor",
@@ -4153,6 +4567,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "sensitivity",
         default: 1.0,
         unit: "ratio",
+        variant: 0,
     },
     ComponentSpec {
         id: "sensor.humidity.ph_sensor",
@@ -4163,6 +4578,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "sensitivity",
         default: 1.0,
         unit: "ratio",
+        variant: 0,
     },
     ComponentSpec {
         id: "sensor.humidity.electrochemical_sensor",
@@ -4173,6 +4589,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "sensitivity",
         default: 1.0,
         unit: "ratio",
+        variant: 0,
     },
     ComponentSpec {
         id: "sensor.current.current_sense_resistor",
@@ -4183,6 +4600,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "sensitivity",
         default: 1.0,
         unit: "ratio",
+        variant: 0,
     },
     ComponentSpec {
         id: "sensor.current.hall_current_sensor",
@@ -4193,6 +4611,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "sensitivity",
         default: 1.0,
         unit: "ratio",
+        variant: 0,
     },
     ComponentSpec {
         id: "sensor.current.voltage_divider_sensor",
@@ -4203,6 +4622,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "sensitivity",
         default: 1.0,
         unit: "ratio",
+        variant: 0,
     },
     ComponentSpec {
         id: "sensor.proximity.inductive_proximity_sensor",
@@ -4213,6 +4633,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "sensitivity",
         default: 1.0,
         unit: "ratio",
+        variant: 0,
     },
     ComponentSpec {
         id: "sensor.proximity.capacitive_touch_sensor",
@@ -4223,6 +4644,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "sensitivity",
         default: 1.0,
         unit: "ratio",
+        variant: 0,
     },
     ComponentSpec {
         id: "sensor.proximity.ultrasonic_distance_sensor",
@@ -4233,6 +4655,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "sensitivity",
         default: 1.0,
         unit: "ratio",
+        variant: 0,
     },
     ComponentSpec {
         id: "actuator.led.led",
@@ -4243,6 +4666,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "gain",
         default: 1.0,
         unit: "ratio",
+        variant: 0,
     },
     ComponentSpec {
         id: "actuator.led.rgb_led",
@@ -4253,6 +4677,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "gain",
         default: 1.0,
         unit: "ratio",
+        variant: 0,
     },
     ComponentSpec {
         id: "actuator.led.incandescent_lamp",
@@ -4263,6 +4688,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "gain",
         default: 1.0,
         unit: "ratio",
+        variant: 0,
     },
     ComponentSpec {
         id: "actuator.led.neon_lamp",
@@ -4273,6 +4699,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "gain",
         default: 1.0,
         unit: "ratio",
+        variant: 0,
     },
     ComponentSpec {
         id: "actuator.buzzer.buzzer",
@@ -4283,6 +4710,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "gain",
         default: 1.0,
         unit: "ratio",
+        variant: 0,
     },
     ComponentSpec {
         id: "actuator.buzzer.speaker",
@@ -4293,6 +4721,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "gain",
         default: 1.0,
         unit: "ratio",
+        variant: 0,
     },
     ComponentSpec {
         id: "actuator.buzzer.piezo_transducer",
@@ -4303,6 +4732,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "gain",
         default: 1.0,
         unit: "ratio",
+        variant: 0,
     },
     ComponentSpec {
         id: "actuator.buzzer.piezo_buzzer",
@@ -4313,6 +4743,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "gain",
         default: 1.0,
         unit: "ratio",
+        variant: 0,
     },
     ComponentSpec {
         id: "actuator.motor.dc_motor",
@@ -4323,6 +4754,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "gain",
         default: 1.0,
         unit: "ratio",
+        variant: 0,
     },
     ComponentSpec {
         id: "actuator.motor.brushless_dc_motor",
@@ -4333,6 +4765,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "gain",
         default: 1.0,
         unit: "ratio",
+        variant: 0,
     },
     ComponentSpec {
         id: "actuator.motor.servo_motor",
@@ -4343,6 +4776,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "gain",
         default: 1.0,
         unit: "ratio",
+        variant: 0,
     },
     ComponentSpec {
         id: "actuator.motor.stepper_motor",
@@ -4353,6 +4787,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "gain",
         default: 1.0,
         unit: "ratio",
+        variant: 0,
     },
     ComponentSpec {
         id: "actuator.motor.solenoid",
@@ -4363,6 +4798,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "gain",
         default: 1.0,
         unit: "ratio",
+        variant: 0,
     },
     ComponentSpec {
         id: "actuator.display.lcd_character_display",
@@ -4373,6 +4809,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "resolution",
         default: 128.0,
         unit: "pixel",
+        variant: 0,
     },
     ComponentSpec {
         id: "actuator.display.lcd_graphic_display",
@@ -4383,6 +4820,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "resolution",
         default: 128.0,
         unit: "pixel",
+        variant: 0,
     },
     ComponentSpec {
         id: "actuator.display.oled_display",
@@ -4393,6 +4831,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "resolution",
         default: 128.0,
         unit: "pixel",
+        variant: 0,
     },
     ComponentSpec {
         id: "actuator.display.eink_display",
@@ -4403,6 +4842,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "resolution",
         default: 128.0,
         unit: "pixel",
+        variant: 0,
     },
     ComponentSpec {
         id: "actuator.heater.resistive_heater",
@@ -4413,6 +4853,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "gain",
         default: 1.0,
         unit: "ratio",
+        variant: 0,
     },
     ComponentSpec {
         id: "actuator.heater.peltier_cooler",
@@ -4423,6 +4864,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "gain",
         default: 1.0,
         unit: "ratio",
+        variant: 0,
     },
     ComponentSpec {
         id: "actuator.heater.thermoelectric_generator",
@@ -4433,6 +4875,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "gain",
         default: 1.0,
         unit: "ratio",
+        variant: 0,
     },
     ComponentSpec {
         id: "rf.amplifier.rf_amplifier",
@@ -4443,6 +4886,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "gain",
         default: 10.0,
         unit: "ratio",
+        variant: 0,
     },
     ComponentSpec {
         id: "rf.amplifier.low_noise_amplifier",
@@ -4453,6 +4897,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "gain",
         default: 10.0,
         unit: "ratio",
+        variant: 0,
     },
     ComponentSpec {
         id: "rf.amplifier.power_amplifier",
@@ -4463,6 +4908,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "gain",
         default: 10.0,
         unit: "ratio",
+        variant: 0,
     },
     ComponentSpec {
         id: "rf.amplifier.variable_gain_amplifier",
@@ -4473,6 +4919,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "gain",
         default: 10.0,
         unit: "ratio",
+        variant: 0,
     },
     ComponentSpec {
         id: "rf.mixer.rf_mixer",
@@ -4483,6 +4930,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "gain",
         default: 1.0,
         unit: "ratio",
+        variant: 0,
     },
     ComponentSpec {
         id: "rf.mixer.amplitude_modulator",
@@ -4493,6 +4941,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "gain",
         default: 1.0,
         unit: "ratio",
+        variant: 0,
     },
     ComponentSpec {
         id: "rf.mixer.frequency_modulator",
@@ -4503,6 +4952,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "gain",
         default: 1.0,
         unit: "ratio",
+        variant: 0,
     },
     ComponentSpec {
         id: "rf.mixer.phase_modulator",
@@ -4513,6 +4963,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "gain",
         default: 1.0,
         unit: "ratio",
+        variant: 0,
     },
     ComponentSpec {
         id: "rf.filter.low_pass_filter",
@@ -4523,6 +4974,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "frequency",
         default: 1000000.0,
         unit: "Hz",
+        variant: 0,
     },
     ComponentSpec {
         id: "rf.filter.high_pass_filter",
@@ -4533,6 +4985,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "frequency",
         default: 1000000.0,
         unit: "Hz",
+        variant: 0,
     },
     ComponentSpec {
         id: "rf.filter.band_pass_filter",
@@ -4543,6 +4996,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "frequency",
         default: 1000000.0,
         unit: "Hz",
+        variant: 0,
     },
     ComponentSpec {
         id: "rf.filter.band_stop_filter",
@@ -4553,6 +5007,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "frequency",
         default: 1000000.0,
         unit: "Hz",
+        variant: 0,
     },
     ComponentSpec {
         id: "rf.antenna.dipole_antenna",
@@ -4563,6 +5018,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "frequency",
         default: 1000000.0,
         unit: "Hz",
+        variant: 0,
     },
     ComponentSpec {
         id: "rf.antenna.monopole_antenna",
@@ -4573,6 +5029,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "frequency",
         default: 1000000.0,
         unit: "Hz",
+        variant: 0,
     },
     ComponentSpec {
         id: "rf.antenna.loop_antenna",
@@ -4583,6 +5040,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "frequency",
         default: 1000000.0,
         unit: "Hz",
+        variant: 0,
     },
     ComponentSpec {
         id: "rf.coupler.directional_coupler",
@@ -4593,6 +5051,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "gain",
         default: 1.0,
         unit: "ratio",
+        variant: 0,
     },
     ComponentSpec {
         id: "rf.coupler.power_splitter",
@@ -4603,6 +5062,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "gain",
         default: 1.0,
         unit: "ratio",
+        variant: 0,
     },
     ComponentSpec {
         id: "rf.coupler.isolator",
@@ -4613,6 +5073,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "gain",
         default: 1.0,
         unit: "ratio",
+        variant: 0,
     },
     ComponentSpec {
         id: "behavioral.filter.integrator",
@@ -4623,6 +5084,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "gain",
         default: 1.0,
         unit: "ratio",
+        variant: 0,
     },
     ComponentSpec {
         id: "behavioral.filter.differentiator",
@@ -4633,6 +5095,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "gain",
         default: 1.0,
         unit: "ratio",
+        variant: 0,
     },
     ComponentSpec {
         id: "behavioral.filter.first_order_low_pass",
@@ -4643,6 +5106,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "gain",
         default: 1.0,
         unit: "ratio",
+        variant: 0,
     },
     ComponentSpec {
         id: "behavioral.filter.first_order_high_pass",
@@ -4653,6 +5117,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "gain",
         default: 1.0,
         unit: "ratio",
+        variant: 0,
     },
     ComponentSpec {
         id: "behavioral.filter.state_variable_filter",
@@ -4663,6 +5128,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "gain",
         default: 1.0,
         unit: "ratio",
+        variant: 0,
     },
     ComponentSpec {
         id: "behavioral.math.multiplier",
@@ -4673,6 +5139,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "gain",
         default: 1.0,
         unit: "ratio",
+        variant: 0,
     },
     ComponentSpec {
         id: "behavioral.math.divider",
@@ -4683,6 +5150,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "gain",
         default: 1.0,
         unit: "ratio",
+        variant: 0,
     },
     ComponentSpec {
         id: "behavioral.math.logarithmic_amplifier",
@@ -4693,6 +5161,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "gain",
         default: 1.0,
         unit: "ratio",
+        variant: 0,
     },
     ComponentSpec {
         id: "behavioral.math.antilog_amplifier",
@@ -4703,6 +5172,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "gain",
         default: 1.0,
         unit: "ratio",
+        variant: 0,
     },
     ComponentSpec {
         id: "behavioral.math.rms_converter",
@@ -4713,6 +5183,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "gain",
         default: 1.0,
         unit: "ratio",
+        variant: 0,
     },
     ComponentSpec {
         id: "behavioral.detector.behavioral_comparator",
@@ -4723,6 +5194,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "gain",
         default: 1.0,
         unit: "ratio",
+        variant: 0,
     },
     ComponentSpec {
         id: "behavioral.detector.schmitt_trigger",
@@ -4733,6 +5205,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "gain",
         default: 1.0,
         unit: "ratio",
+        variant: 8,
     },
     ComponentSpec {
         id: "behavioral.detector.peak_detector",
@@ -4743,6 +5216,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "gain",
         default: 1.0,
         unit: "ratio",
+        variant: 0,
     },
     ComponentSpec {
         id: "behavioral.detector.track_and_hold",
@@ -4753,6 +5227,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "gain",
         default: 1.0,
         unit: "ratio",
+        variant: 0,
     },
     ComponentSpec {
         id: "behavioral.detector.precision_rectifier",
@@ -4763,6 +5238,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "gain",
         default: 1.0,
         unit: "ratio",
+        variant: 0,
     },
     ComponentSpec {
         id: "behavioral.oscillator.vco",
@@ -4773,6 +5249,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "frequency",
         default: 1000.0,
         unit: "Hz",
+        variant: 0,
     },
     ComponentSpec {
         id: "behavioral.oscillator.pll",
@@ -4783,6 +5260,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "frequency",
         default: 1000.0,
         unit: "Hz",
+        variant: 0,
     },
     ComponentSpec {
         id: "behavioral.oscillator.amplitude_modulator",
@@ -4793,6 +5271,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "frequency",
         default: 1000.0,
         unit: "Hz",
+        variant: 0,
     },
     ComponentSpec {
         id: "behavioral.oscillator.frequency_modulator",
@@ -4803,6 +5282,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "frequency",
         default: 1000.0,
         unit: "Hz",
+        variant: 0,
     },
     ComponentSpec {
         id: "behavioral.oscillator.pulse_width_modulator",
@@ -4813,6 +5293,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "frequency",
         default: 1000.0,
         unit: "Hz",
+        variant: 0,
     },
     ComponentSpec {
         id: "behavioral.converter.sample_and_hold",
@@ -4823,6 +5304,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "resolution",
         default: 10.0,
         unit: "bit",
+        variant: 0,
     },
     ComponentSpec {
         id: "behavioral.converter.sar_adc_behavioral",
@@ -4833,6 +5315,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "resolution",
         default: 10.0,
         unit: "bit",
+        variant: 0,
     },
     ComponentSpec {
         id: "behavioral.converter.delta_sigma_adc_behavioral",
@@ -4843,6 +5326,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "resolution",
         default: 10.0,
         unit: "bit",
+        variant: 0,
     },
     ComponentSpec {
         id: "behavioral.converter.r2r_dac_behavioral",
@@ -4853,6 +5337,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "resolution",
         default: 10.0,
         unit: "bit",
+        variant: 0,
     },
     ComponentSpec {
         id: "behavioral.converter.pwm_dac",
@@ -4863,6 +5348,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "resolution",
         default: 10.0,
         unit: "bit",
+        variant: 0,
     },
     ComponentSpec {
         id: "board.arduino.arduino_uno_board",
@@ -4873,6 +5359,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "voltage",
         default: 5.0,
         unit: "V",
+        variant: 0,
     },
     ComponentSpec {
         id: "board.arduino.breadboard_power_board",
@@ -4883,6 +5370,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "voltage",
         default: 5.0,
         unit: "V",
+        variant: 0,
     },
     ComponentSpec {
         id: "board.arduino.generic_mcu_board",
@@ -4893,6 +5381,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "voltage",
         default: 5.0,
         unit: "V",
+        variant: 0,
     },
     ComponentSpec {
         id: "board.breadboard.breadboard",
@@ -4903,6 +5392,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "voltage",
         default: 0.0,
         unit: "V",
+        variant: 0,
     },
     ComponentSpec {
         id: "board.breadboard.jumper_wire",
@@ -4913,6 +5403,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "voltage",
         default: 0.0,
         unit: "V",
+        variant: 0,
     },
     ComponentSpec {
         id: "board.breadboard.jumper_header",
@@ -4923,6 +5414,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "voltage",
         default: 0.0,
         unit: "V",
+        variant: 0,
     },
     ComponentSpec {
         id: "board.power.usb_power_module",
@@ -4933,6 +5425,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "voltage",
         default: 5.0,
         unit: "V",
+        variant: 0,
     },
     ComponentSpec {
         id: "board.power.dcdc_module",
@@ -4943,6 +5436,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "voltage",
         default: 5.0,
         unit: "V",
+        variant: 0,
     },
     ComponentSpec {
         id: "board.power.battery_holder",
@@ -4953,6 +5447,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "voltage",
         default: 5.0,
         unit: "V",
+        variant: 0,
     },
     ComponentSpec {
         id: "board.module.oled_module",
@@ -4963,6 +5458,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "voltage",
         default: 5.0,
         unit: "V",
+        variant: 0,
     },
     ComponentSpec {
         id: "board.module.sensor_module",
@@ -4973,6 +5469,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "voltage",
         default: 5.0,
         unit: "V",
+        variant: 0,
     },
     ComponentSpec {
         id: "board.module.relay_module",
@@ -4983,6 +5480,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "voltage",
         default: 5.0,
         unit: "V",
+        variant: 0,
     },
     ComponentSpec {
         id: "board.mechanical.enclosure",
@@ -4993,6 +5491,7 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "voltage",
         default: 0.0,
         unit: "V",
+        variant: 0,
     },
     ComponentSpec {
         id: "board.mechanical.mounting_hardware",
@@ -5003,5 +5502,6 @@ pub(crate) const CATALOG: &[ComponentSpec] = &[
         parameter: "voltage",
         default: 0.0,
         unit: "V",
+        variant: 0,
     },
 ];

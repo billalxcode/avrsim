@@ -67,6 +67,7 @@ pub enum ModelClass {
     Timer,
     VoltageReference,
     LogicGate,
+    LogicGateSpecial,
     FlipFlop,
     Counter,
     Multiplexer,
@@ -104,6 +105,7 @@ pub struct ComponentSpec {
     pub parameter: &'static str,
     pub default: f64,
     pub unit: &'static str,
+    pub variant: u8,
 }
 
 /// Catalog validation error.
@@ -267,6 +269,9 @@ fn parameters_for(
 ) -> BTreeMap<String, f64> {
     let mut parameters = BTreeMap::new();
     parameters.insert(spec.parameter.to_string(), spec.default);
+    if spec.class == ModelClass::LogicGate {
+        parameters.insert("gate".to_string(), f64::from(spec.variant));
+    }
     parameters.extend(overrides.iter().map(|(name, value)| (name.clone(), *value)));
     parameters
 }
@@ -380,6 +385,7 @@ impl ModelClass {
     const fn digital_family(self) -> Option<Family> {
         match self {
             Self::LogicGate
+            | Self::LogicGateSpecial
             | Self::FlipFlop
             | Self::Counter
             | Self::Multiplexer
@@ -491,6 +497,7 @@ impl ModelClass {
         self.requires_passive_device()
             || self.requires_semiconductor_device()
             || self.requires_analog_device()
+            || matches!(self, Self::LogicGate)
     }
 
     const fn requires_analog_device(self) -> bool {
@@ -632,6 +639,7 @@ impl ModelClass {
     const fn logic_principle(self) -> &'static str {
         match self {
             Self::LogicGate => "Boolean function with propagation delay.",
+            Self::LogicGateSpecial => "Open-drain, tri-state, or transmission-gate behavior.",
             Self::FlipFlop => "Bistable state clocked by an input event.",
             Self::Counter => "Clocked state machine with a count output.",
             Self::Multiplexer => "Selects one of several inputs or outputs.",
@@ -791,6 +799,9 @@ impl ComponentSpec {
         if !self.default.is_finite() {
             return Err(self.error("default must be finite"));
         }
+        if self.class == ModelClass::LogicGate && self.variant > 8 {
+            return Err(self.error("logic gate variant must be 0 to 8"));
+        }
         Ok(())
     }
 
@@ -850,7 +861,7 @@ mod tests {
     #[test]
     fn all_classes_have_entries() {
         let classes: BTreeSet<_> = catalog().iter().map(|entry| entry.class).collect();
-        assert_eq!(classes.len(), 59);
+        assert_eq!(classes.len(), 60);
     }
 
     #[test]
@@ -969,6 +980,7 @@ mod tests {
                 | sim_core::DeviceKind::OpAmp
                 | sim_core::DeviceKind::Comparator
                 | sim_core::DeviceKind::Regulator
+                | sim_core::DeviceKind::LogicGate
         )
     }
 

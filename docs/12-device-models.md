@@ -3,7 +3,7 @@
 Katalog device yang tersedia di `sim-device` dan parameter utamanya.
 
 **Status:** seluruh device inti, device nonlinier, controlled source, switch,
-dan transmission line sudah diimplementasikan. Total test `sim-device`: 83.
+dan transmission line sudah diimplementasikan. Total test `sim-device`: 86.
 
 ---
 
@@ -88,6 +88,7 @@ pub fn model_from_instance(
 | AnalogSwitch | 4 | Voltage-controlled analog conductance | - |
 | Relay | 5 | Coil and changeover contacts | - |
 | Regulator | 3 | Ideal behavioral output voltage | - |
+| LogicGate | 5 | Behavioral gate with rail saturation | - |
 | IdealSwitch | 2 | Fixed on/off conductance | - |
 | OpAmp | 5 | Linear high-gain VCVS macromodel | - |
 | Comparator | 5 | Saturating nonlinear comparator | - |
@@ -268,6 +269,8 @@ P-JFET memakai transformasi tanda. Kapasitansi `cgs` dan `cgd` konstan.
 | Relay | `rcoil` | 100 ohm |
 | Relay | `ron` | 0.1 ohm |
 | Regulator | `output_voltage` | 5 V |
+| LogicGate | `vth` | 2.5 V |
+| LogicGate | `variant` | 0 sampai 8 |
 | OpAmp | `gain` | 1e5 |
 | Comparator | `gain` | 1e4 |
 

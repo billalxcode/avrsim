@@ -10,6 +10,7 @@ const SWITCH: &str = "switch.mechanical.spst_switch";
 const ANALOG_SWITCH: &str = "switch.analog.analog_switch";
 const RELAY: &str = "switch.relay.electromechanical_relay";
 const REGULATOR: &str = "power.linear.linear_regulator";
+const LOGIC_GATE: &str = "logic.gate.and_gate";
 const OPAMP: &str = "analog.opamp.ideal_opamp";
 const COMPARATOR: &str = "analog.comparator.comparator";
 
@@ -87,6 +88,16 @@ fn add_regulator(
     let request = ComponentRequest::new(REGULATOR, name, DeviceId::new(0), pins.to_vec())
         .with_parameter("output_voltage", output_voltage);
     registry.add_to(builder, &request).expect("regulator");
+}
+
+fn add_logic_gate(
+    registry: &ComponentRegistry,
+    builder: &mut CircuitBuilder,
+    name: &str,
+    pins: [NodeId; 5],
+) {
+    let request = ComponentRequest::new(LOGIC_GATE, name, DeviceId::new(0), pins.to_vec());
+    registry.add_to(builder, &request).expect("logic gate");
 }
 
 fn add_opamp(
@@ -266,6 +277,27 @@ fn regulator_circuit(output_voltage: f64) -> Circuit {
     builder.build().expect("circuit")
 }
 
+fn logic_circuit(first: f64, second: f64) -> Circuit {
+    let registry = ComponentRegistry::new();
+    let mut builder = CircuitBuilder::new();
+    let input_a = builder.node("a").expect("a");
+    let input_b = builder.node("b").expect("b");
+    let supply = builder.node("supply").expect("supply");
+    let output = builder.node("output").expect("output");
+    let ground = builder.ground();
+    add_source(&registry, &mut builder, "VA", input_a, ground, first);
+    add_source(&registry, &mut builder, "VB", input_b, ground, second);
+    add_source(&registry, &mut builder, "VCC", supply, ground, 5.0);
+    add_resistor(&registry, &mut builder, "RL", output, ground, 1_000_000.0);
+    add_logic_gate(
+        &registry,
+        &mut builder,
+        "U1",
+        [input_a, input_b, supply, ground, output],
+    );
+    builder.build().expect("circuit")
+}
+
 fn comparator_circuit(input_voltage: f64) -> Circuit {
     let registry = ComponentRegistry::new();
     let mut builder = CircuitBuilder::new();
@@ -335,4 +367,12 @@ fn registry_relay_switches_contacts() {
 fn registry_regulator_sets_output_voltage() {
     let voltage = dc_voltage(&regulator_circuit(3.3), "output");
     assert!((voltage - 3.3).abs() < 1e-6, "voltage {voltage}");
+}
+
+#[test]
+fn registry_and_gate_drives_rails() {
+    let high = dc_voltage(&logic_circuit(5.0, 5.0), "output");
+    let low = dc_voltage(&logic_circuit(5.0, 0.0), "output");
+    assert!(high > 4.9, "high {high}");
+    assert!(low < 0.1, "low {low}");
 }

@@ -39,6 +39,8 @@ pub enum DeviceKind {
     Comparator,
     /// A three-terminal linear regulator.
     Regulator,
+    /// A five-terminal logic gate.
+    LogicGate,
     /// An N-channel MOSFET.
     Nmos,
     /// A P-channel MOSFET.
@@ -87,6 +89,7 @@ impl DeviceKind {
             Self::OpAmp => "opamp",
             Self::Comparator => "comparator",
             Self::Regulator => "regulator",
+            Self::LogicGate => "logic_gate",
             other => other.analog_name(),
         }
     }

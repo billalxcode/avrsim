@@ -28,6 +28,18 @@ def norm(name):
     return (name, None)
 
 
+GATE_CODES = {
+    "AND gate": 0,
+    "OR gate": 1,
+    "NOT gate": 2,
+    "NAND gate": 3,
+    "NOR gate": 4,
+    "XOR gate": 5,
+    "XNOR gate": 6,
+    "buffer": 7,
+    "Schmitt trigger": 8,
+}
+
 groups = []
 
 
@@ -229,10 +241,12 @@ add("analog.reference", "VoltageReference", "VoltageSource", 2, "voltage", 2.5, 
     "bandgap reference", "current reference",
 ])
 
-add("logic.gate", "LogicGate", None, 3, "propagation_delay", 1e-8, "s", [
+add("logic.gate", "LogicGate", "LogicGate", 5, "vth", 2.5, "V", [
     "AND gate", "OR gate", "NOT gate", "NAND gate", "NOR gate", "XOR gate",
-    "XNOR gate", "buffer", "Schmitt trigger", "open drain buffer",
-    "tri-state buffer", "transmission gate",
+    "XNOR gate", "buffer", "Schmitt trigger",
+])
+add("logic.gate_special", "LogicGateSpecial", None, 4, "propagation_delay", 1e-8, "s", [
+    "open drain buffer", "tri-state buffer", "transmission gate",
 ])
 add("logic.flipflop", "FlipFlop", None, 5, "propagation_delay", 1e-8, "s", [
     "SR latch", "D latch", "D flip-flop", "JK flip-flop", "T flip-flop",
@@ -461,6 +475,7 @@ for group in groups:
             "param": param,
             "default": default_text,
             "unit": unit,
+            "variant": GATE_CODES.get(name, 0),
         })
 
 if len(entries) != 500:
@@ -484,9 +499,10 @@ lines.append("")
 lines.append("pub(crate) const CATALOG: &[ComponentSpec] = &[")
 for entry in entries:
     lines.append(
-        '    ComponentSpec {{ id: "{}", name: "{}", class: ModelClass::{}, device: {}, pins: {}, parameter: "{}", default: {}, unit: "{}" }},'.format(
+        '    ComponentSpec {{ id: "{}", name: "{}", class: ModelClass::{}, device: {}, pins: {}, parameter: "{}", default: {}, unit: "{}", variant: {} }},'.format(
             entry["id"], entry["name"], entry["class"], entry["device"],
-            entry["pins"], entry["param"], entry["default"], entry["unit"]
+            entry["pins"], entry["param"], entry["default"], entry["unit"],
+            entry["variant"]
         )
     )
 lines.append("];")
