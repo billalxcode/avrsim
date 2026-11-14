@@ -117,9 +117,9 @@ nol.
 Ring oscillator tiga inverter dengan beban `1 nF` per node dan initial
 voltage `5 V` menghasilkan lebih dari empat crossing pada node output.
 
-Total test `sim-analysis`: 113 (108 unit + 5 integration).
+Total test `sim-analysis`: 114 (108 unit + 6 integration).
 Total test `sim-cells`: 71.
-Total workspace: 739.
+Total workspace: 743.
 
 ---
 

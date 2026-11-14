@@ -54,8 +54,8 @@ Pasangan branch diambil dari indeks sense dan `sense + 1`.
 Kontrol `1 V` melalui resistor `1 kOhm` menghasilkan arus kontrol `1 mA`.
 Dengan `rm = 1000 Ohm`, output menjadi `1 V`.
 
-Total test `sim-analysis`: 113 (108 unit + 5 integration).
-Total workspace: 739.
+Total test `sim-analysis`: 114 (108 unit + 6 integration).
+Total workspace: 743.
 
 ---
 

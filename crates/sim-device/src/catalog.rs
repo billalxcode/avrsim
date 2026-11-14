@@ -59,6 +59,7 @@ pub enum ModelClass {
     Protection,
     Switch,
     Relay,
+    SolidStateRelay,
     AnalogSwitch,
     Connector,
     OpAmp,
@@ -364,9 +365,11 @@ impl ModelClass {
                 Some(Family::Transistor)
             }
             Self::Thyristor | Self::Protection => Some(Family::Protection),
-            Self::Switch | Self::Relay | Self::AnalogSwitch | Self::Connector => {
-                Some(Family::Switch)
-            }
+            Self::Switch
+            | Self::Relay
+            | Self::SolidStateRelay
+            | Self::AnalogSwitch
+            | Self::Connector => Some(Family::Switch),
             Self::OpAmp | Self::Comparator | Self::Timer | Self::VoltageReference => {
                 Some(Family::Analog)
             }
@@ -435,6 +438,10 @@ impl ModelClass {
     }
 
     const fn tier_one(self) -> bool {
+        self.tier_one_passive() || self.tier_one_switch()
+    }
+
+    const fn tier_one_passive(self) -> bool {
         matches!(
             self,
             Self::Transformer
@@ -446,8 +453,15 @@ impl ModelClass {
                 | Self::Ccvs
                 | Self::BehavioralSource
                 | Self::DigitalSource
-                | Self::Switch
+        )
+    }
+
+    const fn tier_one_switch(self) -> bool {
+        matches!(
+            self,
+            Self::Switch
                 | Self::Relay
+                | Self::SolidStateRelay
                 | Self::AnalogSwitch
                 | Self::Connector
                 | Self::Protection
@@ -513,6 +527,7 @@ impl ModelClass {
                 | Self::Jfet
                 | Self::Mosfet
                 | Self::Switch
+                | Self::Relay
                 | Self::AnalogSwitch
         )
     }
@@ -594,7 +609,8 @@ impl ModelClass {
     const fn switch_principle(self) -> &'static str {
         match self {
             Self::Switch => "Controlled two-state conductance.",
-            Self::Relay => "Coil or optical isolation drives a mechanical or solid-state contact.",
+            Self::Relay => "Coil drives a changeover contact.",
+            Self::SolidStateRelay => "Optical or semiconductor isolation drives the output.",
             Self::Connector => "Board-level electrical and mechanical interconnect.",
             _ => "Controlled analog signal path.",
         }
@@ -830,7 +846,7 @@ mod tests {
     #[test]
     fn all_classes_have_entries() {
         let classes: BTreeSet<_> = catalog().iter().map(|entry| entry.class).collect();
-        assert_eq!(classes.len(), 58);
+        assert_eq!(classes.len(), 59);
     }
 
     #[test]
@@ -931,6 +947,7 @@ mod tests {
                 | sim_core::DeviceKind::Ccvs
                 | sim_core::DeviceKind::Switch
                 | sim_core::DeviceKind::IdealSwitch
+                | sim_core::DeviceKind::Relay
                 | sim_core::DeviceKind::TransmissionLine
         )
     }

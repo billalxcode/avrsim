@@ -31,6 +31,8 @@ pub enum DeviceKind {
     Switch,
     /// A two-terminal ideal switch.
     IdealSwitch,
+    /// An electromechanical relay with coil and changeover contacts.
+    Relay,
     /// A five-terminal operational amplifier.
     OpAmp,
     /// A five-terminal comparator with saturated output.
@@ -79,6 +81,7 @@ impl DeviceKind {
             Self::Ccvs => "ccvs",
             Self::Switch => "switch",
             Self::IdealSwitch => "ideal_switch",
+            Self::Relay => "relay",
             Self::OpAmp => "opamp",
             Self::Comparator => "comparator",
             other => other.analog_name(),

@@ -95,8 +95,8 @@ Analisis:
   lebih tinggi daripada body `0 V`.
 
 Total test `sim-device`: 48.
-Total test `sim-analysis`: 113 (108 unit + 5 integration).
-Total workspace: 739.
+Total test `sim-analysis`: 114 (108 unit + 6 integration).
+Total workspace: 743.
 
 ---
 

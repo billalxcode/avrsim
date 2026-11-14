@@ -99,7 +99,7 @@ Test memverifikasi:
 - Penolakan magic salah, file terpotong, dan machine bukan AVR.
 
 Total test `sim-board`: 23.
-Total workspace: 739.
+Total workspace: 743.
 
 ---
 

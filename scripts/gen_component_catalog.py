@@ -185,8 +185,10 @@ add("switch.mechanical", "Switch", "IdealSwitch", 2, "ron", 0.1, "ohm", [
     "SPST switch", "SPDT switch", "DPST switch", "DPDT switch", "pushbutton",
     "toggle switch", "DIP switch", "reed switch",
 ])
-add("switch.relay", "Relay", None, 4, "coil_voltage", 5.0, "V", [
+add("switch.relay", "Relay", "Relay", 5, "rcoil", 100.0, "ohm", [
     "electromechanical relay", "latching relay", "reed relay",
+])
+add("switch.ssr", "SolidStateRelay", None, 4, "isolation_voltage", 2500.0, "V", [
     "solid state relay", "opto MOSFET relay", "TRIAC output SSR",
     "time delay relay",
 ])

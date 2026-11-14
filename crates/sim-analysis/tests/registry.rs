@@ -8,6 +8,7 @@ const SOURCE: &str = "source.independent.dc_voltage_source";
 const RESISTOR: &str = "passive.resistor.ideal_resistor";
 const SWITCH: &str = "switch.mechanical.spst_switch";
 const ANALOG_SWITCH: &str = "switch.analog.analog_switch";
+const RELAY: &str = "switch.relay.electromechanical_relay";
 const OPAMP: &str = "analog.opamp.ideal_opamp";
 const COMPARATOR: &str = "analog.comparator.comparator";
 
@@ -63,6 +64,16 @@ fn add_analog_switch(
     let pins = vec![first, second, control, ground];
     let request = ComponentRequest::new(ANALOG_SWITCH, name, DeviceId::new(0), pins);
     registry.add_to(builder, &request).expect("analog switch");
+}
+
+fn add_relay(
+    registry: &ComponentRegistry,
+    builder: &mut CircuitBuilder,
+    name: &str,
+    pins: [NodeId; 5],
+) {
+    let request = ComponentRequest::new(RELAY, name, DeviceId::new(0), pins.to_vec());
+    registry.add_to(builder, &request).expect("relay");
 }
 
 fn add_opamp(
@@ -164,6 +175,66 @@ fn analog_switch_circuit(control_voltage: f64) -> Circuit {
     builder.build().expect("circuit")
 }
 
+struct RelayNodes {
+    main: NodeId,
+    common: NodeId,
+    normally_closed: NodeId,
+    coil: NodeId,
+    ground: NodeId,
+}
+
+fn relay_nodes(builder: &mut CircuitBuilder) -> RelayNodes {
+    RelayNodes {
+        main: builder.node("main").expect("main"),
+        common: builder.node("common").expect("common"),
+        normally_closed: builder.node("nc").expect("nc"),
+        coil: builder.node("coil").expect("coil"),
+        ground: builder.ground(),
+    }
+}
+
+fn add_relay_load(registry: &ComponentRegistry, builder: &mut CircuitBuilder, nodes: &RelayNodes) {
+    add_resistor(registry, builder, "R1", nodes.main, nodes.common, 1000.0);
+    add_resistor(
+        registry,
+        builder,
+        "R2",
+        nodes.normally_closed,
+        nodes.ground,
+        1_000_000.0,
+    );
+}
+
+fn add_relay_coil(
+    registry: &ComponentRegistry,
+    builder: &mut CircuitBuilder,
+    nodes: &RelayNodes,
+    voltage: f64,
+) {
+    add_source(registry, builder, "VC", nodes.coil, nodes.ground, voltage);
+}
+
+fn relay_pins(nodes: &RelayNodes) -> [NodeId; 5] {
+    [
+        nodes.coil,
+        nodes.ground,
+        nodes.common,
+        nodes.ground,
+        nodes.normally_closed,
+    ]
+}
+
+fn relay_circuit(coil_voltage: f64) -> Circuit {
+    let registry = ComponentRegistry::new();
+    let mut builder = CircuitBuilder::new();
+    let nodes = relay_nodes(&mut builder);
+    add_source(&registry, &mut builder, "V1", nodes.main, nodes.ground, 5.0);
+    add_relay_coil(&registry, &mut builder, &nodes, coil_voltage);
+    add_relay_load(&registry, &mut builder, &nodes);
+    add_relay(&registry, &mut builder, "K1", relay_pins(&nodes));
+    builder.build().expect("circuit")
+}
+
 fn comparator_circuit(input_voltage: f64) -> Circuit {
     let registry = ComponentRegistry::new();
     let mut builder = CircuitBuilder::new();
@@ -219,4 +290,12 @@ fn registry_analog_switch_follows_control() {
     let on = dc_voltage(&analog_switch_circuit(5.0), "out");
     assert!(off > 4.9, "off {off}");
     assert!(on < 0.1, "on {on}");
+}
+
+#[test]
+fn registry_relay_switches_contacts() {
+    let released = dc_voltage(&relay_circuit(0.0), "common");
+    let energized = dc_voltage(&relay_circuit(5.0), "common");
+    assert!(released > 4.9, "released {released}");
+    assert!(energized < 0.1, "energized {energized}");
 }

@@ -8,6 +8,7 @@ use crate::jfet::JfetModel;
 use crate::mosfet::MosfetModel;
 use crate::opamp::OpAmpModel;
 use crate::passive::{CapacitorModel, InductorModel, ResistorModel};
+use crate::relay::RelayModel;
 use crate::source::{CurrentSourceModel, PulseSourceModel, VoltageSourceModel};
 use crate::switch::{IdealSwitchModel, SwitchModel};
 use crate::transmission::TransmissionLineModel;
@@ -87,6 +88,7 @@ fn passive_model(instance: &DeviceInstance) -> Result<Option<Box<dyn DeviceModel
         DeviceKind::Ccvs => Box::new(CcvsModel::from_instance(instance)?),
         DeviceKind::Switch => Box::new(SwitchModel::from_instance(instance)?),
         DeviceKind::IdealSwitch => Box::new(IdealSwitchModel::from_instance(instance)?),
+        DeviceKind::Relay => Box::new(RelayModel::from_instance(instance)?),
         DeviceKind::TransmissionLine => Box::new(TransmissionLineModel::from_instance(instance)?),
         _ => return Ok(None),
     };

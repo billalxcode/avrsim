@@ -126,6 +126,7 @@ fn is_nonlinear(kind: &DeviceKind) -> bool {
             | DeviceKind::JfetN
             | DeviceKind::JfetP
             | DeviceKind::Comparator
+            | DeviceKind::Relay
     )
 }
 

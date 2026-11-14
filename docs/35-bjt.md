@@ -126,9 +126,9 @@ Analisis:
 - AC common emitter memiliki gain dan rolloff saat `cje`/`cjc` aktif.
 - Kapasitansi BJT memperlambat charge base pada transient.
 
-Total test `sim-analysis`: 113 (108 unit + 5 integration).
+Total test `sim-analysis`: 114 (108 unit + 6 integration).
 Total test `sim-device`: 48.
-Total workspace: 739.
+Total workspace: 743.
 
 ---
 
