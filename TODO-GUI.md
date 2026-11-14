@@ -294,8 +294,8 @@ keyboard, dan tidak ada panic pada input tidak valid.
 ## G10 - Release GUI
 
 - [x] G10-01 Buat paket Linux dan desktop entry.
-- [ ] G10-02 Verifikasi build Windows (perlu native runner).
-- [ ] G10-03 Verifikasi build macOS (perlu native runner).
+- [ ] G10-02 Verifikasi build Windows (cross-check `x86_64-pc-windows-gnu` lulus; runtime native belum).
+- [ ] G10-03 Verifikasi build macOS (cross-check `x86_64-apple-darwin` lulus; runtime native belum).
 - [x] G10-04 Buat contoh proyek: LED blink dan UART hello.
 - [x] G10-05 Perbarui README, docs, dan TODO.
 - [x] G10-06 Tag preview GUI.
@@ -334,7 +334,8 @@ Tertunda karena batas teknis atau lingkungan:
 - Probe net generik: skematik GUI belum memiliki netlist elektrik yang
   terhubung ke solver analog. Probe PB5 dan arus LED sudah berjalan
   melalui API read-only.
-- Build Windows dan macOS belum dijalankan pada native runner.
+- Build Windows dan macOS lolos cross-check `cargo check`, tetapi belum
+  dijalankan pada native runner.
 - Alt menonaktifkan snap belum dapat diterapkan karena model dokumen
   memakai grid integer; semua posisi tetap snap ke grid.
 

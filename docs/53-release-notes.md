@@ -130,6 +130,16 @@ Perintah:
 
 Total test workspace: 702.
 
+Golden GUI headless 320 x 240 RGBA lulus di Linux. Cross-check build
+Windows dan macOS lulus:
+
+```bash
+cargo check --workspace --target x86_64-pc-windows-gnu
+cargo check --workspace --target x86_64-apple-darwin
+```
+
+Runtime native dan determinisme di kedua platform belum dijalankan.
+
 ---
 
 ## 8. Batas Rilis
@@ -139,6 +149,7 @@ Total test workspace: 702.
 - Belum ada golden ngspice.
 - Firmware `avr-gcc` dan sketsa Arduino core sudah dijalankan; upload
   dari GUI Arduino IDE belum diuji ulang.
-- Determinisme macOS/Windows belum dijalankan.
+- Cross-check build Windows/macOS lulus, tetapi runtime native dan
+  determinisme kedua platform belum dijalankan.
 - CI GitHub Actions sudah disiapkan tetapi belum dieksekusi.
 - X-03 panic audit sebagian.
