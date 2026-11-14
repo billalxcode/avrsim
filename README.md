@@ -4,7 +4,7 @@
 yang memodelkan transistor, gerbang CMOS, CPU AVR, peripheral, dan board,
 serta mampu menjalankan firmware AVR.
 
-> **Status v0.1:** 677 test lulus, 8 crate, crate simulasi zero external
+> **Status v0.1:** 699 test lulus, 8 crate, crate simulasi zero external
 > dependency; dependensi GUI dibatasi pada daftar yang disetujui di
 > `AGENTS.md`.
 > Tag `v0.1` tersedia. Archive Linux ada di
@@ -140,6 +140,7 @@ Dokumen yang sering dipakai:
 | [`docs/53-release-notes.md`](docs/53-release-notes.md) | Isi rilis v0.1 |
 | [`docs/57-gui-egui.md`](docs/57-gui-egui.md) | Desain GUI egui dan kanvas CAD |
 | [`docs/58-gui-user-guide.md`](docs/58-gui-user-guide.md) | Panduan pengguna GUI |
+| [`docs/59-gui-golden.md`](docs/59-gui-golden.md) | Status dan prosedur golden RGBA GUI |
 | [`TODO.md`](TODO.md) | Pekerjaan yang tersisa |
 | [`TODO-GUI.md`](TODO-GUI.md) | Backlog GUI egui |
 
@@ -149,7 +150,7 @@ Dokumen yang sering dipakai:
 
 Sudah:
 
-- 677 test workspace.
+- 699 test workspace.
 - fmt, clippy, test, dan build release lulus.
 - Paket Linux dapat dibuat.
 - Determinisme Linux diuji.

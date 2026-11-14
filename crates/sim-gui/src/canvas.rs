@@ -6,6 +6,7 @@ const BACKGROUND: egui::Color32 = egui::Color32::from_rgb(18, 20, 24);
 const MINOR_DOT: egui::Color32 = egui::Color32::from_rgb(55, 60, 70);
 const MAJOR_LINE: egui::Color32 = egui::Color32::from_rgb(40, 45, 54);
 const AXIS_LINE: egui::Color32 = egui::Color32::from_rgb(90, 100, 118);
+const FOCUS_COLOR: egui::Color32 = egui::Color32::from_rgb(80, 215, 225);
 const RULER_COLOR: egui::Color32 = egui::Color32::from_rgb(145, 155, 170);
 
 /// Screen-space state of the grid camera.
@@ -114,6 +115,8 @@ pub struct CanvasState {
     pub space_down: bool,
     /// True when Shift or Ctrl is held for additive selection.
     pub multi_select: bool,
+    /// True when the canvas has keyboard focus.
+    pub focused: bool,
     /// Position of a secondary click.
     pub context_click: Option<ContextClick>,
 }
@@ -132,6 +135,7 @@ impl Default for CanvasState {
             drag_stopped: false,
             space_down: false,
             multi_select: false,
+            focused: false,
             context_click: None,
         }
     }
@@ -156,29 +160,88 @@ pub fn show(
         ui.allocate_painter(ui.available_size(), egui::Sense::click_and_drag());
     let rect = response.rect;
     initialize_camera(rect, camera, initialized);
-    painter.rect_filled(rect, egui::CornerRadius::ZERO, BACKGROUND);
     handle_pan(&response, ui, camera);
     handle_zoom(&response, ui, camera, rect);
     let pointer = pointer_world(&response, rect, camera);
-    if grid_visible {
-        draw_grid(&painter, rect, camera);
+    focus_canvas(&response);
+    let frame = CanvasFrame::new(&response, &painter, rect, camera, grid_visible, pointer);
+    frame.paint(draw_scene);
+    canvas_state(ui, &response, rect, camera, pointer)
+}
+
+struct CanvasFrame<'a> {
+    response: &'a egui::Response,
+    painter: &'a egui::Painter,
+    rect: egui::Rect,
+    camera: &'a GridCamera,
+    grid_visible: bool,
+    pointer: Option<egui::Pos2>,
+}
+
+impl<'a> CanvasFrame<'a> {
+    fn new(
+        response: &'a egui::Response,
+        painter: &'a egui::Painter,
+        rect: egui::Rect,
+        camera: &'a GridCamera,
+        grid_visible: bool,
+        pointer: Option<egui::Pos2>,
+    ) -> Self {
+        Self {
+            response,
+            painter,
+            rect,
+            camera,
+            grid_visible,
+            pointer,
+        }
     }
-    draw_scene(&painter, rect, camera, pointer);
-    let space_down = ui.input(|input| input.key_down(egui::Key::Space));
-    canvas_state(&response, rect, camera, pointer, space_down)
+
+    fn paint(
+        self,
+        draw_scene: impl FnOnce(&egui::Painter, egui::Rect, &GridCamera, Option<egui::Pos2>),
+    ) {
+        let painter = self.painter;
+        painter.rect_filled(self.rect, egui::CornerRadius::ZERO, BACKGROUND);
+        if self.grid_visible {
+            draw_grid(painter, self.rect, self.camera);
+        }
+        draw_scene(painter, self.rect, self.camera, self.pointer);
+        paint_focus_ring(self.response, painter, self.rect);
+    }
+}
+
+fn focus_canvas(response: &egui::Response) {
+    if response.clicked() || response.drag_started() {
+        response.request_focus();
+    }
+}
+
+fn paint_focus_ring(response: &egui::Response, painter: &egui::Painter, rect: egui::Rect) {
+    if !response.has_focus() {
+        return;
+    }
+    painter.rect_stroke(
+        rect.shrink(1.0),
+        0.0,
+        egui::Stroke::new(2.0, FOCUS_COLOR),
+        egui::StrokeKind::Inside,
+    );
 }
 
 fn canvas_state(
+    ui: &egui::Ui,
     response: &egui::Response,
     rect: egui::Rect,
     camera: &GridCamera,
     pointer_world: Option<egui::Pos2>,
-    space_down: bool,
 ) -> CanvasState {
+    let space_down = ui.input(|input| input.key_down(egui::Key::Space));
     let mut state = CanvasState {
         rect,
         pointer_world,
         space_down,
+        focused: response.has_focus(),
         ..CanvasState::default()
     };
     fill_interaction(&mut state, response, rect, camera);

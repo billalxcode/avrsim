@@ -89,7 +89,7 @@ Jika fundamental nol, analisis mengembalikan error.
   di atas Nyquist ditolak.
 
 Total test `sim-analysis`: 108.
-Total workspace: 677.
+Total workspace: 699.
 
 ---
 

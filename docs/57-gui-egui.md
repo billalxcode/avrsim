@@ -15,9 +15,12 @@ grup, context menu, monitor UART TX, pola garis net, toast, konfirmasi
 hapus, export PNG, minimap, log panel, tooltip pin, tema terang,
 recently used, net highlight, override warna wire, label net kustom,
 migrasi JSON v1, preview library, drag-and-drop library, ruler grid,
-probe tegangan PB5, animasi aliran sinyal opsional, simulasi PB5, graph
+probe tegangan PB5, animasi aliran sinyal opsional, graph analog PB5,
+sampling probe N cycle, batas 8 series, API probe read-only, spatial
+hash hit testing, app error type, toolbar ikon ASCII, simulasi PB5, graph
 digital PB5/LED dengan cursor, dan UART RX dari GUI juga sudah ada.
-Probe generik, UART input ke simulasi, dan grafik analog belum ada. Dependensi
+Probe net dan branch current memerlukan integrasi netlist. Golden RGBA
+belum ada; prosedur ada di `docs/59-gui-golden.md`. Dependensi
 GUI yang disetujui hanya untuk crate `sim-gui`: `egui`, `eframe`,
 `serde`, `serde_json`, `rfd`, dan `png`. `egui_plot`,
 `libloading`, dan crate lain tidak diizinkan tanpa keputusan baru.

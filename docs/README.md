@@ -2,7 +2,7 @@
 
 Pintu masuk dokumentasi `embed-emulation` versi 0.1.0.
 
-**Status saat ini:** 677 test lulus, 8 crate, crate simulasi zero external
+**Status saat ini:** 699 test lulus, 8 crate, crate simulasi zero external
 dependency Rust. Dependensi GUI dibatasi pada daftar yang disetujui di
 `AGENTS.md`. Tag `v0.1` tersedia.
 
@@ -64,6 +64,8 @@ Setiap dokumen muncul satu kali pada peta ini.
 | 55 | [Virtual USB serial](55-usb-virtual-serial.md) | Riset CDC ACM, dummy_hcd, USB/IP, Windows/macOS |
 | 56 | [Tutorial USB aman](56-usb-safe-tutorial.md) | Urutan start, upload, stop, dan pemulihan device busy |
 | 57 | [GUI egui](57-gui-egui.md) | Desain canvas CAD, grid, wire, probe, dan grafik |
+| 58 | [Panduan pengguna GUI](58-gui-user-guide.md) | Editing, simulasi, graph, probe, dan ekspor |
+| 59 | [Golden RGBA GUI](59-gui-golden.md) | Status dan prosedur update golden image |
 
 ### 3.2 Fondasi
 
@@ -159,7 +161,7 @@ Setiap dokumen muncul satu kali pada peta ini.
 |---|---|
 | Versi workspace | `0.1.0` |
 | Tag | `v0.1` |
-| Test | 677 lulus |
+| Test | 699 lulus |
 | Crate | 7 |
 | Dependensi eksternal | 0 |
 | `unsafe` | Dilarang di seluruh workspace |
@@ -181,8 +183,8 @@ Setiap dokumen muncul satu kali pada peta ini.
 | `sim-avr` | 215 |
 | `sim-board` | 23 |
 | `sim-cli` | 26 |
-| `sim-gui` | 123 |
-| **Total** | **677** |
+| `sim-gui` | 145 |
+| **Total** | **699** |
 
 ---
 

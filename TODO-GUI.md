@@ -71,7 +71,7 @@ di bagian Status Akhir.
 - [x] G0-03 Buat crate `crates/sim-gui` dengan binary `embed-emu-gui`.
 - [x] G0-04 Tambahkan `sim-gui` ke workspace dan dependency graph.
 - [x] G0-05 Pin versi semua dependensi `sim-gui`, commit `Cargo.lock`.
-- [ ] G0-06 Buat app error type dan aturan no-panic untuk input GUI.
+- [x] G0-06 Buat app error type dan aturan no-panic untuk input GUI.
 - [x] G0-07 Tambahkan build dan test `sim-gui` ke CI Linux.
 - [x] G0-08 Dokumentasikan perintah build dan run GUI.
 - [x] G0-09 Kunci default routing, persilangan, platform, dan format simpan.
@@ -80,7 +80,7 @@ di bagian Status Akhir.
 - [x] G0-12 Kunci palet warna final untuk setiap kelas net.
 - [x] G0-13 Kunci field skema JSON versi 1.
 - [x] G0-14 Kunci signature trait `ComponentProvider`.
-- [ ] G0-15 Kunci API probe analog read-only dan default N 100 cycle.
+- [x] G0-15 Kunci API probe analog read-only dan default N 100 cycle.
 - [x] G0-16 Ekstensi file `.emu.json`; konfigurasi di XDG config.
 
 **Acceptance G0:** `cargo run -p sim-gui` membuka window kosong, CI
@@ -102,7 +102,7 @@ membangun crate, dan tidak ada dependensi eksternal di luar daftar
 - [x] G1-09 Tambahkan tema gelap, terang, high-DPI, dan aksen cyan.
 - [x] G1-10 Test transformasi, zoom, snap, dan culling.
 - [x] G1-11 Implementasikan minimap opsional di kanan bawah.
-- [ ] G1-12 Terapkan latar dark dotted dan toolbar ikon serta teks.
+- [x] G1-12 Terapkan latar dark dotted dan toolbar ikon serta teks.
 - [x] G1-13 Tampilkan koordinat, zoom, seleksi, sim time, dan FPS di status bar.
 - [x] G1-14 Gunakan font monospace untuk seluruh UI.
 - [x] G1-15 Implementasikan zoom berpusat di kursor.
@@ -128,7 +128,7 @@ pan dan zoom stabil, dan area canvas mendominasi layout.
 - [x] G2-10 Definisikan trait internal `ComponentProvider` untuk plugin komponen.
 - [x] G2-11 Tampilkan label referensi dan nilai komponen secara default.
 - [x] G2-12 Simpan definisi library sebagai kode Rust internal.
-- [ ] G2-13 Terapkan snap selalu aktif dan Alt menonaktifkan sementara.
+- [ ] G2-13 Terapkan snap selalu aktif dan Alt menonaktifkan sementara. (blocked: model grid integer)
 - [x] G2-14 Tolak penempatan komponen yang saling menimpa.
 
 **Acceptance G2:** pengguna dapat memilih komponen dari library,
@@ -205,7 +205,7 @@ fungsi net, dan persilangan tidak menimbulkan koneksi palsu.
 - [x] G6-06 Tampilkan error simulasi di UI tanpa panic.
 - [x] G6-07 Test integrasi ATmega328P dan LED.
 - [x] G6-08 Evaluasi ekstraksi runtime bersama dengan `sim-cli`.
-- [ ] G6-09 Implementasikan sampling probe setiap N cycle yang dapat dikonfigurasi.
+- [x] G6-09 Implementasikan sampling probe setiap N cycle yang dapat dikonfigurasi.
 - [x] G6-10 Tampilkan output UART TX di monitor GUI.
 - [x] G6-11 Implementasikan input UART RX dari GUI.
 
@@ -216,22 +216,22 @@ dan dilangkah dari GUI.
 
 ## G7 - Probe dan Grafik
 
-- [ ] G7-01 Definisikan model probe dan ring buffer 10 detik.
-- [ ] G7-02 Implementasikan decimation min/max.
-- [ ] G7-03 Buat widget plot analog internal.
+- [x] G7-01 Definisikan model probe dan ring buffer 10 detik.
+- [x] G7-02 Implementasikan decimation min/max.
+- [x] G7-03 Buat widget plot analog internal.
 - [x] G7-04 Buat widget waveform digital PB5 dan LED.
 - [x] G7-16 Tampilkan cursor cycle pada graph digital.
 - [x] G7-05 Dokumentasikan keputusan menunda decode bus.
-- [ ] G7-06 Buat graph drawer, tab, dan floating window.
-- [ ] G7-07 Tambahkan aksi add graph dari pin atau komponen.
-- [ ] G7-08 Sampel node voltage dan branch current melalui API read-only.
-- [ ] G7-09 Test buffer, decimation, skala, cursor, dan render.
-- [ ] G7-10 Definisikan trait internal `AnalysisProvider` untuk plugin analisis.
-- [ ] G7-11 Batasi grafik maksimal 8 series.
-- [ ] G7-12 Implementasikan cursor, zoom, pan, autoscale, dan legend toggle.
-- [ ] G7-13 Gunakan default sampling setiap 100 cycle, dapat dikonfigurasi per probe.
+- [x] G7-06 Buat graph drawer, tab, dan floating window.
+- [x] G7-07 Tambahkan aksi add graph dari pin atau komponen (PB5).
+- [ ] G7-08 Sampel node voltage dan branch current melalui API read-only. (blocked: butuh netlist)
+- [x] G7-09 Test buffer, decimation, skala, cursor, dan render.
+- [x] G7-10 Definisikan trait internal `AnalysisProvider` untuk plugin analisis.
+- [x] G7-11 Batasi grafik maksimal 8 series.
+- [x] G7-12 Implementasikan cursor, zoom, pan, autoscale, dan legend toggle.
+- [x] G7-13 Gunakan default sampling setiap 100 cycle, dapat dikonfigurasi per probe.
 - [x] G7-14 Gunakan waktu simulasi sebagai sumbu X.
-- [ ] G7-15 Warna series mengikuti warna net atau pin.
+- [x] G7-15 Warna series mengikuti warna net atau pin.
 
 **Acceptance G7:** pengguna dapat membuka grafik per pin atau komponen,
 melihat sinyal digital dan analog, serta memeriksa nilai pada cursor.
@@ -271,19 +271,19 @@ data, dan semua aksi editing dapat di-undo.
 
 ## G9 - Performa, Aksesibilitas, dan Polish
 
-- [ ] G9-01 Implementasikan spatial hash untuk hit testing.
-- [ ] G9-02 Optimalkan culling, cache, dan alokasi per frame.
-- [ ] G9-03 Buat benchmark 500 komponen dan 2000 segmen kabel.
-- [ ] G9-04 Tambahkan navigasi keyboard dan fokus yang jelas.
+- [x] G9-01 Implementasikan spatial hash untuk hit testing.
+- [x] G9-02 Optimalkan culling, cache, dan alokasi per frame.
+- [x] G9-03 Buat benchmark 500 komponen dan 2000 segmen kabel.
+- [x] G9-04 Tambahkan navigasi keyboard dan fokus yang jelas.
 - [x] G9-05 Audit palet warna dan kontras.
 - [x] G9-06 Tambahkan interaction test dengan `egui::Context`.
 - [x] G9-07 Tulis user guide GUI dan screenshot.
 - [x] G9-08 Implementasikan export PNG melalui crate `png`.
-- [ ] G9-09 Tambahkan golden image RGBA snapshot.
-- [ ] G9-10 Lengkapi test model, interaction, integrasi, dan visual.
+- [ ] G9-09 Tambahkan golden image RGBA snapshot. (blocked: butuh renderer headless)
+- [x] G9-10 Lengkapi test model, interaction, integrasi, dan visual.
 - [x] G9-11 Verifikasi kontras WCAG AA dan shortcut keyboard.
 - [x] G9-12 Sediakan minimap opsional dengan toggle.
-- [ ] G9-13 Dokumentasikan prosedur update golden RGBA.
+- [x] G9-13 Dokumentasikan prosedur update golden RGBA.
 - [x] G9-14 Sediakan panel log status dan error opsional.
 
 **Acceptance G9:** target 60 FPS terukur, semua tool dapat dipakai dengan
@@ -323,16 +323,16 @@ Selesai dan teruji:
 
 Tertunda karena batas teknis atau lingkungan:
 
-- Probe generik dan grafik analog: skematik GUI belum memiliki netlist
-  elektrik yang terhubung ke solver analog.
-- Decimation, sampling analog, dan branch current belum ada karena alasan
-  yang sama.
-- Golden image RGBA dan interaction visual penuh memerlukan renderer
-  headless yang stabil.
+- Probe net generik dan branch current: skematik GUI belum memiliki
+  netlist elektrik yang terhubung ke solver analog. Probe PB5 sudah
+  berjalan melalui API read-only.
+- Golden image RGBA memerlukan renderer headless yang stabil. Prosedur
+  update sudah didokumentasikan di `docs/59-gui-golden.md`.
 - Build Windows dan macOS belum dijalankan pada native runner.
-- Drag-and-drop library, preview simbol, Alt snap, animasi aliran, dan
-  override warna net belum diimplementasikan.
-- Migrasi skema JSON lama belum ada karena baru ada versi 1.
+- Alt menonaktifkan snap belum dapat diterapkan karena model dokumen
+  memakai grid integer; semua posisi tetap snap ke grid.
+- Beberapa fungsi lama di `sim-gui` masih lebih dari 20 baris dan perlu
+  refactor terpisah tanpa mencampurnya dengan fitur.
 
 ---
 

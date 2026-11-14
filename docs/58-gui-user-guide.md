@@ -4,8 +4,9 @@ Dokumen ini menjelaskan cara memakai GUI `embed-emu-gui` untuk menggambar
 skematik, menjalankan firmware AVR, memantau UART, dan mengekspor gambar.
 
 **Status:** GUI Linux sudah dapat dipakai untuk editing dasar, simulasi
-PB5, monitor UART TX, graph digital, dan persistence proyek. Probe generik,
-grafik analog, dan input UART ke simulasi belum tersedia.
+PB5, monitor UART TX, graph digital, graph analog PB5, probe read-only
+default 100 cycle, dan persistence proyek. Probe net generik dan branch
+current menunggu integrasi netlist; input UART RX sudah ada.
 
 ---
 
@@ -45,8 +46,8 @@ cargo build --workspace --release
 - Kanvas tengah: grid, komponen, kabel, dan minimap opsional.
 - Status bar bawah: koordinat, zoom, grid, snap, tool, seleksi, parts,
   cycle, PB5 high/low dan tegangan mV, LED, dan FPS.
-- Library, Inspector, Legend, Digital graph, UART monitor, Log, dan
-  Command palette tampil sebagai floating window.
+- Library, Inspector, Legend, Digital graph, Analog graph, UART monitor,
+  Log, dan Command palette tampil sebagai floating window.
 - Toast singkat muncul di bawah tengah untuk status terbaru.
 
 Centang `Flow` di toolbar untuk animasi aliran sinyal. Animasi default
@@ -67,6 +68,8 @@ mati, hanya memengaruhi tampilan, dan tidak mengubah data proyek.
 | Wheel | Zoom di posisi kursor |
 | R | Rotate |
 | M | Mirror |
+| Arrow | Geser seleksi 1 grid |
+| Shift+Arrow | Geser seleksi 5 grid |
 | Delete | Hapus seleksi, dengan konfirmasi jika perlu |
 | Ctrl+C | Copy |
 | Ctrl+V | Paste |
@@ -156,10 +159,22 @@ Kontrol:
 - `Step`: satu instruksi.
 - `Reset`: cycle, waveform, dan UART dikosongkan.
 - `Wave`: membuka graph digital.
+- `Analog`: membuka graph analog PB5.
 - `UART`: membuka monitor TX.
+- `N 100`: mengatur sampling probe setiap N cycle.
+- Klik kanan lalu `Probe PB5`: menambah probe PB5.
 
 Graph digital menampilkan lane PB5 dan LED pada sumbu cycle. Arahkan
 pointer ke graph untuk melihat cursor dan nilai pada cycle tersebut.
+
+Graph analog menampilkan tegangan PB5 dalam volt. Kontrol `Auto`
+mengaktifkan autoscale, `Legend` menampilkan daftar series, `+` dan `-`
+mengubah zoom, drag menggeser window, dan wheel di atas plot juga
+mengubah zoom. Cursor menampilkan cycle dan nilai terdekat.
+
+Probe memakai API read-only dan buffer 10 detik. Default sampling adalah
+setiap 100 cycle; nilai dapat diubah per probe melalui `Sampling`. Maksimal
+8 series per plot. Warna series mengikuti warna pin atau net.
 
 Monitor UART menampilkan byte TX sebagai UTF-8 lossy, dengan buffer 16 KiB
 dan auto-scroll. Isi kolom input dan klik `Send` atau tekan Enter untuk
@@ -278,14 +293,14 @@ Modal konflik muncul. Pilih:
 
 ## 12. Batas Saat Ini
 
-- Probe generik per pin atau komponen belum ada.
-- Grafik analog belum ada.
-- Input UART RX dari GUI belum ada.
+- Probe net generik dan branch current menunggu integrasi netlist.
+- Grafik analog saat ini hanya memakai sampel PB5.
+- `Alt` belum menonaktifkan snap karena model dokumen memakai grid
+  integer; semua posisi tetap snap ke grid.
 - Clipboard hanya in-memory.
 - Wire tidak ikut berubah saat grup komponen ditransformasi.
-- Belum ada migrasi skema JSON lama.
 - Build Windows dan macOS belum diverifikasi.
-- Golden image test belum ada.
+- Golden image RGBA belum ada; prosedur update ada di `docs/59`.
 
 ---
 

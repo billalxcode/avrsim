@@ -12,18 +12,22 @@ const CHUNK: usize = 100;
 const POLL_MS: u64 = 2;
 const FLASH_BYTES: usize = 0x8000;
 const WAVE_LIMIT: usize = 2048;
+/// Default probe sampling interval in CPU cycles.
+pub const DEFAULT_SAMPLE_EVERY: u64 = 100;
 
-/// One LED transition sample.
+/// One PB5/LED sample.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct Sample {
     pub cycle: u64,
     pub pb5_high: bool,
+    pub pb5_millivolts: i32,
     pub led_on: bool,
 }
 
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
 struct SampleState {
     pb5_high: bool,
+    pb5_millivolts: i32,
     led_on: bool,
 }
 
@@ -31,6 +35,7 @@ impl SampleState {
     fn of(machine: &SimMachine) -> Self {
         Self {
             pb5_high: machine.pb5_high,
+            pb5_millivolts: machine.pb5_millivolts,
             led_on: machine.led_on,
         }
     }
@@ -39,8 +44,53 @@ impl SampleState {
         Sample {
             cycle,
             pb5_high: self.pb5_high,
+            pb5_millivolts: self.pb5_millivolts,
             led_on: self.led_on,
         }
+    }
+}
+
+struct WorkerState {
+    machine: Option<SimMachine>,
+    running: bool,
+    last: SampleState,
+    sample_every: u64,
+}
+
+impl WorkerState {
+    fn new() -> Self {
+        Self {
+            machine: None,
+            running: false,
+            last: SampleState::default(),
+            sample_every: DEFAULT_SAMPLE_EVERY,
+        }
+    }
+
+    fn load(&mut self, words: Vec<u16>, events: &Sender<Event>) {
+        load_machine(
+            words,
+            &mut self.machine,
+            &mut self.running,
+            &mut self.last,
+            events,
+        );
+    }
+
+    fn run(&mut self, value: bool, events: &Sender<Event>) {
+        update_running(&self.machine, &mut self.running, value, events);
+    }
+
+    fn step(&mut self, events: &Sender<Event>) {
+        step_once(&mut self.machine, &mut self.running, &mut self.last, events);
+    }
+
+    fn reset(&mut self, events: &Sender<Event>) {
+        reset_machine(&mut self.machine, &mut self.running, &mut self.last, events);
+    }
+
+    fn queue_uart(&mut self, data: Vec<u8>) {
+        queue_uart(&mut self.machine, data);
     }
 }
 
@@ -115,6 +165,7 @@ pub enum Command {
     Step,
     Reset,
     Uart(Vec<u8>),
+    SampleEvery(u64),
     Shutdown,
 }
 
@@ -189,6 +240,11 @@ impl SimHandle {
     /// Queues bytes for the simulated UART receiver.
     pub fn send_uart(&self, data: Vec<u8>) -> Result<(), String> {
         self.send(Command::Uart(data))
+    }
+
+    /// Sets the probe sampling interval in CPU cycles.
+    pub fn set_sample_every(&self, every: u64) -> Result<(), String> {
+        self.send(Command::SampleEvery(every))
     }
 
     /// Drains pending events.
@@ -332,65 +388,73 @@ impl SimMachine {
 }
 
 fn worker(commands: Receiver<Command>, events: Sender<Event>) {
-    let mut machine = None;
-    let mut running = false;
-    let mut last = SampleState::default();
+    let mut state = WorkerState::new();
     loop {
-        if running {
-            step_chunk(&mut machine, &mut running, &mut last, &events);
-            if !drain_commands(&commands, &mut machine, &mut running, &mut last, &events) {
+        if state.running {
+            step_chunk(&mut state, &events);
+            if !drain_commands(&commands, &mut state, &events) {
                 break;
             }
             continue;
         }
-        match commands.recv_timeout(Duration::from_millis(POLL_MS)) {
-            Ok(Command::Shutdown) => break,
-            Ok(command) => handle_command(command, &mut machine, &mut running, &mut last, &events),
-            Err(RecvTimeoutError::Timeout) => {}
-            Err(RecvTimeoutError::Disconnected) => break,
+        if !wait_command(&commands, &mut state, &events) {
+            break;
         }
+    }
+}
+
+fn wait_command(
+    commands: &Receiver<Command>,
+    state: &mut WorkerState,
+    events: &Sender<Event>,
+) -> bool {
+    match commands.recv_timeout(Duration::from_millis(POLL_MS)) {
+        Ok(Command::Shutdown) => false,
+        Ok(command) => {
+            handle_command(command, state, events);
+            true
+        }
+        Err(RecvTimeoutError::Timeout) => true,
+        Err(RecvTimeoutError::Disconnected) => false,
     }
 }
 
 fn drain_commands(
     commands: &Receiver<Command>,
-    machine: &mut Option<SimMachine>,
-    running: &mut bool,
-    last: &mut SampleState,
+    state: &mut WorkerState,
     events: &Sender<Event>,
 ) -> bool {
     loop {
         match commands.try_recv() {
             Ok(Command::Shutdown) => return false,
-            Ok(command) => handle_command(command, machine, running, last, events),
+            Ok(command) => handle_command(command, state, events),
             Err(TryRecvError::Empty) => return true,
             Err(TryRecvError::Disconnected) => return false,
         }
     }
 }
 
-fn handle_command(
-    command: Command,
-    machine: &mut Option<SimMachine>,
-    running: &mut bool,
-    last: &mut SampleState,
-    events: &Sender<Event>,
-) {
+fn handle_command(command: Command, state: &mut WorkerState, events: &Sender<Event>) {
     match command {
-        Command::Load(words) => load_machine(words, machine, running, last, events),
-        Command::Run => {
-            *running = machine.is_some();
-            send_status(machine, *running, events);
-        }
-        Command::Pause => {
-            *running = false;
-            send_status(machine, false, events);
-        }
-        Command::Step => step_once(machine, running, last, events),
-        Command::Reset => reset_machine(machine, running, last, events),
-        Command::Uart(data) => queue_uart(machine, data),
+        Command::Load(words) => state.load(words, events),
+        Command::Run => state.run(true, events),
+        Command::Pause => state.run(false, events),
+        Command::Step => state.step(events),
+        Command::Reset => state.reset(events),
+        Command::Uart(data) => state.queue_uart(data),
+        Command::SampleEvery(every) => state.sample_every = every.max(1),
         Command::Shutdown => {}
     }
+}
+
+fn update_running(
+    machine: &Option<SimMachine>,
+    running: &mut bool,
+    value: bool,
+    events: &Sender<Event>,
+) {
+    *running = value && machine.is_some();
+    send_status(machine, *running, events);
 }
 
 fn queue_uart(machine: &mut Option<SimMachine>, data: Vec<u8>) {
@@ -470,37 +534,66 @@ fn reset_machine(
     send_status(machine, false, events);
 }
 
-fn step_chunk(
-    machine: &mut Option<SimMachine>,
-    running: &mut bool,
-    last: &mut SampleState,
-    events: &Sender<Event>,
-) {
-    let Some(current) = machine.as_mut() else {
-        *running = false;
+fn step_chunk(state: &mut WorkerState, events: &Sender<Event>) {
+    let Some(current) = state.machine.as_mut() else {
+        state.running = false;
         return;
     };
+    advance(
+        current,
+        &mut state.running,
+        &mut state.last,
+        state.sample_every,
+        events,
+    );
+    send_uart(current, events);
+    send_status(&state.machine, state.running, events);
+}
+
+fn advance(
+    machine: &mut SimMachine,
+    running: &mut bool,
+    last: &mut SampleState,
+    sample_every: u64,
+    events: &Sender<Event>,
+) {
     for _ in 0..CHUNK {
-        match current.step() {
-            Ok(true) => {}
-            Ok(false) => {
-                *running = false;
-                break;
-            }
-            Err(error) => {
-                let _ = events.send(Event::Error(error));
-                *running = false;
-                break;
-            }
+        if !step_one(machine, running, events) {
+            break;
         }
-        let state = SampleState::of(current);
-        if state != *last {
-            *last = state;
-            send_sample(current.cycles(), state, events);
+        sample_step(machine, last, sample_every, events);
+    }
+}
+
+fn step_one(machine: &mut SimMachine, running: &mut bool, events: &Sender<Event>) -> bool {
+    match machine.step() {
+        Ok(true) => true,
+        Ok(false) => {
+            *running = false;
+            false
+        }
+        Err(error) => {
+            let _ = events.send(Event::Error(error));
+            *running = false;
+            false
         }
     }
-    send_uart(current, events);
-    send_status(machine, *running, events);
+}
+
+fn sample_step(
+    machine: &SimMachine,
+    last: &mut SampleState,
+    sample_every: u64,
+    events: &Sender<Event>,
+) {
+    let state = SampleState::of(machine);
+    let cycle = machine.cycles();
+    let every = sample_every.max(1);
+    if state == *last && cycle % every != 0 {
+        return;
+    }
+    *last = state;
+    send_sample(cycle, state, events);
 }
 
 fn send_uart(machine: &mut SimMachine, events: &Sender<Event>) {
@@ -531,7 +624,7 @@ fn send_sample(cycle: u64, state: SampleState, events: &Sender<Event>) {
 
 #[cfg(test)]
 mod tests {
-    use super::{Sample, SimHandle, SimMachine, Waveform, hex_words};
+    use super::{Event, Sample, SampleState, SimHandle, SimMachine, Waveform, hex_words};
 
     fn blink_program() -> Vec<u16> {
         vec![
@@ -605,6 +698,25 @@ mod tests {
     }
 
     #[test]
+    fn sampling_respects_interval() {
+        let mut machine = SimMachine::new(blink_program()).expect("machine");
+        let mut last = SampleState::default();
+        let (events, received) = std::sync::mpsc::channel();
+        for _ in 0..10 {
+            machine.step().expect("step");
+            super::sample_step(&machine, &mut last, 10, &events);
+        }
+        let cycles: Vec<_> = received
+            .try_iter()
+            .filter_map(|event| match event {
+                Event::Sample(sample) => Some(sample.cycle),
+                _ => None,
+            })
+            .collect();
+        assert!(cycles.contains(&10));
+    }
+
+    #[test]
     fn reset_clears_cycles_and_led() {
         let mut machine = SimMachine::new(blink_program()).expect("machine");
         for _ in 0..200 {
@@ -621,11 +733,13 @@ mod tests {
         waveform.push(Sample {
             cycle: 10,
             pb5_high: true,
+            pb5_millivolts: 5000,
             led_on: true,
         });
         waveform.push(Sample {
             cycle: 40,
             pb5_high: false,
+            pb5_millivolts: 0,
             led_on: false,
         });
         assert_eq!(waveform.span(100), (10, 100));
@@ -642,6 +756,7 @@ mod tests {
             waveform.push(Sample {
                 cycle,
                 pb5_high: cycle % 2 == 0,
+                pb5_millivolts: if cycle % 2 == 0 { 5000 } else { 0 },
                 led_on: cycle % 2 == 0,
             });
         }

@@ -3,6 +3,7 @@
 use crate::canvas::{self, GridCamera};
 use crate::clipboard::{self, Clipboard};
 use crate::config;
+use crate::error::{GuiError, GuiResult};
 use crate::export;
 use crate::history::History;
 use crate::layout::{self, Align, Distribute};
@@ -14,6 +15,7 @@ use crate::model::{
 };
 use crate::palette::{self, Command};
 use crate::persist;
+use crate::probe::{self, PlotView, ProbeSet, ProbeSource, ProbeSpec, SampleProvider, Sampling};
 use crate::provider::{BuiltinComponents, ComponentProvider};
 use crate::scene::{self, Scene};
 use crate::selection::Selection;
@@ -59,6 +61,15 @@ impl Tool {
             Self::Probe => "Probe",
         }
     }
+
+    const fn icon(self) -> &'static str {
+        match self {
+            Self::Select => "*",
+            Self::Place => "+",
+            Self::Wire => "~",
+            Self::Probe => "?",
+        }
+    }
 }
 
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -95,6 +106,7 @@ enum ContextAction {
     Mirror,
     Properties,
     Graph,
+    ProbePb5,
     SetClass(NetClass),
     SetColor(Option<[u8; 3]>),
     SetLabel(Option<String>),
@@ -156,6 +168,8 @@ pub struct GuiApp {
     tool: Tool,
     pointer_world: Option<egui::Pos2>,
     initialized: bool,
+    canvas_focused: bool,
+    sample_every: u64,
     library: &'static [ComponentDefinition],
     recent_components: Vec<&'static ComponentDefinition>,
     document: Document,
@@ -192,6 +206,9 @@ pub struct GuiApp {
     sim_status: Status,
     waveform: Waveform,
     waveform_open: bool,
+    analog_open: bool,
+    probes: ProbeSet,
+    plot_view: PlotView,
     uart: UartLog,
     uart_input: String,
     uart_open: bool,
@@ -209,7 +226,7 @@ impl GuiApp {
     pub fn new(context: &eframe::CreationContext<'_>) -> Self {
         configure_style(context);
         let (config_path, config) = load_config();
-        Self {
+        let mut app = Self {
             library: BuiltinComponents.definitions(),
             document: Document::new(),
             grid_visible: true,
@@ -218,7 +235,9 @@ impl GuiApp {
             config_path,
             config,
             ..Self::default()
-        }
+        };
+        app.add_pb5_probe();
+        app
     }
 }
 
@@ -252,6 +271,7 @@ impl GuiApp {
         self.inspector_window(ui);
         self.legend_window(ui);
         self.waveform_window(ui);
+        self.analog_window(ui);
         self.uart_window(ui);
         self.log_window(ui);
         self.show_context_menu(ui);
@@ -289,10 +309,10 @@ impl GuiApp {
 
     fn edit_buttons(&mut self, ui: &mut egui::Ui) {
         let undo = ui
-            .add_enabled(self.history.can_undo(), egui::Button::new("Undo"))
+            .add_enabled(self.history.can_undo(), icon_button("<-", "Undo"))
             .clicked();
         let redo = ui
-            .add_enabled(self.history.can_redo(), egui::Button::new("Redo"))
+            .add_enabled(self.history.can_redo(), icon_button("->", "Redo"))
             .clicked();
         if undo {
             self.undo();
@@ -303,13 +323,13 @@ impl GuiApp {
     }
 
     fn file_buttons(&mut self, ui: &mut egui::Ui) {
-        if ui.button("Open").clicked() {
+        if ui.add(icon_button("[/]", "Open")).clicked() {
             self.open_project();
         }
-        if ui.button("Save").clicked() {
+        if ui.add(icon_button("[S]", "Save")).clicked() {
             self.save_project();
         }
-        if ui.button("PNG").clicked() {
+        if ui.add(icon_button("[P]", "PNG")).clicked() {
             self.export_png(ui.ctx());
         }
         self.recent_menu(ui);
@@ -336,21 +356,28 @@ impl GuiApp {
     }
 
     fn sim_buttons(&mut self, ui: &mut egui::Ui) {
-        if ui.button("Load HEX").clicked() {
+        if ui.add(icon_button("[H]", "Load HEX")).clicked() {
             self.open_hex();
         }
+        self.run_buttons(ui);
+        ui.checkbox(&mut self.waveform_open, "Wave");
+        ui.checkbox(&mut self.analog_open, "Analog");
+        ui.checkbox(&mut self.uart_open, "UART");
+        self.sample_control(ui);
+    }
+
+    fn run_buttons(&mut self, ui: &mut egui::Ui) {
         let loaded = self.sim_status.loaded;
         let running = self.sim_status.running;
-        let run_label = if running { "Pause" } else { "Run" };
-        let run = ui
-            .add_enabled(loaded, egui::Button::new(run_label))
-            .clicked();
+        let run = ui.add_enabled(loaded, run_button_label(running)).clicked();
         let step = ui
-            .add_enabled(loaded && !running, egui::Button::new("Step"))
+            .add_enabled(loaded && !running, icon_button(">|", "Step"))
             .clicked();
-        let reset = ui.add_enabled(loaded, egui::Button::new("Reset")).clicked();
-        ui.checkbox(&mut self.waveform_open, "Wave");
-        ui.checkbox(&mut self.uart_open, "UART");
+        let reset = ui.add_enabled(loaded, icon_button("[]", "Reset")).clicked();
+        self.apply_run_actions(run, step, reset);
+    }
+
+    fn apply_run_actions(&mut self, run: bool, step: bool, reset: bool) {
         if run {
             self.toggle_run();
         }
@@ -360,6 +387,51 @@ impl GuiApp {
         if reset {
             self.send_sim(SimAction::Reset);
         }
+    }
+
+    fn sample_control(&mut self, ui: &mut egui::Ui) {
+        let current = self.sample_rate();
+        let every = sample_combo(ui, current);
+        if every == current {
+            return;
+        }
+        let Ok(every) = crate::error::validate_sample_every(every) else {
+            return;
+        };
+        self.sample_every = every;
+        if let Some(handle) = &self.sim {
+            let _ = handle.set_sample_every(every);
+        }
+    }
+
+    fn sample_rate(&self) -> u64 {
+        if self.sample_every == 0 {
+            sim::DEFAULT_SAMPLE_EVERY
+        } else {
+            self.sample_every
+        }
+    }
+
+    fn add_pb5_probe(&mut self) -> bool {
+        let source = ProbeSource::Pin {
+            component: ComponentId(0),
+            pin: "PB5",
+        };
+        if self.probes.contains(source) {
+            return false;
+        }
+        self.probes.add(ProbeSpec {
+            label: "PB5 voltage".to_string(),
+            unit: "V",
+            color: PB5_COLOR,
+            source,
+            sampling: Sampling::default(),
+        })
+    }
+
+    fn open_pb5_probe(&mut self) {
+        self.add_pb5_probe();
+        self.analog_open = true;
     }
 
     fn open_project(&mut self) {
@@ -464,7 +536,7 @@ impl GuiApp {
         };
         self.message = match result {
             Ok(()) => "PNG saved".to_string(),
-            Err(error) => error,
+            Err(error) => GuiError::Export(error).to_string(),
         };
     }
 
@@ -624,27 +696,31 @@ impl GuiApp {
             return;
         };
         let name = file_name(&path);
-        match sim::load_hex(&path) {
+        match sim::load_hex(&path).map_err(GuiError::Firmware) {
             Ok(words) => self.start_firmware(words, name),
-            Err(error) => self.message = error,
+            Err(error) => self.message = error.to_string(),
         }
     }
 
     fn start_firmware(&mut self, words: Vec<u16>, name: String) {
-        let Some(sim) = self.sim.as_ref() else {
-            self.message = "Simulation unavailable".to_string();
-            return;
-        };
-        match sim.load(words) {
+        match self.load_sim(words) {
             Ok(()) => {
                 self.waveform.clear();
+                self.probes.clear_samples();
                 self.uart.clear();
                 self.uart_input.clear();
                 self.waveform_open = true;
                 self.message = format!("Firmware {name}");
             }
-            Err(error) => self.message = error,
+            Err(error) => self.message = error.to_string(),
         }
+    }
+
+    fn load_sim(&self, words: Vec<u16>) -> GuiResult<()> {
+        let Some(sim) = self.sim.as_ref() else {
+            return Err(GuiError::Simulation("simulation unavailable".to_string()));
+        };
+        sim.load(words).map_err(GuiError::Simulation)
     }
 
     fn toggle_run(&mut self) {
@@ -672,6 +748,7 @@ impl GuiApp {
         }
         if action == SimAction::Reset {
             self.waveform.clear();
+            self.probes.clear_samples();
             self.uart.clear();
             self.uart_input.clear();
         }
@@ -687,7 +764,7 @@ impl GuiApp {
     fn apply_sim_event(&mut self, event: Event) {
         match event {
             Event::Status(status) => self.sim_status = status,
-            Event::Sample(sample) => self.waveform.push(sample),
+            Event::Sample(sample) => self.push_sample(sample),
             Event::Uart(data) => self.uart.push(&data),
             Event::UartCleared => self.uart.clear(),
             Event::Error(error) => {
@@ -697,10 +774,17 @@ impl GuiApp {
         }
     }
 
+    fn push_sample(&mut self, sample: Sample) {
+        self.waveform.push(sample);
+        let provider = SampleProvider { sample };
+        self.probes.sample_from(&provider, sample.cycle);
+    }
+
     fn tool_buttons(&mut self, ui: &mut egui::Ui) {
         let previous = self.tool;
         for tool in Tool::ALL {
-            ui.selectable_value(&mut self.tool, tool, tool.label());
+            let text = format!("{} {}", tool.icon(), tool.label());
+            ui.selectable_value(&mut self.tool, tool, text);
         }
         if previous != self.tool {
             self.wire_points.clear();
@@ -708,21 +792,37 @@ impl GuiApp {
     }
 
     fn sheet_buttons(&mut self, ui: &mut egui::Ui) {
-        if ui.selectable_label(self.library_open, "Library").clicked() {
+        if ui
+            .selectable_label(self.library_open, "[L] Library")
+            .clicked()
+        {
             self.library_open = true;
         }
         if ui
-            .selectable_label(self.inspector_open, "Inspector")
+            .selectable_label(self.inspector_open, "[I] Inspector")
             .clicked()
         {
             self.inspector_open = true;
         }
-        if ui.selectable_label(self.legend_open, "Legend").clicked() {
+        if ui
+            .selectable_label(self.legend_open, "[K] Legend")
+            .clicked()
+        {
             self.legend_open = true;
         }
     }
 
     fn toolbar_view(&mut self, ui: &mut egui::Ui) {
+        self.view_options(ui);
+        ui.separator();
+        if self.tool == Tool::Wire {
+            self.wire_controls(ui);
+        } else {
+            self.placement_controls(ui);
+        }
+    }
+
+    fn view_options(&mut self, ui: &mut egui::Ui) {
         self.zoom_controls(ui);
         ui.checkbox(&mut self.grid_visible, "Grid");
         ui.checkbox(&mut self.minimap_open, "Mini");
@@ -736,12 +836,6 @@ impl GuiApp {
             } else {
                 egui::ThemePreference::Dark
             });
-        }
-        ui.separator();
-        if self.tool == Tool::Wire {
-            self.wire_controls(ui);
-        } else {
-            self.placement_controls(ui);
         }
     }
 
@@ -888,6 +982,7 @@ impl GuiApp {
     }
 
     fn handle_canvas(&mut self, state: canvas::CanvasState) {
+        self.canvas_focused = state.focused;
         if self.placing.is_some() {
             self.handle_placement(state);
             return;
@@ -896,17 +991,18 @@ impl GuiApp {
             self.handle_wire(state);
             return;
         }
-        self.begin_drag(&state);
-        self.drag_move(&state);
-        self.end_drag(&state);
+        self.handle_select_canvas(&state);
+    }
+
+    fn handle_select_canvas(&mut self, state: &canvas::CanvasState) {
+        self.begin_drag(state);
+        self.drag_move(state);
+        self.end_drag(state);
         if state.secondary_clicked {
-            self.open_context_menu(&state);
+            self.open_context_menu(state);
             return;
         }
-        if !state.clicked {
-            return;
-        }
-        let Some(world) = state.click_world else {
+        let Some(world) = state.click_world.filter(|_| state.clicked) else {
             return;
         };
         self.select_at(world, state.multi_select);
@@ -1292,6 +1388,7 @@ impl GuiApp {
         self.handle_history_keys(ui);
         self.handle_clipboard_keys(ui);
         self.handle_edit_keys(ui);
+        self.handle_nudge_keys(ui);
     }
 
     fn handle_history_keys(&mut self, ui: &egui::Ui) {
@@ -1359,6 +1456,44 @@ impl GuiApp {
             self.drag_place = false;
             self.wire_points.clear();
         }
+    }
+
+    fn handle_nudge_keys(&mut self, ui: &egui::Ui) {
+        if !self.canvas_focused {
+            return;
+        }
+        let (dx, dy) = nudge_delta(ui);
+        if dx == 0 && dy == 0 {
+            return;
+        }
+        self.nudge_selection(dx, dy);
+    }
+
+    fn nudge_selection(&mut self, dx: i32, dy: i32) {
+        let ids: Vec<_> = self.selection.components().iter().copied().collect();
+        if ids.is_empty() {
+            return;
+        }
+        let moves = self.nudge_moves(&ids, dx, dy);
+        let mut candidate = self.document.clone();
+        if !candidate.move_components(self.library, &moves) {
+            return;
+        }
+        self.push_undo();
+        self.document = candidate;
+        self.mark_dirty();
+        self.message = "Nudge".to_string();
+    }
+
+    fn nudge_moves(&self, ids: &[ComponentId], dx: i32, dy: i32) -> Vec<(ComponentId, GridPos)> {
+        let delta = GridPos::new(dx, dy);
+        ids.iter()
+            .filter_map(|id| {
+                self.document
+                    .component(*id)
+                    .map(|component| (*id, component.position.offset(delta)))
+            })
+            .collect()
     }
 
     fn rotate(&mut self) {
@@ -1477,6 +1612,7 @@ impl GuiApp {
             ContextAction::Mirror => self.mirror(),
             ContextAction::Properties => self.inspector_open = true,
             ContextAction::Graph => self.waveform_open = true,
+            ContextAction::ProbePb5 => self.open_pb5_probe(),
             ContextAction::SetClass(class) => self.set_wire_class(class),
             ContextAction::SetColor(color) => self.set_wire_color_override(color),
             ContextAction::SetLabel(label) => self.set_wire_label(label),
@@ -1820,6 +1956,23 @@ impl GuiApp {
                 show_digital_graph(ui, &self.waveform, status);
             });
         self.waveform_open = open;
+    }
+
+    fn analog_window(&mut self, ui: &mut egui::Ui) {
+        if !self.analog_open {
+            return;
+        }
+        let mut open = self.analog_open;
+        let status = self.sim_status;
+        let probes = &self.probes;
+        let view = &mut self.plot_view;
+        egui::Window::new("Analog graph")
+            .open(&mut open)
+            .default_size([560.0, 300.0])
+            .show(ui.ctx(), |ui| {
+                show_analog_graph(ui, probes, view, status);
+            });
+        self.analog_open = open;
     }
 
     fn delete_modal(&mut self, ui: &mut egui::Ui) {
@@ -2743,6 +2896,9 @@ fn context_tool_buttons(ui: &mut egui::Ui, action: &mut Option<ContextAction>) {
     if ui.button("Digital graph").clicked() {
         *action = Some(ContextAction::Graph);
     }
+    if ui.button("Probe PB5").clicked() {
+        *action = Some(ContextAction::ProbePb5);
+    }
     if ui.button("Select tool").clicked() {
         *action = Some(ContextAction::SelectTool);
     }
@@ -2840,6 +2996,269 @@ fn show_digital_graph(ui: &mut egui::Ui, waveform: &Waveform, status: Status) {
     let cursor = response.hover_pos().filter(|pos| plot.contains(*pos));
     paint_digital_graph(&painter, response.rect, plot, waveform, span, cursor);
     ui.label(graph_cursor_text(waveform, plot, span, cursor));
+}
+
+fn show_analog_graph(ui: &mut egui::Ui, probes: &ProbeSet, view: &mut PlotView, status: Status) {
+    let window = probe::window(probes.span(), *view);
+    let range = analog_range(probes, view, window);
+    ui.label(analog_header(probes, status, window));
+    plot_controls(ui, view);
+    let width = ui.available_width().max(320.0);
+    let (response, painter) =
+        ui.allocate_painter(egui::vec2(width, 190.0), egui::Sense::click_and_drag());
+    let plot = response.rect.shrink2(egui::vec2(42.0, 14.0));
+    handle_plot_input(&response, view, plot, window);
+    paint_analog_plot(&painter, response.rect, plot, probes, window, range, *view);
+}
+
+fn analog_range(probes: &ProbeSet, view: &PlotView, window: (u64, u64)) -> (f64, f64) {
+    if !view.autoscale {
+        return (0.0, 5.0);
+    }
+    probe::value_range(probes.probes(), window)
+}
+
+fn analog_header(probes: &ProbeSet, status: Status, window: (u64, u64)) -> String {
+    let samples = probe_sample_count(probes);
+    let last = probe_last_text(probes);
+    format!(
+        "{} series  {} samples  last {}  cycle {}  window {}..{}",
+        probes.probes().len(),
+        samples,
+        last,
+        status.cycles,
+        window.0,
+        window.1
+    )
+}
+
+fn probe_sample_count(probes: &ProbeSet) -> usize {
+    probes
+        .probes()
+        .iter()
+        .map(|probe| probe.samples().len())
+        .sum()
+}
+
+fn probe_last_text(probes: &ProbeSet) -> String {
+    let Some(probe) = probes.probes().first() else {
+        return "n/a".to_string();
+    };
+    probe.latest().map_or_else(
+        || "n/a".to_string(),
+        |point| format!("{:.2}{}", point.value, probe.spec().unit),
+    )
+}
+
+fn plot_controls(ui: &mut egui::Ui, view: &mut PlotView) {
+    ui.horizontal(|ui| {
+        ui.checkbox(&mut view.autoscale, "Auto");
+        ui.checkbox(&mut view.legend, "Legend");
+        if ui.button("-").clicked() {
+            view.zoom = (view.zoom * 0.8).clamp(0.25, 8.0);
+        }
+        if ui.button("+").clicked() {
+            view.zoom = (view.zoom * 1.25).clamp(0.25, 8.0);
+        }
+        if ui.button("Reset").clicked() {
+            *view = PlotView::default();
+        }
+        ui.label(format!("zoom {:.1}x", view.zoom));
+    });
+}
+
+fn handle_plot_input(
+    response: &egui::Response,
+    view: &mut PlotView,
+    plot: egui::Rect,
+    window: (u64, u64),
+) {
+    if response.dragged() {
+        let fraction = f64::from(response.drag_delta().x / plot.width().max(1.0));
+        view.pan = (view.pan - fraction).clamp(-0.95, 0.95);
+    }
+    let scroll = response.ctx.input(|input| input.smooth_scroll_delta.y);
+    if response.hovered() && scroll != 0.0 {
+        view.zoom = (view.zoom * (1.0 + scroll * 0.001)).clamp(0.25, 8.0);
+    }
+    view.cursor = response
+        .hover_pos()
+        .filter(|pos| plot.contains(*pos))
+        .map(|pos| cycle_at(plot, window, pos.x));
+}
+
+fn paint_analog_plot(
+    painter: &egui::Painter,
+    rect: egui::Rect,
+    plot: egui::Rect,
+    probes: &ProbeSet,
+    window: (u64, u64),
+    range: (f64, f64),
+    view: PlotView,
+) {
+    painter.rect_filled(rect, 4.0, egui::Color32::from_rgb(18, 22, 26));
+    paint_value_grid(painter, plot, range);
+    for probe in probes.probes() {
+        paint_probe_series(painter, plot, probe, window, range);
+    }
+    if view.legend {
+        paint_analog_legend(painter, plot, probes);
+    }
+    paint_analog_cursor(painter, plot, probes, window, view.cursor);
+}
+
+fn paint_value_grid(painter: &egui::Painter, plot: egui::Rect, range: (f64, f64)) {
+    let stroke = egui::Stroke::new(1.0, egui::Color32::from_rgb(40, 46, 56));
+    for step in 0..=4 {
+        let value = range.0 + (range.1 - range.0) * f64::from(step) / 4.0;
+        let y = value_to_y(plot, range, value);
+        painter.line_segment(
+            [egui::pos2(plot.left(), y), egui::pos2(plot.right(), y)],
+            stroke,
+        );
+        painter.text(
+            egui::pos2(plot.left() - 6.0, y),
+            egui::Align2::RIGHT_CENTER,
+            format!("{value:.1}"),
+            egui::FontId::monospace(9.0),
+            egui::Color32::from_rgb(150, 160, 175),
+        );
+    }
+}
+
+fn paint_probe_series(
+    painter: &egui::Painter,
+    plot: egui::Rect,
+    probe: &probe::ProbeBuffer,
+    window: (u64, u64),
+    range: (f64, f64),
+) {
+    let screen = probe_screen_points(plot, probe, window, range);
+    if screen.len() < 2 {
+        return;
+    }
+    painter.add(egui::Shape::line(
+        screen,
+        egui::Stroke::new(1.5, probe.spec().color),
+    ));
+}
+
+fn probe_screen_points(
+    plot: egui::Rect,
+    probe: &probe::ProbeBuffer,
+    window: (u64, u64),
+    range: (f64, f64),
+) -> Vec<egui::Pos2> {
+    let limit = (plot.width() as usize).max(32);
+    let points = probe::decimate(probe.samples(), limit);
+    points
+        .iter()
+        .filter(|point| point.cycle >= window.0 && point.cycle <= window.1)
+        .map(|point| {
+            egui::pos2(
+                cycle_to_x(plot, window, point.cycle),
+                value_to_y(plot, range, point.value),
+            )
+        })
+        .collect()
+}
+
+fn paint_analog_legend(painter: &egui::Painter, plot: egui::Rect, probes: &ProbeSet) {
+    let mut y = plot.top() + 6.0;
+    for probe in probes.probes().iter().take(probe::MAX_SERIES) {
+        let color = probe.spec().color;
+        let swatch =
+            egui::Rect::from_min_size(egui::pos2(plot.right() - 150.0, y), egui::vec2(8.0, 8.0));
+        painter.rect_filled(swatch, 1.0, color);
+        painter.text(
+            egui::pos2(plot.right() - 138.0, y),
+            egui::Align2::LEFT_TOP,
+            format!("{} ({})", probe.spec().label, probe.spec().unit),
+            egui::FontId::monospace(9.0),
+            egui::Color32::from_rgb(190, 198, 210),
+        );
+        y += 12.0;
+    }
+}
+
+fn paint_analog_cursor(
+    painter: &egui::Painter,
+    plot: egui::Rect,
+    probes: &ProbeSet,
+    window: (u64, u64),
+    cursor: Option<u64>,
+) {
+    let Some(cycle) = cursor else {
+        return;
+    };
+    let x = cycle_to_x(plot, window, cycle);
+    paint_cursor_line(painter, plot, x);
+    paint_cursor_label(painter, plot, x, probes, cycle);
+}
+
+fn paint_cursor_line(painter: &egui::Painter, plot: egui::Rect, x: f32) {
+    painter.line_segment(
+        [egui::pos2(x, plot.top()), egui::pos2(x, plot.bottom())],
+        egui::Stroke::new(1.0, egui::Color32::from_rgb(80, 215, 225)),
+    );
+}
+
+fn paint_cursor_label(
+    painter: &egui::Painter,
+    plot: egui::Rect,
+    x: f32,
+    probes: &ProbeSet,
+    cycle: u64,
+) {
+    painter.text(
+        egui::pos2(x + 4.0, plot.top() + 4.0),
+        egui::Align2::LEFT_TOP,
+        analog_cursor_text(probes, cycle),
+        egui::FontId::monospace(9.0),
+        egui::Color32::from_rgb(210, 218, 228),
+    );
+}
+
+fn analog_cursor_text(probes: &ProbeSet, cycle: u64) -> String {
+    let mut text = format!("cycle {cycle}");
+    for probe in probes.probes().iter().take(4) {
+        let Some(value) = probe_value_at(probe, cycle) else {
+            continue;
+        };
+        text.push_str(&format!(
+            "  {} {:.2}{}",
+            probe.spec().label,
+            value,
+            probe.spec().unit
+        ));
+    }
+    text
+}
+
+fn probe_value_at(probe: &probe::ProbeBuffer, cycle: u64) -> Option<f64> {
+    probe
+        .samples()
+        .iter()
+        .rev()
+        .find(|point| point.cycle <= cycle)
+        .map(|point| point.value)
+}
+
+fn cycle_to_x(plot: egui::Rect, window: (u64, u64), cycle: u64) -> f32 {
+    let span = window.1.saturating_sub(window.0).max(1) as f32;
+    let time = (cycle.saturating_sub(window.0)) as f32 / span;
+    plot.left() + time.clamp(0.0, 1.0) * plot.width()
+}
+
+fn cycle_at(plot: egui::Rect, window: (u64, u64), x: f32) -> u64 {
+    let time = ((x - plot.left()) / plot.width().max(1.0)).clamp(0.0, 1.0);
+    window.0 + (time * (window.1 - window.0) as f32) as u64
+}
+
+fn value_to_y(plot: egui::Rect, range: (f64, f64), value: f64) -> f32 {
+    let span = (range.1 - range.0).abs().max(f64::EPSILON);
+    let level = ((value - range.0) / span) as f32;
+    plot.bottom() - level.clamp(0.0, 1.0) * plot.height()
 }
 
 fn graph_header(status: Status, span: (u64, u64)) -> String {
@@ -2998,6 +3417,60 @@ fn signal_points(
 
 fn world_to_grid(position: egui::Pos2) -> GridPos {
     GridPos::new(position.x.round() as i32, position.y.round() as i32)
+}
+
+fn icon_button(icon: &str, label: &str) -> egui::Button<'static> {
+    egui::Button::new(format!("{icon} {label}"))
+}
+
+fn sample_combo(ui: &mut egui::Ui, current: u64) -> u64 {
+    let mut every = current;
+    egui::ComboBox::from_id_salt("sample_every")
+        .selected_text(format!("N {every}"))
+        .show_ui(ui, |ui| {
+            for value in [10, 100, 1000] {
+                ui.selectable_value(&mut every, value, format!("N {value}"));
+            }
+        });
+    every
+}
+
+fn run_button_label(running: bool) -> egui::Button<'static> {
+    if running {
+        icon_button("||", "Pause")
+    } else {
+        icon_button(">", "Run")
+    }
+}
+
+fn nudge_delta(ui: &egui::Ui) -> (i32, i32) {
+    let step = if ui.input(|input| input.modifiers.shift) {
+        5
+    } else {
+        1
+    };
+    let mut delta = (0, 0);
+    ui.input(|input| {
+        delta.0 = axis_delta(input, egui::Key::ArrowLeft, egui::Key::ArrowRight, step);
+        delta.1 = axis_delta(input, egui::Key::ArrowUp, egui::Key::ArrowDown, step);
+    });
+    delta
+}
+
+fn axis_delta(
+    input: &egui::InputState,
+    negative: egui::Key,
+    positive: egui::Key,
+    step: i32,
+) -> i32 {
+    let mut delta = 0;
+    if input.key_pressed(negative) {
+        delta -= step;
+    }
+    if input.key_pressed(positive) {
+        delta += step;
+    }
+    delta
 }
 
 fn flow_phase(enabled: bool, time: f64) -> Option<f32> {
@@ -3445,10 +3918,107 @@ mod tests {
     }
 
     #[test]
+    fn nudge_selection_moves_component() {
+        let (mut app, id) = nudged_app();
+        app.nudge_selection(1, 0);
+        assert_component_position(&app, id, GridPos::new(1, 0));
+        app.nudge_selection(0, 2);
+        assert_component_position(&app, id, GridPos::new(1, 2));
+    }
+
+    #[test]
+    fn analog_plot_maps_cycle_and_value() {
+        let plot = eframe::egui::Rect::from_min_size(
+            eframe::egui::pos2(10.0, 20.0),
+            eframe::egui::vec2(100.0, 50.0),
+        );
+        assert!((super::cycle_to_x(plot, (0, 100), 50) - 60.0).abs() < 0.01);
+        assert_eq!(super::cycle_at(plot, (0, 100), 60.0), 50);
+        assert!((super::value_to_y(plot, (0.0, 10.0), 10.0) - 20.0).abs() < 0.01);
+    }
+
+    #[test]
+    fn analog_graph_renders_in_egui_context() {
+        let (probes, mut view) = analog_fixture();
+        let mut output = render_analog(&probes, &mut view);
+        output.textures_delta.clear();
+        assert!(!output.shapes.is_empty());
+    }
+
+    fn analog_fixture() -> (crate::probe::ProbeSet, crate::probe::PlotView) {
+        let mut probes = crate::probe::ProbeSet::default();
+        assert!(probes.add(analog_spec()));
+        probes.sample_from(&analog_provider(), 100);
+        (probes, crate::probe::PlotView::default())
+    }
+
+    fn analog_spec() -> crate::probe::ProbeSpec {
+        crate::probe::ProbeSpec {
+            label: "PB5".to_string(),
+            unit: "V",
+            color: eframe::egui::Color32::WHITE,
+            source: crate::probe::ProbeSource::Pin {
+                component: ComponentId(0),
+                pin: "PB5",
+            },
+            sampling: crate::probe::Sampling::default(),
+        }
+    }
+
+    fn analog_provider() -> crate::probe::SampleProvider {
+        crate::probe::SampleProvider {
+            sample: crate::sim::Sample {
+                cycle: 100,
+                pb5_high: true,
+                pb5_millivolts: 5000,
+                led_on: true,
+            },
+        }
+    }
+
+    fn render_analog(
+        probes: &crate::probe::ProbeSet,
+        view: &mut crate::probe::PlotView,
+    ) -> eframe::egui::FullOutput {
+        eframe::egui::Context::default().run_ui(eframe::egui::RawInput::default(), |ui| {
+            super::show_analog_graph(ui, probes, view, crate::sim::Status::default());
+        })
+    }
+
+    fn nudged_app() -> (GuiApp, ComponentId) {
+        let library = crate::library::builtin();
+        let resistor = crate::library::find("resistor").expect("resistor");
+        let mut app = GuiApp {
+            library,
+            ..GuiApp::default()
+        };
+        let id = app
+            .document
+            .add(resistor, GridPos::new(0, 0), Rotation::Deg0, Mirror::None);
+        app.selection.select_component(id);
+        (app, id)
+    }
+
+    fn assert_component_position(app: &GuiApp, id: ComponentId, expected: GridPos) {
+        assert_eq!(
+            app.document.component(id).expect("component").position,
+            expected
+        );
+    }
+
+    #[test]
     fn flow_phase_is_optional() {
         assert_eq!(super::flow_phase(false, 1.0), None);
         let phase = super::flow_phase(true, 1.0).expect("phase");
         assert!((0.0..1000.0).contains(&phase));
+    }
+
+    #[test]
+    fn every_tool_has_an_icon() {
+        for tool in super::Tool::ALL {
+            assert!(!tool.icon().is_empty());
+            assert!(!tool.label().is_empty());
+        }
     }
 
     #[test]

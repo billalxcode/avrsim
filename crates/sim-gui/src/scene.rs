@@ -324,20 +324,22 @@ fn draw_wires(
     hovered: Option<WireId>,
     flow_phase: Option<f32>,
 ) {
-    let wires = visible_wires(rect, camera, document);
-    draw_wire_lines(painter, rect, camera, &wires, selection, flow_phase);
-    draw_wire_labels(painter, rect, camera, &wires, selection, hovered);
+    draw_wire_lines(painter, rect, camera, document, selection, flow_phase);
+    draw_wire_labels(painter, rect, camera, document, selection, hovered);
 }
 
 fn draw_wire_lines(
     painter: &egui::Painter,
     rect: egui::Rect,
     camera: &crate::canvas::GridCamera,
-    wires: &[&crate::model::Wire],
+    document: &Document,
     selection: &Selection,
     flow_phase: Option<f32>,
 ) {
-    for wire in wires {
+    for wire in document.wires() {
+        if !wire_visible(rect, camera, wire) {
+            continue;
+        }
         let selected = selection.contains_wire(wire.id);
         draw_wire(painter, rect, camera, wire, selected, flow_phase);
     }
@@ -347,27 +349,19 @@ fn draw_wire_labels(
     painter: &egui::Painter,
     rect: egui::Rect,
     camera: &crate::canvas::GridCamera,
-    wires: &[&crate::model::Wire],
+    document: &Document,
     selection: &Selection,
     hovered: Option<WireId>,
 ) {
-    for wire in wires {
+    for wire in document.wires() {
+        if !wire_visible(rect, camera, wire) {
+            continue;
+        }
         let selected = selection.contains_wire(wire.id);
         if show_wire_label(selected, hovered == Some(wire.id), camera.zoom) {
             draw_net_label(painter, rect, camera, wire);
         }
     }
-}
-
-fn visible_wires<'a>(
-    rect: egui::Rect,
-    camera: &crate::canvas::GridCamera,
-    document: &'a Document,
-) -> Vec<&'a crate::model::Wire> {
-    let mut wires: Vec<_> = document.wires().iter().collect();
-    wires.sort_by_key(|wire| wire.id);
-    wires.retain(|wire| wire_visible(rect, camera, wire));
-    wires
 }
 
 fn show_wire_label(selected: bool, hovered: bool, zoom: f32) -> bool {
