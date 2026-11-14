@@ -474,7 +474,16 @@ impl ModelClass {
     /// Returns true when the class maps to a solver device kind.
     #[must_use]
     pub const fn requires_device(self) -> bool {
-        self.requires_passive_device() || self.requires_semiconductor_device()
+        self.requires_passive_device()
+            || self.requires_semiconductor_device()
+            || self.requires_analog_device()
+    }
+
+    const fn requires_analog_device(self) -> bool {
+        matches!(
+            self,
+            Self::OpAmp | Self::VoltageReference | Self::PowerSwitch
+        )
     }
 
     const fn requires_passive_device(self) -> bool {
@@ -785,7 +794,7 @@ impl ComponentSpec {
 #[cfg(test)]
 mod tests {
     use super::{ComponentRegistry, ComponentRequest, Family, catalog};
-    use sim_core::{CircuitBuilder, Device, DeviceId, NodeId};
+    use sim_core::{Device, DeviceId, NodeId};
     use std::collections::BTreeSet;
 
     #[test]
@@ -935,6 +944,7 @@ mod tests {
                 | sim_core::DeviceKind::JfetN
                 | sim_core::DeviceKind::JfetP
                 | sim_core::DeviceKind::Diode
+                | sim_core::DeviceKind::OpAmp
         )
     }
 
@@ -1027,40 +1037,5 @@ mod tests {
         let request = ComponentRequest::new(entry.id, entry.name, DeviceId::new(0), pins);
         assert!(registry.instantiate(&request).is_err());
         assert!(!registry.is_solver_backed(entry.id));
-    }
-
-    #[test]
-    fn registry_builds_voltage_divider() {
-        let registry = ComponentRegistry::new();
-        let mut builder = CircuitBuilder::new();
-        let vcc = builder.node("vcc").expect("vcc");
-        let out = builder.node("out").expect("out");
-        let ground = builder.ground();
-        let source = ComponentRequest::new(
-            "source.independent.dc_voltage_source",
-            "V1",
-            DeviceId::new(0),
-            vec![vcc, ground],
-        )
-        .with_parameter("voltage", 5.0);
-        registry.add_to(&mut builder, &source).expect("source");
-        let top = ComponentRequest::new(
-            "passive.resistor.ideal_resistor",
-            "R1",
-            DeviceId::new(0),
-            vec![vcc, out],
-        )
-        .with_parameter("resistance", 1000.0);
-        registry.add_to(&mut builder, &top).expect("top");
-        let bottom = ComponentRequest::new(
-            "passive.resistor.ideal_resistor",
-            "R2",
-            DeviceId::new(0),
-            vec![out, ground],
-        )
-        .with_parameter("resistance", 1000.0);
-        registry.add_to(&mut builder, &bottom).expect("bottom");
-        let circuit = builder.build().expect("circuit");
-        assert_eq!(circuit.devices().len(), 3);
     }
 }

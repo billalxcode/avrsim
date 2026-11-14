@@ -170,6 +170,7 @@ fn branch_slots(kind: &DeviceKind) -> usize {
         | DeviceKind::PulseVoltageSource
         | DeviceKind::Vcvs
         | DeviceKind::Cccs
+        | DeviceKind::OpAmp
         | DeviceKind::Inductor => 1,
         _ => 0,
     }

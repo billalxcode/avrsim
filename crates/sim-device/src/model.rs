@@ -5,6 +5,7 @@ use crate::controlled::{CccsModel, CcvsModel, VccsModel, VcvsModel};
 use crate::diode::DiodeModel;
 use crate::jfet::JfetModel;
 use crate::mosfet::MosfetModel;
+use crate::opamp::OpAmpModel;
 use crate::passive::{CapacitorModel, InductorModel, ResistorModel};
 use crate::source::{CurrentSourceModel, PulseSourceModel, VoltageSourceModel};
 use crate::switch::{IdealSwitchModel, SwitchModel};
@@ -96,6 +97,7 @@ fn active_model(instance: &DeviceInstance) -> Result<Option<Box<dyn DeviceModel>
         DeviceKind::Nmos | DeviceKind::Pmos => Box::new(MosfetModel::from_instance(instance)?),
         DeviceKind::Npn | DeviceKind::Pnp => Box::new(BjtModel::from_instance(instance)?),
         DeviceKind::JfetN | DeviceKind::JfetP => Box::new(JfetModel::from_instance(instance)?),
+        DeviceKind::OpAmp => Box::new(OpAmpModel::from_instance(instance)?),
         DeviceKind::Diode => Box::new(DiodeModel::from_instance(instance)?),
         _ => return Ok(None),
     };

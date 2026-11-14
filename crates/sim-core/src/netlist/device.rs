@@ -31,6 +31,8 @@ pub enum DeviceKind {
     Switch,
     /// A two-terminal ideal switch.
     IdealSwitch,
+    /// A five-terminal operational amplifier.
+    OpAmp,
     /// An N-channel MOSFET.
     Nmos,
     /// A P-channel MOSFET.
@@ -75,6 +77,7 @@ impl DeviceKind {
             Self::Ccvs => "ccvs",
             Self::Switch => "switch",
             Self::IdealSwitch => "ideal_switch",
+            Self::OpAmp => "opamp",
             other => other.analog_name(),
         }
     }

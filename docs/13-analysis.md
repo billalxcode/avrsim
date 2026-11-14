@@ -232,13 +232,13 @@ Daftar lengkap ada di [TODO.md](../TODO.md).
 Total test workspace saat ini:
 
 - `sim-core`: 62.
-- `sim-device`: 72 (67 unit + 5 integration).
-- `sim-analysis`: 110 (108 unit + 2 integration).
+- `sim-device`: 74 (69 unit + 5 integration).
+- `sim-analysis`: 111 (108 unit + 3 integration).
 - `sim-cells`: 71.
 - `sim-avr`: 215.
 - `sim-board`: 23.
 - `sim-cli`: 26.
 - `sim-gui`: 151.
-- Total: 731.
+- Total: 734.
 
 Semua fungsi maksimal 20 baris dan semua file baru ASCII-only.

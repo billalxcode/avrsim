@@ -198,7 +198,7 @@ add("switch.connector", "Connector", None, 2, "voltage", 0.0, "V", [
     "header connector", "terminal block", "jumper", "test point", "IC socket",
 ])
 
-add("analog.opamp", "OpAmp", None, 5, "gain", 100000.0, "ratio", [
+add("analog.opamp", "OpAmp", "OpAmp", 5, "gain", 100000.0, "ratio", [
     "ideal op-amp", "single op-amp", "dual op-amp", "quad op-amp",
     "rail-to-rail op-amp", "precision op-amp", "low noise op-amp",
     "high speed op-amp", "power op-amp", "fully differential op-amp",
@@ -209,12 +209,12 @@ add("analog.comparator", "Comparator", None, 5, "gain", 100000.0, "ratio", [
     "comparator", "open collector comparator", "push-pull comparator",
     "window comparator", "hysteresis comparator", "high speed comparator",
 ])
-add("analog.instrumentation", "OpAmp", None, 5, "gain", 1.0, "ratio", [
+add("analog.instrumentation", "OpAmp", "OpAmp", 5, "gain", 1.0, "ratio", [
     "instrumentation amplifier", "isolation amplifier",
     "current sense amplifier", "difference amplifier",
     "programmable gain amplifier",
 ])
-add("analog.ota", "OpAmp", None, 5, "gain", 1000.0, "ratio", [
+add("analog.ota", "OpAmp", "OpAmp", 5, "gain", 1000.0, "ratio", [
     "OTA", "Norton amplifier", "audio power amplifier", "video amplifier",
     "buffer amplifier",
 ])
@@ -222,7 +222,7 @@ add("analog.timer", "Timer", None, 8, "period", 1e-3, "s", [
     "555 timer", "monostable multivibrator", "astable multivibrator",
     "voltage controlled oscillator", "PLL",
 ])
-add("analog.reference", "VoltageReference", None, 2, "voltage", 2.5, "V", [
+add("analog.reference", "VoltageReference", "VoltageSource", 2, "voltage", 2.5, "V", [
     "shunt voltage reference", "series voltage reference",
     "bandgap reference", "current reference",
 ])
@@ -303,7 +303,7 @@ add("power.supervisor", "Supervisor", None, 3, "threshold", 2.5, "V", [
     "voltage reference", "current reference", "voltage supervisor",
     "reset supervisor", "power monitor",
 ])
-add("power.switch", "PowerSwitch", None, 2, "on_resistance", 0.05, "ohm", [
+add("power.switch", "PowerSwitch", "IdealSwitch", 2, "ron", 0.05, "ohm", [
     "ideal diode", "ORing controller", "load switch",
 ])
 add("power.motor", "MotorDriver", None, 4, "current", 1.0, "A", [
