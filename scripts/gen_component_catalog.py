@@ -288,7 +288,7 @@ add("mcu.timer", "TimerPeripheral", None, 4, "period", 1e-3, "s", [
     "timer", "RTC", "watchdog",
 ])
 
-add("power.linear", "Regulator", None, 3, "output_voltage", 5.0, "V", [
+add("power.linear", "Regulator", "Regulator", 3, "output_voltage", 5.0, "V", [
     "linear regulator", "LDO", "adjustable linear regulator",
     "negative linear regulator", "current regulator", "shunt regulator",
 ])

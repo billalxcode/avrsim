@@ -9,6 +9,7 @@ const RESISTOR: &str = "passive.resistor.ideal_resistor";
 const SWITCH: &str = "switch.mechanical.spst_switch";
 const ANALOG_SWITCH: &str = "switch.analog.analog_switch";
 const RELAY: &str = "switch.relay.electromechanical_relay";
+const REGULATOR: &str = "power.linear.linear_regulator";
 const OPAMP: &str = "analog.opamp.ideal_opamp";
 const COMPARATOR: &str = "analog.comparator.comparator";
 
@@ -74,6 +75,18 @@ fn add_relay(
 ) {
     let request = ComponentRequest::new(RELAY, name, DeviceId::new(0), pins.to_vec());
     registry.add_to(builder, &request).expect("relay");
+}
+
+fn add_regulator(
+    registry: &ComponentRegistry,
+    builder: &mut CircuitBuilder,
+    name: &str,
+    pins: [NodeId; 3],
+    output_voltage: f64,
+) {
+    let request = ComponentRequest::new(REGULATOR, name, DeviceId::new(0), pins.to_vec())
+        .with_parameter("output_voltage", output_voltage);
+    registry.add_to(builder, &request).expect("regulator");
 }
 
 fn add_opamp(
@@ -235,6 +248,24 @@ fn relay_circuit(coil_voltage: f64) -> Circuit {
     builder.build().expect("circuit")
 }
 
+fn regulator_circuit(output_voltage: f64) -> Circuit {
+    let registry = ComponentRegistry::new();
+    let mut builder = CircuitBuilder::new();
+    let input = builder.node("input").expect("input");
+    let output = builder.node("output").expect("output");
+    let ground = builder.ground();
+    add_source(&registry, &mut builder, "VIN", input, ground, 5.0);
+    add_resistor(&registry, &mut builder, "RL", output, ground, 1000.0);
+    add_regulator(
+        &registry,
+        &mut builder,
+        "U1",
+        [input, output, ground],
+        output_voltage,
+    );
+    builder.build().expect("circuit")
+}
+
 fn comparator_circuit(input_voltage: f64) -> Circuit {
     let registry = ComponentRegistry::new();
     let mut builder = CircuitBuilder::new();
@@ -298,4 +329,10 @@ fn registry_relay_switches_contacts() {
     let energized = dc_voltage(&relay_circuit(5.0), "common");
     assert!(released > 4.9, "released {released}");
     assert!(energized < 0.1, "energized {energized}");
+}
+
+#[test]
+fn registry_regulator_sets_output_voltage() {
+    let voltage = dc_voltage(&regulator_circuit(3.3), "output");
+    assert!((voltage - 3.3).abs() < 1e-6, "voltage {voltage}");
 }

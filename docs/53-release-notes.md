@@ -35,6 +35,7 @@ Tag `v0.1` tersedia; publikasi biner dan GitHub release belum.
 - Comparator lima pin dengan output saturasi nonlinear.
 - Analog switch empat pin sebagai conductance terkontrol tegangan.
 - Relay elektromekanik dengan coil dan kontak NO/NC.
+- Regulator linear tiga pin sebagai model behavioral tegangan output.
 - Transmission line lossless.
 - Katalog 500 model generik dengan 58 kelas dan pemetaan ke device solver
   yang sudah ada. Kelas behavioral memiliki metadata dan smoke response;
@@ -136,7 +137,7 @@ Perintah:
 ./scripts/package.sh
 ```
 
-Total test workspace: 743.
+Total test workspace: 747.
 
 Golden GUI headless 320 x 240 RGBA lulus di Linux. Cross-check build
 Windows dan macOS lulus:

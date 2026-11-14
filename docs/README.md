@@ -2,7 +2,7 @@
 
 Pintu masuk dokumentasi EmuCAD versi 0.1.0.
 
-**Status saat ini:** 743 test lulus, 8 crate, crate simulasi zero external
+**Status saat ini:** 747 test lulus, 8 crate, crate simulasi zero external
 dependency Rust. Dependensi GUI dibatasi pada daftar yang disetujui di
 `AGENTS.md`. Tag `v0.1` tersedia.
 
@@ -162,7 +162,7 @@ Setiap dokumen muncul satu kali pada peta ini.
 |---|---|
 | Versi workspace | `0.1.0` |
 | Tag | `v0.1` |
-| Test | 743 lulus |
+| Test | 747 lulus |
 | Crate | 7 |
 | Dependensi eksternal | 0 |
 | `unsafe` | Dilarang di seluruh workspace |
@@ -178,14 +178,14 @@ Setiap dokumen muncul satu kali pada peta ini.
 | Crate | Test |
 |---|---|
 | `sim-core` | 62 |
-| `sim-device` | 80 |
-| `sim-analysis` | 114 |
+| `sim-device` | 83 |
+| `sim-analysis` | 115 |
 | `sim-cells` | 71 |
 | `sim-avr` | 215 |
 | `sim-board` | 23 |
 | `sim-cli` | 26 |
 | `sim-gui` | 151 |
-| **Total** | **743** |
+| **Total** | **747** |
 
 ---
 

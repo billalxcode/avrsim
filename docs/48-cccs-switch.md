@@ -80,8 +80,8 @@ state histeresis.
 - Switch on dengan `ron = 1 Ohm` menarik output di bawah `0.1 V`.
 - Switch off dengan `roff = 1e9 Ohm` mempertahankan output di atas `4.9 V`.
 
-Total test `sim-analysis`: 114 (108 unit + 6 integration).
-Total workspace: 743.
+Total test `sim-analysis`: 115 (108 unit + 7 integration).
+Total workspace: 747.
 
 ---
 

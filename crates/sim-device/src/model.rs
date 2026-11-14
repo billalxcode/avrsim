@@ -8,6 +8,7 @@ use crate::jfet::JfetModel;
 use crate::mosfet::MosfetModel;
 use crate::opamp::OpAmpModel;
 use crate::passive::{CapacitorModel, InductorModel, ResistorModel};
+use crate::regulator::RegulatorModel;
 use crate::relay::RelayModel;
 use crate::source::{CurrentSourceModel, PulseSourceModel, VoltageSourceModel};
 use crate::switch::{IdealSwitchModel, SwitchModel};
@@ -102,6 +103,7 @@ fn active_model(instance: &DeviceInstance) -> Result<Option<Box<dyn DeviceModel>
         DeviceKind::JfetN | DeviceKind::JfetP => Box::new(JfetModel::from_instance(instance)?),
         DeviceKind::OpAmp => Box::new(OpAmpModel::from_instance(instance)?),
         DeviceKind::Comparator => Box::new(ComparatorModel::from_instance(instance)?),
+        DeviceKind::Regulator => Box::new(RegulatorModel::from_instance(instance)?),
         DeviceKind::Diode => Box::new(DiodeModel::from_instance(instance)?),
         _ => return Ok(None),
     };

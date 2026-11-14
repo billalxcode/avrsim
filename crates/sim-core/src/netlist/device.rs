@@ -37,6 +37,8 @@ pub enum DeviceKind {
     OpAmp,
     /// A five-terminal comparator with saturated output.
     Comparator,
+    /// A three-terminal linear regulator.
+    Regulator,
     /// An N-channel MOSFET.
     Nmos,
     /// A P-channel MOSFET.
@@ -84,6 +86,7 @@ impl DeviceKind {
             Self::Relay => "relay",
             Self::OpAmp => "opamp",
             Self::Comparator => "comparator",
+            Self::Regulator => "regulator",
             other => other.analog_name(),
         }
     }

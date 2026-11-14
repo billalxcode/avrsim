@@ -88,8 +88,8 @@ Jika fundamental nol, analisis mengembalikan error.
 - Amplitudo nol, device bukan sumber, device tidak dikenal, dan konfigurasi
   di atas Nyquist ditolak.
 
-Total test `sim-analysis`: 114 (108 unit + 6 integration).
-Total workspace: 743.
+Total test `sim-analysis`: 115 (108 unit + 7 integration).
+Total workspace: 747.
 
 ---
 

@@ -93,8 +93,8 @@ Integrasi memakai trapezoid pada sumbu frekuensi linear.
   satu persen.
 - Konfigurasi tidak valid dan node output tidak dikenal ditolak.
 
-Total test `sim-analysis`: 114 (108 unit + 6 integration).
-Total workspace: 743.
+Total test `sim-analysis`: 115 (108 unit + 7 integration).
+Total workspace: 747.
 
 ---
 

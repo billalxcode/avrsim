@@ -174,6 +174,7 @@ fn branch_slots(kind: &DeviceKind) -> usize {
         | DeviceKind::Cccs
         | DeviceKind::OpAmp
         | DeviceKind::Comparator
+        | DeviceKind::Regulator
         | DeviceKind::Inductor => 1,
         _ => 0,
     }
