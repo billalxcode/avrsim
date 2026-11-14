@@ -55,7 +55,7 @@ pub fn transient_adaptive_with_solver(
 - Zero steps menghasilkan output kosong.
 
 Total test `sim-analysis`: 108.
-Total workspace: 674.
+Total workspace: 675.
 
 ---
 

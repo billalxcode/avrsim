@@ -163,6 +163,7 @@ pub struct GuiApp {
     dragging: Option<DragState>,
     dragging_segment: Option<SegmentDrag>,
     placing: Option<&'static ComponentDefinition>,
+    drag_place: bool,
     placement_rotation: Rotation,
     placement_mirror: Mirror,
     library_open: bool,
@@ -227,6 +228,7 @@ impl eframe::App for GuiApp {
         self.pointer_world = state.pointer_world;
         self.canvas_rect = Some(state.rect);
         self.handle_canvas(state);
+        self.finish_drag_place(ui.ctx());
         self.handle_keys(ui);
         self.windows(ui);
     }
@@ -1143,6 +1145,7 @@ impl GuiApp {
     fn handle_placement(&mut self, state: canvas::CanvasState) {
         if state.secondary_clicked {
             self.placing = None;
+            self.drag_place = false;
             return;
         }
         if !state.clicked {
@@ -1151,6 +1154,10 @@ impl GuiApp {
         let Some(world) = state.click_world else {
             return;
         };
+        self.place_at(world);
+    }
+
+    fn place_at(&mut self, world: egui::Pos2) {
         let Some(definition) = self.placing else {
             return;
         };
@@ -1174,8 +1181,20 @@ impl GuiApp {
         );
         self.selection.select_component(id);
         self.placing = None;
+        self.drag_place = false;
         self.mark_dirty();
         self.remember_component(definition);
+    }
+
+    fn finish_drag_place(&mut self, ctx: &egui::Context) {
+        if !self.drag_place || !ctx.input(|input| input.pointer.any_released()) {
+            return;
+        }
+        self.drag_place = false;
+        let Some(world) = self.pointer_world else {
+            return;
+        };
+        self.place_at(world);
     }
 
     fn remember_component(&mut self, definition: &'static ComponentDefinition) {
@@ -1316,6 +1335,7 @@ impl GuiApp {
         }
         if ui.input(|input| input.key_pressed(egui::Key::Escape)) {
             self.placing = None;
+            self.drag_place = false;
             self.wire_points.clear();
         }
     }
@@ -1604,6 +1624,7 @@ impl GuiApp {
         let mut category = self.category;
         let mut chosen = None;
         let mut hovered = None;
+        let mut dragged = None;
         egui::Window::new("Library")
             .open(&mut open)
             .default_width(300.0)
@@ -1614,7 +1635,14 @@ impl GuiApp {
                 self.library_filters(ui, &mut search, &mut category);
                 ui.separator();
                 if chosen.is_none() {
-                    chosen = library_list(ui, self.library, &search, category, &mut hovered);
+                    chosen = library_list(
+                        ui,
+                        self.library,
+                        &search,
+                        category,
+                        &mut hovered,
+                        &mut dragged,
+                    );
                 }
                 if let Some(definition) = hovered {
                     library_preview(ui, definition);
@@ -1623,6 +1651,12 @@ impl GuiApp {
         self.library_open = open;
         self.search = search;
         self.category = category;
+        if let Some(definition) = dragged {
+            self.placing = Some(definition);
+            self.drag_place = true;
+            self.library_open = false;
+            return;
+        }
         if let Some(definition) = chosen {
             self.placing = Some(definition);
             self.library_open = false;
@@ -2050,6 +2084,7 @@ impl GuiApp {
         self.dragging_segment = None;
         self.drag_history_pending = false;
         self.placing = None;
+        self.drag_place = false;
         self.wire_points.clear();
     }
 
@@ -2425,6 +2460,7 @@ fn library_list<'a>(
     search: &str,
     category: Option<Category>,
     hovered: &mut Option<&'a ComponentDefinition>,
+    dragged: &mut Option<&'a ComponentDefinition>,
 ) -> Option<&'a ComponentDefinition> {
     let needle = search.to_lowercase();
     for definition in library {
@@ -2435,9 +2471,14 @@ fn library_list<'a>(
             continue;
         }
         let text = format!("{}  {}", definition.name, definition.default_value);
-        let response = ui.selectable_label(false, text);
+        let response = ui
+            .selectable_label(false, text)
+            .interact(egui::Sense::click_and_drag());
         if response.hovered() {
             *hovered = Some(definition);
+        }
+        if response.drag_started() {
+            *dragged = Some(definition);
         }
         if response.clicked() {
             return Some(definition);
@@ -3371,6 +3412,22 @@ mod tests {
         assert_eq!(app.document.wires()[0].label.as_deref(), Some("LED_A"));
         app.undo();
         assert_eq!(app.document.wires()[0].label, None);
+    }
+
+    #[test]
+    fn place_at_commits_definition() {
+        let library = crate::library::builtin();
+        let resistor = crate::library::find("resistor").expect("resistor");
+        let mut app = GuiApp {
+            library,
+            placing: Some(resistor),
+            drag_place: true,
+            ..GuiApp::default()
+        };
+        app.place_at(eframe::egui::pos2(0.0, 0.0));
+        assert_eq!(app.document.components().len(), 1);
+        assert!(app.placing.is_none());
+        assert!(!app.drag_place);
     }
 
     #[test]

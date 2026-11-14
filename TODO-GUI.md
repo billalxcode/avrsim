@@ -121,7 +121,7 @@ pan dan zoom stabil, dan area canvas mendominasi layout.
 - [x] G2-05 Buat daftar recently used di library.
 - [x] G2-15 Buat preview simbol di library.
 - [x] G2-06 Implementasikan ghost placement dan klik untuk menempatkan.
-- [ ] G2-16 Implementasikan drag-and-drop dari library ke kanvas.
+- [x] G2-16 Implementasikan drag-and-drop dari library ke kanvas.
 - [x] G2-07 Implementasikan move, rotate, dan mirror di grid dengan pusat rotasi.
 - [x] G2-08 Implementasikan selection dan inspector dasar.
 - [x] G2-09 Test transformasi pin, tabrakan, dan model dokumen.

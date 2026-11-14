@@ -82,11 +82,12 @@ cargo build --workspace --release
 1. Klik `Library`.
 2. Cari komponen atau pilih kategori.
 3. Klik komponen untuk masuk mode placement.
-4. Gerakkan pointer di kanvas.
-5. Klik untuk menempatkan.
-6. Tekan `R` atau `M` sebelum menempatkan untuk transform.
-7. Preview simbol muncul di bawah daftar library saat item di-hover.
-8. Escape membatalkan placement.
+4. Atau drag komponen dari library ke kanvas lalu lepas.
+5. Gerakkan pointer di kanvas.
+6. Klik untuk menempatkan.
+7. Tekan `R` atau `M` sebelum menempatkan untuk transform.
+8. Preview simbol muncul di bawah daftar library saat item di-hover.
+9. Escape membatalkan placement.
 
 Komponen tidak boleh saling menimpa. Selalu snap ke grid.
 
