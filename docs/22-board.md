@@ -54,11 +54,11 @@ pub fn host_receive(&mut self) -> Option<u8>;
 
 ## 4. CLI dan trace
 
-- `embed-emu run <file.hex> [steps]` memuat Intel HEX dan menjalankan CPU.
-- `embed-emu monitor <hex words...>` menjalankan monitor interaktif.
-- `embed-emu disasm <hex words...>` menampilkan disassembly.
-- `embed-emu bench [iterations] [nodes]` menjalankan benchmark.
-- `embed-emu serial [--link path] [--socket path]` membuka virtual serial
+- `emucad run <file.hex> [steps]` memuat Intel HEX dan menjalankan CPU.
+- `emucad monitor <hex words...>` menjalankan monitor interaktif.
+- `emucad disasm <hex words...>` menampilkan disassembly.
+- `emucad bench [iterations] [nodes]` menjalankan benchmark.
+- `emucad serial [--link path] [--socket path]` membuka virtual serial
   port STK500 melalui `socat`.
 - `csv_header` dan `csv_line` menghasilkan trace CSV board.
 - `CsvWriter` menulis CSV generik dengan kolom tetap.
@@ -81,7 +81,7 @@ pub fn host_receive(&mut self) -> Option<u8>;
 
 Total test `sim-board`: 23.
 Total test `sim-cli`: 26.
-Total workspace: 728.
+Total workspace: 731.
 
 ---
 

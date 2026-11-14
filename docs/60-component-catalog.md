@@ -1,4 +1,4 @@
-# 60 - Katalog Komponen 500
+# 60 - Katalog Komponen EmuCAD
 
 Dokumen ini mendefinisikan taksonomi, kebijakan akurasi, schema katalog,
 dan contoh cara kerja komponen. Implementasi dan status per batch ada di
@@ -292,7 +292,7 @@ Python builder tidak menghitung model. Python hanya:
 Rust mengekspor katalog:
 
 ```bash
-embed-emu catalog --json
+emucad catalog --json
 ```
 
 Python memuat katalog itu agar daftar komponen, parameter, dan batas

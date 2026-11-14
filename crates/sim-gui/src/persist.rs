@@ -10,7 +10,8 @@ use serde::{Deserialize, Serialize};
 use std::collections::BTreeSet;
 use std::path::{Path, PathBuf};
 
-const FORMAT: &str = "embed-emu-gui";
+const FORMAT: &str = "emucad-gui";
+const LEGACY_FORMAT: &str = "embed-emu-gui";
 const VERSION: u32 = 2;
 
 /// Loaded project state.
@@ -102,7 +103,7 @@ fn wire_files(document: &Document) -> Vec<WireFile> {
 pub fn from_json(text: &str, library: &[ComponentDefinition]) -> Result<Project, String> {
     let file: ProjectFile =
         serde_json::from_str(text).map_err(|error| format!("invalid project JSON: {error}"))?;
-    if file.format != FORMAT {
+    if file.format != FORMAT && file.format != LEGACY_FORMAT {
         return Err(format!("unsupported project format: {}", file.format));
     }
     if file.version != 1 && file.version != VERSION {
@@ -311,7 +312,7 @@ mod tests {
     use std::path::PathBuf;
 
     fn temp_dir(name: &str) -> PathBuf {
-        let dir = std::env::temp_dir().join(format!("embed-emu-gui-{}-{name}", std::process::id()));
+        let dir = std::env::temp_dir().join(format!("emucad-gui-{}-{name}", std::process::id()));
         let _ = std::fs::remove_dir_all(&dir);
         dir
     }
@@ -398,5 +399,11 @@ mod tests {
         ] {
             from_json(text, library::builtin()).expect("example project");
         }
+    }
+
+    #[test]
+    fn legacy_format_is_accepted() {
+        let text = sample_text().replace("emucad-gui", "embed-emu-gui");
+        from_json(&text, library::builtin()).expect("legacy project");
     }
 }

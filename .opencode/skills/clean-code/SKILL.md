@@ -144,7 +144,7 @@ Gunakan `templates/review-report.md` untuk review. Untuk refactor, jelaskan:
 
 ---
 
-## Aturan Proyek `embed-emulation`
+## Aturan Proyek EmuCAD
 
 - `sim-core` tidak boleh bergantung pada crate lain.
 - `sim-device` tidak boleh tahu analysis/CLI.

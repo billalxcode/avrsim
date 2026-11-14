@@ -41,7 +41,7 @@ fn draw_golden(ui: &mut egui::Ui) {
     painter.text(
         egui::pos2(10.0, 216.0),
         egui::Align2::LEFT_TOP,
-        "embed-emu golden",
+        "EmuCAD golden",
         egui::FontId::monospace(12.0),
         Color32::from_rgb(220, 228, 238),
     );

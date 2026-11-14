@@ -343,8 +343,8 @@ Roadmap ini mengubah visi besar menjadi milestone kecil yang dapat diuji.
 
 ### Deliverable
 
-- `embed-emu run --board uno --firmware blink.hex`.
-- `embed-emu monitor`.
+- `emucad run --board uno --firmware blink.hex`.
+- `emucad monitor`.
 - Dokumentasi contoh.
 
 ### Exit Criteria

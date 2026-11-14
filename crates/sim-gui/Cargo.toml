@@ -9,7 +9,7 @@ license.workspace = true
 workspace = true
 
 [[bin]]
-name = "embed-emu-gui"
+name = "emucad-gui"
 path = "src/main.rs"
 
 [dependencies]

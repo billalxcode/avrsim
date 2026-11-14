@@ -61,7 +61,7 @@ Alur yang didukung secara konsep:
 ```bash
 avr-gcc -mmcu=atmega328p -DF_CPU=16000000UL -Os -o blink.elf blink.S
 avr-objcopy -O ihex -R .eeprom blink.elf blink.hex
-./target/debug/embed-emu run blink.hex 100000
+./target/debug/emucad run blink.hex 100000
 ```
 
 ELF juga dapat dimuat melalui API `sim_board::ElfImage`, lalu dikonversi
@@ -71,7 +71,7 @@ Setelah firmware dikompilasi, upload dapat dilakukan melalui virtual serial
 port:
 
 ```bash
-./target/release/embed-emu serial
+./target/release/emucad serial
 ```
 
 Lihat `docs/43-user-guide.md` untuk alur Arduino IDE dan batasannya.

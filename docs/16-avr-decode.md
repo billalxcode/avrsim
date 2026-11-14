@@ -246,7 +246,7 @@ Total test `sim-cli`: 26.
 
 ## 16. CLI Monitor
 
-`embed-emu monitor <hex words...>` menjalankan monitor interaktif.
+`emucad monitor <hex words...>` menjalankan monitor interaktif.
 
 Perintah:
 
@@ -260,7 +260,7 @@ Perintah:
 - `io <addr>`: baca I/O register.
 - `quit`: keluar.
 
-`embed-emu disasm <hex words...>` mencetak disassembly tanpa menjalankan program.
+`emucad disasm <hex words...>` mencetak disassembly tanpa menjalankan program.
 
 ## 17. ISA Support
 

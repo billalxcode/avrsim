@@ -65,7 +65,7 @@ Batch yang gagal salah satu syarat tetap berstatus `tested`, bukan
 - [x] C1-02 Definisikan struct `ComponentSpec` dan parameter typed.
 - [x] C1-03 Buat validator ID, unit, pin, dan rentang parameter.
 - [x] C1-04 Buat loader katalog deterministik.
-- [ ] C1-05 Tambah perintah `embed-emu catalog --json`.
+- [ ] C1-05 Tambah perintah `emucad catalog --json`.
 - [ ] C1-06 Buat format reference vector dan parser test.
 - [ ] C1-07 Buat harness unit test model.
 - [ ] C1-08 Buat harness conservation test KCL, KVL, dan energi.

@@ -373,9 +373,9 @@ Fitur:
 Perintah yang direncanakan:
 
 ```
-embed-emu run --netlist inverter --analysis dc-sweep --output vtc.csv
-embed-emu run --board uno --firmware blink.hex --vcd blink.vcd
-embed-emu monitor --board uno --firmware blink.hex
+emucad run --netlist inverter --analysis dc-sweep --output vtc.csv
+emucad run --board uno --firmware blink.hex --vcd blink.vcd
+emucad monitor --board uno --firmware blink.hex
 ```
 
 Monitor:

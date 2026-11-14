@@ -22,7 +22,7 @@ Jika alur kontrol berlawanan, gunakan **Dependency Inversion**:
 
 ---
 
-## 2. Pemetaan ke `embed-emulation`
+## 2. Pemetaan ke EmuCAD
 
 ```
 sim-cli

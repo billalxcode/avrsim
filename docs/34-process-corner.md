@@ -70,7 +70,7 @@ Semua faktor harus finite dan lebih besar dari nol.
 - Faktor nol ditolak.
 
 Total test `sim-analysis`: 110 (108 unit + 2 integration).
-Total workspace: 728.
+Total workspace: 731.
 
 ---
 

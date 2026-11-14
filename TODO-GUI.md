@@ -68,7 +68,7 @@ di bagian Status Akhir.
 
 - [x] G0-01 Setujui pengecualian dependensi GUI di `sim-gui`.
 - [x] G0-02 Catat keputusan di `AGENTS.md` dan `docs/57`.
-- [x] G0-03 Buat crate `crates/sim-gui` dengan binary `embed-emu-gui`.
+- [x] G0-03 Buat crate `crates/sim-gui` dengan binary `emucad-gui`.
 - [x] G0-04 Tambahkan `sim-gui` ke workspace dan dependency graph.
 - [x] G0-05 Pin versi semua dependensi `sim-gui`, commit `Cargo.lock`.
 - [x] G0-06 Buat app error type dan aturan no-panic untuk input GUI.

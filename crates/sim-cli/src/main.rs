@@ -1,4 +1,4 @@
-//! `embed-emu` command-line entry point.
+//! `emucad` command-line entry point.
 
 mod bench;
 #[cfg(unix)]
@@ -139,5 +139,5 @@ fn number(args: &[&str], index: usize, default: usize) -> Result<usize, String> 
 }
 
 fn usage() -> String {
-    "usage: embed-emu [--link path] [--socket path] | embed-emu monitor <hex words...> | embed-emu disasm <hex words...> | embed-emu run <file.hex> [steps] | embed-emu bench [iterations] [nodes] | embed-emu serial [--link path] [--socket path] | embed-emu usb [--socket path]".to_string()
+    "usage: emucad [--link path] [--socket path] | emucad monitor <hex words...> | emucad disasm <hex words...> | emucad run <file.hex> [steps] | emucad bench [iterations] [nodes] | emucad serial [--link path] [--socket path] | emucad usb [--socket path]".to_string()
 }

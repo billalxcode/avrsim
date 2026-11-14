@@ -1,6 +1,6 @@
-#include "embed_emu_usb/options.hpp"
+#include "emucad_usb/options.hpp"
 
-namespace embed_emu_usb {
+namespace emucad_usb {
 namespace {
 
 constexpr const char* kVersion = "0.1.0";
@@ -62,7 +62,7 @@ ParsedOptions parse_options(int argc, char** argv) {
 }
 
 std::string usage() {
-    return "usage: embed-emu-usb [--socket PATH] [--device PATH]\n"
+    return "usage: emucad-usb [--socket PATH] [--device PATH]\n"
            "\n"
            "Options:\n"
            "  --socket PATH  Unix socket for the simulator\n"
@@ -72,7 +72,7 @@ std::string usage() {
 }
 
 std::string version() {
-    return std::string("embed-emu-usb ") + kVersion;
+    return std::string("emucad-usb ") + kVersion;
 }
 
-}  // namespace embed_emu_usb
+}  // namespace emucad_usb

@@ -1,6 +1,6 @@
 # 58 - Panduan Pengguna GUI
 
-Dokumen ini menjelaskan cara memakai GUI `embed-emu-gui` untuk menggambar
+Dokumen ini menjelaskan cara memakai GUI EmuCAD (`emucad-gui`) untuk menggambar
 skematik, menjalankan firmware AVR, memantau UART, dan mengekspor gambar.
 
 **Status:** GUI Linux sudah dapat dipakai untuk editing dasar, simulasi
@@ -28,7 +28,7 @@ cargo run -p sim-gui
 Binary hasil build:
 
 ```text
-target/debug/embed-emu-gui
+target/debug/emucad-gui
 ```
 
 Release build:
@@ -230,13 +230,13 @@ Perilaku:
 Konfigurasi:
 
 ```text
-$XDG_CONFIG_HOME/embed-emu/gui.json
+$XDG_CONFIG_HOME/emucad/gui.json
 ```
 
 Fallback:
 
 ```text
-~/.config/embed-emu/gui.json
+~/.config/emucad/gui.json
 ```
 
 ---

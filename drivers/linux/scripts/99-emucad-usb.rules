@@ -1,4 +1,4 @@
-# embed-emu virtual USB serial
+# EmuCAD virtual USB serial
 # Grants the active local user access through systemd-logind uaccess.
 # dummy_hcd has no ID_SEAT, so uaccess may not add an ACL. The setup
 # script also chowns the tty to SUDO_USER as a fallback.

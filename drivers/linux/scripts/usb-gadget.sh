@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-GADGET_NAME="embed_emu"
+GADGET_NAME="emucad"
 CONFIGFS="/sys/kernel/config"
 GADGET="$CONFIGFS/usb_gadget/$GADGET_NAME"
 UDC_NAME="${UDC_NAME:-dummy_udc.0}"
@@ -30,9 +30,9 @@ create_gadget() {
     echo "0x0001" > "$GADGET/idProduct"
     echo "0x0100" > "$GADGET/bcdDevice"
     echo "0x0200" > "$GADGET/bcdUSB"
-    echo "embed-emu" > "$GADGET/strings/0x409/serialnumber"
-    echo "embed-emulation" > "$GADGET/strings/0x409/manufacturer"
-    echo "embed-emu Virtual Serial" > "$GADGET/strings/0x409/product"
+    echo "emucad" > "$GADGET/strings/0x409/serialnumber"
+    echo "EmuCAD" > "$GADGET/strings/0x409/manufacturer"
+    echo "EmuCAD Virtual Serial" > "$GADGET/strings/0x409/product"
 }
 
 create_config() {

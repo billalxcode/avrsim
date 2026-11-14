@@ -1,4 +1,4 @@
-#include "embed_emu_usb/bridge.hpp"
+#include "emucad_usb/bridge.hpp"
 
 #include <cerrno>
 #include <csignal>
@@ -15,7 +15,7 @@
 #include <unistd.h>
 #include <utility>
 
-namespace embed_emu_usb {
+namespace emucad_usb {
 namespace {
 
 volatile std::sig_atomic_t g_stop = 0;
@@ -205,4 +205,4 @@ bool Bridge::forward(int from, int to) const {
     return write_all(to, buffer, static_cast<size_t>(count));
 }
 
-}  // namespace embed_emu_usb
+}  // namespace emucad_usb

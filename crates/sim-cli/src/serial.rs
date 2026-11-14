@@ -10,9 +10,9 @@ use std::path::{Path, PathBuf};
 use std::process::{Child, Command, Stdio};
 use std::time::{Duration, Instant};
 
-const DEFAULT_LINK: &str = "/tmp/embed-emu-tty";
-const DEFAULT_SOCKET: &str = "/tmp/embed-emu-sock";
-const DEFAULT_USB_SOCKET: &str = "/tmp/embed-emu-usb.sock";
+const DEFAULT_LINK: &str = "/tmp/emucad-tty";
+const DEFAULT_SOCKET: &str = "/tmp/emucad-sock";
+const DEFAULT_USB_SOCKET: &str = "/tmp/emucad-usb.sock";
 
 /// Runs the virtual serial port until the client closes it.
 pub fn run(args: &[String]) -> Result<(), String> {

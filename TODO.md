@@ -38,7 +38,7 @@ Daftar tugas lengkap dari hal terkecil sampai rilis. Setiap item harus kecil, da
 - [x] P0-09 Buat crate `sim-cells`.
 - [x] P0-10 Buat crate `sim-avr`.
 - [x] P0-11 Buat crate `sim-board`.
-- [x] P0-12 Buat crate `sim-cli` dengan binary `embed-emu`.
+- [x] P0-12 Buat crate `sim-cli` dengan binary `emucad`.
 - [x] P0-13 Pastikan seluruh `Cargo.toml` tidak punya dependensi eksternal.
 - [x] P0-14 Tambahkan `LICENSE` (MIT) dengan copyright Billal Fauzan.
 - [x] P0-15 Lisensi akhir: hanya MIT (Apache dihapus).
@@ -733,7 +733,7 @@ device nonlinier pada titik operasi.
 
 ### 16.3 Dokumentasi
 
-- [x] P16-10 Dokumentasikan perintah `embed-emu serial`.
+- [x] P16-10 Dokumentasikan perintah `emucad serial`.
 - [x] P16-11 Catat batas Arduino IDE dan serial monitor.
 
 **Exit P16:** firmware dapat diunggah melalui virtual serial port dan port
@@ -799,7 +799,7 @@ ditutup otomatis saat proses berhenti.
 - [x] P19-07 Implementasikan bridge `/dev/ttyGS0` ke Unix socket.
 - [x] P19-08 Implementasikan cleanup SIGINT dan SIGTERM.
 - [x] P19-09 Buat test integrasi bridge dengan PTY.
-- [x] P19-10 Tambahkan perintah `embed-emu usb`.
+- [x] P19-10 Tambahkan perintah `emucad usb`.
 - [x] P19-11 Reuse parser dan handler STK500.
 - [x] P19-12 Uji upload, UART TX, dan echo RX melalui bridge.
 

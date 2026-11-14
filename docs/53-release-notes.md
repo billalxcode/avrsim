@@ -1,4 +1,4 @@
-# 53 - Release Notes
+# 53 - Release Notes EmuCAD
 
 Catatan rilis untuk versi 0.1.0.
 
@@ -75,11 +75,11 @@ Tag `v0.1` tersedia; publikasi biner dan GitHub release belum.
 CLI:
 
 ```bash
-./target/release/embed-emu run firmware/blink.hex 1000
-./target/release/embed-emu bench 1000 10
-./target/release/embed-emu monitor <hex words...>
-./target/release/embed-emu disasm <hex words...>
-./target/release/embed-emu serial
+./target/release/emucad run firmware/blink.hex 1000
+./target/release/emucad bench 1000 10
+./target/release/emucad monitor <hex words...>
+./target/release/emucad disasm <hex words...>
+./target/release/emucad serial
 ```
 
 Contoh:
@@ -106,12 +106,12 @@ Script:
 Menghasilkan:
 
 ```
-dist/embed-emu-<target>.tar.gz
+dist/emucad-<target>.tar.gz
 ```
 
 Isi arsip:
 
-- Binary `embed-emu`.
+- Binary `emucad`.
 - README dan LICENSE.
 - Dokumentasi Markdown.
 - Contoh.
@@ -132,7 +132,7 @@ Perintah:
 ./scripts/package.sh
 ```
 
-Total test workspace: 728.
+Total test workspace: 731.
 
 Golden GUI headless 320 x 240 RGBA lulus di Linux. Cross-check build
 Windows dan macOS lulus:

@@ -1,7 +1,7 @@
 [Desktop Entry]
 Type=Application
-Name=embed-emu GUI
+Name=EmuCAD
 Comment=AVR schematic simulator
-Exec=embed-emu-gui
+Exec=emucad-gui
 Terminal=false
 Categories=Development;Electronics;

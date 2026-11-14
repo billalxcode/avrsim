@@ -1,6 +1,6 @@
 # Rust Clean Code Checklist
 
-Checklist khusus Rust untuk proyek `embed-emulation`.
+Checklist khusus Rust untuk proyek EmuCAD.
 
 ---
 

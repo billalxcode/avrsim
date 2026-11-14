@@ -1,19 +1,28 @@
-# embed-emulation
+# EmuCAD
 
 **Native Transistor-Level Emulator** - simulator elektronika native Rust
 yang memodelkan transistor, gerbang CMOS, CPU AVR, peripheral, dan board,
 serta mampu menjalankan firmware AVR.
 
-> **Status v0.1:** 728 test lulus, 8 crate, crate simulasi zero external
+> **Status v0.1:** 731 test lulus, 8 crate, crate simulasi zero external
 > dependency; dependensi GUI dibatasi pada daftar yang disetujui di
 > `AGENTS.md`.
 > Tag `v0.1` tersedia. Archive Linux ada di
-> `dist/embed-emu-x86_64-unknown-linux-gnu.tar.gz`.
+> `dist/emucad-x86_64-unknown-linux-gnu.tar.gz`.
 
 Dokumentasi lengkap: [`docs/README.md`](docs/README.md).
 Panduan pengguna: [`docs/43-user-guide.md`](docs/43-user-guide.md).
 Panduan GUI: [`docs/58-gui-user-guide.md`](docs/58-gui-user-guide.md).
 Fidelity dan batasan: [`docs/24-fidelity.md`](docs/24-fidelity.md).
+
+## Kompatibilitas Rebrand
+
+- Binary baru: `emucad`, `emucad-gui`, dan `emucad-usb`.
+- Config lama di `~/.config/embed-emu/gui.json` dibaca dan dimigrasikan
+  ke `~/.config/emucad/gui.json`.
+- Proyek lama dengan format `embed-emu-gui` tetap dapat dibuka.
+- File baru ditulis dengan format `emucad-gui`.
+- Nama crate internal tetap `sim-*` agar API dan arsitektur tidak pecah.
 
 ---
 
@@ -75,13 +84,13 @@ cargo run -p sim-avr --example timer_interrupt
 ### 3.3 CLI
 
 ```bash
-./target/debug/embed-emu monitor E005 E013 0F01 9598
-./target/debug/embed-emu disasm E005 E013 0F01 9598
-./target/debug/embed-emu bench 1000 10
-./target/debug/embed-emu run firmware/blink.hex 100000
-./target/release/embed-emu serial
-./target/release/embed-emu
-./target/release/embed-emu usb --socket /tmp/embed-emu-usb.sock
+./target/debug/emucad monitor E005 E013 0F01 9598
+./target/debug/emucad disasm E005 E013 0F01 9598
+./target/debug/emucad bench 1000 10
+./target/debug/emucad run firmware/blink.hex 100000
+./target/release/emucad serial
+./target/release/emucad
+./target/release/emucad usb --socket /tmp/emucad-usb.sock
 ```
 
 Perintah `run` memerlukan file Intel HEX. Contoh firmware assembly ada di
@@ -109,7 +118,7 @@ bash .opencode/skills/clean-code/scripts/check.sh
 | `sim-cells` | Sel CMOS struktural dan pustaka digital |
 | `sim-avr` | CPU AVR, decoder, ALU, register, peripheral |
 | `sim-board` | Board, LED, button, UART host, Intel HEX, ELF, CSV/VCD |
-| `sim-cli` | Binary `embed-emu`, monitor, disassembler, benchmark |
+| `sim-cli` | Binary `emucad`, monitor, disassembler, benchmark |
 | `drivers/` | Scaffold driver virtual USB C++ (opsional, di luar crate) |
 
 Aturan utama:
@@ -152,7 +161,7 @@ Dokumen yang sering dipakai:
 
 Sudah:
 
-- 728 test workspace.
+- 731 test workspace.
 - fmt, clippy, test, dan build release lulus.
 - Paket Linux dapat dibuat.
 - Determinisme Linux diuji.

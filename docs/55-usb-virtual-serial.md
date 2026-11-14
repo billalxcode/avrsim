@@ -325,7 +325,7 @@ Dengan PTY, port tidak muncul karena bukan USB device. Solusinya adalah
 pluggable discovery plugin. Protokolnya berbasis stdin/stdout dan JSON:
 
 ```json
-{"eventType":"add","port":{"address":"/tmp/embed-emu-tty","label":"embed-emu","protocol":"serial","protocolLabel":"Serial Port"}}
+{"eventType":"add","port":{"address":"/tmp/emucad-tty","label":"emucad","protocol":"serial","protocolLabel":"Serial Port"}}
 ```
 
 Plugin dapat ditulis di Rust tanpa `unsafe`. Namun upload tetap memakai
@@ -452,7 +452,7 @@ Sudah ada:
 
 - Bridge C++ `drivers/linux` antara `/dev/ttyGS0` dan Unix socket.
 - Script setup dan teardown ConfigFS ACM.
-- Perintah Rust `embed-emu usb --socket PATH`.
+- Perintah Rust `emucad usb --socket PATH`.
 - Parser STK500v1 untuk avrdude dan AVR109 untuk kompatibilitas.
 - Test integrasi bridge memakai PTY.
 
@@ -482,7 +482,7 @@ Perintah:
 python3 scripts/test-usb-bridge.py
 python3 scripts/test-run-usb-cleanup.py
 drivers/linux/scripts/run-usb.sh
-./target/release/embed-emu usb --socket /tmp/embed-emu-usb.sock
+./target/release/emucad usb --socket /tmp/emucad-usb.sock
 ```
 
 Detail ada di [`drivers/linux/README.md`](../drivers/linux/README.md) dan

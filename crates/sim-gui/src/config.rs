@@ -4,7 +4,8 @@ use serde::{Deserialize, Serialize};
 use std::ffi::OsString;
 use std::path::{Path, PathBuf};
 
-const APP_DIR: &str = "embed-emu";
+const APP_DIR: &str = "emucad";
+const LEGACY_APP_DIR: &str = "embed-emu";
 const FILE_NAME: &str = "gui.json";
 
 /// Number of paths kept in the recent list.
@@ -28,9 +29,23 @@ pub fn path() -> Option<PathBuf> {
     )
 }
 
+/// Returns the legacy config path from the old product name.
+#[must_use]
+pub fn legacy_path() -> Option<PathBuf> {
+    legacy_path_from(
+        std::env::var_os("XDG_CONFIG_HOME"),
+        std::env::var_os("HOME"),
+    )
+}
+
 fn path_from(xdg: Option<OsString>, home: Option<OsString>) -> Option<PathBuf> {
     let base = config_base(xdg, home)?;
     Some(base.join(APP_DIR).join(FILE_NAME))
+}
+
+fn legacy_path_from(xdg: Option<OsString>, home: Option<OsString>) -> Option<PathBuf> {
+    let base = config_base(xdg, home)?;
+    Some(base.join(LEGACY_APP_DIR).join(FILE_NAME))
 }
 
 fn config_base(xdg: Option<OsString>, home: Option<OsString>) -> Option<PathBuf> {
@@ -42,6 +57,27 @@ fn config_base(xdg: Option<OsString>, home: Option<OsString>) -> Option<PathBuf>
 
 fn non_empty(value: Option<OsString>) -> Option<OsString> {
     value.filter(|value| !value.is_empty())
+}
+
+/// Loads config, migrating the legacy path when the new file is absent.
+#[must_use]
+pub fn load_or_migrate(path: &Path) -> AppConfig {
+    let Some(legacy) = legacy_path() else {
+        return AppConfig::default();
+    };
+    load_or_migrate_paths(path, &legacy)
+}
+
+fn load_or_migrate_paths(path: &Path, legacy: &Path) -> AppConfig {
+    if path.exists() {
+        return load(path);
+    }
+    let config = load(legacy);
+    if config.recent_files.is_empty() {
+        return config;
+    }
+    let _ = save(path, &config);
+    config
 }
 
 /// Loads config, returning defaults when the file is missing or invalid.
@@ -69,13 +105,15 @@ pub fn push_recent(config: &mut AppConfig, path: &Path) {
 
 #[cfg(test)]
 mod tests {
-    use super::{AppConfig, MAX_RECENT, load, path_from, push_recent, save};
+    use super::{
+        AppConfig, MAX_RECENT, legacy_path_from, load, load_or_migrate_paths, path_from,
+        push_recent, save,
+    };
     use std::ffi::OsString;
     use std::path::{Path, PathBuf};
 
     fn temp_dir(name: &str) -> PathBuf {
-        let dir =
-            std::env::temp_dir().join(format!("embed-emu-config-{}-{name}", std::process::id()));
+        let dir = std::env::temp_dir().join(format!("emucad-config-{}-{name}", std::process::id()));
         let _ = std::fs::remove_dir_all(&dir);
         dir
     }
@@ -87,20 +125,40 @@ mod tests {
             Some(OsString::from("/tmp/home")),
         )
         .expect("path");
-        assert_eq!(path, PathBuf::from("/tmp/xdg/embed-emu/gui.json"));
+        assert_eq!(path, PathBuf::from("/tmp/xdg/emucad/gui.json"));
     }
 
     #[test]
     fn home_is_used_without_xdg() {
         let path = path_from(None, Some(OsString::from("/tmp/home"))).expect("path");
+        assert_eq!(path, PathBuf::from("/tmp/home/.config/emucad/gui.json"));
+    }
+
+    #[test]
+    fn legacy_path_uses_old_directory() {
+        let path = legacy_path_from(None, Some(OsString::from("/tmp/home"))).expect("path");
         assert_eq!(path, PathBuf::from("/tmp/home/.config/embed-emu/gui.json"));
+    }
+
+    #[test]
+    fn legacy_config_is_migrated() {
+        let dir = temp_dir("migrate");
+        let legacy = dir.join("old/gui.json");
+        let current = dir.join("new/gui.json");
+        let config = AppConfig {
+            recent_files: vec![PathBuf::from("/tmp/project.emu.json")],
+        };
+        save(&legacy, &config).expect("legacy save");
+        let loaded = load_or_migrate_paths(&current, &legacy);
+        assert_eq!(loaded.recent_files, config.recent_files);
+        assert!(current.exists());
     }
 
     #[test]
     fn empty_xdg_falls_back_to_home() {
         let path =
             path_from(Some(OsString::new()), Some(OsString::from("/tmp/home"))).expect("path");
-        assert_eq!(path, PathBuf::from("/tmp/home/.config/embed-emu/gui.json"));
+        assert_eq!(path, PathBuf::from("/tmp/home/.config/emucad/gui.json"));
         assert!(path_from(None, None).is_none());
     }
 

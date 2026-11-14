@@ -34,13 +34,13 @@ usb_f_acm (kernel gadget)
 /dev/ttyGS0
     |
     v
-embed-emu-usb (C++)
+emucad-usb (C++)
     |
     v
 Unix socket
     |
     v
-embed-emu usb (Rust)
+emucad usb (Rust)
 ```
 
 C++ hanya melakukan bridge byte antara `/dev/ttyGS0` dan Unix socket.
@@ -122,13 +122,13 @@ Script akan:
 - Menjalankan `usb-gadget.sh start` dengan sudo.
 - Membuat atau memperbaiki gadget ConfigFS ACM.
 - Mengikat ke `dummy_udc.0` hanya jika belum terikat.
-- Menjalankan `embed-emu-usb`.
+- Menjalankan `emucad-usb`.
 - Menunggu bridge keluar sebelum menjalankan cleanup gadget.
 
 Terminal 2:
 
 ```bash
-./target/release/embed-emu usb --socket /tmp/embed-emu-usb.sock
+./target/release/emucad usb --socket /tmp/emucad-usb.sock
 ```
 
 Terminal 3:
@@ -170,8 +170,8 @@ ConfigFS secara manual.
 Driver:
 
 ```bash
-./build/drivers-linux/embed-emu-usb \
-  --socket /tmp/embed-emu-usb.sock \
+./build/drivers-linux/emucad-usb \
+  --socket /tmp/emucad-usb.sock \
   --device /dev/ttyGS0
 ```
 
@@ -181,7 +181,7 @@ Driver:
 
 | Opsi | Default | Arti |
 |---|---|---|
-| `--socket PATH` | `/tmp/embed-emu-usb.sock` | Unix socket untuk simulator |
+| `--socket PATH` | `/tmp/emucad-usb.sock` | Unix socket untuk simulator |
 | `--device PATH` | `/dev/ttyGS0` | Device serial sisi gadget |
 | `--help` | - | Tampilkan bantuan |
 | `--version` | - | Tampilkan versi |

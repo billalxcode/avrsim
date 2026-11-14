@@ -61,7 +61,7 @@ mod tests {
     use std::path::PathBuf;
 
     fn temp_path(name: &str) -> PathBuf {
-        std::env::temp_dir().join(format!("embed-emu-png-{}-{name}", std::process::id()))
+        std::env::temp_dir().join(format!("emucad-png-{}-{name}", std::process::id()))
     }
 
     #[test]

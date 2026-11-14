@@ -24,8 +24,8 @@ Arsitektur singkat:
 
 ```text
 Arduino IDE -> /dev/ttyACM0 -> cdc_acm -> dummy_hcd
-            -> usb_f_acm -> /dev/ttyGS0 -> embed-emu-usb
-            -> Unix socket -> embed-emu usb
+            -> usb_f_acm -> /dev/ttyGS0 -> emucad-usb
+            -> Unix socket -> emucad usb
 ```
 
 ---
@@ -37,8 +37,8 @@ Jangan mulai kalau masih ada bridge atau simulator lama.
 Cek:
 
 ```bash
-pgrep -af "embed-emu-usb"
-pgrep -af "target/release/embed-emu usb"
+pgrep -af "emucad-usb"
+pgrep -af "target/release/emucad usb"
 ```
 
 Jika ada, hentikan bridge lebih dulu:
@@ -114,7 +114,7 @@ sudo drivers/linux/scripts/usb-gadget.sh status
 Terminal 2:
 
 ```bash
-./target/release/embed-emu usb --socket /tmp/embed-emu-usb.sock
+./target/release/emucad usb --socket /tmp/emucad-usb.sock
 ```
 
 Biarkan proses ini berjalan. Hanya satu instance yang boleh aktif.
@@ -191,12 +191,12 @@ Urutannya penting:
 2. Tekan Ctrl-C di terminal 2, yaitu simulator Rust. Tunggu proses
    benar-benar berhenti.
 3. Tekan Ctrl-C di terminal 1, yaitu bridge C++.
-4. Tunggu sampai script menampilkan `stopped embed_emu`.
+4. Tunggu sampai script menampilkan `stopped emucad`.
 5. Verifikasi:
 
 ```bash
-pgrep -af "embed-emu-usb"
-pgrep -af "target/release/embed-emu usb"
+pgrep -af "emucad-usb"
+pgrep -af "target/release/emucad usb"
 ls -l /dev/ttyACM0 /dev/ttyGS0
 ```
 
@@ -212,8 +212,8 @@ Diagnosis:
 
 ```bash
 fuser -v /dev/ttyGS0 /dev/ttyACM0
-pgrep -af "embed-emu-usb"
-pgrep -af "target/release/embed-emu usb"
+pgrep -af "emucad-usb"
+pgrep -af "target/release/emucad usb"
 ```
 
 Penyebab umum:
@@ -227,7 +227,7 @@ Penyebab umum:
 | Client langsung disconnect | Bridge memegang fd tty lama setelah gadget recreate | Restart `run-usb.sh`; bridge baru membuka tty per client |
 | Permission denied | Device dimiliki `root:dialout` dan user bukan anggota `dialout` | Chown device atau tambahkan user ke `dialout` |
 | Port tidak ada | Gadget setengah terhapus | `stop`, lalu `run-usb.sh` |
-| Dua client menunggu | Lebih dari satu `embed-emu usb` | Hentikan semuanya, jalankan satu |
+| Dua client menunggu | Lebih dari satu `emucad usb` | Hentikan semuanya, jalankan satu |
 
 ### 8.1 Permission denied
 
@@ -262,7 +262,7 @@ tersebut tidak punya `ID_SEAT`.
 
 ### 8.2 Client langsung disconnect
 
-Jika `embed-emu usb` langsung keluar tanpa error, bridge mungkin masih
+Jika `emucad usb` langsung keluar tanpa error, bridge mungkin masih
 memegang fd `/dev/ttyGS0` lama setelah gadget membuat ulang tty. Bridge
 baru membuka device per client, sehingga client berikutnya memakai fd yang
 valid.
@@ -315,15 +315,15 @@ sudo drivers/linux/scripts/usb-gadget.sh status
 Jalankan bridge manual:
 
 ```bash
-./build/drivers-linux/embed-emu-usb \
-  --socket /tmp/embed-emu-usb.sock \
+./build/drivers-linux/emucad-usb \
+  --socket /tmp/emucad-usb.sock \
   --device /dev/ttyGS0
 ```
 
 Jalankan simulator di terminal lain:
 
 ```bash
-./target/release/embed-emu usb --socket /tmp/embed-emu-usb.sock
+./target/release/emucad usb --socket /tmp/emucad-usb.sock
 ```
 
 Saat berhenti, hentikan simulator lebih dulu, lalu bridge, lalu gadget.
@@ -336,7 +336,7 @@ Jangan menjalankan `usb-gadget.sh stop` selama bridge masih hidup.
 - [ ] Tidak ada bridge atau simulator lama.
 - [ ] `run-usb.sh` menampilkan `USB gadget ready`.
 - [ ] `/dev/ttyACM0` ada dan bisa diakses user.
-- [ ] Simulator `embed-emu usb` berjalan satu instance.
+- [ ] Simulator `emucad usb` berjalan satu instance.
 - [ ] Serial Monitor ditutup sebelum upload.
 - [ ] Upload selesai dengan `flash verified`.
 - [ ] Baud Serial Monitor sama dengan `Serial.begin`.

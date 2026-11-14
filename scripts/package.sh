@@ -7,14 +7,14 @@ cd "$root"
 cargo build --workspace --release
 
 target="$(rustc -vV | sed -n 's/^host: //p')"
-name="embed-emu-$target"
+name="emucad-$target"
 stage="dist/$name"
 
 rm -rf "$stage"
 mkdir -p "$stage/docs" "$stage/share/applications"
-cp target/release/embed-emu "$stage/"
-cp target/release/embed-emu-gui "$stage/"
-cp packaging/embed-emu-gui.desktop "$stage/share/applications/"
+cp target/release/emucad "$stage/"
+cp target/release/emucad-gui "$stage/"
+cp packaging/emucad-gui.desktop "$stage/share/applications/"
 cp README.md LICENSE "$stage/"
 cp docs/*.md "$stage/docs/"
 cp -r examples "$stage/examples"

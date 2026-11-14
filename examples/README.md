@@ -22,7 +22,7 @@ Proyek GUI:
 - `led.emu.json`: resistor dan LED.
 - `uart-hello.emu.json`: resistor, LED, dan tombol.
 
-Buka melalui tombol `Open` di `embed-emu-gui`.
+Buka melalui tombol `Open` di `emucad-gui`.
 
 Panduan lengkap ada di `../docs/43-user-guide.md` dan
 `../docs/58-gui-user-guide.md`.

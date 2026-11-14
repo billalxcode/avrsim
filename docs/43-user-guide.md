@@ -1,7 +1,7 @@
 # 43 - Panduan Pengguna
 
 Panduan ini menjelaskan cara membangun, menjalankan, dan memakai
-`embed-emulation` dari CLI maupun library Rust.
+EmuCAD dari CLI maupun library Rust.
 
 **Kesimpulan:** simulator sudah dapat dipakai untuk rangkaian analog kecil,
 sel CMOS, program AVR, dan board sederhana. Batas utama ada pada verifikasi
@@ -93,7 +93,7 @@ Perintah tersebut menjalankan `fmt`, `clippy`, dan seluruh test workspace.
 Hasil berada di:
 
 ```text
-dist/embed-emu-<target>.tar.gz
+dist/emucad-<target>.tar.gz
 ```
 
 ---
@@ -108,7 +108,7 @@ dist/embed-emu-<target>.tar.gz
 | `sim-cells` | Sel CMOS struktural dan pustaka digital |
 | `sim-avr` | CPU AVR, decoder, ALU, register, peripheral |
 | `sim-board` | Board, LED, button, UART host, Intel HEX, ELF, CSV/VCD |
-| `sim-cli` | Binary `embed-emu`, monitor, disassembler, benchmark |
+| `sim-cli` | Binary `emucad`, monitor, disassembler, benchmark |
 
 Aturan dependensi:
 
@@ -124,13 +124,13 @@ komposisi, bukan tempat logika simulasi.
 
 ## 5. CLI
 
-Binary hasil build berada di `target/debug/embed-emu` atau
-`target/release/embed-emu`.
+Binary hasil build berada di `target/debug/emucad` atau
+`target/release/emucad`.
 
 ### 5.1 Menjalankan Intel HEX
 
 ```bash
-./target/debug/embed-emu run firmware/blink.hex 100000
+./target/debug/emucad run firmware/blink.hex 100000
 ```
 
 Argumen kedua adalah batas instruksi. Default 100000.
@@ -138,7 +138,7 @@ Argumen kedua adalah batas instruksi. Default 100000.
 ### 5.2 Monitor interaktif
 
 ```bash
-./target/debug/embed-emu monitor E005 E013 0F01 9598
+./target/debug/emucad monitor E005 E013 0F01 9598
 ```
 
 Perintah di dalam monitor:
@@ -160,13 +160,13 @@ Alamat dan angka menerima desimal atau heksadesimal `0x`.
 ### 5.3 Disassembly
 
 ```bash
-./target/debug/embed-emu disasm E005 E013 0F01 9598
+./target/debug/emucad disasm E005 E013 0F01 9598
 ```
 
 ### 5.4 Benchmark
 
 ```bash
-./target/debug/embed-emu bench 1000 10
+./target/debug/emucad bench 1000 10
 ```
 
 Argumen pertama adalah jumlah iterasi. Argumen kedua adalah jumlah node
@@ -186,23 +186,23 @@ Prasyarat:
 Jalankan binary tanpa argumen, atau gunakan subcommand `serial`:
 
 ```bash
-./target/release/embed-emu
-./target/release/embed-emu serial
+./target/release/emucad
+./target/release/emucad serial
 ```
 
 Output:
 
 ```text
-virtual serial port: /tmp/embed-emu-tty
+virtual serial port: /tmp/emucad-tty
 press Ctrl-C to close
 ```
 
 Path dapat diubah:
 
 ```bash
-./target/release/embed-emu serial \
-  --link /tmp/embed-emu-tty \
-  --socket /tmp/embed-emu-sock
+./target/release/emucad serial \
+  --link /tmp/emucad-tty \
+  --socket /tmp/emucad-sock
 ```
 
 ### Port yang dibuat
@@ -210,11 +210,11 @@ Path dapat diubah:
 CLI membuat dua alamat:
 
 ```text
-/tmp/embed-emu-tty  -> /dev/pts/N
-/tmp/embed-emu-sock -> Unix socket internal
+/tmp/emucad-tty  -> /dev/pts/N
+/tmp/emucad-sock -> Unix socket internal
 ```
 
-`/tmp/embed-emu-tty` adalah symlink ke pseudo-terminal slave. PTY bukan
+`/tmp/emucad-tty` adalah symlink ke pseudo-terminal slave. PTY bukan
 device USB, sehingga tidak memiliki VID/PID dan tidak muncul sebagai
 `/dev/ttyACM*` atau `/dev/ttyUSB*`.
 
@@ -229,7 +229,7 @@ Yang dapat dicoba:
 1. Buat symlink dengan nama device yang dipindai IDE:
 
    ```bash
-   sudo ln -sf /tmp/embed-emu-tty /dev/ttyUSB9
+   sudo ln -sf /tmp/emucad-tty /dev/ttyUSB9
    ```
 
    Jika muncul, pilih `/dev/ttyUSB9` di Arduino IDE. Symlink biasa tidak
@@ -238,13 +238,13 @@ Yang dapat dicoba:
 2. Gunakan path eksplisit tanpa GUI:
 
    ```bash
-   arduino-cli upload -p /tmp/embed-emu-tty --fqbn arduino:avr:uno <sketch>
+   arduino-cli upload -p /tmp/emucad-tty --fqbn arduino:avr:uno <sketch>
    ```
 
    atau langsung dengan avrdude:
 
    ```bash
-   avrdude -P /tmp/embed-emu-tty ...
+   avrdude -P /tmp/emucad-tty ...
    ```
 
 3. Untuk GUI Arduino IDE, diperlukan custom discovery plugin atau virtual
@@ -252,7 +252,7 @@ Yang dapat dicoba:
 
 Alur upload setelah port dapat dibuka:
 
-1. Jalankan `embed-emu`.
+1. Jalankan `emucad`.
 2. Pilih board Arduino Uno atau ATmega328P.
 3. Pilih port virtual.
 4. Upload sketch.
@@ -300,12 +300,12 @@ drivers/linux/scripts/run-usb.sh
 Terminal 2:
 
 ```bash
-./target/release/embed-emu usb --socket /tmp/embed-emu-usb.sock
+./target/release/emucad usb --socket /tmp/emucad-usb.sock
 ```
 
 Host melihat `/dev/ttyACM0`. Arduino IDE dapat memilih port tersebut.
 
-Jalankan hanya satu instance `embed-emu usb`. Jika ada beberapa instance,
+Jalankan hanya satu instance `emucad usb`. Jika ada beberapa instance,
 hanya client pertama yang terhubung ke bridge; sisanya menunggu dan dapat
 membuat upload tampak gagal.
 
@@ -594,7 +594,7 @@ global.
 1. Tulis firmware C atau assembly.
 2. Kompilasi dengan `avr-gcc` di luar simulator.
 3. Hasilkan Intel HEX dengan `avr-objcopy`.
-4. Jalankan dengan `embed-emu run`.
+4. Jalankan dengan `emucad run`.
 5. Atau muat ELF melalui API `ElfImage` di `sim_board`.
 
 Contoh perintah toolchain eksternal:
@@ -602,7 +602,7 @@ Contoh perintah toolchain eksternal:
 ```bash
 avr-gcc -mmcu=atmega328p -DF_CPU=16000000UL -Os -o blink.elf blink.c
 avr-objcopy -O ihex -R .eeprom blink.elf blink.hex
-./target/debug/embed-emu run blink.hex 100000
+./target/debug/emucad run blink.hex 100000
 ```
 
 Perintah di atas sudah diverifikasi dengan toolchain `avr-gcc` 7.3.0 dari
@@ -665,7 +665,7 @@ cargo run -p sim-cli -- bench 1000 10
 Atau setelah build:
 
 ```bash
-./target/debug/embed-emu bench 1000 10
+./target/debug/emucad bench 1000 10
 ```
 
 ### 11.3 Determinisme

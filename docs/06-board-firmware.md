@@ -292,18 +292,18 @@ Target lanjut:
 
 ```bash
 # DC sweep inverter → CSV
-embed-emu run --circuit inverter --analysis dc-sweep \
+emucad run --circuit inverter --analysis dc-sweep \
   --start 0 --stop 5 --step 0.01 --output vtc.csv
 
 # Transient inverter → VCD
-embed-emu run --circuit inverter --analysis transient \
+emucad run --circuit inverter --analysis transient \
   --stop 100n --step 0.1n --output inverter.vcd
 
 # Board + firmware
-embed-emu run --board uno --firmware blink.hex --time 2s --vcd blink.vcd
+emucad run --board uno --firmware blink.hex --time 2s --vcd blink.vcd
 
 # Monitor
-embed-emu monitor --board uno --firmware blink.hex
+emucad monitor --board uno --firmware blink.hex
 ```
 
 ---

@@ -2,12 +2,12 @@
 
 #include <string>
 
-namespace embed_emu_usb {
+namespace emucad_usb {
 
 struct Options {
     bool help = false;
     bool version = false;
-    std::string socket_path = "/tmp/embed-emu-usb.sock";
+    std::string socket_path = "/tmp/emucad-usb.sock";
     std::string device_path = "/dev/ttyGS0";
 };
 
@@ -28,4 +28,4 @@ ParsedOptions parse_options(int argc, char** argv);
 std::string usage();
 std::string version();
 
-}  // namespace embed_emu_usb
+}  // namespace emucad_usb

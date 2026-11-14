@@ -2,8 +2,8 @@
 set -euo pipefail
 
 root="$(cd "$(dirname "${BASH_SOURCE[0]}")/../../.." && pwd)"
-source_rule="$root/drivers/linux/scripts/99-embed-emu-usb.rules"
-target_rule="/etc/udev/rules.d/99-embed-emu-usb.rules"
+source_rule="$root/drivers/linux/scripts/99-emucad-usb.rules"
+target_rule="/etc/udev/rules.d/99-emucad-usb.rules"
 
 if [[ "$(id -u)" -ne 0 ]]; then
     echo "error: run this script with sudo" >&2

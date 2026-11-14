@@ -37,7 +37,7 @@ drivers/
   linux/
     CMakeLists.txt
     README.md
-    include/embed_emu_usb/
+    include/emucad_usb/
     src/
     tests/
   windows/
@@ -100,13 +100,13 @@ drivers/linux/scripts/run-usb.sh
 Output:
 
 ```text
-build/drivers-linux/embed-emu-usb
+build/drivers-linux/emucad-usb
 ```
 
 Terminal lain:
 
 ```bash
-./target/release/embed-emu usb --socket /tmp/embed-emu-usb.sock
+./target/release/emucad usb --socket /tmp/emucad-usb.sock
 ```
 
 ---
@@ -116,7 +116,7 @@ Terminal lain:
 | Komponen | Bahasa | Tanggung jawab |
 |---|---|---|
 | `sim-cli` | Rust | CLI, CPU, flash, STK500 |
-| `embed-emu-usb` | C++ | Bridge tty gadget ke Unix socket |
+| `emucad-usb` | C++ | Bridge tty gadget ke Unix socket |
 | `dummy_hcd` | C kernel | Host controller dan UDC virtual |
 | `usb_f_acm` | C kernel | Gadget function ACM |
 | `cdc_acm` | C kernel | Driver host Linux |

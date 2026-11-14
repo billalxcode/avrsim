@@ -13,7 +13,7 @@ import time
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
-DRIVER = ROOT / "build/drivers-linux/embed-emu-usb"
+DRIVER = ROOT / "build/drivers-linux/emucad-usb"
 
 
 def wait_for_line(process: subprocess.Popen, needle: str, timeout: float = 3.0) -> bool:

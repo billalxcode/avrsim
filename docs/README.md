@@ -1,8 +1,8 @@
-# Dokumentasi Proyek
+# Dokumentasi EmuCAD
 
-Pintu masuk dokumentasi `embed-emulation` versi 0.1.0.
+Pintu masuk dokumentasi EmuCAD versi 0.1.0.
 
-**Status saat ini:** 728 test lulus, 8 crate, crate simulasi zero external
+**Status saat ini:** 731 test lulus, 8 crate, crate simulasi zero external
 dependency Rust. Dependensi GUI dibatasi pada daftar yang disetujui di
 `AGENTS.md`. Tag `v0.1` tersedia.
 
@@ -162,12 +162,12 @@ Setiap dokumen muncul satu kali pada peta ini.
 |---|---|
 | Versi workspace | `0.1.0` |
 | Tag | `v0.1` |
-| Test | 728 lulus |
+| Test | 731 lulus |
 | Crate | 7 |
 | Dependensi eksternal | 0 |
 | `unsafe` | Dilarang di seluruh workspace |
 | Build release | Lulus |
-| Archive Linux | `dist/embed-emu-x86_64-unknown-linux-gnu.tar.gz` |
+| Archive Linux | `dist/emucad-x86_64-unknown-linux-gnu.tar.gz` |
 | Golden ngspice | Belum dijalankan |
 | Firmware `avr-gcc` | Bare-metal dan sketsa Arduino core terverifikasi |
 | Determinisme macOS/Windows | Belum dijalankan |
@@ -184,8 +184,8 @@ Setiap dokumen muncul satu kali pada peta ini.
 | `sim-avr` | 215 |
 | `sim-board` | 23 |
 | `sim-cli` | 26 |
-| `sim-gui` | 148 |
-| **Total** | **728** |
+| `sim-gui` | 151 |
+| **Total** | **731** |
 
 ---
 

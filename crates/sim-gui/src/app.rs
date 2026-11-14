@@ -305,7 +305,7 @@ impl GuiApp {
     }
 
     fn toolbar_tools(&mut self, ui: &mut egui::Ui) {
-        ui.strong("embed-emu");
+        ui.strong("EmuCAD");
         ui.separator();
         self.file_buttons(ui);
         self.edit_buttons(ui);
@@ -449,7 +449,7 @@ impl GuiApp {
 
     fn open_project(&mut self) {
         let Some(path) = rfd::FileDialog::new()
-            .add_filter("embed-emu project", &["json"])
+            .add_filter("EmuCAD project", &["json"])
             .pick_file()
         else {
             self.message = "Open cancelled".to_string();
@@ -2820,7 +2820,7 @@ fn delete_dialog(ui: &mut egui::Ui, count: usize, action: &mut Option<bool>) {
 fn conflict_contents(ui: &mut egui::Ui, path: &Path, action: &mut Option<ConflictAction>) {
     ui.set_width(380.0);
     ui.heading("File changed on disk");
-    ui.label("The project was modified outside embed-emu.");
+    ui.label("The project was modified outside EmuCAD.");
     ui.label(path.display().to_string());
     ui.label("Reload discards local edits. Save Mine overwrites the file.");
     ui.horizontal(|ui| {
@@ -2847,13 +2847,13 @@ fn load_config() -> (Option<PathBuf>, config::AppConfig) {
     let Some(path) = config::path() else {
         return (None, config::AppConfig::default());
     };
-    let config = config::load(&path);
+    let config = config::load_or_migrate(&path);
     (Some(path), config)
 }
 
 fn select_save_path() -> Option<PathBuf> {
     rfd::FileDialog::new()
-        .add_filter("embed-emu project", &["json"])
+        .add_filter("EmuCAD project", &["json"])
         .set_file_name("project.emu.json")
         .save_file()
 }
@@ -3940,7 +3940,7 @@ mod tests {
     use std::time::{Duration, Instant};
 
     fn temp_dir(name: &str) -> PathBuf {
-        let dir = std::env::temp_dir().join(format!("embed-emu-app-{}-{name}", std::process::id()));
+        let dir = std::env::temp_dir().join(format!("emucad-app-{}-{name}", std::process::id()));
         let _ = std::fs::remove_dir_all(&dir);
         dir
     }
@@ -4522,7 +4522,7 @@ mod tests {
 
     #[test]
     fn autosave_writes_and_clears_dirty() {
-        let dir = std::env::temp_dir().join(format!("embed-emu-autosave-{}", std::process::id()));
+        let dir = std::env::temp_dir().join(format!("emucad-autosave-{}", std::process::id()));
         let _ = std::fs::remove_dir_all(&dir);
         let path = dir.join("project.emu.json");
         let mut app = GuiApp {

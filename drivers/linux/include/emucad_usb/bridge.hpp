@@ -1,10 +1,10 @@
 #pragma once
 
-#include "embed_emu_usb/options.hpp"
+#include "emucad_usb/options.hpp"
 
 #include <poll.h>
 
-namespace embed_emu_usb {
+namespace emucad_usb {
 
 class Bridge {
 public:
@@ -22,4 +22,4 @@ private:
     Options options_;
 };
 
-}  // namespace embed_emu_usb
+}  // namespace emucad_usb

@@ -21,7 +21,7 @@ Belum ada profiler eksternal, pengukuran release, atau analisis memori.
 Command:
 
 ```
-embed-emu bench [iterations] [nodes]
+emucad bench [iterations] [nodes]
 ```
 
 Default `iterations = 1000` dan `nodes = 10`.
@@ -132,8 +132,8 @@ Angka ini bukan jaminan untuk mesin lain.
 
 Total test `sim-core`: 62.
 Total test `sim-cli`: 26.
-Total test `sim-gui`: 148.
-Total workspace: 728.
+Total test `sim-gui`: 151.
+Total workspace: 731.
 
 ---
 

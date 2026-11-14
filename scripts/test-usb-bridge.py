@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Smoke test for the C++ USB bridge and embed-emu usb mode."""
+"""Smoke test for the C++ USB bridge and emucad usb mode."""
 
 import os
 import pty
@@ -50,10 +50,10 @@ def wait_for_cleanup(path: Path, timeout: float = 2.0) -> bool:
 
 
 def main() -> int:
-    driver = ROOT / "build/drivers-linux/embed-emu-usb"
-    binary = ROOT / "target/release/embed-emu"
+    driver = ROOT / "build/drivers-linux/emucad-usb"
+    binary = ROOT / "target/release/emucad"
     if not binary.exists():
-        binary = ROOT / "target/debug/embed-emu"
+        binary = ROOT / "target/debug/emucad"
     if not driver.exists() or not binary.exists():
         print("error: build the C++ driver and the CLI first")
         return 2

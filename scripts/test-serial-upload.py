@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Smoke test for the embed-emu virtual serial STK500 upload."""
+"""Smoke test for the emucad virtual serial STK500 upload."""
 
 import os
 import select
@@ -41,9 +41,9 @@ def main() -> int:
     if shutil.which("socat") is None:
         print("error: socat is not installed")
         return 2
-    binary = ROOT / "target/release/embed-emu"
+    binary = ROOT / "target/release/emucad"
     if not binary.exists():
-        binary = ROOT / "target/debug/embed-emu"
+        binary = ROOT / "target/debug/emucad"
     if not binary.exists():
         print("error: build the CLI first with cargo build -p sim-cli")
         return 2

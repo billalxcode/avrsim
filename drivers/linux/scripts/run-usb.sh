@@ -2,10 +2,10 @@
 set -euo pipefail
 
 root="$(cd "$(dirname "${BASH_SOURCE[0]}")/../../.." && pwd)"
-driver="${USB_DRIVER:-$root/build/drivers-linux/embed-emu-usb}"
+driver="${USB_DRIVER:-$root/build/drivers-linux/emucad-usb}"
 gadget="${USB_GADGET_SCRIPT:-$root/drivers/linux/scripts/usb-gadget.sh}"
 sudo_cmd="${USB_SUDO:-sudo}"
-socket="${USB_SOCKET:-/tmp/embed-emu-usb.sock}"
+socket="${USB_SOCKET:-/tmp/emucad-usb.sock}"
 
 if [[ "$(id -u)" -eq 0 ]]; then
     echo "error: run as a normal user, not with sudo" >&2
@@ -39,7 +39,7 @@ trap cleanup EXIT INT TERM
 
 echo "USB gadget ready: /dev/ttyACM0"
 echo "In another terminal run:"
-echo "  $root/target/release/embed-emu usb --socket $socket"
+echo "  $root/target/release/emucad usb --socket $socket"
 echo "Press Ctrl-C to stop the bridge and remove the gadget."
 
 "$driver" --socket "$socket" --device /dev/ttyGS0 &

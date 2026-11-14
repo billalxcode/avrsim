@@ -1,4 +1,4 @@
-"""Minimal STK500 client helpers for the embed-emu smoke tests."""
+"""Minimal STK500 client helpers for the emucad smoke tests."""
 
 import os
 import select

@@ -1,4 +1,4 @@
-# 57 - GUI egui untuk Pengembangan dan Pengujian
+# 57 - GUI egui EmuCAD
 
 Dokumen ini merancang GUI interaktif berbasis egui untuk eksplorasi,
 penempatan komponen, probing, dan pengujian simulasi.
@@ -520,7 +520,7 @@ menyusul setelah alur dasar stabil.
 ## 11. Arsitektur
 
 ```text
-sim-gui (binary embed-emu-gui)
+sim-gui (binary emucad-gui)
   +-- sim-board
   +-- sim-avr
   +-- sim-analysis
@@ -586,7 +586,7 @@ Contoh skema:
 
 ```json
 {
-  "format": "embed-emu-gui",
+  "format": "emucad-gui",
   "version": 2,
   "view": {
     "pan": [0.0, 0.0],
@@ -638,7 +638,7 @@ Aturan:
 - Dialog buka dan simpan memakai `rfd`.
 - Recent files menyimpan 10 file terakhir dan tampil di menu toolbar.
 - Konfigurasi aplikasi disimpan di XDG config, yaitu
-  `~/.config/embed-emu/gui.json` atau `$XDG_CONFIG_HOME/embed-emu/gui.json`.
+  `~/.config/emucad/gui.json` atau `$XDG_CONFIG_HOME/emucad/gui.json`.
 - Jika file berubah di luar aplikasi, GUI memantau metadata setiap
   1 detik dan menampilkan modal `Reload` atau `Save Mine`.
 - Autosave dan flush ditahan selama konflik belum diselesaikan.
@@ -827,9 +827,9 @@ Build release:
 
 ```bash
 cargo build --release -p sim-gui
-./target/release/embed-emu-gui
+./target/release/emucad-gui
 ```
 
-Crate berada di `crates/sim-gui` dengan binary `embed-emu-gui`.
+Crate berada di `crates/sim-gui` dengan binary `emucad-gui`.
 
 Backlog eksekusi ada di [`TODO-GUI.md`](../TODO-GUI.md).
