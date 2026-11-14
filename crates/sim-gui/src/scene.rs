@@ -24,6 +24,7 @@ struct WireStyle {
     color: egui::Color32,
     width: f32,
     dash: Option<(f32, f32)>,
+    flow_phase: Option<f32>,
 }
 
 /// Immutable scene used by the canvas renderer.
@@ -34,14 +35,13 @@ pub struct Scene<'a> {
     pub selection: &'a Selection,
     pub hover_wire: Option<WireId>,
     pub placing: Option<&'a ComponentDefinition>,
-    pub hover: Option<GridPos>,
     pub rotation: Rotation,
     pub mirror: Mirror,
     pub wire_preview: &'a [GridPos],
-    pub wire_hover: Option<GridPos>,
     pub wire_class: NetClass,
     pub selection_box: Option<(GridPos, GridPos)>,
     pub minimap: bool,
+    pub flow_phase: Option<f32>,
 }
 
 /// Draws all wires, components, and the placement ghost.
@@ -50,13 +50,14 @@ pub fn draw(
     rect: egui::Rect,
     camera: &crate::canvas::GridCamera,
     scene: Scene<'_>,
+    hover: Option<GridPos>,
 ) {
     draw_wire_layer(painter, rect, camera, &scene);
     draw_junctions(painter, rect, camera, scene.document);
-    draw_components(painter, rect, camera, &scene);
+    draw_components(painter, rect, camera, &scene, hover);
     draw_wire_handles(painter, rect, camera, &scene);
-    draw_wire_preview(painter, rect, camera, &scene);
-    draw_ghost_layer(painter, rect, camera, &scene);
+    draw_wire_preview(painter, rect, camera, &scene, hover);
+    draw_ghost_layer(painter, rect, camera, &scene, hover);
     draw_selection_box(painter, rect, camera, scene.selection_box);
     if scene.minimap {
         draw_minimap(painter, rect, camera, &scene);
@@ -76,6 +77,7 @@ fn draw_wire_layer(
         scene.document,
         scene.selection,
         scene.hover_wire,
+        scene.flow_phase,
     );
 }
 
@@ -84,11 +86,12 @@ fn draw_ghost_layer(
     rect: egui::Rect,
     camera: &crate::canvas::GridCamera,
     scene: &Scene<'_>,
+    hover: Option<GridPos>,
 ) {
     let Some(definition) = scene.placing else {
         return;
     };
-    let Some(hover) = scene.hover else {
+    let Some(hover) = hover else {
         return;
     };
     draw_ghost(painter, rect, camera, scene, definition, hover);
@@ -250,26 +253,30 @@ fn draw_components(
     rect: egui::Rect,
     camera: &crate::canvas::GridCamera,
     scene: &Scene<'_>,
+    hover: Option<GridPos>,
 ) {
     for instance in scene.document.components() {
-        let Some(definition) = library::find(instance.definition) else {
-            continue;
-        };
-        let body = component_rect(rect, camera, instance, definition);
-        if !rect.intersects(body) {
-            continue;
-        }
-        let selected = scene.selection.contains_component(instance.id);
-        draw_component(
-            painter,
-            rect,
-            camera,
-            definition,
-            instance,
-            selected,
-            scene.hover,
-        );
+        draw_component_instance(painter, rect, camera, scene, instance, hover);
     }
+}
+
+fn draw_component_instance(
+    painter: &egui::Painter,
+    rect: egui::Rect,
+    camera: &crate::canvas::GridCamera,
+    scene: &Scene<'_>,
+    instance: &crate::model::ComponentInstance,
+    hover: Option<GridPos>,
+) {
+    let Some(definition) = library::find(instance.definition) else {
+        return;
+    };
+    let body = component_rect(rect, camera, instance, definition);
+    if !rect.intersects(body) {
+        return;
+    }
+    let selected = scene.selection.contains_component(instance.id);
+    draw_component(painter, rect, camera, definition, instance, selected, hover);
 }
 
 fn draw_wire_handles(
@@ -315,25 +322,52 @@ fn draw_wires(
     document: &Document,
     selection: &Selection,
     hovered: Option<WireId>,
+    flow_phase: Option<f32>,
 ) {
-    let mut wires: Vec<_> = document.wires().iter().collect();
-    wires.sort_by_key(|wire| wire.id);
-    for wire in &wires {
-        if !wire_visible(rect, camera, wire) {
-            continue;
-        }
+    let wires = visible_wires(rect, camera, document);
+    draw_wire_lines(painter, rect, camera, &wires, selection, flow_phase);
+    draw_wire_labels(painter, rect, camera, &wires, selection, hovered);
+}
+
+fn draw_wire_lines(
+    painter: &egui::Painter,
+    rect: egui::Rect,
+    camera: &crate::canvas::GridCamera,
+    wires: &[&crate::model::Wire],
+    selection: &Selection,
+    flow_phase: Option<f32>,
+) {
+    for wire in wires {
         let selected = selection.contains_wire(wire.id);
-        draw_wire(painter, rect, camera, wire, selected);
+        draw_wire(painter, rect, camera, wire, selected, flow_phase);
     }
-    for wire in &wires {
-        if !wire_visible(rect, camera, wire) {
-            continue;
-        }
+}
+
+fn draw_wire_labels(
+    painter: &egui::Painter,
+    rect: egui::Rect,
+    camera: &crate::canvas::GridCamera,
+    wires: &[&crate::model::Wire],
+    selection: &Selection,
+    hovered: Option<WireId>,
+) {
+    for wire in wires {
         let selected = selection.contains_wire(wire.id);
         if show_wire_label(selected, hovered == Some(wire.id), camera.zoom) {
             draw_net_label(painter, rect, camera, wire);
         }
     }
+}
+
+fn visible_wires<'a>(
+    rect: egui::Rect,
+    camera: &crate::canvas::GridCamera,
+    document: &'a Document,
+) -> Vec<&'a crate::model::Wire> {
+    let mut wires: Vec<_> = document.wires().iter().collect();
+    wires.sort_by_key(|wire| wire.id);
+    wires.retain(|wire| wire_visible(rect, camera, wire));
+    wires
 }
 
 fn show_wire_label(selected: bool, hovered: bool, zoom: f32) -> bool {
@@ -373,18 +407,24 @@ fn draw_wire(
     camera: &crate::canvas::GridCamera,
     wire: &crate::model::Wire,
     selected: bool,
+    flow_phase: Option<f32>,
 ) {
     if selected {
         let halo = SELECTED_STROKE.gamma_multiply(0.6);
         draw_polyline(painter, rect, camera, &wire.points, halo, 6.0);
         draw_wire_ends(painter, rect, camera, wire);
     }
-    let style = WireStyle {
-        color: wire_color(wire),
-        width: 2.0,
-        dash: wire_dash(wire.class),
-    };
+    let style = wire_style(wire_color(wire), wire.class, flow_phase);
     draw_patterned_polyline(painter, rect, camera, &wire.points, style);
+}
+
+fn wire_style(color: egui::Color32, class: NetClass, flow_phase: Option<f32>) -> WireStyle {
+    WireStyle {
+        color,
+        width: 2.0,
+        dash: wire_dash(class),
+        flow_phase,
+    }
 }
 
 fn draw_wire_ends(
@@ -422,29 +462,41 @@ fn draw_wire_preview(
     rect: egui::Rect,
     camera: &crate::canvas::GridCamera,
     scene: &Scene<'_>,
+    hover: Option<GridPos>,
 ) {
     if scene.wire_preview.is_empty() {
         return;
     }
-    let mut style = WireStyle {
-        color: net_color(scene.wire_class).gamma_multiply(0.8),
-        width: 2.0,
-        dash: wire_dash(scene.wire_class),
-    };
+    let color = net_color(scene.wire_class).gamma_multiply(0.8);
+    let style = wire_style(color, scene.wire_class, None);
     draw_patterned_polyline(painter, rect, camera, scene.wire_preview, style);
-    let Some(hover) = scene.wire_hover else {
+    draw_preview_extension(painter, rect, camera, scene, hover, style);
+}
+
+fn draw_preview_extension(
+    painter: &egui::Painter,
+    rect: egui::Rect,
+    camera: &crate::canvas::GridCamera,
+    scene: &Scene<'_>,
+    hover: Option<GridPos>,
+    mut style: WireStyle,
+) {
+    let Some((last, hover)) = preview_segment(scene, hover) else {
         return;
     };
-    let Some(&last) = scene.wire_preview.last() else {
-        return;
-    };
-    if last == hover {
-        return;
-    }
     if !scene.document.can_add_segment(scene.library, last, hover) {
         style.color = PREVIEW_BAD;
     }
     draw_patterned_segment(painter, rect, camera, last, hover, style);
+}
+
+fn preview_segment(scene: &Scene<'_>, hover: Option<GridPos>) -> Option<(GridPos, GridPos)> {
+    let hover = hover?;
+    let &last = scene.wire_preview.last()?;
+    if last == hover {
+        return None;
+    }
+    Some((last, hover))
 }
 
 fn draw_polyline(
@@ -480,6 +532,22 @@ fn draw_patterned_segment(
     end: GridPos,
     style: WireStyle,
 ) {
+    draw_wire_base(painter, rect, camera, start, end, style);
+    let Some(phase) = style.flow_phase else {
+        return;
+    };
+    let [start, end] = screen_segment(rect, camera, start, end);
+    paint_flow_overlay(painter, start, end, phase);
+}
+
+fn draw_wire_base(
+    painter: &egui::Painter,
+    rect: egui::Rect,
+    camera: &crate::canvas::GridCamera,
+    start: GridPos,
+    end: GridPos,
+    style: WireStyle,
+) {
     let Some((dash_length, gap_length)) = style.dash else {
         draw_segment(painter, rect, camera, start, end, style.color, style.width);
         return;
@@ -490,6 +558,16 @@ fn draw_patterned_segment(
         egui::Stroke::new(style.width, style.color),
         dash_length,
         gap_length,
+    ));
+}
+
+fn paint_flow_overlay(painter: &egui::Painter, start: egui::Pos2, end: egui::Pos2, phase: f32) {
+    painter.extend(egui::Shape::dashed_line_with_offset(
+        &[start, end],
+        egui::Stroke::new(1.5, egui::Color32::from_white_alpha(90)),
+        &[6.0],
+        &[10.0],
+        phase,
     ));
 }
 
@@ -999,18 +1077,25 @@ mod tests {
 
     #[test]
     fn scene_renders_in_egui_context() {
-        let output = sample_render();
+        let output = sample_render_with(None);
         assert!(!output.shapes.is_empty());
     }
 
-    fn sample_render() -> eframe::egui::FullOutput {
+    #[test]
+    fn flow_overlay_renders_in_egui_context() {
+        let output = sample_render_with(Some(12.0));
+        assert!(!output.shapes.is_empty());
+    }
+
+    fn sample_render_with(flow_phase: Option<f32>) -> eframe::egui::FullOutput {
         let library = library::builtin();
         let resistor = crate::library::find("resistor").expect("resistor");
         let mut document = Document::new();
         document.add(resistor, GridPos::new(0, 0), Rotation::Deg0, Mirror::None);
         let selection = Selection::default();
         let camera = crate::canvas::GridCamera::default();
-        let scene = sample_scene(&document, library, &selection);
+        let mut scene = sample_scene(&document, library, &selection);
+        scene.flow_phase = flow_phase;
         let input = test_input();
         let mut output = eframe::egui::Context::default().run_ui(input, |ui| {
             render_into(ui, scene, &camera);
@@ -1038,7 +1123,7 @@ mod tests {
             eframe::egui::vec2(400.0, 300.0),
             eframe::egui::Sense::hover(),
         );
-        super::draw(&painter, response.rect, camera, scene);
+        super::draw(&painter, response.rect, camera, scene, None);
     }
 
     fn sample_scene<'a>(
@@ -1052,14 +1137,13 @@ mod tests {
             selection,
             hover_wire: None,
             placing: None,
-            hover: None,
             rotation: Rotation::Deg0,
             mirror: Mirror::None,
             wire_preview: &[],
-            wire_hover: None,
             wire_class: NetClass::Digital,
             selection_box: None,
             minimap: true,
+            flow_phase: None,
         }
     }
 

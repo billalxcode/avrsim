@@ -126,16 +126,23 @@ struct DragState {
 }
 
 #[derive(Clone, Copy)]
-struct SceneConfig<'a> {
+struct SceneRefs<'a> {
+    document: &'a Document,
+    library: &'a [ComponentDefinition],
     selection: &'a Selection,
+    wire_preview: &'a [GridPos],
+}
+
+#[derive(Clone, Copy)]
+struct SceneState {
     hover_wire: Option<WireId>,
     placing: Option<&'static ComponentDefinition>,
     rotation: Rotation,
     mirror: Mirror,
-    wire_preview: &'a [GridPos],
     wire_class: NetClass,
     selection_box: Option<(GridPos, GridPos)>,
     minimap: bool,
+    flow_phase: Option<f32>,
 }
 
 #[derive(Default)]
@@ -144,6 +151,7 @@ pub struct GuiApp {
     canvas_rect: Option<egui::Rect>,
     grid_visible: bool,
     minimap_open: bool,
+    flow_animation: bool,
     light_theme: bool,
     tool: Tool,
     pointer_world: Option<egui::Pos2>,
@@ -718,6 +726,10 @@ impl GuiApp {
         self.zoom_controls(ui);
         ui.checkbox(&mut self.grid_visible, "Grid");
         ui.checkbox(&mut self.minimap_open, "Mini");
+        ui.checkbox(&mut self.flow_animation, "Flow");
+        if self.flow_animation {
+            ui.ctx().request_repaint();
+        }
         if ui.checkbox(&mut self.light_theme, "Light").changed() {
             ui.ctx().set_theme(if self.light_theme {
                 egui::ThemePreference::Light
@@ -846,24 +858,33 @@ impl GuiApp {
     }
 
     fn canvas(&mut self, ui: &mut egui::Ui) -> canvas::CanvasState {
-        let config = SceneConfig {
+        let state = self.scene_state(ui.ctx().input(|input| input.time));
+        let refs = SceneRefs {
+            document: &self.document,
+            library: self.library,
             selection: &self.selection,
+            wire_preview: &self.wire_points,
+        };
+        let scene = build_scene(refs, state);
+        let camera = &mut self.camera;
+        let grid_visible = self.grid_visible;
+        let initialized = &mut self.initialized;
+        show_canvas(ui, camera, grid_visible, initialized, scene)
+    }
+
+    fn scene_state(&self, time: f64) -> SceneState {
+        SceneState {
             hover_wire: self
                 .pointer_world
                 .and_then(|point| self.document.wire_at([point.x, point.y], 0.35)),
             placing: self.placing,
             rotation: self.placement_rotation,
             mirror: self.placement_mirror,
-            wire_preview: &self.wire_points,
             wire_class: self.wire_class,
             selection_box: self.selection_box(),
             minimap: self.minimap_open,
-        };
-        let scene = build_scene(&self.document, self.library, config);
-        let camera = &mut self.camera;
-        let grid_visible = self.grid_visible;
-        let initialized = &mut self.initialized;
-        show_canvas(ui, camera, grid_visible, initialized, scene)
+            flow_phase: flow_phase(self.flow_animation, time),
+        }
     }
 
     fn handle_canvas(&mut self, state: canvas::CanvasState) {
@@ -2294,25 +2315,20 @@ fn show_canvas(
     egui::CentralPanel::default().show(ui, show).inner
 }
 
-fn build_scene<'a>(
-    document: &'a Document,
-    library: &'a [ComponentDefinition],
-    config: SceneConfig<'a>,
-) -> Scene<'a> {
+fn build_scene(refs: SceneRefs<'_>, state: SceneState) -> Scene<'_> {
     Scene {
-        document,
-        library,
-        selection: config.selection,
-        placing: config.placing,
-        hover: None,
-        rotation: config.rotation,
-        mirror: config.mirror,
-        hover_wire: config.hover_wire,
-        wire_preview: config.wire_preview,
-        wire_hover: None,
-        wire_class: config.wire_class,
-        selection_box: config.selection_box,
-        minimap: config.minimap,
+        document: refs.document,
+        library: refs.library,
+        selection: refs.selection,
+        hover_wire: state.hover_wire,
+        placing: state.placing,
+        rotation: state.rotation,
+        mirror: state.mirror,
+        wire_preview: refs.wire_preview,
+        wire_class: state.wire_class,
+        selection_box: state.selection_box,
+        minimap: state.minimap,
+        flow_phase: state.flow_phase,
     }
 }
 
@@ -2324,16 +2340,7 @@ fn draw_scene(
     scene: Scene<'_>,
 ) {
     let hover = pointer.map(world_to_grid);
-    scene::draw(
-        painter,
-        rect,
-        camera,
-        Scene {
-            hover,
-            wire_hover: hover,
-            ..scene
-        },
-    );
+    scene::draw(painter, rect, camera, scene, hover);
 }
 
 fn show_component_info(
@@ -2993,6 +3000,13 @@ fn world_to_grid(position: egui::Pos2) -> GridPos {
     GridPos::new(position.x.round() as i32, position.y.round() as i32)
 }
 
+fn flow_phase(enabled: bool, time: f64) -> Option<f32> {
+    if !enabled {
+        return None;
+    }
+    Some((time * 24.0).rem_euclid(1000.0) as f32)
+}
+
 fn grid_pos_f(position: GridPos) -> egui::Pos2 {
     egui::pos2(position.x as f32, position.y as f32)
 }
@@ -3428,6 +3442,13 @@ mod tests {
         assert_eq!(app.document.components().len(), 1);
         assert!(app.placing.is_none());
         assert!(!app.drag_place);
+    }
+
+    #[test]
+    fn flow_phase_is_optional() {
+        assert_eq!(super::flow_phase(false, 1.0), None);
+        let phase = super::flow_phase(true, 1.0).expect("phase");
+        assert!((0.0..1000.0).contains(&phase));
     }
 
     #[test]

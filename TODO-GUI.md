@@ -167,7 +167,7 @@ ke net dengan umpan balik visual yang jelas.
 - [x] G4-07 Implementasikan segment drag untuk mengedit kabel.
 - [x] G4-08 Test konektivitas, collision, dan junction.
 - [x] G4-09 Terapkan belokan 90 derajat tegas.
-- [ ] G4-10 Implementasikan animasi aliran sinyal opsional, default mati.
+- [x] G4-10 Implementasikan animasi aliran sinyal opsional, default mati.
 - [x] G4-11 Tolak ujung kabel yang bukan pin, junction, atau vertex valid.
 - [x] G4-12 Implementasikan selection dan delete wire.
 

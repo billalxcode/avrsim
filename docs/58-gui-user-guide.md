@@ -40,13 +40,17 @@ cargo build --workspace --release
 
 ## 2. Tata Letak
 
-- Toolbar atas: file, undo/redo, simulasi, tool, sheet, dan zoom.
+- Toolbar atas: file, undo/redo, simulasi, tool, sheet, grid, minimap,
+  animasi aliran, dan zoom.
 - Kanvas tengah: grid, komponen, kabel, dan minimap opsional.
 - Status bar bawah: koordinat, zoom, grid, snap, tool, seleksi, parts,
   cycle, PB5 high/low dan tegangan mV, LED, dan FPS.
 - Library, Inspector, Legend, Digital graph, UART monitor, Log, dan
   Command palette tampil sebagai floating window.
 - Toast singkat muncul di bawah tengah untuk status terbaru.
+
+Centang `Flow` di toolbar untuk animasi aliran sinyal. Animasi default
+mati, hanya memengaruhi tampilan, dan tidak mengubah data proyek.
 
 ---
 
