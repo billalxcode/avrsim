@@ -324,6 +324,7 @@ pub struct Wire {
     pub points: Vec<GridPos>,
     pub class: NetClass,
     pub color_override: Option<[u8; 3]>,
+    pub label: Option<String>,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
@@ -427,6 +428,7 @@ impl Document {
             points,
             class,
             color_override: None,
+            label: None,
         });
         Some(id)
     }
@@ -510,6 +512,18 @@ impl Document {
             return false;
         }
         wire.color_override = color;
+        true
+    }
+
+    /// Sets or clears a wire net label.
+    pub fn set_wire_label(&mut self, id: WireId, label: Option<String>) -> bool {
+        let Some(wire) = self.wires.iter_mut().find(|wire| wire.id == id) else {
+            return false;
+        };
+        if wire.label == label {
+            return false;
+        }
+        wire.label = label;
         true
     }
 
@@ -1436,6 +1450,7 @@ mod tests {
             points: vec![start, end],
             class,
             color_override: None,
+            label: None,
         }
     }
 

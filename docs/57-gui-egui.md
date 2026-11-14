@@ -13,8 +13,9 @@ deteksi perubahan file eksternal, label net, legenda warna, command
 palette, multi-select, selection box, copy/paste/duplicate, rotate/mirror
 grup, context menu, monitor UART TX, pola garis net, toast, konfirmasi
 hapus, export PNG, minimap, log panel, tooltip pin, tema terang,
-recently used, net highlight, override warna wire, migrasi JSON v1,
-simulasi PB5, dan graph digital PB5/LED dengan cursor juga sudah ada. Probe generik, UART input ke
+recently used, net highlight, override warna wire, label net kustom,
+migrasi JSON v1, simulasi PB5, dan graph digital PB5/LED dengan cursor
+juga sudah ada. Probe generik, UART input ke
 simulasi, dan grafik analog belum ada. Dependensi
 GUI yang disetujui hanya untuk crate `sim-gui`: `egui`, `eframe`,
 `serde`, `serde_json`, `rfd`, dan `png`. `egui_plot`,
@@ -600,7 +601,8 @@ Contoh skema:
       "id": 1,
       "class": "Digital",
       "points": [[4, 1], [6, 1]],
-      "color": null
+      "color": null,
+      "label": "LED_A"
     }
   ]
 }
@@ -612,6 +614,7 @@ Aturan:
 - Field tidak dikenal ditolak pada versi aktif.
 - Versi 1 dimigrasikan otomatis ke versi 2.
 - Warna override per wire disimpan sebagai `color` RGB atau `null`.
+- Label net kustom disimpan sebagai `label` atau `null`.
 - Skema lama dimigrasikan otomatis setelah backup.
 - Skema lama dimigrasikan otomatis setelah backup.
 - Array komponen dan wire diurutkan berdasarkan ID agar output stabil.

@@ -19,6 +19,7 @@ struct ClipWire {
     points: Vec<GridPos>,
     class: NetClass,
     color: Option<[u8; 3]>,
+    label: Option<String>,
 }
 
 /// Copied components and wires with a common origin.
@@ -117,6 +118,7 @@ impl ClipWire {
             points: wire.points.clone(),
             class: wire.class,
             color: wire.color_override,
+            label: wire.label.clone(),
         }
     }
 }
@@ -170,17 +172,25 @@ fn paste_wires(
 ) -> Vec<WireId> {
     wires
         .iter()
-        .filter_map(|clip| {
-            let points = clip
-                .points
-                .iter()
-                .map(|point| point.offset(offset))
-                .collect();
-            let id = document.add_wire(library, points, clip.class)?;
-            document.set_wire_color(id, clip.color);
-            Some(id)
-        })
+        .filter_map(|clip| paste_wire(document, library, clip, offset))
         .collect()
+}
+
+fn paste_wire(
+    document: &mut Document,
+    library: &[ComponentDefinition],
+    clip: &ClipWire,
+    offset: GridPos,
+) -> Option<WireId> {
+    let points = clip
+        .points
+        .iter()
+        .map(|point| point.offset(offset))
+        .collect();
+    let id = document.add_wire(library, points, clip.class)?;
+    document.set_wire_color(id, clip.color);
+    document.set_wire_label(id, clip.label.clone());
+    Some(id)
 }
 
 #[cfg(test)]
@@ -227,6 +237,7 @@ mod tests {
             )
             .expect("wire");
         document.set_wire_color(wire, Some([9, 8, 7]));
+        document.set_wire_label(wire, Some("LED_A".to_string()));
         let (components, wires) = selection(&[first.0, second.0], &[wire.0]);
         let clipboard = Clipboard::capture(&document, &components, &wires);
         (document, clipboard)
@@ -273,5 +284,6 @@ mod tests {
         assert_eq!(pasted.wires.len(), 1);
         assert_eq!(document.wires().len(), 2);
         assert_eq!(document.wires()[1].color_override, Some([9, 8, 7]));
+        assert_eq!(document.wires()[1].label.as_deref(), Some("LED_A"));
     }
 }

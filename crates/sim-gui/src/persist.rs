@@ -58,6 +58,8 @@ struct WireFile {
     points: Vec<[i32; 2]>,
     #[serde(default)]
     color: Option<[u8; 3]>,
+    #[serde(default)]
+    label: Option<String>,
 }
 
 /// Serializes the project to pretty JSON.
@@ -250,6 +252,7 @@ impl WireFile {
             class: wire.class.label().to_string(),
             points: wire.points.iter().map(|point| [point.x, point.y]).collect(),
             color: wire.color_override,
+            label: wire.label.clone(),
         }
     }
 
@@ -268,6 +271,7 @@ impl WireFile {
             .add_wire(library, points, class)
             .ok_or_else(|| format!("invalid wire: {}", self.id))?;
         document.set_wire_color(id, self.color);
+        document.set_wire_label(id, self.label.clone());
         Ok(())
     }
 }
@@ -318,14 +322,15 @@ mod tests {
         let mut document = crate::model::Document::new();
         document.add(resistor, GridPos::new(0, 0), Rotation::Deg0, Mirror::None);
         document.add(resistor, GridPos::new(6, 0), Rotation::Deg0, Mirror::None);
-        document
+        let wire = document
             .add_wire(
                 library,
                 vec![GridPos::new(4, 1), GridPos::new(6, 1)],
                 NetClass::Digital,
             )
-            .map(|wire| document.set_wire_color(wire, Some([10, 20, 30])))
             .expect("wire");
+        document.set_wire_color(wire, Some([10, 20, 30]));
+        document.set_wire_label(wire, Some("LED_A".to_string()));
         let camera = crate::canvas::GridCamera::default();
         to_json(&document, &camera, true).expect("json")
     }
@@ -340,6 +345,7 @@ mod tests {
             project.document.wires()[0].color_override,
             Some([10, 20, 30])
         );
+        assert_eq!(project.document.wires()[0].label.as_deref(), Some("LED_A"));
     }
 
     #[test]
@@ -368,11 +374,14 @@ mod tests {
             serde_json::from_str(&sample_text()).expect("json value");
         value["version"] = serde_json::json!(1);
         for wire in value["wires"].as_array_mut().expect("wires") {
-            wire.as_object_mut().expect("wire object").remove("color");
+            let wire = wire.as_object_mut().expect("wire object");
+            wire.remove("color");
+            wire.remove("label");
         }
         let text = serde_json::to_string(&value).expect("json");
         let project = from_json(&text, library::builtin()).expect("v1 project");
         assert_eq!(project.document.wires()[0].color_override, None);
+        assert_eq!(project.document.wires()[0].label, None);
     }
 
     #[test]

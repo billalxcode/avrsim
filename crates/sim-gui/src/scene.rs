@@ -352,7 +352,7 @@ fn draw_net_label(
     let pos = camera.world_to_screen(rect, midpoint) + egui::vec2(4.0, -16.0);
     let color = wire_color(wire);
     let galley = painter.layout_no_wrap(
-        wire.class.label().to_string(),
+        wire_label_text(wire).to_string(),
         egui::FontId::monospace(11.0),
         color,
     );
@@ -538,6 +538,13 @@ pub(crate) fn wire_color(wire: &crate::model::Wire) -> egui::Color32 {
         || net_color(wire.class),
         |[red, green, blue]| egui::Color32::from_rgb(red, green, blue),
     )
+}
+
+pub(crate) fn wire_label_text(wire: &crate::model::Wire) -> &str {
+    wire.label
+        .as_deref()
+        .filter(|label| !label.is_empty())
+        .unwrap_or(wire.class.label())
 }
 
 pub(crate) fn net_color(class: NetClass) -> egui::Color32 {
@@ -1057,6 +1064,7 @@ mod tests {
             points: vec![GridPos::new(0, 0), GridPos::new(4, 0), GridPos::new(4, 4)],
             class: NetClass::Digital,
             color_override: None,
+            label: None,
         };
         assert_eq!(wire_midpoint(&wire), Some(eframe::egui::pos2(4.0, 2.0)));
         let short = Wire {
@@ -1064,6 +1072,7 @@ mod tests {
             points: vec![GridPos::new(0, 0)],
             class: NetClass::Digital,
             color_override: None,
+            label: None,
         };
         assert_eq!(wire_midpoint(&short), None);
     }
@@ -1085,11 +1094,13 @@ mod tests {
             points: vec![GridPos::new(0, 0), GridPos::new(2, 0)],
             class: NetClass::Digital,
             color_override: Some([1, 2, 3]),
+            label: Some("LED_A".to_string()),
         };
         assert_eq!(
             super::wire_color(&wire),
             eframe::egui::Color32::from_rgb(1, 2, 3)
         );
+        assert_eq!(super::wire_label_text(&wire), "LED_A");
     }
 
     #[test]

@@ -53,13 +53,14 @@ impl Tool {
     }
 }
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 enum InspectorAction {
     Rotate,
     Mirror,
     Delete,
     SetClass(NetClass),
     SetColor(Option<[u8; 3]>),
+    SetLabel(Option<String>),
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -1860,6 +1861,7 @@ impl GuiApp {
         show_wire_class_combo(ui, "inspector_wire_class", Some(wire.class), action);
         ui.label(format!("Vertices: {}", wire.points.len()));
         show_wire_color_button(ui, wire_rgb(wire), wire.color_override.is_some(), action);
+        show_wire_label_editor(ui, wire.label.as_deref(), action);
         if ui.button("Delete").clicked() {
             *action = Some(InspectorAction::Delete);
         }
@@ -2024,7 +2026,29 @@ impl GuiApp {
             InspectorAction::Delete => self.delete_selection(),
             InspectorAction::SetClass(class) => self.set_wire_class(class),
             InspectorAction::SetColor(color) => self.set_wire_color_override(color),
+            InspectorAction::SetLabel(label) => self.set_wire_label(label),
         }
+    }
+
+    fn set_wire_label(&mut self, label: Option<String>) {
+        let ids: Vec<_> = self.selection.wires().iter().copied().collect();
+        if ids.is_empty() {
+            return;
+        }
+        let before = self.document.clone();
+        let mut changed = false;
+        for id in ids {
+            changed |= self.document.set_wire_label(id, label.clone());
+        }
+        if !changed {
+            return;
+        }
+        self.history.record(&before);
+        self.mark_dirty();
+        self.message = match label {
+            Some(_) => "Wire label updated".to_string(),
+            None => "Wire label cleared".to_string(),
+        };
     }
 
     fn set_wire_color_override(&mut self, color: Option<[u8; 3]>) {
@@ -2298,6 +2322,29 @@ fn show_wire_color_button(
             *action = Some(InspectorAction::SetColor(None));
         }
     });
+}
+
+fn show_wire_label_editor(
+    ui: &mut egui::Ui,
+    current: Option<&str>,
+    action: &mut Option<InspectorAction>,
+) {
+    let mut label = current.unwrap_or("").to_string();
+    ui.horizontal(|ui| {
+        ui.label("Label");
+        ui.text_edit_singleline(&mut label);
+        if ui.button("Set").clicked() {
+            *action = Some(InspectorAction::SetLabel(normalize_label(label)));
+        }
+    });
+}
+
+fn normalize_label(label: String) -> Option<String> {
+    let trimmed = label.trim();
+    if trimmed.is_empty() {
+        return None;
+    }
+    Some(trimmed.to_string())
 }
 
 fn library_list<'a>(
@@ -3154,6 +3201,17 @@ mod tests {
         assert_eq!(app.document.wires()[0].color_override, Some([1, 2, 3]));
         app.undo();
         assert_eq!(app.document.wires()[0].color_override, None);
+    }
+
+    #[test]
+    fn selected_wire_label_can_be_set() {
+        let (mut app, _, _) = context_app();
+        let wire = sample_wire(&mut app.document, app.library);
+        app.selection.apply([], [wire], false);
+        app.set_wire_label(Some("LED_A".to_string()));
+        assert_eq!(app.document.wires()[0].label.as_deref(), Some("LED_A"));
+        app.undo();
+        assert_eq!(app.document.wires()[0].label, None);
     }
 
     #[test]

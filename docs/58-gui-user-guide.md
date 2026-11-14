@@ -107,6 +107,7 @@ Kelas net juga dapat diubah setelah wire dibuat:
 - Pilih wire.
 - Buka Inspector, lalu ganti `Class`.
 - Atau klik kanan wire, lalu pilih `Net class`.
+- Isi `Label` di Inspector untuk nama net kustom, misalnya `LED_A`.
 - Warna dan pola garis mengikuti kelas baru.
 - Undo mengembalikan kelas sebelumnya.
 
@@ -192,6 +193,7 @@ Perilaku:
 - Versi skema saat ini 2.
 - File versi 1 dimigrasikan otomatis ke versi 2.
 - Warna override wire disimpan sebagai RGB di field `color`.
+- Label net kustom disimpan di field `label`.
 - Save atomik melalui file sementara.
 - Backup `<file>.bak` sebelum menimpa.
 - Autosave setelah 2 detik tanpa edit.
