@@ -30,6 +30,14 @@ const WATCH_INTERVAL: Duration = Duration::from_secs(1);
 const TOAST_DURATION: Duration = Duration::from_secs(3);
 const PB5_COLOR: egui::Color32 = egui::Color32::from_rgb(0, 190, 210);
 const LED_COLOR: egui::Color32 = egui::Color32::from_rgb(85, 205, 125);
+const CONTEXT_COLORS: [(&str, [u8; 3]); 6] = [
+    ("Red", [225, 85, 85]),
+    ("Green", [85, 205, 125]),
+    ("Blue", [90, 155, 240]),
+    ("Cyan", [80, 215, 225]),
+    ("Yellow", [230, 210, 95]),
+    ("White", [230, 235, 245]),
+];
 
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
 enum Tool {
@@ -77,7 +85,7 @@ enum ConflictAction {
     SaveMine,
 }
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 enum ContextAction {
     Copy,
     Paste,
@@ -88,8 +96,16 @@ enum ContextAction {
     Properties,
     Graph,
     SetClass(NetClass),
+    SetColor(Option<[u8; 3]>),
+    SetLabel(Option<String>),
     SelectTool,
     WireTool,
+}
+
+struct ContextNetState {
+    class: Option<NetClass>,
+    has_override: bool,
+    label: String,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -1389,7 +1405,7 @@ impl GuiApp {
             position,
             &self.selection,
             self.clipboard.is_empty(),
-            self.selection_wire_class(),
+            self.context_net_state(),
         );
         let close = action.is_none()
             && ui.input(|input| {
@@ -1418,6 +1434,8 @@ impl GuiApp {
             ContextAction::Properties => self.inspector_open = true,
             ContextAction::Graph => self.waveform_open = true,
             ContextAction::SetClass(class) => self.set_wire_class(class),
+            ContextAction::SetColor(color) => self.set_wire_color_override(color),
+            ContextAction::SetLabel(label) => self.set_wire_label(label),
             ContextAction::SelectTool => self.set_tool(Tool::Select),
             ContextAction::WireTool => self.set_tool(Tool::Wire),
         }
@@ -1840,6 +1858,28 @@ impl GuiApp {
                 .find(|wire| wire.id == *id)
                 .map(wire_rgb)
         })
+    }
+
+    fn selection_wire_label(&self) -> String {
+        self.selection
+            .wires()
+            .iter()
+            .find_map(|id| {
+                self.document
+                    .wires()
+                    .iter()
+                    .find(|wire| wire.id == *id)
+                    .and_then(|wire| wire.label.clone())
+            })
+            .unwrap_or_default()
+    }
+
+    fn context_net_state(&self) -> ContextNetState {
+        ContextNetState {
+            class: self.selection_wire_class(),
+            has_override: self.selection_has_color_override(),
+            label: self.selection_wire_label(),
+        }
     }
 
     fn selection_has_color_override(&self) -> bool {
@@ -2442,7 +2482,7 @@ fn show_context_area(
     position: egui::Pos2,
     selection: &Selection,
     clipboard_empty: bool,
-    wire_class: Option<NetClass>,
+    net: ContextNetState,
 ) -> (Option<ContextAction>, egui::Response) {
     let mut action = None;
     let area = egui::Area::new(egui::Id::unique("canvas-context"))
@@ -2450,8 +2490,8 @@ fn show_context_area(
         .order(egui::Order::Foreground)
         .show(ctx, |ui| {
             egui::Frame::popup(ui.style()).show(ui, |ui| {
-                ui.set_min_width(170.0);
-                context_buttons(ui, selection, clipboard_empty, wire_class, &mut action);
+                ui.set_min_width(190.0);
+                context_buttons(ui, selection, clipboard_empty, &net, &mut action);
             });
         });
     (action, area.response)
@@ -2461,7 +2501,7 @@ fn context_buttons(
     ui: &mut egui::Ui,
     selection: &Selection,
     clipboard_empty: bool,
-    wire_class: Option<NetClass>,
+    net: &ContextNetState,
     action: &mut Option<ContextAction>,
 ) {
     context_edit_buttons(ui, selection, clipboard_empty, action);
@@ -2469,10 +2509,63 @@ fn context_buttons(
     context_transform_buttons(ui, selection, action);
     if !selection.wires().is_empty() {
         ui.separator();
-        context_class_combo(ui, wire_class, action);
+        context_net_controls(ui, net, action);
     }
     ui.separator();
     context_tool_buttons(ui, action);
+}
+
+fn context_net_controls(
+    ui: &mut egui::Ui,
+    net: &ContextNetState,
+    action: &mut Option<ContextAction>,
+) {
+    context_class_combo(ui, net.class, action);
+    context_color_presets(ui, net, action);
+    context_label_editor(ui, net, action);
+}
+
+fn context_color_presets(
+    ui: &mut egui::Ui,
+    net: &ContextNetState,
+    action: &mut Option<ContextAction>,
+) {
+    ui.horizontal_wrapped(|ui| {
+        ui.label("Color");
+        for &(name, rgb) in &CONTEXT_COLORS {
+            if context_color_button(ui, name, rgb).clicked() {
+                *action = Some(ContextAction::SetColor(Some(rgb)));
+            }
+        }
+        if ui
+            .add_enabled(net.has_override, egui::Button::new("Reset"))
+            .clicked()
+        {
+            *action = Some(ContextAction::SetColor(None));
+        }
+    });
+}
+
+fn context_color_button(ui: &mut egui::Ui, name: &str, rgb: [u8; 3]) -> egui::Response {
+    let button = egui::Button::new(" ")
+        .fill(egui::Color32::from_rgb(rgb[0], rgb[1], rgb[2]))
+        .min_size(egui::vec2(16.0, 16.0));
+    ui.add(button).on_hover_text(name)
+}
+
+fn context_label_editor(
+    ui: &mut egui::Ui,
+    net: &ContextNetState,
+    action: &mut Option<ContextAction>,
+) {
+    let mut label = net.label.clone();
+    ui.horizontal(|ui| {
+        ui.label("Label");
+        ui.text_edit_singleline(&mut label);
+        if ui.button("Set").clicked() {
+            *action = Some(ContextAction::SetLabel(normalize_label(label)));
+        }
+    });
 }
 
 fn context_class_combo(

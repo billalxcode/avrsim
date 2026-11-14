@@ -107,6 +107,7 @@ Kelas net juga dapat diubah setelah wire dibuat:
 - Pilih wire.
 - Buka Inspector, lalu ganti `Class`.
 - Atau klik kanan wire, lalu pilih `Net class`.
+- Context menu juga menyediakan preset warna dan editor label.
 - Isi `Label` di Inspector untuk nama net kustom, misalnya `LED_A`.
 - Warna dan pola garis mengikuti kelas baru.
 - Undo mengembalikan kelas sebelumnya.

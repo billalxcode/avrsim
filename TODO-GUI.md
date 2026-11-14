@@ -249,7 +249,7 @@ melihat sinyal digital dan analog, serta memeriksa nilai pada cursor.
 - [x] G8-08 Implementasikan command palette Ctrl+K.
 - [x] G8-20 Implementasikan context menu dasar untuk edit dan tool.
 - [x] G8-22 Tambahkan properties dan graph ke context menu.
-- [ ] G8-23 Tambahkan aksi warna dan label net ke context menu.
+- [x] G8-23 Tambahkan aksi warna dan label net ke context menu.
 - [x] G8-21 Implementasikan rotate dan mirror untuk seluruh seleksi.
 - [x] G8-09 Test undo/redo dan persistence.
 - [x] G8-10 Kelompokkan undo per aksi drag atau klik.
