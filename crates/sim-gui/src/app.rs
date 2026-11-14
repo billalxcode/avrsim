@@ -107,6 +107,7 @@ enum ContextAction {
     Properties,
     Graph,
     ProbePb5,
+    ProbeLed,
     SetClass(NetClass),
     SetColor(Option<[u8; 3]>),
     SetLabel(Option<String>),
@@ -237,6 +238,7 @@ impl GuiApp {
             ..Self::default()
         };
         app.add_pb5_probe();
+        app.add_led_probe();
         app
     }
 }
@@ -413,24 +415,27 @@ impl GuiApp {
     }
 
     fn add_pb5_probe(&mut self) -> bool {
-        let source = ProbeSource::Pin {
-            component: ComponentId(0),
-            pin: "PB5",
-        };
-        if self.probes.contains(source) {
+        self.add_probe(pb5_probe_spec())
+    }
+
+    fn add_led_probe(&mut self) -> bool {
+        self.add_probe(led_probe_spec())
+    }
+
+    fn add_probe(&mut self, spec: ProbeSpec) -> bool {
+        if self.probes.contains(spec.source) {
             return false;
         }
-        self.probes.add(ProbeSpec {
-            label: "PB5 voltage".to_string(),
-            unit: "V",
-            color: PB5_COLOR,
-            source,
-            sampling: Sampling::default(),
-        })
+        self.probes.add(spec)
     }
 
     fn open_pb5_probe(&mut self) {
         self.add_pb5_probe();
+        self.analog_open = true;
+    }
+
+    fn open_led_probe(&mut self) {
+        self.add_led_probe();
         self.analog_open = true;
     }
 
@@ -1613,6 +1618,7 @@ impl GuiApp {
             ContextAction::Properties => self.inspector_open = true,
             ContextAction::Graph => self.waveform_open = true,
             ContextAction::ProbePb5 => self.open_pb5_probe(),
+            ContextAction::ProbeLed => self.open_led_probe(),
             ContextAction::SetClass(class) => self.set_wire_class(class),
             ContextAction::SetColor(color) => self.set_wire_color_override(color),
             ContextAction::SetLabel(label) => self.set_wire_label(label),
@@ -2431,10 +2437,11 @@ impl GuiApp {
             return "PB5 -".to_string();
         }
         format!(
-            "PB5 {} {} mV  LED {}",
+            "PB5 {} {} mV  LED {} {:.1} mA",
             high_low(self.sim_status.pb5_high),
             self.sim_status.pb5_millivolts,
-            on_off(self.sim_status.led_on)
+            on_off(self.sim_status.led_on),
+            self.sim_status.led_microamps as f32 / 1000.0
         )
     }
 
@@ -2899,6 +2906,9 @@ fn context_tool_buttons(ui: &mut egui::Ui, action: &mut Option<ContextAction>) {
     if ui.button("Probe PB5").clicked() {
         *action = Some(ContextAction::ProbePb5);
     }
+    if ui.button("Probe LED").clicked() {
+        *action = Some(ContextAction::ProbeLed);
+    }
     if ui.button("Select tool").clicked() {
         *action = Some(ContextAction::SelectTool);
     }
@@ -3000,7 +3010,7 @@ fn show_digital_graph(ui: &mut egui::Ui, waveform: &Waveform, status: Status) {
 
 fn show_analog_graph(ui: &mut egui::Ui, probes: &ProbeSet, view: &mut PlotView, status: Status) {
     let window = probe::window(probes.span(), *view);
-    let range = analog_range(probes, view, window);
+    let ranges = analog_ranges(probes, view, window);
     ui.label(analog_header(probes, status, window));
     plot_controls(ui, view);
     let width = ui.available_width().max(320.0);
@@ -3008,14 +3018,19 @@ fn show_analog_graph(ui: &mut egui::Ui, probes: &ProbeSet, view: &mut PlotView, 
         ui.allocate_painter(egui::vec2(width, 190.0), egui::Sense::click_and_drag());
     let plot = response.rect.shrink2(egui::vec2(42.0, 14.0));
     handle_plot_input(&response, view, plot, window);
-    paint_analog_plot(&painter, response.rect, plot, probes, window, range, *view);
+    paint_analog_plot(&painter, response.rect, plot, probes, window, ranges, *view);
 }
 
-fn analog_range(probes: &ProbeSet, view: &PlotView, window: (u64, u64)) -> (f64, f64) {
+type PlotRanges = (Option<(f64, f64)>, Option<(f64, f64)>);
+
+fn analog_ranges(probes: &ProbeSet, view: &PlotView, window: (u64, u64)) -> PlotRanges {
     if !view.autoscale {
-        return (0.0, 5.0);
+        return (Some((0.0, 5.0)), Some((0.0, 0.05)));
     }
-    probe::value_range(probes.probes(), window)
+    (
+        probe::value_range_for(probes.probes(), window, "V"),
+        probe::value_range_for(probes.probes(), window, "A"),
+    )
 }
 
 fn analog_header(probes: &ProbeSet, status: Status, window: (u64, u64)) -> String {
@@ -3093,13 +3108,13 @@ fn paint_analog_plot(
     plot: egui::Rect,
     probes: &ProbeSet,
     window: (u64, u64),
-    range: (f64, f64),
+    ranges: PlotRanges,
     view: PlotView,
 ) {
     painter.rect_filled(rect, 4.0, egui::Color32::from_rgb(18, 22, 26));
-    paint_value_grid(painter, plot, range);
+    paint_value_grid(painter, plot, ranges);
     for probe in probes.probes() {
-        paint_probe_series(painter, plot, probe, window, range);
+        paint_probe_series(painter, plot, probe, window, ranges);
     }
     if view.legend {
         paint_analog_legend(painter, plot, probes);
@@ -3107,23 +3122,72 @@ fn paint_analog_plot(
     paint_analog_cursor(painter, plot, probes, window, view.cursor);
 }
 
-fn paint_value_grid(painter: &egui::Painter, plot: egui::Rect, range: (f64, f64)) {
+fn paint_value_grid(painter: &egui::Painter, plot: egui::Rect, ranges: PlotRanges) {
     let stroke = egui::Stroke::new(1.0, egui::Color32::from_rgb(40, 46, 56));
     for step in 0..=4 {
-        let value = range.0 + (range.1 - range.0) * f64::from(step) / 4.0;
-        let y = value_to_y(plot, range, value);
+        let y = plot.top() + plot.height() * step as f32 / 4.0;
         painter.line_segment(
             [egui::pos2(plot.left(), y), egui::pos2(plot.right(), y)],
             stroke,
         );
-        painter.text(
-            egui::pos2(plot.left() - 6.0, y),
-            egui::Align2::RIGHT_CENTER,
-            format!("{value:.1}"),
-            egui::FontId::monospace(9.0),
-            egui::Color32::from_rgb(150, 160, 175),
-        );
     }
+    if let Some(range) = ranges.0 {
+        paint_axis_labels(painter, plot, range, false);
+    }
+    if let Some(range) = ranges.1 {
+        paint_axis_labels(painter, plot, range, true);
+    }
+}
+
+fn paint_axis_labels(painter: &egui::Painter, plot: egui::Rect, range: (f64, f64), right: bool) {
+    let color = if right {
+        LED_COLOR
+    } else {
+        egui::Color32::from_rgb(150, 160, 175)
+    };
+    for step in 0..=4 {
+        paint_axis_label(painter, plot, range, right, step, color);
+    }
+}
+
+fn paint_axis_label(
+    painter: &egui::Painter,
+    plot: egui::Rect,
+    range: (f64, f64),
+    right: bool,
+    step: i32,
+    color: egui::Color32,
+) {
+    let (x, align) = axis_anchor(plot, right);
+    painter.text(
+        egui::pos2(x, axis_y(plot, step)),
+        align,
+        axis_label(axis_value(range, step), range),
+        egui::FontId::monospace(9.0),
+        color,
+    );
+}
+
+fn axis_value(range: (f64, f64), step: i32) -> f64 {
+    range.0 + (range.1 - range.0) * f64::from(step) / 4.0
+}
+
+fn axis_y(plot: egui::Rect, step: i32) -> f32 {
+    plot.bottom() - plot.height() * step as f32 / 4.0
+}
+
+fn axis_anchor(plot: egui::Rect, right: bool) -> (f32, egui::Align2) {
+    if right {
+        return (plot.right() + 6.0, egui::Align2::LEFT_CENTER);
+    }
+    (plot.left() - 6.0, egui::Align2::RIGHT_CENTER)
+}
+
+fn axis_label(value: f64, range: (f64, f64)) -> String {
+    if (range.1 - range.0).abs() < 1.0 {
+        return format!("{value:.3}");
+    }
+    format!("{value:.1}")
 }
 
 fn paint_probe_series(
@@ -3131,8 +3195,11 @@ fn paint_probe_series(
     plot: egui::Rect,
     probe: &probe::ProbeBuffer,
     window: (u64, u64),
-    range: (f64, f64),
+    ranges: PlotRanges,
 ) {
+    let Some(range) = series_range(probe, ranges) else {
+        return;
+    };
     let screen = probe_screen_points(plot, probe, window, range);
     if screen.len() < 2 {
         return;
@@ -3141,6 +3208,13 @@ fn paint_probe_series(
         screen,
         egui::Stroke::new(1.5, probe.spec().color),
     ));
+}
+
+fn series_range(probe: &probe::ProbeBuffer, ranges: PlotRanges) -> Option<(f64, f64)> {
+    if probe.spec().unit == "A" {
+        return ranges.1;
+    }
+    ranges.0
 }
 
 fn probe_screen_points(
@@ -3421,6 +3495,32 @@ fn world_to_grid(position: egui::Pos2) -> GridPos {
 
 fn icon_button(icon: &str, label: &str) -> egui::Button<'static> {
     egui::Button::new(format!("{icon} {label}"))
+}
+
+fn pb5_probe_spec() -> ProbeSpec {
+    ProbeSpec {
+        label: "PB5 voltage".to_string(),
+        unit: "V",
+        color: PB5_COLOR,
+        source: ProbeSource::Pin {
+            component: ComponentId(0),
+            pin: "PB5",
+        },
+        sampling: Sampling::default(),
+    }
+}
+
+fn led_probe_spec() -> ProbeSpec {
+    ProbeSpec {
+        label: "LED current".to_string(),
+        unit: "A",
+        color: LED_COLOR,
+        source: ProbeSource::Branch {
+            component: ComponentId(0),
+            pin: "LED",
+        },
+        sampling: Sampling::default(),
+    }
 }
 
 fn sample_combo(ui: &mut egui::Ui, current: u64) -> u64 {
@@ -3972,6 +4072,7 @@ mod tests {
                 pb5_high: true,
                 pb5_millivolts: 5000,
                 led_on: true,
+                led_microamps: 14_000,
             },
         }
     }

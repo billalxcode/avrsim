@@ -23,8 +23,7 @@ pub enum ProbeSource {
     /// Reserved for solver-backed net probes.
     #[allow(dead_code)]
     Net { wire: WireId },
-    /// Reserved for solver-backed branch current probes.
-    #[allow(dead_code)]
+    /// Branch current probe.
     Branch {
         component: ComponentId,
         pin: &'static str,
@@ -152,8 +151,11 @@ impl AnalysisProvider for SampleProvider {
         None
     }
 
-    fn branch_current(&self, _component: ComponentId, _pin: &str, _cycle: u64) -> Option<f64> {
-        None
+    fn branch_current(&self, _component: ComponentId, pin: &str, cycle: u64) -> Option<f64> {
+        if cycle != self.sample.cycle || pin != "LED" {
+            return None;
+        }
+        Some(f64::from(self.sample.led_microamps) / 1_000_000.0)
     }
 }
 
@@ -273,23 +275,45 @@ pub fn window(span: (u64, u64), view: PlotView) -> (u64, u64) {
     (begin, begin + visible)
 }
 
-/// Returns the value range inside a cycle window.
+/// Returns the value range for probes with one unit.
 #[must_use]
-pub fn value_range(probes: &[ProbeBuffer], window: (u64, u64)) -> (f64, f64) {
+pub fn value_range_for(
+    probes: &[ProbeBuffer],
+    window: (u64, u64),
+    unit: &str,
+) -> Option<(f64, f64)> {
+    range_for(probes, window, |probe| probe.spec().unit == unit)
+}
+
+fn range_for(
+    probes: &[ProbeBuffer],
+    window: (u64, u64),
+    include: impl Fn(&ProbeBuffer) -> bool,
+) -> Option<(f64, f64)> {
+    probes
+        .iter()
+        .filter(|probe| include(probe))
+        .filter_map(|probe| probe_range(probe, window))
+        .reduce(|(min_a, max_a), (min_b, max_b)| (min_a.min(min_b), max_a.max(max_b)))
+        .map(|(min, max)| padded_range(min, max))
+}
+
+fn probe_range(probe: &ProbeBuffer, window: (u64, u64)) -> Option<(f64, f64)> {
     let mut min = f64::INFINITY;
     let mut max = f64::NEG_INFINITY;
-    for probe in probes {
-        for point in probe.samples() {
-            if point.cycle < window.0 || point.cycle > window.1 {
-                continue;
-            }
-            min = min.min(point.value);
-            max = max.max(point.value);
+    let mut found = false;
+    for point in probe.samples() {
+        if point.cycle < window.0 || point.cycle > window.1 {
+            continue;
         }
+        min = min.min(point.value);
+        max = max.max(point.value);
+        found = true;
     }
-    if !min.is_finite() || !max.is_finite() {
-        return (0.0, 1.0);
-    }
+    found.then_some((min, max))
+}
+
+fn padded_range(min: f64, max: f64) -> (f64, f64) {
     if (max - min).abs() < f64::EPSILON {
         return (min - 0.5, max + 0.5);
     }
@@ -337,7 +361,7 @@ fn push_min_max(output: &mut Vec<ProbePoint>, bucket: &[ProbePoint]) {
 mod tests {
     use super::{
         AnalysisProvider, MAX_SERIES, PlotView, ProbeBuffer, ProbePoint, ProbeSet, ProbeSource,
-        ProbeSpec, Sampling, decimate, value_range, window,
+        ProbeSpec, Sampling, decimate, window,
     };
     use crate::model::{ComponentId, WireId};
     use crate::sim::Sample;
@@ -428,10 +452,15 @@ mod tests {
             pb5_high: true,
             pb5_millivolts: 4200,
             led_on: true,
+            led_microamps: 12_000,
         };
         let provider = super::SampleProvider { sample };
         assert_eq!(provider.pin_voltage(ComponentId(1), "PB5", 7), Some(4.2));
         assert_eq!(provider.pin_voltage(ComponentId(1), "PB5", 8), None);
+        assert_eq!(
+            provider.branch_current(ComponentId(1), "LED", 7),
+            Some(0.012)
+        );
     }
 
     #[test]
@@ -463,12 +492,12 @@ mod tests {
         buffer.push(point(20, 3.0));
         buffer.push(point(30, 2.0));
         assert_eq!(
-            value_range(std::slice::from_ref(&buffer), (0, 25)),
-            (1.0, 3.0)
+            super::value_range_for(std::slice::from_ref(&buffer), (0, 25), "V"),
+            Some((1.0, 3.0))
         );
         assert_eq!(
-            value_range(std::slice::from_ref(&buffer), (25, 40)),
-            (1.5, 2.5)
+            super::value_range_for(std::slice::from_ref(&buffer), (25, 40), "V"),
+            Some((1.5, 2.5))
         );
     }
 }

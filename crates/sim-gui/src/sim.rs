@@ -22,6 +22,7 @@ pub struct Sample {
     pub pb5_high: bool,
     pub pb5_millivolts: i32,
     pub led_on: bool,
+    pub led_microamps: i32,
 }
 
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
@@ -29,6 +30,7 @@ struct SampleState {
     pb5_high: bool,
     pb5_millivolts: i32,
     led_on: bool,
+    led_microamps: i32,
 }
 
 impl SampleState {
@@ -37,6 +39,7 @@ impl SampleState {
             pb5_high: machine.pb5_high,
             pb5_millivolts: machine.pb5_millivolts,
             led_on: machine.led_on,
+            led_microamps: machine.led_microamps,
         }
     }
 
@@ -46,6 +49,7 @@ impl SampleState {
             pb5_high: self.pb5_high,
             pb5_millivolts: self.pb5_millivolts,
             led_on: self.led_on,
+            led_microamps: self.led_microamps,
         }
     }
 }
@@ -101,6 +105,7 @@ pub struct Status {
     pub pb5_high: bool,
     pub pb5_millivolts: i32,
     pub led_on: bool,
+    pub led_microamps: i32,
     pub running: bool,
     pub loaded: bool,
 }
@@ -304,6 +309,7 @@ struct SimMachine {
     led_on: bool,
     pb5_high: bool,
     pb5_millivolts: i32,
+    led_microamps: i32,
     uart_bytes: Vec<u8>,
     uart_rx: VecDeque<u8>,
 }
@@ -318,6 +324,7 @@ impl SimMachine {
             led_on: false,
             pb5_high: false,
             pb5_millivolts: 0,
+            led_microamps: 0,
             uart_bytes: Vec::new(),
             uart_rx: VecDeque::new(),
         })
@@ -343,6 +350,7 @@ impl SimMachine {
         self.led_on = self.board.led().is_on();
         self.pb5_high = state.voltage >= self.config.input_threshold;
         self.pb5_millivolts = (state.voltage * 1000.0).round() as i32;
+        self.led_microamps = (self.board.led().current() * 1_000_000.0).round() as i32;
         Ok(())
     }
 
@@ -377,6 +385,7 @@ impl SimMachine {
         self.led_on = false;
         self.pb5_high = false;
         self.pb5_millivolts = 0;
+        self.led_microamps = 0;
         self.uart_bytes.clear();
         self.uart_rx.clear();
         Ok(())
@@ -610,6 +619,7 @@ fn send_status(machine: &Option<SimMachine>, running: bool, events: &Sender<Even
             pb5_high: machine.pb5_high,
             pb5_millivolts: machine.pb5_millivolts,
             led_on: machine.led_on,
+            led_microamps: machine.led_microamps,
             running,
             loaded: true,
         },
@@ -730,23 +740,23 @@ mod tests {
     #[test]
     fn waveform_span_extends_to_current_cycle() {
         let mut waveform = Waveform::default();
-        waveform.push(Sample {
-            cycle: 10,
-            pb5_high: true,
-            pb5_millivolts: 5000,
-            led_on: true,
-        });
-        waveform.push(Sample {
-            cycle: 40,
-            pb5_high: false,
-            pb5_millivolts: 0,
-            led_on: false,
-        });
+        waveform.push(sample(10, true));
+        waveform.push(sample(40, false));
         assert_eq!(waveform.span(100), (10, 100));
         assert_eq!(waveform.span(20), (10, 40));
         assert_eq!(waveform.state_at(0), (false, false));
         assert_eq!(waveform.state_at(10), (true, true));
         assert_eq!(waveform.state_at(40), (false, false));
+    }
+
+    fn sample(cycle: u64, high: bool) -> Sample {
+        Sample {
+            cycle,
+            pb5_high: high,
+            pb5_millivolts: if high { 5000 } else { 0 },
+            led_on: high,
+            led_microamps: if high { 14_000 } else { 0 },
+        }
     }
 
     #[test]
@@ -758,6 +768,7 @@ mod tests {
                 pb5_high: cycle % 2 == 0,
                 pb5_millivolts: if cycle % 2 == 0 { 5000 } else { 0 },
                 led_on: cycle % 2 == 0,
+                led_microamps: if cycle % 2 == 0 { 14_000 } else { 0 },
             });
         }
         assert_eq!(waveform.samples().len(), super::WAVE_LIMIT);

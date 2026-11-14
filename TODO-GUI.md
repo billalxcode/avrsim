@@ -223,15 +223,15 @@ dan dilangkah dari GUI.
 - [x] G7-16 Tampilkan cursor cycle pada graph digital.
 - [x] G7-05 Dokumentasikan keputusan menunda decode bus.
 - [x] G7-06 Buat graph drawer, tab, dan floating window.
-- [x] G7-07 Tambahkan aksi add graph dari pin atau komponen (PB5).
-- [ ] G7-08 Sampel node voltage dan branch current melalui API read-only. (blocked: butuh netlist)
+- [x] G7-07 Tambahkan aksi add graph dari pin atau komponen (PB5, LED).
+- [x] G7-08 Sampel node voltage PB5 dan branch current LED melalui API read-only.
 - [x] G7-09 Test buffer, decimation, skala, cursor, dan render.
 - [x] G7-10 Definisikan trait internal `AnalysisProvider` untuk plugin analisis.
 - [x] G7-11 Batasi grafik maksimal 8 series.
 - [x] G7-12 Implementasikan cursor, zoom, pan, autoscale, dan legend toggle.
 - [x] G7-13 Gunakan default sampling setiap 100 cycle, dapat dikonfigurasi per probe.
 - [x] G7-14 Gunakan waktu simulasi sebagai sumbu X.
-- [x] G7-15 Warna series mengikuti warna net atau pin.
+- [x] G7-15 Warna series mengikuti warna net atau pin (PB5, LED).
 
 **Acceptance G7:** pengguna dapat membuka grafik per pin atau komponen,
 melihat sinyal digital dan analog, serta memeriksa nilai pada cursor.
@@ -323,9 +323,9 @@ Selesai dan teruji:
 
 Tertunda karena batas teknis atau lingkungan:
 
-- Probe net generik dan branch current: skematik GUI belum memiliki
-  netlist elektrik yang terhubung ke solver analog. Probe PB5 sudah
-  berjalan melalui API read-only.
+- Probe net generik: skematik GUI belum memiliki netlist elektrik yang
+  terhubung ke solver analog. Probe PB5 dan arus LED sudah berjalan
+  melalui API read-only.
 - Golden image RGBA memerlukan renderer headless yang stabil. Prosedur
   update sudah didokumentasikan di `docs/59-gui-golden.md`.
 - Build Windows dan macOS belum dijalankan pada native runner.

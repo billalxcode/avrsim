@@ -162,14 +162,15 @@ Kontrol:
 - `Analog`: membuka graph analog PB5.
 - `UART`: membuka monitor TX.
 - `N 100`: mengatur sampling probe setiap N cycle.
-- Klik kanan lalu `Probe PB5`: menambah probe PB5.
+- Klik kanan lalu `Probe PB5` atau `Probe LED`: menambah probe.
 
 Graph digital menampilkan lane PB5 dan LED pada sumbu cycle. Arahkan
 pointer ke graph untuk melihat cursor dan nilai pada cycle tersebut.
 
-Graph analog menampilkan tegangan PB5 dalam volt. Kontrol `Auto`
-mengaktifkan autoscale, `Legend` menampilkan daftar series, `+` dan `-`
-mengubah zoom, drag menggeser window, dan wheel di atas plot juga
+Graph analog menampilkan tegangan PB5 dalam volt dan arus LED dalam
+ampere. Tegangan memakai sumbu kiri, arus memakai sumbu kanan. Kontrol
+`Auto` mengaktifkan autoscale, `Legend` menampilkan daftar series, `+`
+dan `-` mengubah zoom, drag menggeser window, dan wheel di atas plot juga
 mengubah zoom. Cursor menampilkan cycle dan nilai terdekat.
 
 Probe memakai API read-only dan buffer 10 detik. Default sampling adalah
@@ -295,8 +296,9 @@ Modal konflik muncul. Pilih:
 
 ## 12. Batas Saat Ini
 
-- Probe net generik dan branch current menunggu integrasi netlist.
-- Grafik analog saat ini hanya memakai sampel PB5.
+- Probe net generik menunggu integrasi netlist; probe PB5 dan arus LED
+  sudah tersedia.
+- Grafik analog saat ini memakai sampel PB5 dan arus LED.
 - `Alt` belum menonaktifkan snap karena model dokumen memakai grid
   integer; semua posisi tetap snap ke grid.
 - Clipboard hanya in-memory.
