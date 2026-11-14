@@ -141,6 +141,8 @@ Dokumen yang sering dipakai:
 | [`docs/57-gui-egui.md`](docs/57-gui-egui.md) | Desain GUI egui dan kanvas CAD |
 | [`docs/58-gui-user-guide.md`](docs/58-gui-user-guide.md) | Panduan pengguna GUI |
 | [`docs/59-gui-golden.md`](docs/59-gui-golden.md) | Status dan prosedur golden RGBA GUI |
+| [`docs/60-component-catalog.md`](docs/60-component-catalog.md) | Katalog 500 komponen, akurasi, dan schema |
+| [`TODO-COMPONENTS.md`](TODO-COMPONENTS.md) | Backlog katalog komponen dan Python builder |
 | [`TODO.md`](TODO.md) | Pekerjaan yang tersisa |
 | [`TODO-GUI.md`](TODO-GUI.md) | Backlog GUI egui |
 

@@ -66,6 +66,7 @@ Setiap dokumen muncul satu kali pada peta ini.
 | 57 | [GUI egui](57-gui-egui.md) | Desain canvas CAD, grid, wire, probe, dan grafik |
 | 58 | [Panduan pengguna GUI](58-gui-user-guide.md) | Editing, simulasi, graph, probe, dan ekspor |
 | 59 | [Golden RGBA GUI](59-gui-golden.md) | Status dan prosedur update golden image |
+| 60 | [Katalog komponen](60-component-catalog.md) | Target 500 model, taksonomi, akurasi, dan schema |
 
 ### 3.2 Fondasi
 
