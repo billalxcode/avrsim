@@ -185,7 +185,7 @@ tanpa segmen diagonal, dan tanpa menembus komponen.
 - [x] G5-05 Implementasikan label net saat hover, seleksi, atau zoom tinggi.
 - [x] G5-06 Tambahkan legenda warna dan pola ramah buta warna.
 - [x] G5-07 Test routing, warna, label, dan aturan persilangan.
-- [ ] G5-08 Implementasikan override warna per net.
+- [x] G5-08 Implementasikan override warna per wire.
 - [x] G5-09 Kunci palet warna final dan target kontras WCAG AA.
 - [ ] G5-10 Implementasikan ruler grid dan probe tegangan.
 - [x] G5-11 Implementasikan saran jalur Z.
@@ -260,7 +260,7 @@ melihat sinyal digital dan analog, serta memeriksa nilai pada cursor.
 - [x] G8-15 Satu window menampilkan satu proyek.
 - [x] G8-16 Prompt reload jika file berubah di luar aplikasi.
 - [x] G8-17 Konfirmasi hapus untuk komponen dengan kabel atau seleksi besar.
-- [ ] G8-18 Implementasikan migrasi otomatis skema JSON setelah backup.
+- [x] G8-18 Implementasikan migrasi otomatis skema JSON v1 ke v2.
 - [x] G8-19 Test selection komponen, wire, dan selection box.
 
 **Acceptance G8:** proyek dapat disimpan, dimuat kembali tanpa kehilangan

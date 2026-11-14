@@ -59,6 +59,7 @@ enum InspectorAction {
     Mirror,
     Delete,
     SetClass(NetClass),
+    SetColor(Option<[u8; 3]>),
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -1804,10 +1805,17 @@ impl GuiApp {
             show_component_actions(ui, action);
         }
         if wires > 0 {
-            show_wire_class_combo(ui, "multi_wire_class", self.selection_wire_class(), action);
-            if components == 0 && ui.button("Delete").clicked() {
-                *action = Some(InspectorAction::Delete);
-            }
+            self.multi_wire_controls(ui, action);
+        }
+    }
+
+    fn multi_wire_controls(&self, ui: &mut egui::Ui, action: &mut Option<InspectorAction>) {
+        show_wire_class_combo(ui, "multi_wire_class", self.selection_wire_class(), action);
+        if let Some(rgb) = self.selection_wire_rgb() {
+            show_wire_color_button(ui, rgb, self.selection_has_color_override(), action);
+        }
+        if self.selection.components().is_empty() && ui.button("Delete").clicked() {
+            *action = Some(InspectorAction::Delete);
         }
     }
 
@@ -1823,6 +1831,26 @@ impl GuiApp {
         classes.all(|class| class == first).then_some(first)
     }
 
+    fn selection_wire_rgb(&self) -> Option<[u8; 3]> {
+        self.selection.wires().iter().find_map(|id| {
+            self.document
+                .wires()
+                .iter()
+                .find(|wire| wire.id == *id)
+                .map(wire_rgb)
+        })
+    }
+
+    fn selection_has_color_override(&self) -> bool {
+        self.selection.wires().iter().any(|id| {
+            self.document
+                .wires()
+                .iter()
+                .find(|wire| wire.id == *id)
+                .is_some_and(|wire| wire.color_override.is_some())
+        })
+    }
+
     fn wire_inspector(&self, ui: &mut egui::Ui, action: &mut Option<InspectorAction>, id: WireId) {
         let Some(wire) = self.document.wires().iter().find(|wire| wire.id == id) else {
             ui.label("Wire missing");
@@ -1831,6 +1859,7 @@ impl GuiApp {
         ui.label(format!("Wire {}", wire.id.0));
         show_wire_class_combo(ui, "inspector_wire_class", Some(wire.class), action);
         ui.label(format!("Vertices: {}", wire.points.len()));
+        show_wire_color_button(ui, wire_rgb(wire), wire.color_override.is_some(), action);
         if ui.button("Delete").clicked() {
             *action = Some(InspectorAction::Delete);
         }
@@ -1994,7 +2023,30 @@ impl GuiApp {
             InspectorAction::Mirror => self.mirror(),
             InspectorAction::Delete => self.delete_selection(),
             InspectorAction::SetClass(class) => self.set_wire_class(class),
+            InspectorAction::SetColor(color) => self.set_wire_color_override(color),
         }
+    }
+
+    fn set_wire_color_override(&mut self, color: Option<[u8; 3]>) {
+        let ids: Vec<_> = self.selection.wires().iter().copied().collect();
+        if ids.is_empty() {
+            return;
+        }
+        let before = self.document.clone();
+        let mut changed = false;
+        for id in ids {
+            changed |= self.document.set_wire_color(id, color);
+        }
+        if !changed {
+            return;
+        }
+        self.history.record(&before);
+        self.mark_dirty();
+        self.message = if color.is_some() {
+            "Wire color updated".to_string()
+        } else {
+            "Wire color reset".to_string()
+        };
     }
 
     fn set_wire_class(&mut self, class: NetClass) {
@@ -2220,6 +2272,32 @@ fn show_wire_class_combo(
             *action = Some(InspectorAction::SetClass(class));
         }
     }
+}
+
+fn wire_rgb(wire: &crate::model::Wire) -> [u8; 3] {
+    let [red, green, blue, _] = scene::wire_color(wire).to_srgba_unmultiplied();
+    [red, green, blue]
+}
+
+fn show_wire_color_button(
+    ui: &mut egui::Ui,
+    current: [u8; 3],
+    has_override: bool,
+    action: &mut Option<InspectorAction>,
+) {
+    let mut rgb = current;
+    ui.horizontal(|ui| {
+        ui.label("Color");
+        if ui.color_edit_button_srgb(&mut rgb).changed() {
+            *action = Some(InspectorAction::SetColor(Some(rgb)));
+        }
+        if ui
+            .add_enabled(has_override, egui::Button::new("Reset"))
+            .clicked()
+        {
+            *action = Some(InspectorAction::SetColor(None));
+        }
+    });
 }
 
 fn library_list<'a>(
@@ -3065,6 +3143,17 @@ mod tests {
         assert_eq!(app.document.wires()[0].class, NetClass::Analog);
         app.undo();
         assert_eq!(app.document.wires()[0].class, NetClass::Digital);
+    }
+
+    #[test]
+    fn selected_wire_color_can_be_overridden() {
+        let (mut app, _, _) = context_app();
+        let wire = sample_wire(&mut app.document, app.library);
+        app.selection.apply([], [wire], false);
+        app.set_wire_color_override(Some([1, 2, 3]));
+        assert_eq!(app.document.wires()[0].color_override, Some([1, 2, 3]));
+        app.undo();
+        assert_eq!(app.document.wires()[0].color_override, None);
     }
 
     #[test]

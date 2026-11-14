@@ -11,7 +11,7 @@ use std::collections::BTreeSet;
 use std::path::{Path, PathBuf};
 
 const FORMAT: &str = "embed-emu-gui";
-const VERSION: u32 = 1;
+const VERSION: u32 = 2;
 
 /// Loaded project state.
 pub struct Project {
@@ -56,6 +56,8 @@ struct WireFile {
     id: u32,
     class: String,
     points: Vec<[i32; 2]>,
+    #[serde(default)]
+    color: Option<[u8; 3]>,
 }
 
 /// Serializes the project to pretty JSON.
@@ -101,7 +103,7 @@ pub fn from_json(text: &str, library: &[ComponentDefinition]) -> Result<Project,
     if file.format != FORMAT {
         return Err(format!("unsupported project format: {}", file.format));
     }
-    if file.version != VERSION {
+    if file.version != 1 && file.version != VERSION {
         return Err(format!("unsupported project version: {}", file.version));
     }
     let components = file.components(library)?;
@@ -247,6 +249,7 @@ impl WireFile {
             id: wire.id.0,
             class: wire.class.label().to_string(),
             points: wire.points.iter().map(|point| [point.x, point.y]).collect(),
+            color: wire.color_override,
         }
     }
 
@@ -261,10 +264,11 @@ impl WireFile {
             .iter()
             .map(|point| GridPos::new(point[0], point[1]))
             .collect();
-        document
+        let id = document
             .add_wire(library, points, class)
-            .map(|_| ())
-            .ok_or_else(|| format!("invalid wire: {}", self.id))
+            .ok_or_else(|| format!("invalid wire: {}", self.id))?;
+        document.set_wire_color(id, self.color);
+        Ok(())
     }
 }
 
@@ -320,6 +324,7 @@ mod tests {
                 vec![GridPos::new(4, 1), GridPos::new(6, 1)],
                 NetClass::Digital,
             )
+            .map(|wire| document.set_wire_color(wire, Some([10, 20, 30])))
             .expect("wire");
         let camera = crate::canvas::GridCamera::default();
         to_json(&document, &camera, true).expect("json")
@@ -331,6 +336,10 @@ mod tests {
         let project = from_json(&sample_text(), library).expect("load");
         assert_eq!(project.document.components().len(), 2);
         assert_eq!(project.document.wires().len(), 1);
+        assert_eq!(
+            project.document.wires()[0].color_override,
+            Some([10, 20, 30])
+        );
     }
 
     #[test]
@@ -349,8 +358,21 @@ mod tests {
 
     #[test]
     fn rejects_wrong_version() {
-        let text = sample_text().replace("\"version\": 1", "\"version\": 2");
+        let text = sample_text().replace("\"version\": 2", "\"version\": 3");
         assert!(from_json(&text, library::builtin()).is_err());
+    }
+
+    #[test]
+    fn loads_version_one_without_color() {
+        let mut value: serde_json::Value =
+            serde_json::from_str(&sample_text()).expect("json value");
+        value["version"] = serde_json::json!(1);
+        for wire in value["wires"].as_array_mut().expect("wires") {
+            wire.as_object_mut().expect("wire object").remove("color");
+        }
+        let text = serde_json::to_string(&value).expect("json");
+        let project = from_json(&text, library::builtin()).expect("v1 project");
+        assert_eq!(project.document.wires()[0].color_override, None);
     }
 
     #[test]

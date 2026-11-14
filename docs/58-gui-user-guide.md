@@ -189,6 +189,9 @@ Format proyek:
 Perilaku:
 
 - JSON pretty print 2 spasi.
+- Versi skema saat ini 2.
+- File versi 1 dimigrasikan otomatis ke versi 2.
+- Warna override wire disimpan sebagai RGB di field `color`.
 - Save atomik melalui file sementara.
 - Backup `<file>.bak` sebelum menimpa.
 - Autosave setelah 2 detik tanpa edit.

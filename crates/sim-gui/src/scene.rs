@@ -174,7 +174,7 @@ fn minimap_map(area: egui::Rect, min: GridPos, max: GridPos) -> Option<MinimapMa
 
 fn draw_minimap_wires(painter: &egui::Painter, map: MinimapMap, document: &Document) {
     for wire in document.wires() {
-        let color = net_color(wire.class).gamma_multiply(0.8);
+        let color = wire_color(wire).gamma_multiply(0.8);
         for segment in wire.points.windows(2) {
             painter.line_segment(
                 [map.point(segment[0]), map.point(segment[1])],
@@ -350,7 +350,7 @@ fn draw_net_label(
         return;
     };
     let pos = camera.world_to_screen(rect, midpoint) + egui::vec2(4.0, -16.0);
-    let color = net_color(wire.class);
+    let color = wire_color(wire);
     let galley = painter.layout_no_wrap(
         wire.class.label().to_string(),
         egui::FontId::monospace(11.0),
@@ -380,7 +380,7 @@ fn draw_wire(
         draw_wire_ends(painter, rect, camera, wire);
     }
     let style = WireStyle {
-        color: net_color(wire.class),
+        color: wire_color(wire),
         width: 2.0,
         dash: wire_dash(wire.class),
     };
@@ -531,6 +531,13 @@ fn draw_segment(
     let start = screen_pos(rect, camera, start);
     let end = screen_pos(rect, camera, end);
     painter.line_segment([start, end], egui::Stroke::new(width, color));
+}
+
+pub(crate) fn wire_color(wire: &crate::model::Wire) -> egui::Color32 {
+    wire.color_override.map_or_else(
+        || net_color(wire.class),
+        |[red, green, blue]| egui::Color32::from_rgb(red, green, blue),
+    )
 }
 
 pub(crate) fn net_color(class: NetClass) -> egui::Color32 {
@@ -1049,12 +1056,14 @@ mod tests {
             id: WireId(1),
             points: vec![GridPos::new(0, 0), GridPos::new(4, 0), GridPos::new(4, 4)],
             class: NetClass::Digital,
+            color_override: None,
         };
         assert_eq!(wire_midpoint(&wire), Some(eframe::egui::pos2(4.0, 2.0)));
         let short = Wire {
             id: WireId(2),
             points: vec![GridPos::new(0, 0)],
             class: NetClass::Digital,
+            color_override: None,
         };
         assert_eq!(wire_midpoint(&short), None);
     }
@@ -1067,6 +1076,20 @@ mod tests {
                 assert_ne!(color, other);
             }
         }
+    }
+
+    #[test]
+    fn wire_color_uses_override() {
+        let wire = Wire {
+            id: WireId(1),
+            points: vec![GridPos::new(0, 0), GridPos::new(2, 0)],
+            class: NetClass::Digital,
+            color_override: Some([1, 2, 3]),
+        };
+        assert_eq!(
+            super::wire_color(&wire),
+            eframe::egui::Color32::from_rgb(1, 2, 3)
+        );
     }
 
     #[test]

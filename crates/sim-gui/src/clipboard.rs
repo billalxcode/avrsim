@@ -18,6 +18,7 @@ struct ClipComponent {
 struct ClipWire {
     points: Vec<GridPos>,
     class: NetClass,
+    color: Option<[u8; 3]>,
 }
 
 /// Copied components and wires with a common origin.
@@ -115,6 +116,7 @@ impl ClipWire {
         Self {
             points: wire.points.clone(),
             class: wire.class,
+            color: wire.color_override,
         }
     }
 }
@@ -174,7 +176,9 @@ fn paste_wires(
                 .iter()
                 .map(|point| point.offset(offset))
                 .collect();
-            document.add_wire(library, points, clip.class)
+            let id = document.add_wire(library, points, clip.class)?;
+            document.set_wire_color(id, clip.color);
+            Some(id)
         })
         .collect()
 }
@@ -222,6 +226,7 @@ mod tests {
                 NetClass::Digital,
             )
             .expect("wire");
+        document.set_wire_color(wire, Some([9, 8, 7]));
         let (components, wires) = selection(&[first.0, second.0], &[wire.0]);
         let clipboard = Clipboard::capture(&document, &components, &wires);
         (document, clipboard)
@@ -267,5 +272,6 @@ mod tests {
         assert_eq!(pasted.components.len(), 2);
         assert_eq!(pasted.wires.len(), 1);
         assert_eq!(document.wires().len(), 2);
+        assert_eq!(document.wires()[1].color_override, Some([9, 8, 7]));
     }
 }

@@ -323,6 +323,7 @@ pub struct Wire {
     pub id: WireId,
     pub points: Vec<GridPos>,
     pub class: NetClass,
+    pub color_override: Option<[u8; 3]>,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
@@ -421,7 +422,12 @@ impl Document {
         }
         let id = WireId(self.next_wire_id);
         self.next_wire_id += 1;
-        self.wires.push(Wire { id, points, class });
+        self.wires.push(Wire {
+            id,
+            points,
+            class,
+            color_override: None,
+        });
         Some(id)
     }
 
@@ -492,6 +498,18 @@ impl Document {
             return false;
         }
         wire.class = class;
+        true
+    }
+
+    /// Sets or clears a wire color override.
+    pub fn set_wire_color(&mut self, id: WireId, color: Option<[u8; 3]>) -> bool {
+        let Some(wire) = self.wires.iter_mut().find(|wire| wire.id == id) else {
+            return false;
+        };
+        if wire.color_override == color {
+            return false;
+        }
+        wire.color_override = color;
         true
     }
 
@@ -1417,6 +1435,7 @@ mod tests {
             id: WireId(id),
             points: vec![start, end],
             class,
+            color_override: None,
         }
     }
 
