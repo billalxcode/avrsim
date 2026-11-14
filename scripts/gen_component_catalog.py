@@ -190,7 +190,7 @@ add("switch.relay", "Relay", None, 4, "coil_voltage", 5.0, "V", [
     "solid state relay", "opto MOSFET relay", "TRIAC output SSR",
     "time delay relay",
 ])
-add("switch.analog", "AnalogSwitch", None, 3, "on_resistance", 1.0, "ohm", [
+add("switch.analog", "AnalogSwitch", "Switch", 4, "ron", 1.0, "ohm", [
     "analog switch", "SPDT analog switch", "4 to 1 analog multiplexer",
     "8 to 1 analog multiplexer", "analog demultiplexer",
 ])

@@ -513,6 +513,7 @@ impl ModelClass {
                 | Self::Jfet
                 | Self::Mosfet
                 | Self::Switch
+                | Self::AnalogSwitch
         )
     }
 

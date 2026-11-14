@@ -1,7 +1,7 @@
 # TODO - Komponen 500
 
 Status: katalog 500 entri sudah diimplementasikan di `sim-device`.
-Registry-backed emulation tersedia untuk 183 entri. Sebanyak 317 entri
+Registry-backed emulation tersedia untuk 188 entri. Sebanyak 312 entri
 behavioral masih menunggu model solver dan belum dapat disimulasikan
 sebagai device MNA.
 

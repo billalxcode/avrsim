@@ -7,6 +7,7 @@ use sim_device::{ComponentRegistry, ComponentRequest};
 const SOURCE: &str = "source.independent.dc_voltage_source";
 const RESISTOR: &str = "passive.resistor.ideal_resistor";
 const SWITCH: &str = "switch.mechanical.spst_switch";
+const ANALOG_SWITCH: &str = "switch.analog.analog_switch";
 const OPAMP: &str = "analog.opamp.ideal_opamp";
 const COMPARATOR: &str = "analog.comparator.comparator";
 
@@ -48,6 +49,20 @@ fn add_switch(
         .with_parameter("closed", closed)
         .with_parameter("ron", 0.01);
     registry.add_to(builder, &request).expect("switch");
+}
+
+fn add_analog_switch(
+    registry: &ComponentRegistry,
+    builder: &mut CircuitBuilder,
+    name: &str,
+    first: NodeId,
+    second: NodeId,
+    control: NodeId,
+    ground: NodeId,
+) {
+    let pins = vec![first, second, control, ground];
+    let request = ComponentRequest::new(ANALOG_SWITCH, name, DeviceId::new(0), pins);
+    registry.add_to(builder, &request).expect("analog switch");
 }
 
 fn add_opamp(
@@ -92,6 +107,17 @@ fn divider_circuit() -> Circuit {
     builder.build().expect("circuit")
 }
 
+fn add_switch_load(
+    registry: &ComponentRegistry,
+    builder: &mut CircuitBuilder,
+    source: NodeId,
+    out: NodeId,
+    ground: NodeId,
+) {
+    add_resistor(registry, builder, "R1", source, out, 1000.0);
+    add_resistor(registry, builder, "R2", out, ground, 1_000_000.0);
+}
+
 fn switch_circuit(closed: f64) -> Circuit {
     let registry = ComponentRegistry::new();
     let mut builder = CircuitBuilder::new();
@@ -99,8 +125,7 @@ fn switch_circuit(closed: f64) -> Circuit {
     let out = builder.node("out").expect("out");
     let ground = builder.ground();
     add_source(&registry, &mut builder, "V1", source, ground, 5.0);
-    add_resistor(&registry, &mut builder, "R1", source, out, 1000.0);
-    add_resistor(&registry, &mut builder, "R2", out, ground, 1_000_000.0);
+    add_switch_load(&registry, &mut builder, source, out, ground);
     add_switch(&registry, &mut builder, "SW1", out, ground, closed);
     builder.build().expect("circuit")
 }
@@ -115,6 +140,27 @@ fn follower_circuit() -> Circuit {
     add_source(&registry, &mut builder, "VIN", input, ground, 2.5);
     add_source(&registry, &mut builder, "VCC", supply, ground, 5.0);
     add_opamp(&registry, &mut builder, "U1", input, output, supply, ground);
+    builder.build().expect("circuit")
+}
+
+fn analog_switch_circuit(control_voltage: f64) -> Circuit {
+    let registry = ComponentRegistry::new();
+    let mut builder = CircuitBuilder::new();
+    let source = builder.node("source").expect("source");
+    let out = builder.node("out").expect("out");
+    let control = builder.node("control").expect("control");
+    let ground = builder.ground();
+    add_source(&registry, &mut builder, "V1", source, ground, 5.0);
+    add_source(
+        &registry,
+        &mut builder,
+        "VC",
+        control,
+        ground,
+        control_voltage,
+    );
+    add_switch_load(&registry, &mut builder, source, out, ground);
+    add_analog_switch(&registry, &mut builder, "SW1", out, ground, control, ground);
     builder.build().expect("circuit")
 }
 
@@ -165,4 +211,12 @@ fn registry_comparator_saturates_both_ways() {
     let low = dc_voltage(&comparator_circuit(2.0), "output");
     assert!(high > 4.9, "high {high}");
     assert!(low < 0.1, "low {low}");
+}
+
+#[test]
+fn registry_analog_switch_follows_control() {
+    let off = dc_voltage(&analog_switch_circuit(0.0), "out");
+    let on = dc_voltage(&analog_switch_circuit(5.0), "out");
+    assert!(off > 4.9, "off {off}");
+    assert!(on < 0.1, "on {on}");
 }
